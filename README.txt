@@ -1,21 +1,32 @@
-v0.37.9 Basketball Universe — Drafted Rookie Ratings Fix
+v0.38 Basketball Universe — Draft History & Current Activity
 
-ROOT CAUSE
-The interactive Draft Room was not using the same prospect-to-player conversion used by the original draft engine.
-Prospects could enter the league without a properly realized OVR, potential, true potential, and skill profile.
+NEW: DRAFT HISTORY
+- New Draft History tab.
+- Records the actual universe draft by year.
+- Shows pick number, drafting team, player, position, realized OVR and POT.
+- Records undrafted prospects too.
+- Interactive Draft Room results are now permanently saved instead of disappearing after the offseason.
 
-FIXED
-- Draft Room selections now use convertProspectToPlayer().
-- Drafted players receive realized OVR/potential based on their draft-time prospect range and controlled variance.
-- Rookie year remains the season beginning after that offseason draft (1984 draft -> 1984-85 rookie season).
-- Draft results now show the player's actual realized OVR/POT instead of defaulting to 60.
-- ROY is selected from actual rookie-season production, with a small ratings tiebreaker.
-- If the currently completed season is still loaded, opening History recomputes that season's ROY using the corrected eligibility/profile data.
+NEW: CURRENT ACTIVITY
+- Dashboard now has one Current Activity button.
+- Regular season -> Season
+- Playoffs -> Playoffs
+- Offseason -> Offseason
+- Draft stage -> Draft Room
+This gives the Dashboard a simple resume/continue destination.
 
-IMPORTANT PHILOSOPHY
-Michael Jordan and Hakeem Olajuwon are NOT hardcoded to win 1984-85 ROY.
-They should enter as elite prospects and usually be strong candidates, but another 1984 rookie can legitimately win if the alternate-universe season supports it.
+DRAFT CLASS FIX
+- Removed the dangerous fallback that recycled the previous draft class when a new year was missing.
+- Missing classes now display as missing instead of silently repeating another year.
+- Added the 1987 historical prospect class.
+- David Robinson is modeled as an elite 1987 prospect with deferred entry through 1989 because of his Naval service commitment.
+
+DRAFT AI / UNDRAFTED PLAYERS
+- Talent now outweighs roster fit more strongly in AI draft decisions, so elite prospects should not disappear because every team preferred positional fit.
+- Any prospects remaining after the draft are recorded as Undrafted and enter the free-agent pool instead of vanishing.
+
+NOTE ABOUT THE EXISTING JORDAN TEST
+Your prior save passed the 1984 draft before these history safeguards existed, so v0.38 cannot reliably reconstruct which team did or did not select Jordan in that old draft. Future drafts will be fully auditable in Draft History.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
-Existing saves continue to work, but players drafted before this fix keep the ratings they already received.
