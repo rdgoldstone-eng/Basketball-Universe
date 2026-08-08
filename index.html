@@ -151,6 +151,9 @@ pre{white-space:pre-wrap}
 
 .careerMetric{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
 .careerTimelineRow{padding:8px 0;border-bottom:1px solid var(--line)}
+
+.playerGameRow{display:grid;grid-template-columns:90px 1fr auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.roleBadge{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-weight:800}
 </style>
 </head>
 <body>
@@ -165,7 +168,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.21 · Player Career</div>
+    <div class="pill">v0.22 · Player Performance</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -378,6 +381,11 @@ pre{white-space:pre-wrap}
       <div class="card"><h2>Player Career</h2><div id="careerSummary"></div></div>
       <div class="card"><h2>Career Identity</h2><div id="careerIdentity"></div></div>
     </div>
+    <div class="grid2">
+      <div class="card"><h2>Season Performance</h2><div id="careerPerformance" class="muted">No games played yet.</div></div>
+      <div class="card"><h2>Team Role</h2><div id="careerRoleBox" class="muted">No role established yet.</div></div>
+    </div>
+    <div class="card"><h2>Recent Games</h2><div id="careerRecentGames" class="muted">No games played yet.</div></div>
     <div class="card"><h2>Major Career Decision</h2><div id="majorCareerDecision" class="muted">No major decision is pending.</div></div>
     <div class="card"><h2>Career Timeline</h2><div id="careerTimeline" class="muted">No career history yet.</div></div>
   </section>
@@ -949,6 +957,64 @@ function choosePlayerDecision(id){
  renderPlayerCareer();saveState();
 }
 
+
+function ensureCareerPerformance(){
+ if(state.role!=="Player")return;
+ initPlayerCareer();let pc=state.playerCareer;
+ pc.gameLog=pc.gameLog||[];pc.careerHigh=pc.careerHigh||{pts:0,reb:0,ast:0};
+ pc.teamRole=pc.teamRole||"Rotation Player";pc.seasonTotals=pc.seasonTotals||{gp:0,pts:0,reb:0,ast:0};
+}
+
+function simulateCareerLineForGame(g){
+ if(state.role!=="Player")return;
+ ensureCareerPerformance();let pc=state.playerCareer,p=playerCareerPlayer();if(!p||pc.gameLog.some(x=>x.gameId===g.id))return;
+ if(g.a!==p.teamName&&g.b!==p.teamName)return;
+ let roleMult={"Bench Player":.45,"Rotation Player":.7,"Starter":.9,"Star":1.08,"Superstar":1.22}[pc.teamRole]||.7;
+ let base=Math.max(4,((p.ovr||65)-50)*.65)*roleMult;
+ let energy=(pc.energy-50)*.04,chem=(pc.chemistry-50)*.025;
+ let pts=Math.max(0,Math.round(base+energy+chem+(Math.random()*12-5)));
+ let reb=Math.max(0,Math.round(((p.pos==="C"||p.pos==="PF")?7:4)*roleMult+Math.random()*5));
+ let ast=Math.max(0,Math.round(((p.pos==="PG")?7:3)*roleMult+Math.random()*5));
+ let min=Math.max(8,Math.min(44,Math.round(12+roleMult*24+Math.random()*5)));
+ let fake={...g,box:{a:[],b:[]}};
+ let row={id:p.id,pts,reb,ast,min};
+ if(g.a===p.teamName)fake.box.a=[row];else fake.box.b=[row];
+ recordControlledPlayerGame(fake);
+}
+
+function controlledPlayerGameFromLeagueGame(g){
+ let p=playerCareerPlayer();if(!p||!g?.box)return null;
+ let rows=[...(g.box.a||[]),...(g.box.b||[])];
+ return rows.find(x=>x.id===p.id)||null;
+}
+function recordControlledPlayerGame(g){
+ if(state.role!=="Player"||!g?.box)return;
+ ensureCareerPerformance();let pc=state.playerCareer,p=playerCareerPlayer();
+ if(!p||pc.gameLog.some(x=>x.gameId===g.id))return;
+ let row=controlledPlayerGameFromLeagueGame(g);if(!row)return;
+ let opp=(g.a===p.teamName?g.b:g.a),win=(g.a===p.teamName?g.as>g.bs:g.bs>g.as);
+ let entry={gameId:g.id,year:state.currentYear,opp,win,pts:row.pts,reb:row.reb,ast:row.ast,min:row.min,playoff:!!g.round};
+ pc.gameLog.push(entry);
+ pc.seasonTotals.gp++;pc.seasonTotals.pts+=row.pts;pc.seasonTotals.reb+=row.reb;pc.seasonTotals.ast+=row.ast;
+ pc.careerHigh.pts=Math.max(pc.careerHigh.pts,row.pts);pc.careerHigh.reb=Math.max(pc.careerHigh.reb,row.reb);pc.careerHigh.ast=Math.max(pc.careerHigh.ast,row.ast);
+ let impact=row.pts+row.reb*.55+row.ast*.75+(entry.playoff?4:0);
+ if(impact>=38){pc.reputation=Math.min(100,pc.reputation+3);pc.timeline.push({year:state.currentYear,text:`Breakout performance: ${row.pts} PTS, ${row.reb} REB, ${row.ast} AST${entry.playoff?" in the playoffs":""}.`});}
+ else if(impact>=28)pc.reputation=Math.min(100,pc.reputation+1);
+ updatePlayerTeamRole();
+}
+function updatePlayerTeamRole(){
+ ensureCareerPerformance();let pc=state.playerCareer,p=playerCareerPlayer();if(!p)return;
+ let gp=pc.seasonTotals.gp||1,ppg=pc.seasonTotals.pts/gp;
+ let score=(p.ovr||60)+ppg*.35+pc.reputation*.08+pc.development*.05;
+ let old=pc.teamRole,newRole=score>=103?"Superstar":score>=91?"Star":score>=80?"Starter":score>=70?"Rotation Player":"Bench Player";
+ pc.teamRole=newRole;
+ if(old&&old!==newRole)pc.timeline.push({year:state.currentYear,text:`Role changed from ${old} to ${newRole}.`});
+}
+function playerSeasonAverages(){
+ ensureCareerPerformance();let s=state.playerCareer.seasonTotals,g=s.gp||0;
+ return {gp:g,ppg:g?s.pts/g:0,rpg:g?s.reb/g:0,apg:g?s.ast/g:0};
+}
+
 function updateCareerIdentity(){
  let pc=state.playerCareer;if(!pc)return;
  if(pc.loyalty>=70&&pc.ambition<65)pc.path="Franchise Icon";
@@ -986,6 +1052,11 @@ function renderCareerPage(){
  document.getElementById("careerIdentity").innerHTML=`<h3>${pc.path}</h3><div class="small muted">This emerges from your choices; you do not select a Kobe/LeBron/KD template.</div><div class="grid2" style="margin-top:10px"><div class="careerMetric"><b>${pc.loyalty}</b><div class="small muted">Loyalty</div></div><div class="careerMetric"><b>${pc.ambition}</b><div class="small muted">Ambition</div></div></div><p><b>Legacy score: ${pc.legacy}</b></p>`;
  let d=majorCareerDecision();
  document.getElementById("majorCareerDecision").innerHTML=d?`<h3>${d.title}</h3><p class="muted">${d.text}</p><div class="choicebar">${d.options.map(o=>`<button onclick="chooseMajorCareer('${o.id}')">${o.label}</button>`).join("")}</div>`:`<span class="muted">No major career decision is pending.</span>`;
+ let av=playerSeasonAverages();updatePlayerTeamRole();
+ let perf=document.getElementById("careerPerformance");
+ if(perf)perf.innerHTML=av.gp?`<div class="grid4"><div class="careerMetric"><b>${av.ppg.toFixed(1)}</b><div class="small muted">PPG</div></div><div class="careerMetric"><b>${av.rpg.toFixed(1)}</b><div class="small muted">RPG</div></div><div class="careerMetric"><b>${av.apg.toFixed(1)}</b><div class="small muted">APG</div></div><div class="careerMetric"><b>${av.gp}</b><div class="small muted">Games</div></div></div><p class="small muted">Career highs: ${pc.careerHigh.pts} PTS · ${pc.careerHigh.reb} REB · ${pc.careerHigh.ast} AST</p>`:`<span class="muted">No games played yet.</span>`;
+ let rb=document.getElementById("careerRoleBox");if(rb)rb.innerHTML=`<span class="roleBadge">${pc.teamRole}</span><p class="small muted">Your role reacts to rating, production, reputation and development. It can rise or fall.</p>`;
+ let recent=document.getElementById("careerRecentGames");if(recent)recent.innerHTML=pc.gameLog.length?pc.gameLog.slice(-8).reverse().map(g=>`<div class="playerGameRow"><b>${g.win?"W":"L"} vs ${g.opp}</b><span>${g.playoff?"Playoffs":"Regular Season"}</span><b>${g.pts} PTS · ${g.reb} REB · ${g.ast} AST</b></div>`).join(""):`<span class="muted">No games played yet.</span>`;
  document.getElementById("careerTimeline").innerHTML=(pc.timeline||[]).slice().reverse().map(x=>`<div class="careerTimelineRow"><b>${x.year}</b><div>${x.text}</div></div>`).join("");
 }
 window.chooseMajorCareer=chooseMajorCareer;
@@ -1293,6 +1364,7 @@ function beginNextSeason(){
  updateTeamDirections();
  state.news.push({year:state.currentYear,title:`${seasonName()} season begins`,text:"The alternate timeline continues."});
  saveState();renderAll();switchTab("dashboard");
+ if(state.role==="Player"&&state.playerCareer){state.playerCareer.seasonTotals={gp:0,pts:0,reb:0,ast:0};}
 }
 function advanceOffseason(){
  initOffseason();
@@ -2568,7 +2640,7 @@ function finishWatchedGame(){
  if(s.aw>=need||s.bw>=need){s.complete=true;s.winnerId=s.aw>s.bw?s.aId:s.bId}
  g.box=generateFullBox(g);
  applyCrunchMomentToBox(w,g);
- addBoxToPlayoffStats(g);
+ addBoxToPlayoffStats(g);recordControlledPlayerGame(g);
  g.story=createGameBoxStory(g,s);
  if(g.story?.heroId){
    let hp=state.players.find(p=>p.id===g.story.heroId);

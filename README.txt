@@ -1,11 +1,13 @@
-v0.21 Basketball Universe — Player Career
+v0.22 Basketball Universe — Player Performance
 
-- Player Mode now lets you choose the exact player you control after choosing a team.
-- New Career tab.
-- Career tracks Development, Energy, Chemistry, Reputation, Loyalty, Ambition and Legacy.
-- Career identity emerges as Franchise Icon, Championship Chaser, Power Move, or Balanced Career.
-- Season-end career direction decisions begin shaping whether you stay loyal, pressure management, or keep options open.
-- Major choices are saved to a career timeline.
-- Existing lifestyle/training decisions remain.
+PLAYER CAREER LOOP
+- Controlled player now accumulates game-by-game production.
+- Career page shows PPG, RPG, APG, games played and career highs.
+- Recent Games panel tracks the player's last performances.
+- Team role can evolve: Bench Player, Rotation Player, Starter, Star, Superstar.
+- Role is based on rating, production, reputation and development and can rise or fall.
+- Big performances increase reputation and create career timeline moments.
+- Playoff performances receive extra weight.
+- Existing training, lifestyle, loyalty, ambition and career-direction systems remain.
 
-GitHub: upload only index.html over the current index.html and commit.
+GitHub update: upload index.html and README.txt over the existing files and commit.
