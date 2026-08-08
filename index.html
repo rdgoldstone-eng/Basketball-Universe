@@ -162,7 +162,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.19 · Playoff History</div>
+    <div class="pill">v0.20 · Player Mode</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -848,11 +848,77 @@ function showGame(){
  renderAll();
 }
 
+
+function initPlayerCareer(){
+ if(state.role!=="Player")return;
+ if(!state.playerCareer){
+   let team=teamById(state.controlTeamId)||state.teams[0];
+   let roster=state.players.filter(p=>p.teamName===team?.name&&!p.retired&&!p.deferredEntry).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+   let p=roster[0]||null;
+   state.playerCareer={playerId:p?.id||null,development:50,energy:75,chemistry:50,reputation:50,lastChoice:null,decision:null};
+ }
+}
+function playerCareerPlayer(){initPlayerCareer();return state.players.find(p=>p.id===state.playerCareer?.playerId)||null}
+function createPlayerDecision(){
+ if(state.role!=="Player")return null;
+ initPlayerCareer();
+ let pc=state.playerCareer;
+ if(pc.decision)return pc.decision;
+ let offseason=state.season?.phase==="Offseason"||state.season?.phase==="Season Complete";
+ if(offseason){
+   let p=playerCareerPlayer(),team=p?.teamName;
+   let legend=state.players.filter(x=>x.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0];
+   let teammate=state.players.filter(x=>x.teamName===team&&x.id!==p?.id&&!x.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0];
+   let fa=state.players.filter(x=>!x.teamName&&!x.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0];
+   pc.decision={type:"offseason",title:"Offseason Training Partner",text:"Choose who you spend part of the offseason training with.",options:[
+     {id:"legend",label:`Train with a legend${legend?`: ${legend.name}`:""}`,dev:7,chem:0,energy:-4,rep:3},
+     {id:"teammate",label:`Train with a teammate${teammate?`: ${teammate.name}`:""}`,dev:4,chem:7,energy:-2,rep:1},
+     {id:"fa",label:`Train with a free agent${fa?`: ${fa.name}`:""}`,dev:5,chem:2,energy:-3,rep:2}
+   ]};
+ }else{
+   pc.decision={type:"season",title:"Tonight's Choice",text:"How do you handle the night before tomorrow's work?",options:[
+     {id:"late",label:"Train at night and sleep in",dev:4,chem:-1,energy:-5,rep:1},
+     {id:"morning",label:"Go to sleep early and hit the gym in the morning",dev:3,chem:0,energy:3,rep:1},
+     {id:"club",label:"Go to the club with teammates",dev:0,chem:6,energy:-6,rep:2}
+   ]};
+ }
+ return pc.decision;
+}
+function choosePlayerDecision(id){
+ let pc=state.playerCareer,d=pc?.decision;if(!d)return;
+ let o=d.options.find(x=>x.id===id);if(!o)return;
+ pc.development=Math.max(0,Math.min(100,pc.development+o.dev));
+ pc.energy=Math.max(0,Math.min(100,pc.energy+o.energy));
+ pc.chemistry=Math.max(0,Math.min(100,pc.chemistry+o.chem));
+ pc.reputation=Math.max(0,Math.min(100,pc.reputation+o.rep));
+ pc.lastChoice={year:state.currentYear,label:o.label,type:d.type};
+ let p=playerCareerPlayer();
+ if(p&&o.dev>0&&Math.random()<Math.min(.8,o.dev/10)){p.ovr=Math.min(99,(p.ovr||60)+1)}
+ pc.decision=null;
+ renderPlayerCareer();saveState();
+}
+function renderPlayerCareer(){
+ let card=document.getElementById("playerCareerCard");if(!card)return;
+ if(state.role!=="Player"){card.classList.add("hidden");return}
+ card.classList.remove("hidden");initPlayerCareer();
+ let pc=state.playerCareer,p=playerCareerPlayer();
+ document.getElementById("playerCareerName").textContent=p?.name||"Player Career";
+ document.getElementById("playerCareerTeam").textContent=p?.teamName||"Free Agent";
+ document.getElementById("pcDevelopment").textContent=pc.development;
+ document.getElementById("pcEnergy").textContent=pc.energy;
+ document.getElementById("pcChemistry").textContent=pc.chemistry;
+ document.getElementById("pcReputation").textContent=pc.reputation;
+ let d=createPlayerDecision(),box=document.getElementById("playerDecisionBox");
+ box.innerHTML=d?`<div class="decision"><h3>${d.title}</h3><p class="muted">${d.text}</p><div class="choicebar">${d.options.map(o=>`<button onclick="choosePlayerDecision('${o.id}')">${o.label}</button>`).join("")}</div>${pc.lastChoice?`<div class="small muted" style="margin-top:8px">Last choice: ${pc.lastChoice.label}</div>`:""}</div>`:"";
+}
+window.choosePlayerDecision=choosePlayerDecision;
+
 function renderAll(){
  initPlayersIfNeeded();
  renderTeams(); renderDecisions(); renderIdentities(); renderNews(); renderPlayers(); renderOffseason(); renderLeagueOffice(); renderFranchiseHealth(); renderExpansionDraft(); renderExpansionBids();
  document.getElementById("decisionKpi").textContent=state.decisions.filter(d=>!d.resolved).length;
  saveState();
+ renderPlayerCareer();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
