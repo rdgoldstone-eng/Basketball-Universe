@@ -221,6 +221,13 @@ pre{white-space:pre-wrap}
 .hofCard{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:9px}
 .hofScore{font-size:22px;font-weight:900}
 @media(max-width:650px){.allTimeRow{grid-template-columns:34px minmax(135px,1fr) 85px}.allTimeHide{display:none}}
+
+.franchiseSeasonRow{display:grid;grid-template-columns:82px minmax(150px,1fr) 65px 65px 90px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.franchiseSeasonRow.header{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800}
+.franchiseHero{display:flex;gap:14px;align-items:center}
+.franchiseHero .logo{width:64px;height:64px;border-radius:14px}
+.franchiseEvent{padding:8px 0;border-bottom:1px solid var(--line)}
+@media(max-width:650px){.franchiseSeasonRow{grid-template-columns:76px minmax(130px,1fr) 55px 65px}.franchiseSeasonHide{display:none}}
 </style>
 </head>
 <body>
@@ -235,7 +242,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.40 · All-Time Leaders & Hall of Fame</div>
+    <div class="pill">v0.41 · Franchise History</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -954,9 +961,17 @@ pre{white-space:pre-wrap}
   </section>
 
   <section id="teams" class="section">
-    <div class="card">
-      <h2>Franchises</h2>
-      <div id="teamsList"></div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Franchises</h2>
+        <p class="small muted">Select a franchise to view the history it has created in this universe.</p>
+        <div id="teamsList"></div>
+      </div>
+      <div class="card">
+        <h2>Franchise History</h2>
+        <select id="franchiseHistorySelect" onchange="renderFranchiseHistory()"></select>
+        <div id="franchiseHistoryProfile" style="margin-top:12px"></div>
+      </div>
     </div>
   </section>
 
@@ -2005,16 +2020,176 @@ function renderAll(){
  renderCurrentActivity();
  renderAllTime();
  renderHallOfFame();
+ renderFranchiseHistory();
  enforceOffseasonDraftRouting();
  refreshUniverseHeader();
 }
+
+function ensureFranchiseHistory(){
+ if(!state)return;
+ state.franchiseHistory=state.franchiseHistory||{};
+ state.teams.forEach(t=>{
+   if(!state.franchiseHistory[t.id]){
+     state.franchiseHistory[t.id]={
+       teamId:t.id,
+       foundedYear:state.startYear||1976,
+       seasons:[],
+       identityEvents:[{year:state.startYear||1976,name:t.name,type:"Identity"}]
+     };
+   }
+   let fh=state.franchiseHistory[t.id];
+   fh.seasons=fh.seasons||[];
+   fh.identityEvents=fh.identityEvents||[];
+   if(!fh.identityEvents.length)fh.identityEvents.push({year:state.startYear||1976,name:t.name,type:"Identity"});
+ });
+}
+
+function franchiseIdentityNames(t){
+ ensureFranchiseHistory();
+ let names=new Set([t.name]);
+ let fh=state.franchiseHistory?.[t.id];
+ (fh?.identityEvents||[]).forEach(e=>{if(e.name)names.add(e.name);if(e.oldName)names.add(e.oldName);});
+ (t.identityHistory||[]).forEach(e=>{if(e.name)names.add(e.name);});
+ return [...names];
+}
+
+function archiveCompletedFranchiseSeason(year){
+ if(!state?.teams)return;
+ ensureFranchiseHistory();
+
+ let champion=state.season?.champion||null;
+ let runnerUp=determineFinalsRunnerUp?.()||null;
+
+ state.teams.forEach(t=>{
+   let fh=state.franchiseHistory[t.id];
+   if(fh.seasons.some(s=>Number(s.year)===Number(year)))return;
+   fh.seasons.push({
+     year:Number(year),
+     name:t.name,
+     conference:t.conference,
+     w:Number(t.w||0),
+     l:Number(t.l||0),
+     champion:champion===t.name,
+     runnerUp:runnerUp===t.name
+   });
+ });
+}
+
+function franchiseChampionships(t){
+ let names=new Set(franchiseIdentityNames(t));
+ return (state.history?.champions||[]).filter(c=>names.has(c.team));
+}
+
+function franchiseFinalsAppearances(t){
+ let names=new Set(franchiseIdentityNames(t));
+ return (state.history?.champions||[]).filter(c=>names.has(c.team)||names.has(c.runnerUp));
+}
+
+function franchiseDraftPicks(t){
+ ensureDraftHistory();
+ let names=new Set(franchiseIdentityNames(t));
+ let out=[];
+ (state.draftHistory||[]).forEach(d=>{
+   (d.results||[]).forEach(r=>{
+     if(r.teamId===t.id||names.has(r.teamName))out.push({...r,year:d.year});
+   });
+ });
+ return out.sort((a,b)=>b.year-a.year||a.pick-b.pick);
+}
+
+function franchisePlayerSeasons(t){
+ let names=new Set(franchiseIdentityNames(t));
+ let rows=[];
+ state.players.forEach(p=>{
+   careerArchiveFor(p).forEach(s=>{
+     if(names.has(s.team))rows.push({p,s});
+   });
+ });
+ return rows;
+}
+
+function franchiseLegends(t){
+ let rows=franchisePlayerSeasons(t);
+ let by=new Map();
+ rows.forEach(({p,s})=>{
+   let x=by.get(p.id)||{p,gp:0,pts:0,reb:0,ast:0,seasons:0};
+   x.gp+=s.gp||0;x.pts+=s.pts||0;x.reb+=s.reb||0;x.ast+=s.ast||0;x.seasons++;
+   by.set(p.id,x);
+ });
+ return [...by.values()].sort((a,b)=>{
+   let av=a.pts+a.reb*.45+a.ast*.65+a.gp*2;
+   let bv=b.pts+b.reb*.45+b.ast*.65+b.gp*2;
+   return bv-av;
+ }).slice(0,8);
+}
+
+function renderFranchiseHistory(){
+ let sel=document.getElementById("franchiseHistorySelect");
+ let box=document.getElementById("franchiseHistoryProfile");
+ if(!sel||!box||!state)return;
+ ensureFranchiseHistory();
+
+ let old=sel.value;
+ sel.innerHTML=state.teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
+ if(old&&state.teams.some(t=>t.id===old))sel.value=old;
+ else if(state.controlledTeamId&&state.teams.some(t=>t.id===state.controlledTeamId))sel.value=state.controlledTeamId;
+
+ let t=teamById(sel.value)||state.teams[0];
+ if(!t)return;
+ let fh=state.franchiseHistory[t.id];
+ let seasons=(fh.seasons||[]).slice().sort((a,b)=>b.year-a.year);
+ let titles=franchiseChampionships(t);
+ let finals=franchiseFinalsAppearances(t);
+ let picks=franchiseDraftPicks(t);
+ let legends=franchiseLegends(t);
+
+ let best=seasons.slice().sort((a,b)=>b.w-a.w||a.l-b.l)[0];
+ let worst=seasons.slice().sort((a,b)=>a.w-b.w||b.l-a.l)[0];
+ let names=franchiseIdentityNames(t);
+
+ box.innerHTML=`
+   <div class="franchiseHero">${logoHTML(t)}<div><h2 style="margin:0">${t.name}</h2><div class="small muted">${t.conference} Conference · Franchise lineage since ${fh.foundedYear}</div>${names.length>1?`<div class="small muted">Past identities: ${names.filter(n=>n!==t.name).join(", ")}</div>`:""}</div></div>
+   <div class="grid4" style="margin-top:14px">
+     <div class="careerMetric"><b>${titles.length}</b><div class="small muted">Championships</div></div>
+     <div class="careerMetric"><b>${finals.length}</b><div class="small muted">Finals</div></div>
+     <div class="careerMetric"><b>${best?best.w:"—"}</b><div class="small muted">Best Wins</div></div>
+     <div class="careerMetric"><b>${picks.length}</b><div class="small muted">Draft Picks Recorded</div></div>
+   </div>
+
+   <h3 style="margin-top:16px">Season History</h3>
+   <div class="franchiseSeasonRow header"><div>Season</div><div>Identity</div><div>W</div><div>L</div><div class="franchiseSeasonHide">Result</div></div>
+   ${seasons.length?seasons.map(s=>`<div class="franchiseSeasonRow"><div><b>${s.year}-${String((s.year+1)%100).padStart(2,"0")}</b></div><div>${s.name}</div><div>${s.w}</div><div>${s.l}</div><div class="franchiseSeasonHide">${s.champion?"🏆 Champion":s.runnerUp?"Finals Runner-up":"—"}</div></div>`).join(""):`<div class="small muted">Season records will begin archiving with this version.</div>`}
+
+   <h3 style="margin-top:16px">Championship History</h3>
+   ${titles.length?titles.slice().reverse().map(c=>`<div class="franchiseEvent"><b>${c.year}-${String((c.year+1)%100).padStart(2,"0")}</b> · ${c.team} — NBA Champion${c.finalsMvp?` · Finals MVP ${c.finalsMvp}`:""}</div>`).join(""):`<div class="small muted">No championships in this universe.</div>`}
+
+   <h3 style="margin-top:16px">Franchise Legends</h3>
+   ${legends.length?legends.map((x,i)=>`<div class="teamrow"><div class="teammeta"><b>${i+1}. ${x.p.name}</b><span class="small muted">${x.seasons} season${x.seasons===1?"":"s"} · ${x.gp} GP</span></div><div><b>${Math.round(x.pts).toLocaleString()}</b> pts</div></div>`).join(""):`<div class="small muted">Career archives have not produced franchise leaders yet.</div>`}
+
+   <h3 style="margin-top:16px">Recent Draft Picks</h3>
+   ${picks.length?picks.slice(0,12).map(r=>`<div class="franchiseEvent"><b>${r.year} #${r.pick}</b> · ${r.playerName} (${r.pos||"—"})</div>`).join(""):`<div class="small muted">No recorded draft selections yet.</div>`}
+
+   <h3 style="margin-top:16px">Identity Timeline</h3>
+   ${(fh.identityEvents||[]).slice().reverse().map(e=>`<div class="franchiseEvent"><b>${e.year}</b> · ${e.type||"Identity"}: ${e.oldName?`${e.oldName} → `:""}${e.name}</div>`).join("")}
+ `;
+}
+window.renderFranchiseHistory=renderFranchiseHistory;
+
 function renderTeams(){
- document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
- <div class="teamrow">
+ ensureFranchiseHistory();
+ let list=document.getElementById("teamsList");if(!list)return;
+ list.innerHTML=state.teams.map(t=>`
+ <div class="teamrow" style="cursor:pointer" onclick="selectFranchiseHistory('${t.id}')">
    ${logoHTML(t)}
    <div class="teammeta"><b>${t.name}</b><span class="small muted">${t.conference} Conference · ${rosterFor(t.name).length} players · Roster power ${teamPlayerPower(t.name).toFixed(1)}</span></div>
  </div>`).join("");
+ renderFranchiseHistory();
 }
+window.selectFranchiseHistory=function(tid){
+ let sel=document.getElementById("franchiseHistorySelect");
+ if(sel)sel.value=tid;
+ renderFranchiseHistory();
+};
 function renderNews(){
  document.getElementById("newsBox").innerHTML=state.news.slice().reverse().map(n=>`
  <div class="teamrow"><div class="teammeta"><b>${n.year}: ${n.title}</b><span class="small muted">${n.text}</span></div></div>`).join("");
@@ -2301,6 +2476,7 @@ function beginNextSeason(){
  const transitionErrors=[];
 
  archiveCompletedPlayerSeason(oldYear);
+ archiveCompletedFranchiseSeason(oldYear);
  ensureHallOfFame();
 
  function safeTransitionStep(label,fn){
@@ -2942,11 +3118,13 @@ window.commissionerRename=function(tid){
  let newName=prompt("Enter the new franchise name:",t.name);
  if(!newName||newName.trim()===t.name)return;
  let old=t.name;newName=newName.trim();
+ ensureFranchiseHistory();
  // move player teamName references too
  state.players.forEach(p=>{if(p.teamName===old)p.teamName=newName;});
  t.name=newName;
  if(!t.identityHistory)t.identityHistory=[];
  t.identityHistory.push({from:state.currentYear,name:newName});
+ state.franchiseHistory[t.id].identityEvents.push({year:state.currentYear,type:"Rebrand / Relocation",oldName:old,name:newName});
  state.news.push({year:state.currentYear,title:"Franchise rebrand",text:`${old} became ${newName}.`});
  renderAll();saveState();
 }

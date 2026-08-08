@@ -1,34 +1,31 @@
-v0.40 Basketball Universe — All-Time Leaders & Hall of Fame
+v0.41 Basketball Universe — Franchise History
 
-NEW: ALL-TIME TAB
-Career leaderboards now use the actual simulated universe:
-- Career points
-- Career rebounds
-- Career assists
-- Games played
-- MVP awards
+NEW: FRANCHISE HISTORY
+The Teams tab now contains a selectable Franchise History profile for every organization.
+
+TRACKS
+- Season-by-season W/L records
 - Championships
+- Finals appearances
+- Best recorded season
+- Draft selections
+- Franchise legends based on actual simulated career production with that franchise
+- Identity / rebrand timeline
+- Past franchise names remain part of the same lineage
 
-Also includes active career scoring leaders and league milestone summaries.
+FRANCHISE LINEAGE
+A rename or relocation does not erase the old team's history.
+The franchise keeps the same lineage and its previous identity is preserved in the timeline.
 
-NEW: HALL OF FAME
-- Retired players are evaluated only on their simulated career.
-- Hall score considers career production, MVPs, Finals MVPs, championships, All-Star selections, longevity, and peak production.
-- Players at 70+ Hall Score are automatically inducted.
-- Hall of Fame Watch shows the best retired players who have not cleared the threshold.
+SEASON ARCHIVING
+Beginning with v0.41, completed team seasons are permanently archived before the next season resets standings.
 
-PLAYER PROFILES
-Now also show:
-- MVP count
-- Finals MVP count
-- Championships
-- All-Star selections
-- Hall Score
+EXISTING SAVES
+Older championship and draft information can still appear because it was already stored by the league.
+Old W/L records from before v0.41 cannot be reconstructed after they were reset, so complete season-by-season franchise records begin with the next completed season.
 
-IMPORTANT
-No real-life reputation is used for Hall of Fame decisions.
-A real-life legend can miss the Hall in this universe.
-A real-life role player can become a Hall of Famer if this universe gives him that career.
+NEXT FOUNDATION
+This supports future retired numbers, franchise records, all-time team rosters, rivalry history, and team-specific Hall/legend recognition.
 
 GitHub update:
 Upload index.html and README.txt over the existing files and commit.
