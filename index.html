@@ -285,7 +285,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.56 · 2021–2024 Draft Pipeline</div>
+    <div class="pill">v0.57 · Complete & Future Draft Pipeline</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -595,6 +595,7 @@ pre{white-space:pre-wrap}
     <div class="card">
       <h2 id="scoutingDraftClassTitle">Upcoming Draft Class</h2>
       <div class="small muted" style="margin-bottom:8px">Prospect grades reflect draft-time expectations and uncertainty, not knowledge of the player's eventual NBA career.</div>
+      <div class="small muted" style="margin-bottom:8px"><b>Future-class rule:</b> 2027–2030 use current projection snapshots. 2031+ use fictional generated prospects so Basketball Universe can continue indefinitely without pretending distant real-world mocks are reliable.</div>
       <div id="scoutingProspectBox" class="muted">No draft class available.</div>
     </div>
 
@@ -2128,6 +2129,191 @@ const historicalDraft2024=[
 {name:"Kyle Filipowski",pos:"PF",age:20,college:"Duke",prospect:61,ceilingLow:55,ceilingHigh:83,scoutUncertainty:13},
 {name:"Johnny Furphy",pos:"SG",age:19,college:"Kansas",prospect:60,ceilingLow:54,ceilingHigh:84,scoutUncertainty:14}
 ];
+
+const historicalDraft2025=[
+{name:"Cooper Flagg",pos:"SF",age:18,college:"Duke",prospect:99,ceilingLow:94,ceilingHigh:99,scoutUncertainty:2,note:"Consensus franchise prospect and clear No. 1 entering the completed 2025 draft."},
+{name:"Dylan Harper",pos:"PG",age:19,college:"Rutgers",prospect:95,ceilingLow:89,ceilingHigh:99,scoutUncertainty:4},
+{name:"VJ Edgecombe",pos:"SG",age:19,college:"Baylor",prospect:91,ceilingLow:84,ceilingHigh:98,scoutUncertainty:6},
+{name:"Kon Knueppel",pos:"SG",age:19,college:"Duke",prospect:88,ceilingLow:82,ceilingHigh:95,scoutUncertainty:5},
+{name:"Ace Bailey",pos:"SF",age:18,college:"Rutgers",prospect:90,ceilingLow:80,ceilingHigh:99,scoutUncertainty:10,note:"Elite physical/scoring upside with more variance than the prospects selected ahead of him."},
+{name:"Tre Johnson",pos:"SG",age:19,college:"Texas",prospect:86,ceilingLow:79,ceilingHigh:96,scoutUncertainty:7},
+{name:"Jeremiah Fears",pos:"PG",age:18,college:"Oklahoma",prospect:84,ceilingLow:75,ceilingHigh:97,scoutUncertainty:11},
+{name:"Egor Demin",pos:"PG",age:19,college:"BYU",prospect:82,ceilingLow:73,ceilingHigh:95,scoutUncertainty:12},
+{name:"Collin Murray-Boyles",pos:"PF",age:20,college:"South Carolina",prospect:80,ceilingLow:74,ceilingHigh:91,scoutUncertainty:8},
+{name:"Khaman Maluach",pos:"C",age:18,college:"Duke",prospect:80,ceilingLow:70,ceilingHigh:96,scoutUncertainty:13},
+{name:"Cedric Coward",pos:"SF",age:21,college:"Washington State",prospect:76,ceilingLow:69,ceilingHigh:89,scoutUncertainty:9},
+{name:"Noa Essengue",pos:"PF",age:18,college:"France / Germany",prospect:75,ceilingLow:65,ceilingHigh:94,scoutUncertainty:15},
+{name:"Derik Queen",pos:"C",age:20,college:"Maryland",prospect:76,ceilingLow:70,ceilingHigh:90,scoutUncertainty:9},
+{name:"Carter Bryant",pos:"SF",age:19,college:"Arizona",prospect:73,ceilingLow:65,ceilingHigh:91,scoutUncertainty:13},
+{name:"Thomas Sorber",pos:"C",age:19,college:"Georgetown",prospect:72,ceilingLow:65,ceilingHigh:88,scoutUncertainty:11},
+{name:"Yang Hansen",pos:"C",age:20,college:"China",prospect:68,ceilingLow:59,ceilingHigh:90,scoutUncertainty:16},
+{name:"Joan Beringer",pos:"C",age:18,college:"France / Slovenia",prospect:67,ceilingLow:58,ceilingHigh:91,scoutUncertainty:17},
+{name:"Walter Clayton Jr.",pos:"PG",age:22,college:"Florida",prospect:66,ceilingLow:62,ceilingHigh:80,scoutUncertainty:7},
+{name:"Nolan Traore",pos:"PG",age:19,college:"France",prospect:66,ceilingLow:58,ceilingHigh:89,scoutUncertainty:15},
+{name:"Kasparas Jakucionis",pos:"PG",age:19,college:"Illinois",prospect:65,ceilingLow:58,ceilingHigh:87,scoutUncertainty:14}
+];
+
+const historicalDraft2026=[
+{name:"AJ Dybantsa",pos:"SF",age:19,college:"BYU",prospect:98,ceilingLow:92,ceilingHigh:99,scoutUncertainty:3},
+{name:"Darryn Peterson",pos:"SG",age:19,college:"Kansas",prospect:97,ceilingLow:91,ceilingHigh:99,scoutUncertainty:4},
+{name:"Cameron Boozer",pos:"PF",age:18,college:"Duke",prospect:95,ceilingLow:89,ceilingHigh:99,scoutUncertainty:4},
+{name:"Caleb Wilson",pos:"PF",age:19,college:"North Carolina",prospect:91,ceilingLow:83,ceilingHigh:98,scoutUncertainty:7},
+{name:"Keaton Wagler",pos:"SG",age:20,college:"Illinois",prospect:87,ceilingLow:80,ceilingHigh:95,scoutUncertainty:7},
+{name:"Mikel Brown Jr.",pos:"PG",age:19,college:"Louisville",prospect:86,ceilingLow:78,ceilingHigh:96,scoutUncertainty:8},
+{name:"Darius Acuff Jr.",pos:"PG",age:19,college:"Arkansas",prospect:85,ceilingLow:77,ceilingHigh:96,scoutUncertainty:9},
+{name:"Kingston Flemings",pos:"PG",age:19,college:"Houston",prospect:83,ceilingLow:75,ceilingHigh:94,scoutUncertainty:9},
+{name:"Morez Johnson Jr.",pos:"PF",age:20,college:"Michigan",prospect:80,ceilingLow:74,ceilingHigh:90,scoutUncertainty:8},
+{name:"Brayden Burries",pos:"SG",age:19,college:"Arizona",prospect:79,ceilingLow:71,ceilingHigh:92,scoutUncertainty:10},
+{name:"Yaxel Lendeborg",pos:"PF",age:23,college:"Michigan",prospect:76,ceilingLow:71,ceilingHigh:85,scoutUncertainty:6},
+{name:"Aday Mara",pos:"C",age:21,college:"Michigan",prospect:76,ceilingLow:69,ceilingHigh:89,scoutUncertainty:10},
+{name:"Nate Ament",pos:"SF",age:19,college:"Tennessee",prospect:75,ceilingLow:67,ceilingHigh:92,scoutUncertainty:12},
+{name:"Hannes Steinbach",pos:"PF",age:20,college:"Washington",prospect:73,ceilingLow:66,ceilingHigh:88,scoutUncertainty:10},
+{name:"Dailyn Swain",pos:"SF",age:21,college:"Texas",prospect:71,ceilingLow:65,ceilingHigh:84,scoutUncertainty:9},
+{name:"Bennett Stirtz",pos:"PG",age:22,college:"Iowa",prospect:69,ceilingLow:64,ceilingHigh:82,scoutUncertainty:8},
+{name:"Ebuka Okorie",pos:"PG",age:19,college:"Stanford",prospect:69,ceilingLow:61,ceilingHigh:88,scoutUncertainty:13},
+{name:"Christian Anderson",pos:"PG",age:20,college:"Texas Tech",prospect:67,ceilingLow:61,ceilingHigh:83,scoutUncertainty:10},
+{name:"Allen Graves",pos:"SF",age:21,college:"Santa Clara",prospect:65,ceilingLow:59,ceilingHigh:82,scoutUncertainty:11},
+{name:"Jayden Quaintance",pos:"C",age:19,college:"Kentucky",prospect:65,ceilingLow:57,ceilingHigh:89,scoutUncertainty:15}
+];
+
+// Future classes are snapshots of the information available in August 2026.
+// They are intentionally much more uncertain than completed drafts.
+const projectedDraft2027=[
+{name:"Tyran Stokes",pos:"SF",age:18,college:"Kansas",prospect:91,ceilingLow:80,ceilingHigh:99,scoutUncertainty:12,mock:true},
+{name:"Jordan Smith Jr.",pos:"PG",age:18,college:"Arkansas",prospect:89,ceilingLow:79,ceilingHigh:98,scoutUncertainty:13,mock:true},
+{name:"Caleb Holt",pos:"SG",age:18,college:"Arizona",prospect:88,ceilingLow:79,ceilingHigh:97,scoutUncertainty:12,mock:true},
+{name:"Bruce Branch III",pos:"SF",age:18,college:"BYU",prospect:86,ceilingLow:75,ceilingHigh:98,scoutUncertainty:14,mock:true},
+{name:"Stefan Joksimovic",pos:"PG",age:18,college:"Baskonia",prospect:84,ceilingLow:73,ceilingHigh:97,scoutUncertainty:15,mock:true},
+{name:"Braylon Mullins",pos:"SG",age:20,college:"Connecticut",prospect:83,ceilingLow:76,ceilingHigh:92,scoutUncertainty:10,mock:true},
+{name:"Thomas Haugh",pos:"PF",age:23,college:"Florida",prospect:80,ceilingLow:75,ceilingHigh:87,scoutUncertainty:7,mock:true},
+{name:"Jason Crowe Jr.",pos:"PG",age:18,college:"Missouri",prospect:81,ceilingLow:70,ceilingHigh:97,scoutUncertainty:15,mock:true},
+{name:"Anthony Thompson",pos:"SF",age:18,college:"Ohio State",prospect:81,ceilingLow:70,ceilingHigh:97,scoutUncertainty:15,mock:true},
+{name:"Cameron Williams",pos:"PF",age:18,college:"Duke",prospect:79,ceilingLow:68,ceilingHigh:96,scoutUncertainty:16,mock:true},
+{name:"Caleb Gaskins",pos:"PF",age:18,college:"Miami",prospect:77,ceilingLow:67,ceilingHigh:94,scoutUncertainty:15,mock:true},
+{name:"Miikka Muurinen",pos:"PF",age:19,college:"Arkansas",prospect:76,ceilingLow:65,ceilingHigh:94,scoutUncertainty:16,mock:true},
+{name:"Austin Goosby",pos:"SG",age:18,college:"Texas",prospect:75,ceilingLow:65,ceilingHigh:92,scoutUncertainty:15,mock:true},
+{name:"Motiejus Krivas",pos:"C",age:22,college:"Arizona",prospect:73,ceilingLow:67,ceilingHigh:86,scoutUncertainty:10,mock:true},
+{name:"Luigi Suigo",pos:"C",age:18,college:"Villanova",prospect:74,ceilingLow:63,ceilingHigh:94,scoutUncertainty:17,mock:true},
+{name:"Matt Able",pos:"SG",age:20,college:"North Carolina",prospect:72,ceilingLow:64,ceilingHigh:90,scoutUncertainty:14,mock:true},
+{name:"Alex Condon",pos:"C",age:22,college:"Florida",prospect:72,ceilingLow:66,ceilingHigh:85,scoutUncertainty:10,mock:true},
+{name:"Dame Sarr",pos:"SG",age:20,college:"Duke",prospect:71,ceilingLow:62,ceilingHigh:91,scoutUncertainty:15,mock:true},
+{name:"Cameron Houindo",pos:"PF",age:18,college:"France",prospect:70,ceilingLow:60,ceilingHigh:92,scoutUncertainty:17,mock:true},
+{name:"Christian Collins",pos:"SF",age:18,college:"USC",prospect:69,ceilingLow:59,ceilingHigh:91,scoutUncertainty:17,mock:true}
+];
+
+const projectedDraft2028=[
+{name:"Joaquim Boumtje Boumtje",pos:"C",age:18,college:"Duke",prospect:94,ceilingLow:83,ceilingHigh:99,scoutUncertainty:12,mock:true},
+{name:"Nikola Kusturica",pos:"SG",age:18,college:"UCLA",prospect:93,ceilingLow:82,ceilingHigh:99,scoutUncertainty:13,mock:true},
+{name:"Marcus Spears Jr.",pos:"PF",age:18,college:"Texas",prospect:88,ceilingLow:76,ceilingHigh:99,scoutUncertainty:16,mock:true},
+{name:"CJ Rosser",pos:"PF",age:18,college:"High School",prospect:86,ceilingLow:74,ceilingHigh:99,scoutUncertainty:17,mock:true},
+{name:"Beckham Black",pos:"PG",age:18,college:"High School",prospect:84,ceilingLow:73,ceilingHigh:96,scoutUncertainty:16,mock:true},
+{name:"Adan Diggs",pos:"SG",age:18,college:"High School",prospect:83,ceilingLow:72,ceilingHigh:96,scoutUncertainty:16,mock:true},
+{name:"Nathan Soliman",pos:"PF",age:18,college:"France",prospect:82,ceilingLow:70,ceilingHigh:96,scoutUncertainty:17,mock:true},
+{name:"Paul Osaruyi",pos:"PF",age:18,college:"High School",prospect:81,ceilingLow:70,ceilingHigh:95,scoutUncertainty:16,mock:true},
+{name:"Obinna Ekezie",pos:"C",age:18,college:"Louisville",prospect:80,ceilingLow:68,ceilingHigh:96,scoutUncertainty:17,mock:true},
+{name:"Lewis Uvwo",pos:"C",age:18,college:"High School",prospect:79,ceilingLow:67,ceilingHigh:96,scoutUncertainty:18,mock:true},
+{name:"Demarcus Henry",pos:"SF",age:18,college:"High School",prospect:77,ceilingLow:66,ceilingHigh:94,scoutUncertainty:17,mock:true},
+{name:"Messi Yangala",pos:"SF",age:18,college:"France",prospect:76,ceilingLow:64,ceilingHigh:95,scoutUncertainty:18,mock:true},
+{name:"Jason Crowe Jr.",pos:"PG",age:19,college:"Missouri",prospect:75,ceilingLow:66,ceilingHigh:91,scoutUncertainty:14,mock:true,note:"Could enter in 2027 instead; future-class placement is not guaranteed."},
+{name:"Jordan Page",pos:"SG",age:18,college:"High School",prospect:74,ceilingLow:63,ceilingHigh:92,scoutUncertainty:17,mock:true},
+{name:"Stefan Vaaks",pos:"SF",age:19,college:"Illinois",prospect:72,ceilingLow:63,ceilingHigh:89,scoutUncertainty:15,mock:true},
+{name:"Fabian Kayser",pos:"SF",age:18,college:"Germany",prospect:71,ceilingLow:61,ceilingHigh:91,scoutUncertainty:18,mock:true},
+{name:"Nasir Anderson",pos:"PG",age:18,college:"High School",prospect:70,ceilingLow:60,ceilingHigh:90,scoutUncertainty:18,mock:true},
+{name:"Luke Paul",pos:"PG",age:18,college:"Australia",prospect:69,ceilingLow:59,ceilingHigh:90,scoutUncertainty:18,mock:true},
+{name:"Caleb Gaskins",pos:"SF",age:19,college:"Miami",prospect:68,ceilingLow:59,ceilingHigh:88,scoutUncertainty:16,mock:true,note:"Could enter in 2027 instead."},
+{name:"Malachi Jordan",pos:"SG",age:18,college:"High School",prospect:67,ceilingLow:57,ceilingHigh:89,scoutUncertainty:18,mock:true}
+];
+
+const projectedDraft2029=[
+{name:"A.J. Williams",pos:"SF",age:18,college:"High School",prospect:92,ceilingLow:80,ceilingHigh:99,scoutUncertainty:15,mock:true},
+{name:"Isaiah Hamilton",pos:"SF",age:18,college:"Canada",prospect:88,ceilingLow:76,ceilingHigh:98,scoutUncertainty:16,mock:true},
+{name:"Yann Kamagate",pos:"C",age:18,college:"High School",prospect:87,ceilingLow:74,ceilingHigh:99,scoutUncertainty:18,mock:true},
+{name:"Jan Cerdan",pos:"SF",age:18,college:"Spain",prospect:85,ceilingLow:73,ceilingHigh:98,scoutUncertainty:18,mock:true},
+{name:"Colton Hiller",pos:"SG",age:18,college:"High School",prospect:83,ceilingLow:72,ceilingHigh:95,scoutUncertainty:16,mock:true},
+{name:"Eric Dampier Jr.",pos:"C",age:18,college:"High School",prospect:82,ceilingLow:70,ceilingHigh:96,scoutUncertainty:17,mock:true},
+{name:"Bamba Touray",pos:"C",age:18,college:"High School",prospect:81,ceilingLow:67,ceilingHigh:98,scoutUncertainty:19,mock:true},
+{name:"Bentley Lusakueno",pos:"PF",age:18,college:"High School",prospect:79,ceilingLow:67,ceilingHigh:96,scoutUncertainty:18,mock:true},
+{name:"Rhys Robinson",pos:"PG",age:18,college:"Spain",prospect:78,ceilingLow:67,ceilingHigh:95,scoutUncertainty:18,mock:true},
+{name:"Myles Hayes",pos:"SG",age:18,college:"High School",prospect:77,ceilingLow:66,ceilingHigh:94,scoutUncertainty:18,mock:true},
+{name:"Soumalia Keita",pos:"C",age:18,college:"Spain",prospect:75,ceilingLow:64,ceilingHigh:93,scoutUncertainty:18,mock:true},
+{name:"Evan Willis",pos:"SF",age:18,college:"High School",prospect:74,ceilingLow:63,ceilingHigh:93,scoutUncertainty:18,mock:true},
+{name:"Benjamin Berrouet",pos:"PF",age:18,college:"High School",prospect:73,ceilingLow:63,ceilingHigh:91,scoutUncertainty:17,mock:true},
+{name:"Toni Garma",pos:"SG",age:18,college:"Croatia / Spain",prospect:72,ceilingLow:62,ceilingHigh:91,scoutUncertainty:18,mock:true},
+{name:"Quinton Wilson",pos:"SG",age:18,college:"High School",prospect:70,ceilingLow:60,ceilingHigh:90,scoutUncertainty:18,mock:true},
+{name:"Jeremy Gohier",pos:"C",age:18,college:"Canada",prospect:68,ceilingLow:55,ceilingHigh:94,scoutUncertainty:20,mock:true},
+{name:"Dylan Betts",pos:"C",age:18,college:"High School",prospect:67,ceilingLow:57,ceilingHigh:91,scoutUncertainty:19,mock:true},
+{name:"Reese Alston",pos:"PG",age:18,college:"High School",prospect:66,ceilingLow:57,ceilingHigh:88,scoutUncertainty:18,mock:true}
+];
+
+const projectedDraft2030=[
+{name:"Mohamed Dabone",pos:"PF",age:18,college:"FC Barcelona",prospect:93,ceilingLow:79,ceilingHigh:99,scoutUncertainty:18,mock:true,note:"Extremely early projection; age and long-range development uncertainty are significant."},
+{name:"JJ Crawford",pos:"SG",age:18,college:"High School",prospect:86,ceilingLow:73,ceilingHigh:98,scoutUncertainty:18,mock:true},
+{name:"Cayden Gaskins",pos:"PF",age:18,college:"High School",prospect:84,ceilingLow:71,ceilingHigh:97,scoutUncertainty:19,mock:true},
+{name:"RJ Evans",pos:"SF",age:18,college:"High School",prospect:82,ceilingLow:69,ceilingHigh:96,scoutUncertainty:19,mock:true},
+{name:"David Johnson",pos:"SF",age:18,college:"High School",prospect:81,ceilingLow:68,ceilingHigh:96,scoutUncertainty:19,mock:true},
+{name:"Flory Kuminga",pos:"SF",age:18,college:"High School",prospect:80,ceilingLow:67,ceilingHigh:96,scoutUncertainty:20,mock:true},
+{name:"Austin Leonard",pos:"SG",age:18,college:"High School",prospect:78,ceilingLow:66,ceilingHigh:93,scoutUncertainty:18,mock:true},
+{name:"Grant Duggins",pos:"C",age:18,college:"High School",prospect:77,ceilingLow:65,ceilingHigh:93,scoutUncertainty:18,mock:true},
+{name:"Draydne McDaniel",pos:"SF",age:18,college:"High School",prospect:76,ceilingLow:64,ceilingHigh:93,scoutUncertainty:19,mock:true},
+{name:"Chudier Diew Yak",pos:"C",age:18,college:"High School",prospect:74,ceilingLow:62,ceilingHigh:92,scoutUncertainty:19,mock:true},
+{name:"Alex Alexander",pos:"C",age:18,college:"High School",prospect:73,ceilingLow:61,ceilingHigh:92,scoutUncertainty:19,mock:true},
+{name:"Mamadou Issa Sow",pos:"C",age:18,college:"High School",prospect:72,ceilingLow:60,ceilingHigh:91,scoutUncertainty:19,mock:true},
+{name:"Quali Giran",pos:"PG",age:18,college:"High School",prospect:70,ceilingLow:59,ceilingHigh:90,scoutUncertainty:19,mock:true},
+{name:"Josiah Brooks",pos:"PG",age:18,college:"High School",prospect:69,ceilingLow:58,ceilingHigh:90,scoutUncertainty:19,mock:true},
+{name:"Jayden Davis",pos:"SF",age:18,college:"High School",prospect:68,ceilingLow:57,ceilingHigh:89,scoutUncertainty:19,mock:true},
+{name:"Mason Grivna",pos:"C",age:18,college:"High School",prospect:66,ceilingLow:56,ceilingHigh:88,scoutUncertainty:19,mock:true}
+];
+
+const draftClassMetadata={
+ "2025":{type:"Historical",label:"Completed historical draft"},
+ "2026":{type:"Historical",label:"Completed historical draft"},
+ "2027":{type:"Projection",label:"August 2026 mock/projection"},
+ "2028":{type:"Projection",label:"Very early August 2026 projection"},
+ "2029":{type:"Projection",label:"Long-range August 2026 projection"},
+ "2030":{type:"Projection",label:"Very long-range August 2026 projection"}
+};
+
+function proceduralFutureName(seed,index){
+ const first=["Marcus","Jordan","Cameron","Jalen","Isaiah","Malik","Darius","Andre","Tyler","Jayden","Noah","Elijah","Devin","Miles","Xavier","Caleb","Julian","Tre","Micah","Kendrick","Nico","Mateo","Luka","Amari","Bryce","Kobe"];
+ const last=["Harris","Johnson","Williams","Thompson","Carter","Lewis","Mitchell","Robinson","Walker","Green","Collins","Stewart","Allen","Young","Morris","Turner","Jackson","Brooks","Bennett","Reed","Miller","Davis","Brown","Wilson","Grant","King"];
+ const h=parseInt(hashlibCompat(seed+"_"+index).slice(0,8),16);
+ return `${first[h%first.length]} ${last[(h>>>5)%last.length]}`;
+}
+
+function generateProceduralFutureDraftClass(year){
+ year=Number(year);
+ let cls=[];
+ const positions=["PG","SG","SF","PF","C"];
+ for(let i=0;i<30;i++){
+   let h=parseInt(hashlibCompat(`future_${year}_${i}`).slice(0,8),16);
+   let tier=i===0?88+(h%6):i<5?81+(h%7):i<14?72+(h%9):60+(h%12);
+   let uncertainty=Math.min(20,10+Math.floor(i/6)+(h%5));
+   let age=18+(h%5===0?2:h%3===0?1:0);
+   cls.push({
+     name:proceduralFutureName(year,i),
+     pos:positions[(h>>>3)%positions.length],
+     age,
+     college:["College prospect","International prospect","G League prospect","High school / future prospect"][(h>>>7)%4],
+     prospect:Math.min(94,tier),
+     ceilingLow:Math.max(50,tier-10-(h%5)),
+     ceilingHigh:Math.min(99,tier+8+(h%8)),
+     scoutUncertainty:uncertainty,
+     generatedFuture:true,
+     note:"Fictional future-universe prospect generated because reliable real-world projections do not extend this far."
+   });
+ }
+ return cls;
+}
+
+function ensureProceduralFutureDraftClass(year){
+ year=Number(year);
+ if(year<2031)return;
+ state.draftClasses=state.draftClasses||{};
+ if(!state.draftClasses[String(year)]){
+   state.draftClasses[String(year)]=generateProceduralFutureDraftClass(year);
+ }
+}
+
 
 
 
@@ -4208,6 +4394,13 @@ function ensureDraftClasses(){
  state.draftClasses["2022"]=state.draftClasses["2022"]||JSON.parse(JSON.stringify(historicalDraft2022));
  state.draftClasses["2023"]=state.draftClasses["2023"]||JSON.parse(JSON.stringify(historicalDraft2023));
  state.draftClasses["2024"]=state.draftClasses["2024"]||JSON.parse(JSON.stringify(historicalDraft2024));
+ state.draftClasses["2025"]=state.draftClasses["2025"]||JSON.parse(JSON.stringify(historicalDraft2025));
+ state.draftClasses["2026"]=state.draftClasses["2026"]||JSON.parse(JSON.stringify(historicalDraft2026));
+ state.draftClasses["2027"]=state.draftClasses["2027"]||JSON.parse(JSON.stringify(projectedDraft2027));
+ state.draftClasses["2028"]=state.draftClasses["2028"]||JSON.parse(JSON.stringify(projectedDraft2028));
+ state.draftClasses["2029"]=state.draftClasses["2029"]||JSON.parse(JSON.stringify(projectedDraft2029));
+ state.draftClasses["2030"]=state.draftClasses["2030"]||JSON.parse(JSON.stringify(projectedDraft2030));
+ ensureProceduralFutureDraftClass(state.currentYear+1);
 }
 function initOffseason(){
  ensureDraftClasses();
@@ -4231,6 +4424,7 @@ function switchTab(tab){
 function currentDraftYear(){ return state.currentYear+1; }
 function prospectBoard(){
  ensureDraftClasses();
+ ensureProceduralFutureDraftClass(currentDraftYear());
  const year=String(currentDraftYear());
  const cls=state.draftClasses[year]||[];
  return cls.slice().sort((a,b)=>b.prospect-a.prospect || a.historicalPick-b.historicalPick);
@@ -5300,9 +5494,12 @@ function applyAdvancedDevelopment(){
 
 function draftPipelineStatus(){
  const y=currentDraftYear();
+ ensureProceduralFutureDraftClass(y);
  const cls=state.draftClasses?.[String(y)]||[];
- if(cls.length)return {ok:true,text:`${y} historical class loaded · ${cls.length} prospects · historical pipeline built through 2024`};
- return {ok:false,text:`${y} draft class is not installed yet. The game will not recycle an older class.`};
+ const meta=draftClassMetadata[String(y)];
+ let kind=meta?.label||(y>=2031?"Fictional universe-generated future class":"Historical draft class");
+ if(cls.length)return {ok:true,text:`${y} · ${kind} · ${cls.length} prospects`};
+ return {ok:false,text:`${y} draft class is not available.`};
 }
 
 function renderDraftPipelineHealth(){
@@ -6523,6 +6720,7 @@ function ensureDraftRoom(){
 }
 function draftClassForCurrentYear(){
  let y=String(state.currentYear+1);
+ ensureProceduralFutureDraftClass(Number(y));
  return state.draftClasses?.[y]||[];
 }
 function estimateProspectValue(p){

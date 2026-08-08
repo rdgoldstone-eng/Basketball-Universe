@@ -1,36 +1,67 @@
-v0.56 Basketball Universe — 2021–2024 Draft Pipeline
+v0.57 Basketball Universe — Complete & Future Draft Pipeline
 
-Historical draft classes now extend through 2024.
+THE REAL-WORLD DRAFT PIPELINE IS NOW CAUGHT UP.
 
-2021
-Cade Cunningham is the clear No. 1 prospect.
-Jalen Green and Evan Mobley are elite alternatives, followed by Jalen Suggs.
-Scottie Barnes and Jonathan Kuminga carry high upside but greater uncertainty.
-Franz Wagner, Alperen Sengun and later hits retain their draft-time positioning rather than receiving hindsight boosts.
+COMPLETED HISTORICAL DRAFTS
+1977–2026
 
-2022
-Paolo Banchero, Chet Holmgren and Jabari Smith Jr. form an elite three-player top tier.
-Jaden Ivey follows as the premier guard.
-Shaedon Sharpe carries enormous upside with unusual uncertainty because of his limited post-high-school game film.
-Jalen Williams and Walker Kessler are not hindsight-promoted.
+2025
+The completed 2025 class is added using draft-time perception.
+Cooper Flagg is a franchise-level No. 1 prospect.
+Dylan Harper, VJ Edgecombe, Kon Knueppel, Ace Bailey and the rest follow based on their draft context rather than post-draft hindsight.
 
-2023
-Victor Wembanyama is a true generational prospect and overwhelming No. 1.
-Scoot Henderson and Brandon Miller are elite prospects immediately behind him.
-Amen and Ausar Thompson carry huge athletic upside.
-Cam Whitmore's medical/evaluation uncertainty is represented.
-Later success does not rewrite the original board.
+2026
+The completed 2026 class is added.
+AJ Dybantsa, Darryn Peterson and Cameron Boozer form an elite top three.
+Caleb Wilson follows, with the rest of the class modeled from its actual draft context.
 
-2024
-This class intentionally does NOT have a generational prospect.
-Zaccharie Risacher and Alex Sarr lead a relatively flat top tier.
-Reed Sheppard, Stephon Castle, Ron Holland, Matas Buzelis and Donovan Clingan remain close enough that team preference and fit can matter.
-High-upside younger players have wide ranges.
-Older/more polished prospects have narrower ranges.
+FUTURE REAL-PLAYER MOCK CLASSES
+2027–2030
 
-PIPELINE
-Historical classes available: 1977–2024.
-Next missing class: 2025.
+These are NOT treated as historical truth.
+They are snapshots of publicly available draft projections as of August 2026.
+
+2027
+A deliberately flat/uncertain class.
+Tyran Stokes opens at No. 1, with Jordan Smith Jr., Caleb Holt, Bruce Branch III and other names in the mix.
+This class has more uncertainty than 2025 or 2026.
+
+2028
+Joaquim Boumtje Boumtje and Nikola Kusturica currently lead the early projection.
+Because these prospects are much farther from the NBA, scouting uncertainty is substantially higher.
+
+2029
+A.J. Williams currently leads the very early pool.
+Nearly every player has a wide outcome range.
+
+2030
+Mohamed Dabone currently leads an extremely early projection.
+This class should be treated as a watch list, not a prediction.
+
+2031 AND BEYOND
+Basketball Universe now automatically generates fictional future draft classes.
+
+This means a universe can run forever without:
+- recycling an old draft class
+- stopping because data ended
+- inventing fake certainty about real children/future prospects years before reliable NBA evaluations exist
+
+Generated classes contain 30 prospects with:
+- positions
+- ages
+- prospect grades
+- ceiling ranges
+- scouting uncertainty
+- development variance
+
+They are explicitly marked as fictional future-universe prospects.
+
+CORE RULE
+1977–2026 = completed historical/draft-time information
+2027–2030 = real-player projection snapshots, highly uncertain
+2031+ = fictional Basketball Universe future
+
+Future projection classes can later be updated as real draft cycles develop.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
