@@ -1,49 +1,43 @@
-v0.49 Basketball Universe — 1993–1996 Draft Pipeline
+v0.50 Basketball Universe — 1997–2000 Draft Pipeline
 
-The historical draft pipeline now extends through 1996.
+Historical draft classes now extend through 2000.
 
-1993
-Chris Webber, Shawn Bradley and Penny Hardaway enter as the premier group, followed by Jamal Mashburn, Isaiah Rider, Calbert Cheaney, Bobby Hurley, Vin Baker and others.
+1997
+Tim Duncan enters as an unusually certain franchise-changing No. 1 prospect.
+Keith Van Horn, Chauncey Billups, Antonio Daniels, Tony Battie, Ron Mercer and Tim Thomas form the next group.
+Tracy McGrady has enormous upside but very high uncertainty as an 18-year-old high-school prospect.
 
-1994
-Glenn Robinson, Jason Kidd and Grant Hill form a clear elite top tier. Donyell Marshall, Juwan Howard and the rest follow based on contemporary draft standing.
+1998
+Michael Olowokandi and Mike Bibby are treated as top-of-draft prospects.
+Raef LaFrentz, Antawn Jamison and Vince Carter are also major prospects.
+Dirk Nowitzki has huge upside but substantial international-projection uncertainty.
+Paul Pierce is a strong lottery-level prospect rather than being hindsight-ranked above the players selected before him.
 
-1995
-Joe Smith, Antonio McDyess, Jerry Stackhouse and Rasheed Wallace are the safest top prospects.
-Kevin Garnett is deliberately different: strong prospect value, massive ceiling, and very high uncertainty because he is making the unusual jump directly from high school.
+1999
+The top tier is Elton Brand, Steve Francis, Baron Davis and Lamar Odom, matching how the draft was broadly viewed at the time.
+Jonathan Bender carries major upside and uncertainty.
+Shawn Marion, Jason Terry and Ron Artest are good prospects but do not receive career-based hindsight boosts.
+Manu Ginobili is intentionally a late, highly uncertain international draft-and-stash prospect.
 
-1996
-Allen Iverson leads the class.
-Marcus Camby, Shareef Abdur-Rahim, Stephon Marbury and Ray Allen are also elite draft prospects.
+2000
+Kenyon Martin leads the class.
+Stromile Swift and Darius Miles carry major upside and are treated as elite prospects despite how their careers ultimately developed.
+Marcus Fizer, Mike Miller, DerMarr Johnson and Chris Mihm remain strong prospects.
+Michael Redd is not promoted because of his later career; he enters as the type of second-round-level prospect he actually was.
 
-KOBE / NASH / JERMAINE RULE
-The game does not know their future careers.
+PHILOSOPHY
+Draft order, contemporary reputation and prospect context matter more than eventual NBA success.
 
-Kobe Bryant:
-- strong prospect
-- enormous ceiling
-- extremely high uncertainty
-- not automatically ranked first because he became an all-time great
-
-Steve Nash:
-- later first-round-level prospect
-- meaningful upside
-- not given MVP-level draft status through hindsight
-
-Jermaine O'Neal:
-- extremely young
-- high ceiling
-- highly uncertain
-- not treated as an established star prospect
-
-The same rule applies to every player.
-
-DEPTH
-These new classes contain roughly a full Expansion Era first round's worth of prospects so league growth does not immediately exhaust the draft pool.
+The simulation can now create very different histories:
+- Tracy McGrady might never develop.
+- Michael Olowokandi might become a star.
+- Dirk could disappoint.
+- Manu might never come over.
+- Stromile Swift or Darius Miles could become the defining players of the 2000 class.
 
 PIPELINE
-Historical classes available: 1977–1996.
-Next missing class: 1997.
+Historical classes available: 1977–2000.
+Next missing class: 2001.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
