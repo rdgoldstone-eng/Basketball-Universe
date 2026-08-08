@@ -208,7 +208,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.33 · League Files & Custom Setup</div>
+    <div class="pill">v0.33.1 · Create Universe Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -2493,7 +2493,7 @@ document.addEventListener("change",e=>{
 
 
 // ----- League File Import/Export & Custom Setup v0.33 -----
-let pendingLeagueFile=null;
+var pendingLeagueFile=null;
 
 function leagueFileFromState(){
  ensureLeagueRules();ensureIdentityLogos();
