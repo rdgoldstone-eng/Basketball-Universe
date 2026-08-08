@@ -1,24 +1,24 @@
-v0.31 Basketball Universe — Staff, Hiring & Job Security
+v0.32 Basketball Universe — League Rules & Era Evolution
 
-NEW STAFF SYSTEM
-- Every franchise now has a General Manager and Head Coach.
-- Staff members have skill, age and organizational style.
-- New Staff tab.
-- GM and Coach job security reacts to team performance.
-- Organization Stability reflects leadership relationships and job security.
-- Owner can fire/hire GMs and coaches.
-- GM can fire/hire the head coach.
-- Staff market contains available coaching/front-office candidates.
-- Owner ↔ GM and GM ↔ Coach relationships can be improved through alignment meetings.
-- Very low job security can trigger AI firings around the league.
-- Staff quality and GM/Coach alignment now slightly affect team strength.
-- Staff changes are preserved in organizational history.
+NEW COMMISSIONER SYSTEMS
+- New League Rules tab
+- Three-point-line adoption can branch from history
+- Salary-cap adoption can branch from history
+- Playoff field can expand differently from real life
+- First-round series length can change
+- League style controls for pace, physicality and offense
+- League era identity changes based on the rules actually adopted
+- Rule-change history is permanently preserved
 
-ROLE DIFFERENCES
-- Owner controls GM and Coach employment.
-- GM controls Coach employment.
-- Coach sees their own job security but does not hire their boss.
-- Player mode experiences the consequences of coaching/front-office changes.
-- Commissioner can observe league staff changes through news/history.
+SIMULATION EFFECTS
+- League environment tracks pace, scoring and physicality
+- Three-point adoption changes offensive environment
+- Roster construction can interact with the league style
+- Physical eras slightly favor bigger rosters
+- Three-point eras slightly favor guard-heavy rosters
+- Playoff field attempts to use the commissioner-selected format
+
+PHILOSOPHY
+Historical dates create proposals, not mandatory outcomes. The Commissioner can approve, delay or reject changes and let the alternate universe evolve differently.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.

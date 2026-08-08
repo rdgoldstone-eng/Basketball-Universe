@@ -188,6 +188,9 @@ pre{white-space:pre-wrap}
 
 .staffCard{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 .securitySafe{color:#57c785}.securityWarn{color:#f0b44d}.securityHot{color:#ef6b73}
+
+.ruleCard{padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);margin-bottom:8px}
+.ruleStatus{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:800}
 </style>
 </head>
 <body>
@@ -202,7 +205,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.31 · Staff & Job Security</div>
+    <div class="pill">v0.32 · League Rules & Era Evolution</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -288,6 +291,7 @@ pre{white-space:pre-wrap}
     <button data-tab="staff">Staff</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
+    <button data-tab="leaguerules">League Rules</button>
     <button data-tab="bids">Expansion Bids</button>
     <button data-tab="health">Franchise Health</button>
     <button data-tab="teams">Teams</button>
@@ -667,6 +671,36 @@ pre{white-space:pre-wrap}
 
 
   
+
+  <section id="leaguerules" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Current League Rules</h2>
+        <div id="leagueRulesCurrent" class="muted">No league-rule data.</div>
+      </div>
+      <div class="card">
+        <h2>Era Identity</h2>
+        <div id="eraIdentityBox" class="muted">No era identity available.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Commissioner Rule Proposals</h2>
+      <div id="ruleProposalBox" class="muted">No proposal is pending.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>League Effects</h2>
+        <div id="leagueRuleEffects" class="muted">No active effects.</div>
+      </div>
+      <div class="card">
+        <h2>Rule History</h2>
+        <div id="leagueRuleHistory" class="muted">No rule changes yet.</div>
+      </div>
+    </div>
+  </section>
+
   <section id="leagueoffice" class="section">
     <div class="grid2">
       <div class="card">
@@ -1132,6 +1166,7 @@ function seedDecisions(){
 
 function teamById(id){return state.teams.find(t=>t.id===id)}
 function showGame(){
+ ensureLeagueRules();
  initPlayersIfNeeded();
  initManagementIfNeeded();
  initFranchiseHealth();
@@ -1526,6 +1561,7 @@ function renderAll(){
  renderCoaching();
  renderOwnership();
  renderStaff();
+ renderLeagueRules();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2368,6 +2404,122 @@ document.addEventListener("change",e=>{
 
 
 
+
+
+// ----- League Rules & Era Evolution v0.32 -----
+function ensureLeagueRules(){
+ if(!state)return;
+ state.leagueRules=state.leagueRules||{
+   threePointLine:false,
+   shotClock:24,
+   playoffTeamsPerConference:4,
+   firstRoundBestOf:3,
+   conferenceFinalBestOf:7,
+   finalsBestOf:7,
+   salaryCap:false,
+   rookieEarlyEntry:false,
+   paceEnvironment:1.00,
+   scoringEnvironment:1.00,
+   physicality:72,
+   commissionerPower:65,
+   pendingProposal:null,
+   history:[]
+ };
+}
+function leagueEraName(){
+ ensureLeagueRules();let r=state.leagueRules,y=state.currentYear;
+ if(r.threePointLine && r.scoringEnvironment>=1.08)return "Spacing Revolution";
+ if(r.physicality>=78 && r.paceEnvironment<.98)return "Physical Half-Court Era";
+ if(r.paceEnvironment>=1.08)return "Run-and-Gun Era";
+ if(r.salaryCap && y>=1984)return "Modernizing League";
+ return y<1980?"Post-Merger Era":y<1990?"Expansion Era":y<2000?"Star Era":"Modern Era";
+}
+function leagueGameEnvironment(){
+ ensureLeagueRules();let r=state.leagueRules;
+ let offense=r.scoringEnvironment;
+ if(r.threePointLine)offense+=.035;
+ let pace=r.paceEnvironment;
+ return {offense,pace,physicality:r.physicality};
+}
+function ruleProposalForYear(){
+ ensureLeagueRules();let r=state.leagueRules;
+ if(r.pendingProposal)return r.pendingProposal;
+ let y=state.currentYear;
+
+ if(y>=1979&&!r.threePointLine){
+   r.pendingProposal={id:"three",title:"Adopt a Three-Point Line",text:"The league is debating whether shots from long range should be worth three points.",options:[
+     {id:"adopt",label:"Adopt the three-point line",result:"The league adopts the three-point line.",changes:{threePointLine:true,scoringEnvironment:.04}},
+     {id:"delay",label:"Delay the change",result:"The league postpones adoption of the three-point line.",changes:{}}
+   ]};return r.pendingProposal;
+ }
+ if(y>=1983&&!r.salaryCap){
+   r.pendingProposal={id:"cap",title:"Introduce a Salary Cap",text:"Competitive balance and rising payrolls are pushing the league toward a salary-cap system.",options:[
+     {id:"adopt",label:"Create a salary cap",result:"The league establishes a salary-cap framework.",changes:{salaryCap:true}},
+     {id:"open",label:"Keep an open market",result:"The league rejects a salary cap and keeps an open payroll system.",changes:{}}
+   ]};return r.pendingProposal;
+ }
+ if(y>=1984&&r.playoffTeamsPerConference<8){
+   r.pendingProposal={id:"playoffs",title:"Expand the Playoffs",text:"Owners are debating a larger postseason field.",options:[
+     {id:"eight",label:"Expand to 8 teams per conference",result:"The postseason expands to eight teams per conference.",changes:{playoffTeamsPerConference:8,firstRoundBestOf:5}},
+     {id:"six",label:"Expand modestly to 6",result:"The postseason expands to six teams per conference.",changes:{playoffTeamsPerConference:6}},
+     {id:"stay",label:"Keep the smaller field",result:"The league keeps its current playoff field.",changes:{}}
+   ]};return r.pendingProposal;
+ }
+ if(y>=1988&&r.firstRoundBestOf<5){
+   r.pendingProposal={id:"series",title:"Lengthen the First Round",text:"There is support for making the opening playoff round a longer test.",options:[
+     {id:"five",label:"Best-of-five",result:"The first round becomes best-of-five.",changes:{firstRoundBestOf:5}},
+     {id:"seven",label:"Best-of-seven",result:"The first round becomes best-of-seven.",changes:{firstRoundBestOf:7}},
+     {id:"keep",label:"Keep current format",result:"The league keeps the existing first-round format.",changes:{}}
+   ]};return r.pendingProposal;
+ }
+ return null;
+}
+function chooseRuleProposal(id){
+ if(state.role!=="Commissioner")return;
+ let r=state.leagueRules,p=ruleProposalForYear();if(!p)return;
+ let o=p.options.find(x=>x.id===id);if(!o)return;
+ let c=o.changes||{};
+ if(c.threePointLine!=null)r.threePointLine=c.threePointLine;
+ if(c.salaryCap!=null)r.salaryCap=c.salaryCap;
+ if(c.playoffTeamsPerConference!=null)r.playoffTeamsPerConference=c.playoffTeamsPerConference;
+ if(c.firstRoundBestOf!=null)r.firstRoundBestOf=c.firstRoundBestOf;
+ if(c.scoringEnvironment)r.scoringEnvironment=Math.max(.85,Math.min(1.25,r.scoringEnvironment+c.scoringEnvironment));
+ r.history.unshift({year:state.currentYear,title:p.title,result:o.result});
+ state.news.push({year:state.currentYear,title:"League rule decision",text:o.result});
+ r.pendingProposal=null;
+ renderLeagueRules();saveState();
+}
+function setLeagueStyle(type){
+ if(state.role!=="Commissioner")return;
+ ensureLeagueRules();let r=state.leagueRules;
+ if(type==="fast"){r.paceEnvironment=Math.min(1.15,r.paceEnvironment+.04);r.physicality=Math.max(45,r.physicality-3);}
+ if(type==="physical"){r.paceEnvironment=Math.max(.88,r.paceEnvironment-.025);r.physicality=Math.min(90,r.physicality+5);}
+ if(type==="offense"){r.scoringEnvironment=Math.min(1.22,r.scoringEnvironment+.04);r.physicality=Math.max(45,r.physicality-2);}
+ if(type==="neutral"){r.paceEnvironment=1;r.scoringEnvironment=1;r.physicality=72;}
+ r.history.unshift({year:state.currentYear,title:"Style emphasis",result:`Commissioner adjusted league style toward ${type}.`});
+ renderLeagueRules();saveState();
+}
+function renderLeagueRules(){
+ let box=document.getElementById("leagueRulesCurrent");if(!box)return;
+ ensureLeagueRules();let r=state.leagueRules;
+ box.innerHTML=`<div class="ruleCard"><b>Three-Point Line</b><span class="ruleStatus" style="float:right">${r.threePointLine?"Active":"Not Used"}</span></div>
+ <div class="ruleCard"><b>Shot Clock</b><span class="ruleStatus" style="float:right">${r.shotClock} seconds</span></div>
+ <div class="ruleCard"><b>Playoff Field</b><span class="ruleStatus" style="float:right">${r.playoffTeamsPerConference} per conference</span></div>
+ <div class="ruleCard"><b>First Round</b><span class="ruleStatus" style="float:right">Best of ${r.firstRoundBestOf}</span></div>
+ <div class="ruleCard"><b>Salary Cap</b><span class="ruleStatus" style="float:right">${r.salaryCap?"Active":"None"}</span></div>`;
+
+ let env=leagueGameEnvironment();
+ document.getElementById("eraIdentityBox").innerHTML=`<h3>${leagueEraName()}</h3><div class="grid2"><div class="ownerMetric"><b>${Math.round(env.pace*100)}</b><div class="small muted">Pace Index</div></div><div class="ownerMetric"><b>${Math.round(env.offense*100)}</b><div class="small muted">Scoring Index</div></div><div class="ownerMetric"><b>${r.physicality}</b><div class="small muted">Physicality</div></div><div class="ownerMetric"><b>${r.commissionerPower}</b><div class="small muted">Commissioner Power</div></div></div>`;
+
+ let p=state.role==="Commissioner"?ruleProposalForYear():null;
+ document.getElementById("ruleProposalBox").innerHTML=p?`<div class="ownerDecision"><h3>${p.title}</h3><p class="muted">${p.text}</p><div class="choicebar">${p.options.map(o=>`<button onclick="chooseRuleProposal('${o.id}')">${o.label}</button>`).join("")}</div></div>`:`<span class="muted">${state.role==="Commissioner"?"No historical rule proposal is pending this season.":"Commissioner mode controls league-rule decisions."}</span>`;
+
+ document.getElementById("leagueRuleEffects").innerHTML=`<p><b>Style controls</b></p><div class="choicebar">${state.role==="Commissioner"?`<button onclick="setLeagueStyle('fast')">Encourage Pace</button><button onclick="setLeagueStyle('physical')">Allow More Physicality</button><button onclick="setLeagueStyle('offense')">Favor Offense</button><button onclick="setLeagueStyle('neutral')">Neutral Baseline</button>`:""}</div><p class="small muted">Rule and style changes affect the league environment rather than forcing real-world history.</p>`;
+
+ document.getElementById("leagueRuleHistory").innerHTML=r.history.length?r.history.slice(0,30).map(h=>`<div class="careerTimelineRow"><b>${h.year}</b><div><b>${h.title}</b><br>${h.result}</div></div>`).join(""):`<span class="muted">No rule changes yet.</span>`;
+}
+window.chooseRuleProposal=chooseRuleProposal;
+window.setLeagueStyle=setLeagueStyle;
 
 // ----- Staff, Hiring & Organizational Stability v0.31 -----
 function ensureStaffSystem(){
@@ -3335,7 +3487,14 @@ function teamPlayerPower(teamName){
  if(!roster.length)return 55;
  let top=roster.slice(0,5).reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/Math.max(1,Math.min(5,roster.length));
  let depth=roster.reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/roster.length;
- return top*.72+depth*.28+coachingTeamModifier(teamName)+staffPerformanceModifier(teamName);
+ let env=leagueGameEnvironment();
+ let rosterStyle=state.players.filter(p=>p.teamName===teamName&&!p.retired).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,8);
+ let guardShare=rosterStyle.length?rosterStyle.filter(p=>p.pos==="PG"||p.pos==="SG").length/rosterStyle.length:0;
+ let bigShare=rosterStyle.length?rosterStyle.filter(p=>p.pos==="PF"||p.pos==="C").length/rosterStyle.length:0;
+ let eraFit=0;
+ if(state.leagueRules.threePointLine)eraFit+=guardShare*1.5;
+ if(env.physicality>=78)eraFit+=bigShare*1.2;
+ return top*.72+depth*.28+coachingTeamModifier(teamName)+staffPerformanceModifier(teamName)+eraFit;
 }
 function playerById(id){initPlayersIfNeeded();return state.players.find(p=>p.id===id)}
 function simPlayersForTeam(teamName, teamScore){
