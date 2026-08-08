@@ -285,7 +285,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.46 · Historical Crossroads</div>
+    <div class="pill">v0.47 · Merger Era Crossroads</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -556,6 +556,7 @@ pre{white-space:pre-wrap}
     <div class="card">
       <h2>Historical Crossroads</h2>
       <p class="small muted">Real historical pressure points return at the appropriate time, but the simulated universe decides whether history repeats, changes, or never becomes a crisis.</p>
+      <div class="notice" style="margin-bottom:10px"><b>Merger Era coverage</b><br><span class="small">1977 Nets & Pacers · 1978 Braves · 1979 Jazz · 1980 Dallas · 1983 Cavaliers & Kings · 1984 Clippers · 1985 Kings & Jazz · 1986 Jazz · 1987 expansion review</span></div>
       <div id="historicalCrossroadsBox" class="muted">No historical crossroads evaluated yet.</div>
     </div>
   </section>
@@ -1439,7 +1440,7 @@ const historicalIdentityRecords = [
  {name:"Atlanta Hawks",market:"Atlanta",franchiseKey:"hawks",start:1968,end:9999,assetSource:"team",assetKey:"Atlanta Hawks",colors:["#E03A3E","#C1D32F"]},
  {name:"Boston Celtics",market:"Boston",franchiseKey:"celtics",start:1946,end:9999,assetSource:"team",assetKey:"Boston Celtics",colors:["#007A33","#BA9653"]},
  {name:"Buffalo Braves",market:"Buffalo",franchiseKey:"braves-clippers",start:1970,end:1978,assetSource:"team",assetKey:"Buffalo Braves",colors:["#0057B8","#F15A22"]},
- {name:"San Diego Clippers",market:"San Diego",franchiseKey:"braves-clippers",start:1978,end:1984,assetSource:"identity",assetKey:"lib_1028_san_diego_clippers",colors:["#006BB6","#ED174C"]},
+ {name:"San Diego Clippers",market:"San Diego",franchiseKey:"braves-clippers",start:1978,end:1984,assetSource:"identity",assetKey:"lib_1027_san_diego_clippers",colors:["#006BB6","#ED174C"]},
  {name:"Los Angeles Clippers",market:"Los Angeles",franchiseKey:"braves-clippers",start:1984,end:9999,assetSource:"team",assetKey:"Los Angeles Clippers",colors:["#C8102E","#1D428A"]},
  {name:"Chicago Bulls",market:"Chicago",franchiseKey:"bulls",start:1966,end:9999,assetSource:"team",assetKey:"Chicago Bulls",colors:["#CE1141","#000000"]},
  {name:"Cleveland Cavaliers",market:"Cleveland",franchiseKey:"cavaliers",start:1970,end:9999,assetSource:"team",assetKey:"Cleveland Cavaliers",colors:["#860038","#FDBB30"]},
@@ -2635,6 +2636,14 @@ function renderNews(){
 
 const historicalCrossroadDefinitions=[
  {
+   id:"nets_1977_new_jersey",
+   historicalYear:1977,
+   title:"1977 Nets Arena & New Jersey Decision",
+   franchiseNames:["New York Nets"],
+   description:"The Nets reach the historical point when their Nassau Coliseum arrangement broke down after a disastrous first NBA season. New Jersey is again a realistic option, but this universe evaluates whether leaving New York still makes sense.",
+   choices:["Remain on Long Island","Move to New Jersey","Seek a new New York-area arena deal"]
+ },
+ {
    id:"pacers_1977_survival",
    historicalYear:1977,
    title:"1977 Pacers Survival Crisis",
@@ -2651,12 +2660,76 @@ const historicalCrossroadDefinitions=[
    choices:["Stay in Buffalo","Apply to move to San Diego","Delay the decision one year"]
  },
  {
+   id:"jazz_1979_utah",
+   historicalYear:1979,
+   title:"1979 New Orleans Jazz Relocation Review",
+   franchiseNames:["New Orleans Jazz"],
+   description:"The Jazz reach the historical New Orleans crisis: poor results, financial strain, venue complications and a difficult local business environment made Salt Lake City a real alternative. The universe evaluates whether those pressures still exist.",
+   choices:["Stay in New Orleans","Move to Utah","Seek local financial and arena relief"]
+ },
+ {
+   id:"dallas_1980_expansion",
+   historicalYear:1980,
+   title:"1980 Dallas Expansion Decision",
+   leagueEvent:true,
+   description:"The league reaches the historical moment when Dallas entered as an expansion market. The alternate NBA evaluates whether its size, finances and geography still support adding a franchise.",
+   choices:["Approve Dallas expansion","Delay Dallas expansion","Reject Dallas expansion"]
+ },
+ {
+   id:"cavs_1983_stepien",
+   historicalYear:1983,
+   title:"1983 Cleveland Ownership & Toronto Crisis",
+   franchiseNames:["Cleveland Cavaliers"],
+   description:"Cleveland reaches the historical end of the Stepien crisis. A possible Toronto move hangs over a damaged franchise while local buyers can keep the Cavaliers in Cleveland.",
+   choices:["Sell to local Cleveland ownership","Allow a Toronto relocation review","Keep current ownership and impose league safeguards"]
+ },
+ {
+   id:"kings_1983_sale",
+   historicalYear:1983,
+   title:"1983 Kansas City Kings Ownership Sale",
+   franchiseNames:["Kansas City Kings"],
+   description:"Kansas City reaches the historical ownership crossroads when a Sacramento-based group emerged as a buyer. The sale can reshape the franchise's relocation pressure two years later.",
+   choices:["Sell to Sacramento-based group","Find local Kansas City ownership","Keep current ownership"]
+ },
+ {
    id:"clippers_1984_la_move",
    historicalYear:1984,
    title:"1984 Clippers Los Angeles Move",
    franchiseNames:["San Diego Clippers"],
    description:"If the Braves-to-Clippers franchise is in San Diego, ownership reaches the historical moment when a move to Los Angeles could be attempted even without normal league approval.",
    choices:["Remain in San Diego","Seek league approval for Los Angeles","Move to Los Angeles without league approval"]
+ },
+ {
+   id:"kings_1985_sacramento",
+   historicalYear:1985,
+   title:"1985 Kansas City Kings Relocation Decision",
+   franchiseNames:["Kansas City Kings"],
+   description:"Kansas City reaches the historical end of its Kemper Arena lease period. Sacramento is ready, but whether the Kings leave depends on ownership, attendance, finances, stability and what happened at the 1983 ownership crossroads.",
+   choices:["Remain in Kansas City","Apply to move to Sacramento","Renegotiate and delay relocation"]
+ },
+ {
+   id:"jazz_1985_utah_rescue",
+   historicalYear:1985,
+   title:"1985 Utah Jazz Ownership Rescue",
+   franchiseNames:["Utah Jazz"],
+   description:"If the Jazz moved to Utah, the franchise reaches the historical recapitalization crisis that brought Larry Miller into ownership. The universe evaluates whether Utah still needs a local ownership rescue to prevent another move.",
+   choices:["Bring in strong local ownership","Seek an outside buyer","Continue with current ownership"]
+ },
+ {
+   id:"jazz_1986_minnesota_threat",
+   historicalYear:1986,
+   title:"1986 Utah Jazz Minnesota Threat",
+   franchiseNames:["Utah Jazz"],
+   description:"If Utah remained financially vulnerable after 1985, the franchise reaches the historical moment when outside buyers could have taken the team to Minnesota. Local ownership may instead buy full control and keep the Jazz in Utah.",
+   choices:["Keep the Jazz in Utah","Sell to Minnesota interests","Restructure ownership and delay"]
+ },
+ {
+   id:"nba_1987_expansion",
+   historicalYear:1987,
+   title:"1987 Four-Market Expansion Review",
+   leagueEvent:true,
+   description:"The NBA reaches the historical expansion review that ultimately selected Charlotte, Miami, Orlando and Minnesota. This universe decides whether the league is ready for that same growth plan.",
+   choices:["Approve the four-market expansion plan","Approve only two new teams","Delay expansion","Reject expansion"]
  }
 ];
 
@@ -2666,6 +2739,7 @@ function ensureHistoricalCrossroads(){
 }
 
 function crossroadTeam(def){
+ if(def.leagueEvent)return {id:"league",name:"NBA League Office",gp:0,w:0,l:0};
  let names=new Set(def.franchiseNames||[]);
  let direct=state.teams.find(t=>names.has(t.name));
  if(direct)return direct;
@@ -2677,6 +2751,13 @@ function crossroadTeam(def){
 }
 
 function crossroadMetrics(team){
+ if(team?.id==="league"){
+   initFranchiseHealth();
+   let hs=state.teams.map(t=>state.franchiseHealth?.[t.id]).filter(Boolean);
+   let avg=k=>hs.length?hs.reduce((s,h)=>s+Number(h[k]||0),0)/hs.length:70;
+   let leagueWinHealth=state.teams.length?state.teams.filter(t=>(t.gp||0)>0).reduce((s,t)=>s+Math.abs(((t.w||0)/(t.gp||1))-.5),0)/state.teams.length:0;
+   return {attendance:avg("attendance"),stability:avg("stability"),fanSupport:avg("fanSupport"),relocationPressure:avg("relocationPressure"),winPct:.5,cash:30,trust:70,arena:70,leagueTeams:state.teams.length,parity:leagueWinHealth};
+ }
  initFranchiseHealth();
  let h=state.franchiseHealth?.[team.id]||{attendance:70,stability:70,fanSupport:70,relocationPressure:0};
  let winPct=(team.gp||0)?team.w/team.gp:.5;
@@ -2691,20 +2772,32 @@ function crossroadMetrics(team){
 
 function historicalCrossroadScore(def,team){
  let m=crossroadMetrics(team);
- if(def.id==="pacers_1977_survival"){
-   return Math.round((70-m.attendance)*.8+(65-m.stability)*.8+(15-m.cash)*1.6+(0.42-m.winPct)*35);
+ if(def.id==="nets_1977_new_jersey")return Math.round(m.relocationPressure+(70-m.attendance)*.7+(65-m.stability)*.5+(0.42-m.winPct)*20);
+ if(def.id==="pacers_1977_survival")return Math.round((70-m.attendance)*.8+(65-m.stability)*.8+(15-m.cash)*1.6+(0.42-m.winPct)*35);
+ if(def.id==="braves_1978_san_diego")return Math.round(m.relocationPressure+(70-m.attendance)*.5+(65-m.stability)*.5+(0.40-m.winPct)*20);
+ if(def.id==="jazz_1979_utah")return Math.round(m.relocationPressure+(72-m.attendance)*.7+(68-m.stability)*.7+(15-m.cash)*1.2+(0.42-m.winPct)*20);
+ if(def.id==="dallas_1980_expansion")return Math.round((m.attendance-60)*.5+(m.stability-60)*.5+(m.leagueTeams<=22?18:0));
+ if(def.id==="cavs_1983_stepien")return Math.round(m.relocationPressure+(65-m.stability)*.8+(15-m.cash)*1.2+(0.35-m.winPct)*25);
+ if(def.id==="kings_1983_sale")return Math.round(m.relocationPressure+(68-m.attendance)*.6+(65-m.stability)*.5+(18-m.cash));
+ if(def.id==="clippers_1984_la_move")return Math.round(m.relocationPressure+(68-m.attendance)*.6+(60-m.stability)*.4+(18-m.cash)*.8);
+ if(def.id==="kings_1985_sacramento"){
+   let sale=state.historicalCrossroads?.find(x=>x.id==="kings_1983_sale");
+   let ownerPush=sale?.choice==="Sell to Sacramento-based group"?25:0;
+   return Math.round(m.relocationPressure+(70-m.attendance)*.7+(65-m.stability)*.5+(15-m.cash)+ownerPush);
  }
- if(def.id==="braves_1978_san_diego"){
-   return Math.round(m.relocationPressure+(70-m.attendance)*.5+(65-m.stability)*.5+(0.40-m.winPct)*20);
+ if(def.id==="jazz_1985_utah_rescue")return Math.round(m.relocationPressure+(68-m.stability)*.7+(18-m.cash)*1.4+(68-m.attendance)*.4);
+ if(def.id==="jazz_1986_minnesota_threat"){
+   let rescue=state.historicalCrossroads?.find(x=>x.id==="jazz_1985_utah_rescue");
+   let localHelp=rescue?.choice==="Bring in strong local ownership"?-30:0;
+   return Math.round(m.relocationPressure+(65-m.stability)*.7+(15-m.cash)+localHelp);
  }
- if(def.id==="clippers_1984_la_move"){
-   return Math.round(m.relocationPressure+(68-m.attendance)*.6+(60-m.stability)*.4+(18-m.cash)*.8);
- }
+ if(def.id==="nba_1987_expansion")return Math.round((m.attendance-60)*.7+(m.stability-60)*.7+(m.leagueTeams<=23?20:0));
  return 0;
 }
 
 function crossroadNeedsHumanDecision(def,team,score){
  if(viewerMode())return false;
+ if(def.leagueEvent)return state.role==="Commissioner";
  if(state.role==="Commissioner")return true;
  if(state.role==="Owner" && state.controlledTeamId===team.id)return true;
  return false;
@@ -2712,6 +2805,9 @@ function crossroadNeedsHumanDecision(def,team,score){
 
 function crossroadDecisionText(def,team,score){
  let m=crossroadMetrics(team);
+ if(def.leagueEvent){
+   return `${def.description}<br><br><b>Universe check:</b> ${state.teams.length} teams; average attendance ${Math.round(m.attendance)}%; average franchise stability ${Math.round(m.stability)}.<br><br><b>Historical pressure/readiness score:</b> ${score}.`;
+ }
  return `${def.description}<br><br><b>Universe check:</b> ${team.name} is ${team.w||0}-${team.l||0}; attendance ${m.attendance}%; fan support ${m.fanSupport}; stability ${m.stability}; relocation pressure ${m.relocationPressure}; franchise cash about $${Math.round(m.cash)}M.<br><br><b>Historical pressure score:</b> ${score}.`;
 }
 
@@ -2727,6 +2823,48 @@ function queueHistoricalCrossroad(def,team,score){
 
 function historicalIdentityByName(name){
  return [...(state.identityLibrary||[]),...(state.customIdentities||[])].find(i=>i.name===name)||null;
+}
+
+function crossroadSetOwnershipFlag(team,key,value){
+ state.historicalOwnership=state.historicalOwnership||{};
+ state.historicalOwnership[team.id]=state.historicalOwnership[team.id]||{};
+ state.historicalOwnership[team.id][key]=value;
+}
+
+function crossroadAddExpansionTeam(identityName,conference,year){
+ if(state.teams.some(t=>t.name===identityName))return state.teams.find(t=>t.name===identityName);
+ let identity=historicalIdentityByName(identityName);
+ if(!identity)return null;
+ let id="hist_exp_"+year+"_"+identityName.toLowerCase().replace(/[^a-z0-9]+/g,"_");
+ let team={
+   id,name:identity.name,conference,logo:null,market:identity.market,
+   identityHistory:[{from:year,name:identity.name,market:identity.market,logo:null}],
+   relocationHistory:[],expansionYear:year,w:0,l:0,gp:0,power:54
+ };
+ state.teams.push(team);
+ state.teamDirections=state.teamDirections||{};
+ state.teamDirections[id]="Rebuild";
+ state.franchiseHealth=state.franchiseHealth||{};
+ state.franchiseHealth[id]={attendance:82,stability:78,fanSupport:80,relocationPressure:0,consecutiveBadYears:0};
+ ensureFranchiseHistory();
+ state.news.push({year,title:"Historical expansion",text:`${identity.name} joins the alternate NBA as an expansion franchise.`});
+ return team;
+}
+
+function scheduleHistoricalExpansion(identityName,conference,startYear){
+ state.pendingHistoricalExpansions=state.pendingHistoricalExpansions||[];
+ if(state.pendingHistoricalExpansions.some(x=>x.identityName===identityName))return;
+ state.pendingHistoricalExpansions.push({identityName,conference,startYear,completed:false});
+}
+
+function processPendingHistoricalExpansions(){
+ if(!state?.pendingHistoricalExpansions)return;
+ state.pendingHistoricalExpansions.forEach(x=>{
+   if(!x.completed && Number(state.currentYear)>=Number(x.startYear)){
+     let t=crossroadAddExpansionTeam(x.identityName,x.conference,x.startYear);
+     x.completed=!!t;
+   }
+ });
 }
 
 function crossroadRelocate(team,newIdentityName,historicalYear,note){
@@ -2755,7 +2893,18 @@ function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
  let m=crossroadMetrics(team);
  let result=choice,cls="crossroadChanged";
 
- if(def.id==="pacers_1977_survival"){
+ if(def.id==="nets_1977_new_jersey"){
+   if(choice==="Move to New Jersey"){
+     if(crossroadRelocate(team,"New Jersey Nets",1977,"The Nets leave Long Island and re-establish the franchise in New Jersey."))result="The Nets' arena and business pressures are strong enough that the franchise moves to New Jersey.";
+     else result="New Jersey was selected, but the historical identity asset was unavailable.";
+   }else if(choice==="Seek a new New York-area arena deal"){
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+5);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-8);}
+     result="The Nets stay in the New York market while pursuing a different arena arrangement.";cls="crossroadStayed";
+   }else{
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].fanSupport=Math.min(100,m.fanSupport+3);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-12);}
+     result="The Nets remain on Long Island and attempt to make the existing market work.";cls="crossroadStayed";
+   }
+ }else if(def.id==="pacers_1977_survival"){
    let o=null;try{ensureOwnership();o=ownerData(team.id);}catch(e){}
    if(choice==="Launch the community telethon"){
      let response=Math.round((m.fanSupport+m.trust)/2);
@@ -2766,12 +2915,10 @@ function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
      }
      result=response>=60?"The telethon succeeds and materially strengthens the Pacers' survival.":"The telethon helps, but the franchise remains financially fragile.";
    }else if(choice==="Seek a private rescue package"){
-     if(o)o.cash+=10;
-     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+7);
+     if(o)o.cash+=10;if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+7);
      result="Private financing keeps Indiana alive without relying entirely on the public campaign.";
    }else if(choice==="Cut costs and ride it out"){
-     if(o)o.cash+=5;
-     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].fanSupport=Math.max(30,m.fanSupport-5);
+     if(o)o.cash+=5;if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].fanSupport=Math.max(30,m.fanSupport-5);
      result="Indiana survives the immediate crunch through austerity, at some cost to fan confidence.";
    }else{
      if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.min(100,m.relocationPressure+25);
@@ -2779,45 +2926,126 @@ function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
    }
  }else if(def.id==="braves_1978_san_diego"){
    if(choice==="Apply to move to San Diego"){
-     if(crossroadRelocate(team,"San Diego Clippers",1978,"Buffalo's 1978 review ends with the Braves relocating to San Diego and becoming the Clippers.")){
-       result="The simulated conditions support the move: Buffalo relocates to San Diego and becomes the Clippers.";
-     }else result="San Diego was selected, but the historical identity asset was unavailable.";
+     if(crossroadRelocate(team,"San Diego Clippers",1978,"Buffalo's 1978 review ends with the Braves relocating to San Diego and becoming the Clippers."))result="The simulated conditions support the move: Buffalo relocates to San Diego and becomes the Clippers.";
+     else result="San Diego was selected, but the historical identity asset was unavailable.";
    }else if(choice==="Delay the decision one year"){
      if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-5);
-     result="Buffalo postpones the relocation question. The franchise remains under observation.";
-     cls="crossroadStayed";
+     result="Buffalo postpones the relocation question. The franchise remains under observation.";cls="crossroadStayed";
    }else{
-     if(state.franchiseHealth?.[team.id]){
-       state.franchiseHealth[team.id].stability=Math.min(100,m.stability+6);
-       state.franchiseHealth[team.id].fanSupport=Math.min(100,m.fanSupport+5);
-       state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-20);
-     }
-     result="The Braves reject the San Diego path and remain in Buffalo.";
-     cls="crossroadStayed";
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+6);state.franchiseHealth[team.id].fanSupport=Math.min(100,m.fanSupport+5);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-20);}
+     result="The Braves reject the San Diego path and remain in Buffalo.";cls="crossroadStayed";
+   }
+ }else if(def.id==="jazz_1979_utah"){
+   if(choice==="Move to Utah"){
+     if(crossroadRelocate(team,"Utah Jazz",1979,"New Orleans' 1979 crisis ends with the Jazz relocating to Salt Lake City."))result="The alternate franchise pressures are severe enough that the Jazz move from New Orleans to Utah.";
+     else result="Utah was selected, but the historical identity asset was unavailable.";
+   }else if(choice==="Seek local financial and arena relief"){
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+8);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-15);}
+     result="New Orleans assembles enough local relief to keep the Jazz while addressing the arena and financial problems.";cls="crossroadStayed";
+   }else{
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-12);
+     result="The Jazz remain in New Orleans; Salt Lake City does not inherit the franchise in this timeline.";cls="crossroadStayed";
+   }
+ }else if(def.id==="dallas_1980_expansion"){
+   if(choice==="Approve Dallas expansion"){
+     let t=crossroadAddExpansionTeam("Dallas Mavericks","West",1980);
+     result=t?"Dallas is approved and the Mavericks join the alternate NBA.":"Dallas was approved, but the Mavericks identity is not available in this data pack.";
+   }else if(choice==="Delay Dallas expansion"){
+     scheduleHistoricalExpansion("Dallas Mavericks","West",1981);
+     result="The NBA delays Dallas by one season rather than following the exact historical timetable.";cls="crossroadStayed";
+   }else{
+     result="The NBA decides its current universe is not ready for Dallas expansion.";cls="crossroadStayed";
+   }
+ }else if(def.id==="cavs_1983_stepien"){
+   if(choice==="Sell to local Cleveland ownership"){
+     crossroadSetOwnershipFlag(team,"localRescue1983",true);
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+18);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-30);}
+     result="Cleveland ownership changes hands locally, stabilizing the Cavaliers and shutting down the Toronto threat.";
+   }else if(choice==="Allow a Toronto relocation review"){
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.min(100,m.relocationPressure+30);
+     result="The league allows the Cavaliers to seriously explore Toronto. Cleveland's future remains unresolved.";
+   }else{
+     crossroadSetOwnershipFlag(team,"leagueSafeguards1983",true);
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+5);
+     result="The owner remains, but the league imposes extraordinary safeguards to protect the franchise.";
+   }
+ }else if(def.id==="kings_1983_sale"){
+   if(choice==="Sell to Sacramento-based group"){
+     crossroadSetOwnershipFlag(team,"sacramentoOwners1983",true);
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.min(100,m.relocationPressure+18);
+     result="A Sacramento-based group buys the Kings, making a future California move substantially more likely.";
+   }else if(choice==="Find local Kansas City ownership"){
+     crossroadSetOwnershipFlag(team,"localOwners1983",true);
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+12);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-20);}
+     result="Local ownership keeps the franchise's incentives centered on Kansas City.";cls="crossroadStayed";
+   }else{
+     result="Current ownership continues, leaving the Kings' long-term future unsettled.";cls="crossroadStayed";
    }
  }else if(def.id==="clippers_1984_la_move"){
    if(choice==="Move to Los Angeles without league approval"){
      if(crossroadRelocate(team,"Los Angeles Clippers",1984,"San Diego ownership makes the extraordinary 1984 move to Los Angeles without following the normal approval path.")){
-       result="Ownership makes the bold unauthorized move to Los Angeles. The relocation stands for now, creating a league controversy.";
+       state.historicalLegalDisputes=state.historicalLegalDisputes||[];
+       state.historicalLegalDisputes.push({year:1984,teamId:team.id,type:"Unauthorized relocation",status:"League challenge pending"});
+       result="Ownership makes the bold unauthorized move to Los Angeles. The relocation stands for now and triggers a league legal challenge.";
      }else result="The unauthorized move was attempted, but the Los Angeles identity was unavailable.";
    }else if(choice==="Seek league approval for Los Angeles"){
-     if(score>=45){
-       crossroadRelocate(team,"Los Angeles Clippers",1984,"The Clippers seek league approval and ultimately relocate to Los Angeles through the formal process.");
-       result="The league process leads to an approved Los Angeles relocation.";
-     }else{
-       result="The Clippers explore Los Angeles but the case is not strong enough; they remain in San Diego.";
-       cls="crossroadStayed";
-     }
+     if(score>=45){crossroadRelocate(team,"Los Angeles Clippers",1984,"The Clippers seek league approval and relocate to Los Angeles through the formal process.");result="The league process leads to an approved Los Angeles relocation.";}
+     else{result="The Clippers explore Los Angeles but the case is not strong enough; they remain in San Diego.";cls="crossroadStayed";}
+   }else{result="Ownership chooses to remain in San Diego rather than recreate the historical Los Angeles move.";cls="crossroadStayed";}
+ }else if(def.id==="kings_1985_sacramento"){
+   if(choice==="Apply to move to Sacramento"){
+     if(crossroadRelocate(team,"Sacramento Kings",1985,"Kansas City's 1985 relocation review ends with the Kings moving to Sacramento."))result="The Kings leave Kansas City for Sacramento.";
+     else result="Sacramento was selected, but the historical identity asset was unavailable.";
+   }else if(choice==="Renegotiate and delay relocation"){
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+5);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-8);}
+     result="Kansas City buys time with a new local arrangement, delaying the move.";cls="crossroadStayed";
    }else{
-     result="Ownership chooses to remain in San Diego rather than recreate the historical Los Angeles move.";
-     cls="crossroadStayed";
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].fanSupport=Math.min(100,m.fanSupport+5);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-20);}
+     result="The Kings remain in Kansas City and Sacramento must wait for another opportunity.";cls="crossroadStayed";
+   }
+ }else if(def.id==="jazz_1985_utah_rescue"){
+   if(choice==="Bring in strong local ownership"){
+     crossroadSetOwnershipFlag(team,"localUtahRescue1985",true);
+     try{let o=ownerData(team.id);o.cash+=16;o.publicTrust=Math.min(100,o.publicTrust+12);}catch(e){}
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+20);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-30);}
+     result="A strong local ownership investment recapitalizes the Jazz and makes another relocation much less likely.";
+   }else if(choice==="Seek an outside buyer"){
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.min(100,m.relocationPressure+20);
+     result="Utah opens the franchise to outside buyers, increasing the chance of another relocation.";
+   }else{
+     result="Current ownership continues without a major recapitalization; the Jazz remain financially exposed.";cls="crossroadStayed";
+   }
+ }else if(def.id==="jazz_1986_minnesota_threat"){
+   if(choice==="Sell to Minnesota interests"){
+     result="Outside buyers win control and the Jazz prepare for a Minnesota relocation path. Full Minnesota identity execution is deferred to the expansion/identity system.";
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=100;
+   }else if(choice==="Restructure ownership and delay"){
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+8);
+     result="Utah restructures ownership and postpones the sale question.";cls="crossroadStayed";
+   }else{
+     crossroadSetOwnershipFlag(team,"utahKept1986",true);
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+15);state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-30);}
+     result="Local control is consolidated and the Jazz remain in Utah.";cls="crossroadStayed";
+   }
+ }else if(def.id==="nba_1987_expansion"){
+   if(choice==="Approve the four-market expansion plan"){
+     scheduleHistoricalExpansion("Charlotte Hornets","East",1988);
+     scheduleHistoricalExpansion("Miami Heat","East",1988);
+     scheduleHistoricalExpansion("Orlando Magic","East",1989);
+     scheduleHistoricalExpansion("Minnesota Timberwolves","West",1989);
+     result="Charlotte and Miami are scheduled for 1988-89; Orlando and Minnesota for 1989-90.";
+   }else if(choice==="Approve only two new teams"){
+     scheduleHistoricalExpansion("Charlotte Hornets","East",1988);
+     scheduleHistoricalExpansion("Miami Heat","East",1988);
+     result="The league approves a smaller first wave: Charlotte and Miami only.";
+   }else if(choice==="Delay expansion"){
+     result="The league postpones the late-1980s expansion wave and will revisit growth later.";cls="crossroadStayed";
+   }else{
+     result="The league rejects the historical four-market expansion plan in this universe.";cls="crossroadStayed";
    }
  }
 
- let entry={
-   id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,
-   teamAtEvaluation:team.name,score,choice,outcome:result,automatic,cssClass:cls
- };
+ let entry={id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,teamAtEvaluation:team.name,score,choice,outcome:result,automatic,cssClass:cls};
  let old=state.historicalCrossroads.findIndex(x=>x.id===def.id);
  if(old>=0)state.historicalCrossroads[old]=entry; else state.historicalCrossroads.push(entry);
  state.news.push({year:def.historicalYear,title:def.title,text:result});
@@ -2826,23 +3054,29 @@ function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
 
 function autoHistoricalCrossroadChoice(def,team,score){
  let m=crossroadMetrics(team);
+ if(def.id==="nets_1977_new_jersey")return score>=45?"Move to New Jersey":score>=25?"Seek a new New York-area arena deal":"Remain on Long Island";
  if(def.id==="pacers_1977_survival"){
    if(score<5)return "Cut costs and ride it out";
    if(m.fanSupport>=60)return "Launch the community telethon";
    if(m.cash<8)return "Seek a private rescue package";
    return "Cut costs and ride it out";
  }
- if(def.id==="braves_1978_san_diego"){
-   if(score>=55)return "Apply to move to San Diego";
-   if(score>=35)return "Delay the decision one year";
-   return "Stay in Buffalo";
+ if(def.id==="braves_1978_san_diego"){if(score>=55)return "Apply to move to San Diego";if(score>=35)return "Delay the decision one year";return "Stay in Buffalo";}
+ if(def.id==="jazz_1979_utah"){if(score>=55)return "Move to Utah";if(score>=30)return "Seek local financial and arena relief";return "Stay in New Orleans";}
+ if(def.id==="dallas_1980_expansion")return score>=30?"Approve Dallas expansion":score>=15?"Delay Dallas expansion":"Reject Dallas expansion";
+ if(def.id==="cavs_1983_stepien"){if(score>=55)return "Sell to local Cleveland ownership";if(score>=35)return "Keep current ownership and impose league safeguards";return "Sell to local Cleveland ownership";}
+ if(def.id==="kings_1983_sale"){if(score>=50)return "Sell to Sacramento-based group";if(score<25)return "Find local Kansas City ownership";return "Keep current ownership";}
+ if(def.id==="clippers_1984_la_move"){if(score>=70 && m.stability<65)return "Move to Los Angeles without league approval";if(score>=45)return "Seek league approval for Los Angeles";return "Remain in San Diego";}
+ if(def.id==="kings_1985_sacramento"){if(score>=60)return "Apply to move to Sacramento";if(score>=35)return "Renegotiate and delay relocation";return "Remain in Kansas City";}
+ if(def.id==="jazz_1985_utah_rescue"){if(score>=40)return "Bring in strong local ownership";if(score>=25)return "Continue with current ownership";return "Continue with current ownership";}
+ if(def.id==="jazz_1986_minnesota_threat"){
+   let rescue=state.historicalCrossroads?.find(x=>x.id==="jazz_1985_utah_rescue");
+   if(rescue?.choice==="Bring in strong local ownership")return "Keep the Jazz in Utah";
+   if(score>=55)return "Sell to Minnesota interests";
+   if(score>=30)return "Restructure ownership and delay";
+   return "Keep the Jazz in Utah";
  }
- if(def.id==="clippers_1984_la_move"){
-   // Bold unauthorized move becomes possible only if the franchise is under meaningful pressure.
-   if(score>=70 && m.stability<65)return "Move to Los Angeles without league approval";
-   if(score>=45)return "Seek league approval for Los Angeles";
-   return "Remain in San Diego";
- }
+ if(def.id==="nba_1987_expansion"){if(score>=35)return "Approve the four-market expansion plan";if(score>=20)return "Approve only two new teams";if(score>=10)return "Delay expansion";return "Reject expansion";}
  return def.choices[0];
 }
 
@@ -2853,35 +3087,37 @@ function evaluateHistoricalCrossroads(){
  historicalCrossroadDefinitions.filter(d=>d.historicalYear===eventYear).forEach(def=>{
    if(state.historicalCrossroads.some(x=>x.id===def.id))return;
    let team=crossroadTeam(def);
+
    if(!team){
-     state.historicalCrossroads.push({
-       id:def.id,historicalYear:def.historicalYear,title:def.title,status:"Not applicable",
-       outcome:"This franchise identity/path does not exist in this universe at the historical decision point.",
-       automatic:true,cssClass:"crossroadNA"
-     });
+     state.historicalCrossroads.push({id:def.id,historicalYear:def.historicalYear,title:def.title,status:"Not applicable",outcome:"This franchise identity/path does not exist in this universe at the historical decision point.",automatic:true,cssClass:"crossroadNA"});
      return;
    }
 
-   // 1984 controversy is only relevant if the franchise is actually still the San Diego Clippers.
-   if(def.id==="clippers_1984_la_move" && team.name!=="San Diego Clippers"){
-     state.historicalCrossroads.push({
-       id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,status:"Not applicable",
-       outcome:`The franchise is ${team.name} in 1984, so the San Diego-to-Los Angeles controversy does not arise.`,
-       automatic:true,cssClass:"crossroadNA"
-     });
+   const requireExact={
+     clippers_1984_la_move:"San Diego Clippers",
+     kings_1985_sacramento:"Kansas City Kings",
+     jazz_1985_utah_rescue:"Utah Jazz",
+     jazz_1986_minnesota_threat:"Utah Jazz"
+   };
+   if(requireExact[def.id] && team.name!==requireExact[def.id]){
+     state.historicalCrossroads.push({id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,status:"Not applicable",outcome:`The franchise is ${team.name} in ${def.historicalYear}, so this historical path never develops.`,automatic:true,cssClass:"crossroadNA"});
      return;
+   }
+
+   // 1986 Utah threat is largely neutralized if the 1985 local rescue was strong and conditions are healthy.
+   if(def.id==="jazz_1986_minnesota_threat"){
+     let rescue=state.historicalCrossroads?.find(x=>x.id==="jazz_1985_utah_rescue");
+     let mm=crossroadMetrics(team);
+     if(rescue?.choice==="Bring in strong local ownership" && mm.relocationPressure<35 && mm.stability>=65){
+       state.historicalCrossroads.push({id:def.id,historicalYear:1986,title:def.title,teamId:team.id,status:"Threat avoided",outcome:"The 1985 local ownership rescue leaves Utah stable enough that the Minnesota sale threat never becomes serious.",automatic:true,cssClass:"crossroadStayed"});
+       return;
+     }
    }
 
    let score=historicalCrossroadScore(def,team);
 
-   // If Indiana is healthy enough, history is still evaluated but no rescue campaign is forced.
    if(def.id==="pacers_1977_survival" && score<0){
-     state.historicalCrossroads.push({
-       id:def.id,historicalYear:1977,title:def.title,teamId:team.id,teamAtEvaluation:team.name,
-       score,status:"Crisis avoided",choice:"No emergency action needed",
-       outcome:"Indiana reaches the historical checkpoint in sound enough condition that the real-life survival crisis never fully develops.",
-       automatic:true,cssClass:"crossroadStayed"
-     });
+     state.historicalCrossroads.push({id:def.id,historicalYear:1977,title:def.title,teamId:team.id,teamAtEvaluation:team.name,score,status:"Crisis avoided",choice:"No emergency action needed",outcome:"Indiana reaches the historical checkpoint in sound enough condition that the real-life survival crisis never fully develops.",automatic:true,cssClass:"crossroadStayed"});
      return;
    }
 
@@ -3216,6 +3452,7 @@ function beginNextSeason(){
 
  // The new season itself is the essential transition.
  state.currentYear=newYear;
+ processPendingHistoricalExpansions();
  state.regularBoxScores=[];
  state.offseason=null;
  state.draftRoom={active:false,year:null,pickIndex:0,order:[],available:[],results:[],tradeOffers:[],completed:false};

@@ -1,77 +1,75 @@
-v0.46 Basketball Universe — Historical Crossroads
+v0.47 Basketball Universe — Merger Era Crossroads
 
-NEW CORE PHILOSOPHY
-History determines the question. Basketball Universe determines the answer.
+HISTORICAL CROSSROADS EXPANDED
+The Merger Era now has a connected historical-event chain instead of only three prototype events.
 
-Major real historical franchise pressure points now return at their historical time, but the outcome is evaluated from the alternate universe rather than forced to match reality.
+COVERED EVENTS
+1977
+- New York Nets arena / New Jersey decision
+- Indiana Pacers survival / telethon crisis
 
-FIRST THREE CROSSROADS
+1978
+- Buffalo Braves relocation review / San Diego
 
-1977 — Indiana Pacers Survival Crisis
-The game evaluates whether Indiana is actually in enough financial trouble to need a rescue.
-Inputs include team performance, attendance, fan support, stability, ownership cash, and public trust.
-Possible paths include:
-- community telethon
-- private rescue financing
-- cost cutting
-- sale/relocation exploration
-If Indiana is healthy in the alternate universe, the historical crisis can be avoided entirely.
+1979
+- New Orleans Jazz relocation review / Utah
 
-1978 — Buffalo Braves / San Diego Review
-Buffalo's historical relocation question returns.
-The simulation evaluates attendance, performance, franchise stability, fan support, finances, and relocation pressure.
-The Braves can:
-- remain in Buffalo
-- apply to move to San Diego and become the Clippers
-- postpone the decision
-A successful Buffalo franchise is not forced to leave.
+1980
+- Dallas expansion decision
 
-1984 — San Diego Clippers / Los Angeles Controversy
-This event exists only if the franchise actually became the San Diego Clippers in this universe.
-Ownership can:
-- remain in San Diego
-- seek formal league approval for Los Angeles
-- make the bold move to Los Angeles without normal league approval
-If Buffalo never became San Diego, the 1984 event is automatically marked not applicable.
+1983
+- Cleveland Cavaliers ownership / Toronto threat
+- Kansas City Kings ownership sale
 
-ROLE BEHAVIOR
-- Commissioner receives league-level Historical Crossroads decisions.
-- Owner receives a decision when the event involves the team they control.
-- Viewer and roles without decision authority let the universe evaluate the outcome automatically.
+1984
+- San Diego Clippers / Los Angeles move controversy
 
-HISTORY PAGE
-A new Historical Crossroads section records:
-- event year
-- event
-- historical pressure score
-- decision/outcome
-- events that became irrelevant because earlier alternate history changed the path
+1985
+- Kansas City Kings / Sacramento relocation decision
+- Utah Jazz local ownership rescue
 
-PERMANENT ROADMAP — HISTORICAL CROSSROADS
-This first version is only the foundation. The roadmap now permanently includes historical evaluation points for every franchise where applicable:
-- relocations and attempted relocations
-- franchise sales and ownership changes
-- arena disputes and arena-financing crises
-- financial emergencies and community rescue efforts
-- league approval disputes
-- mergers and contraction threats
-- rebrands and identity changes
-- ABA instability and merger-related decisions
-- expansion applications and expansion timing
-- conference/division realignment pressure
-- unusual ownership actions and league litigation
-- franchise-saving local political/community efforts
+1986
+- Utah Jazz / Minnesota sale threat
 
-These events should retain their real historical context but never be predetermined. Simulated success, attendance, finances, ownership, arena conditions, fan support, market strength, and league politics determine what happens.
+1987
+- NBA four-market expansion review: Charlotte, Miami, Orlando, Minnesota
 
-OTHER PERMANENT PROJECT ITEMS
-- PNG-only logo assets
-- white logo backgrounds with consistent sizing/padding
-- era-correct identities/logos
-- full historical draft pipeline
-- franchise records, legends and retired numbers
-- alternate-history career and league records
-- eventual full Founding, ABA Rivalry, Expansion and Realignment Era data packs
+CHAIN-AWARE HISTORY
+Earlier choices now affect later events.
+
+Examples:
+- Buffalo stays in Buffalo -> the 1984 San Diego Clippers event is not applicable.
+- New Orleans keeps the Jazz -> the 1985 and 1986 Utah ownership crises do not occur.
+- Strong local Utah ownership in 1985 can prevent the 1986 Minnesota threat from becoming serious.
+- Sacramento-based ownership in 1983 makes a 1985 Kings relocation more likely.
+- Local Kansas City ownership reduces the pressure to move.
+- 1987 expansion approval can schedule Charlotte and Miami for 1988 and Orlando/Minnesota for 1989.
+
+EXPANSION
+Historical expansion decisions are evaluated, not forced.
+Dallas may enter in 1980, be delayed, or be rejected.
+The 1987 four-market plan can be approved fully, approved partially, delayed, or rejected.
+
+HISTORICAL PRINCIPLE
+History determines the question.
+Basketball Universe determines the answer.
+
+The historical trigger dates and real-world context are preserved, but simulated performance, attendance, fan support, franchise stability, finances, ownership and prior alternate-history choices determine the outcome.
+
+DATA / RESEARCH BASIS
+The event list was checked against historical franchise and league records, including NBA/team historical material and contemporary/archival reporting.
+
+TECHNICAL
+- Corrected the San Diego Clippers identity-library asset key.
+- Added scheduled historical expansion processing.
+- Added ownership flags that affect later crossroads.
+- Added automatic Not Applicable / Threat Avoided outcomes when alternate history eliminates a real-world event.
+- Viewer mode evaluates crossroads automatically.
+- Commissioner receives league/franchise decisions.
+- Owner receives decisions for the franchise they control.
+
+NOTE
+The 1987 four-team expansion schedule is now represented in the historical-event engine. Multi-team expansion-draft depth can be improved in a later dedicated expansion build.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
