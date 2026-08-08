@@ -172,6 +172,11 @@ pre{white-space:pre-wrap}
 .draftPickRow{display:grid;grid-template-columns:60px minmax(150px,1fr) minmax(150px,1fr) 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .draftOffer{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 @media(max-width:700px){.draftProspect{grid-template-columns:42px minmax(130px,1fr) 60px 60px}.draftHide{display:none}.draftPickRow{grid-template-columns:50px minmax(130px,1fr) minmax(120px,1fr)}}
+
+.rosterRow{display:grid;grid-template-columns:minmax(150px,1fr) 55px 60px 85px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.tradeTarget{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+.capGood{color:#57c785}.capWarn{color:#f0b44d}.capBad{color:#ef6b73}
+@media(max-width:700px){.rosterRow{grid-template-columns:minmax(135px,1fr) 50px 55px}.rosterHide{display:none}}
 </style>
 </head>
 <body>
@@ -186,7 +191,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.27 · Draft Day</div>
+    <div class="pill">v0.28 · Trades & Free Agency</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -266,6 +271,7 @@ pre{white-space:pre-wrap}
     <button data-tab="history">History</button>
     <button data-tab="career">Career</button>
     <button data-tab="draftroom">Draft Room</button>
+    <button data-tab="frontoffice">Front Office</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
     <button data-tab="bids">Expansion Bids</button>
@@ -456,6 +462,36 @@ pre{white-space:pre-wrap}
     <div class="card"><h2>Career Timeline</h2><div id="careerTimeline" class="muted">No career history yet.</div></div>
   </section>
 
+
+
+  <section id="frontoffice" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Roster & Payroll</h2>
+        <div id="frontOfficeRoster" class="muted">Choose a team-based role to manage a roster.</div>
+      </div>
+      <div class="card">
+        <h2>Team Direction</h2>
+        <div id="frontOfficeDirection" class="muted">No team direction set.</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Trade Center</h2>
+        <div id="tradeCenterBox" class="muted">No trade targets available.</div>
+      </div>
+      <div class="card">
+        <h2>Free Agency</h2>
+        <div id="freeAgencyMarket" class="muted">No free agents available.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Transaction Log</h2>
+      <div id="transactionLogBox" class="muted">No transactions yet.</div>
+    </div>
+  </section>
 
   <section id="draftroom" class="section">
     <div class="grid2">
@@ -1377,6 +1413,7 @@ function renderAll(){
  renderHealthCenter();
  renderLeagueHistory();
  renderDraftRoom();
+ renderFrontOffice();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2212,6 +2249,163 @@ document.addEventListener("change",e=>{
 
 
 
+
+
+// ----- Front Office: Trades & Free Agency v0.28 -----
+
+function processLeagueContractExpirations(){
+ ensureFrontOffice();
+ state.players.forEach(p=>{
+   if(p.retired||p.deferredEntry)return;
+   if(p.contract&&p.contract.years!=null){
+     p.contract.years=Math.max(0,p.contract.years-1);
+     if(p.contract.years===0 && state.role!=="Player"){
+       p.teamName="Free Agent";
+       if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+     }
+   }
+ });
+}
+
+function ensureFrontOffice(){
+ if(!state)return;
+ state.frontOffice=state.frontOffice||{
+   cap:100,
+   teamDirections:{},
+   transactions:[],
+   tradeTargets:[],
+   freeAgentOffers:[]
+ };
+ if(!state.freeAgents)state.freeAgents=[];
+}
+function playerSalary(p){
+ return p.contract?.salary||Math.max(1,Math.round(((p.ovr||60)-50)*.35));
+}
+function teamPayroll(teamName){
+ return state.players.filter(p=>p.teamName===teamName&&!p.retired).reduce((s,p)=>s+playerSalary(p),0);
+}
+function teamRoster(teamName){
+ return state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+}
+function currentControlledTeam(){
+ return state.controlledTeamId?teamById(state.controlledTeamId):null;
+}
+function setTeamDirection(dir){
+ ensureFrontOffice();let team=currentControlledTeam();if(!team)return;
+ state.frontOffice.teamDirections[team.id]=dir;
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} sets direction: ${dir}.`});
+ renderFrontOffice();saveState();
+}
+function rosterValue(p){
+ return (p.ovr||60)*.7+(p.pot||p.ovr||60)*.3-(playerSalary(p)*.35);
+}
+function buildTradeTargets(){
+ ensureFrontOffice();let team=currentControlledTeam();
+ if(!team||!(state.role==="GM"||state.role==="Owner")){state.frontOffice.tradeTargets=[];return;}
+ let dir=state.frontOffice.teamDirections[team.id]||"Balanced";
+ let pool=state.players.filter(p=>p.teamName!==team.name&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out");
+ pool=pool.filter(p=>{
+   if(dir==="Contend Now")return (p.ovr||0)>=72;
+   if(dir==="Build for the Future")return (p.age||99)<=25&&(p.pot||p.ovr||0)>=70;
+   if(dir==="Cut Payroll")return playerSalary(p)<=4;
+   return true;
+ });
+ state.frontOffice.tradeTargets=pool.sort((a,b)=>rosterValue(b)-rosterValue(a)).slice(0,12).map(p=>p.id);
+}
+function bestTradeAsset(teamName,targetValue){
+ let roster=teamRoster(teamName).slice().sort((a,b)=>rosterValue(a)-rosterValue(b));
+ return roster.find(p=>Math.abs(rosterValue(p)-targetValue)<14)||roster[0]||null;
+}
+function proposeSimpleTrade(targetId){
+ ensureFrontOffice();let team=currentControlledTeam(),target=state.players.find(p=>p.id===targetId);
+ if(!team||!target)return;
+ let asset=bestTradeAsset(team.name,rosterValue(target));
+ if(!asset){alert("You do not have a tradable player.");return;}
+ let targetTeam=target.teamName;
+ let offerValue=rosterValue(asset),askValue=rosterValue(target);
+ let accepted=offerValue>=askValue*.90 || Math.random()<Math.max(.08,(offerValue/Math.max(1,askValue))-.75);
+ if(!accepted){
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`Trade talks with ${targetTeam} for ${target.name} broke down.`});
+   renderFrontOffice();saveState();return;
+ }
+ let oldTeam=asset.teamName;
+ asset.teamName=targetTeam;
+ target.teamName=team.name;
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} acquires ${target.name} from ${targetTeam} for ${asset.name}.`});
+ state.news.push({year:state.currentYear,title:"Trade",text:`${team.name} acquires ${target.name} from ${targetTeam} for ${asset.name}.`});
+ buildTradeTargets();renderAll();saveState();
+}
+function populateFreeAgency(){
+ ensureFrontOffice();
+ if(state.freeAgents.length)return;
+ let released=state.players.filter(p=>!p.retired&&(p.teamName==="Free Agent"||p.contract?.years===0));
+ state.freeAgents=released.map(p=>p.id);
+}
+function freeAgentPool(){
+ ensureFrontOffice();populateFreeAgency();
+ return state.freeAgents.map(id=>state.players.find(p=>p.id===id)).filter(Boolean).filter(p=>p.teamName==="Free Agent"||p.contract?.years===0);
+}
+function signFreeAgent(playerId){
+ ensureFrontOffice();let team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);
+ if(!team||!p)return;
+ let cap=state.frontOffice.cap,payroll=teamPayroll(team.name),salary=Math.max(1,Math.round(careerMarketValueForAny(p)));
+ if(payroll+salary>cap){
+   alert(`This signing would put ${team.name} over the $${cap}M cap.`);
+   return;
+ }
+ p.teamName=team.name;
+ p.contract={years:3,salary};
+ state.freeAgents=state.freeAgents.filter(id=>id!==p.id);
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for 3 years at $${salary}M/year.`});
+ state.news.push({year:state.currentYear,title:"Free-agent signing",text:`${team.name} signs ${p.name}.`});
+ renderAll();saveState();
+}
+function careerMarketValueForAny(p){
+ return Math.max(1,((p.ovr||60)-50)*.45+((p.pot||p.ovr||60)-50)*.15);
+}
+function releasePlayer(playerId){
+ ensureFrontOffice();let team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);
+ if(!team||!p||p.teamName!==team.name)return;
+ if(teamRoster(team.name).length<=8){alert("You need to keep at least 8 players on the roster.");return;}
+ p.teamName="Free Agent";
+ p.contract={years:0,salary:0};
+ if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} releases ${p.name}.`});
+ state.news.push({year:state.currentYear,title:"Roster move",text:`${team.name} releases ${p.name}.`});
+ buildTradeTargets();renderAll();saveState();
+}
+function renderFrontOffice(){
+ let rosterBox=document.getElementById("frontOfficeRoster");if(!rosterBox)return;
+ ensureFrontOffice();let team=currentControlledTeam();
+ if(!team||!(state.role==="GM"||state.role==="Owner")){
+   rosterBox.innerHTML=`<span class="muted">Front-office roster controls are available in GM and Owner mode.</span>`;
+   document.getElementById("frontOfficeDirection").innerHTML=`<span class="muted">No controllable front office.</span>`;
+   document.getElementById("tradeCenterBox").innerHTML=`<span class="muted">Trade controls are available in GM and Owner mode.</span>`;
+   document.getElementById("freeAgencyMarket").innerHTML=`<span class="muted">Free-agent controls are available in GM and Owner mode.</span>`;
+   return;
+ }
+ buildTradeTargets();
+ let roster=teamRoster(team.name).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ let payroll=teamPayroll(team.name),cap=state.frontOffice.cap,capClass=payroll>cap?"capBad":payroll>cap*.88?"capWarn":"capGood";
+ rosterBox.innerHTML=`<p><b>${team.name}</b> · ${roster.length} players · <span class="${capClass}">$${payroll.toFixed(0)}M / $${cap}M</span></p>`+
+ roster.map(p=>`<div class="rosterRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"}</div></div><div>OVR ${p.ovr||"—"}</div><div>$${playerSalary(p)}M</div><div class="rosterHide"><button onclick="releasePlayer('${p.id}')">Release</button></div></div>`).join("");
+
+ let dir=state.frontOffice.teamDirections[team.id]||"Balanced";
+ document.getElementById("frontOfficeDirection").innerHTML=`<p><b>Current direction: ${dir}</b></p><div class="choicebar"><button onclick="setTeamDirection('Contend Now')">Contend Now</button><button onclick="setTeamDirection('Balanced')">Balanced</button><button onclick="setTeamDirection('Build for the Future')">Build for the Future</button><button onclick="setTeamDirection('Cut Payroll')">Cut Payroll</button></div>`;
+
+ let targets=state.frontOffice.tradeTargets.map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
+ document.getElementById("tradeCenterBox").innerHTML=targets.length?targets.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · $${playerSalary(p)}M</div><div style="margin-top:8px"><button onclick="proposeSimpleTrade('${p.id}')">Make Trade Offer</button></div></div>`).join(""):`<span class="muted">No matching trade targets.</span>`;
+
+ let fa=freeAgentPool().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,20);
+ document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Asking about $${Math.round(careerMarketValueForAny(p))}M/year</div><div style="margin-top:8px"><button onclick="signFreeAgent('${p.id}')">Offer 3-Year Deal</button></div></div>`).join(""):`<span class="muted">No free agents are currently available.</span>`;
+
+ let log=state.frontOffice.transactions||[];
+ document.getElementById("transactionLogBox").innerHTML=log.length?log.slice(0,30).map(x=>`<div class="careerTimelineRow"><b>${x.year}</b><div>${x.text}</div></div>`).join(""):`<span class="muted">No transactions yet.</span>`;
+}
+window.setTeamDirection=setTeamDirection;
+window.proposeSimpleTrade=proposeSimpleTrade;
+window.signFreeAgent=signFreeAgent;
+window.releasePlayer=releasePlayer;
 
 // ----- Draft Day engine v0.27 -----
 function ensureDraftRoom(){

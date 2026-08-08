@@ -1,21 +1,25 @@
-v0.27 Basketball Universe — Draft Day
+v0.28 Basketball Universe — Trades & Free Agency
 
-NEW DRAFT ROOM
-- Live pick-by-pick draft flow
-- Prospect board with OVR, POT, position and age
-- AI teams draft based on value plus roster need
-- Controlled GM/Owner gets an actual on-the-clock decision
-- Sim one pick or sim directly to your team's pick
-- Draft-night trade-down offers can appear while you are on the clock
-- Draft results are saved pick by pick
-- Draft grades are generated from prospect value relative to draft slot
-- Selected rookies are added to the drafting team's roster
+NEW FRONT OFFICE TAB
+- GM and Owner can manage roster construction directly.
+- Team payroll and a working salary-cap framework are displayed.
+- Set organizational direction:
+  * Contend Now
+  * Balanced
+  * Build for the Future
+  * Cut Payroll
+- Trade targets change based on team direction.
+- Make simple player-for-player trade offers.
+- AI trade acceptance weighs player value rather than accepting everything.
+- Free-agent market with contract asking prices.
+- Sign free agents to three-year contracts if cap room allows.
+- Release players into free agency.
+- Transaction history is preserved.
 
-ROLE EXPERIENCE
-- GM and Owner can control their team's draft choices
-- Commissioner can watch the entire draft unfold
-- Coach and Player can observe the draft
+OFFSEASON
+- Expiring contracts can move players into the free-agent pool.
+- Drafted rookies and free-agent signings become part of the same roster-building system.
 
-Historical draft classes still come from the existing alternate-history pipeline. Prospect value is based on draft-time ratings, not hindsight.
+This is the first full front-office loop connecting the draft, trades, contracts, and free agency.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.
