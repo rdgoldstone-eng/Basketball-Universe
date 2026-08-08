@@ -157,6 +157,9 @@ pre{white-space:pre-wrap}
 
 .relationshipRow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
 .contractBig{font-size:22px;font-weight:900}
+
+.eventCard{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.injuryTag{display:inline-block;padding:4px 8px;border:1px solid #6d3c3c;border-radius:999px;font-size:11px;font-weight:800}
 </style>
 </head>
 <body>
@@ -171,7 +174,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.23 · Player Contracts & Movement</div>
+    <div class="pill">v0.24 · Player Career Events</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -393,6 +396,7 @@ pre{white-space:pre-wrap}
       <div class="card"><h2>Team Relationships</h2><div id="careerRelationshipsBox" class="muted">No relationship information.</div></div>
     </div>
     <div class="card"><h2>Recent Games</h2><div id="careerRecentGames" class="muted">No games played yet.</div></div>
+    <div class="card"><h2>Career Event</h2><div id="careerEventBox" class="muted">No career event is pending.</div></div>
     <div class="card"><h2>Major Career Decision</h2><div id="majorCareerDecision" class="muted">No major decision is pending.</div></div>
     <div class="card"><h2>Career Timeline</h2><div id="careerTimeline" class="muted">No career history yet.</div></div>
   </section>
@@ -980,6 +984,8 @@ function simulateCareerLineForGame(g){
  let roleMult={"Bench Player":.45,"Rotation Player":.7,"Starter":.9,"Star":1.08,"Superstar":1.22}[pc.teamRole]||.7;
  let base=Math.max(4,((p.ovr||65)-50)*.65)*roleMult;
  let energy=(pc.energy-50)*.04,chem=(pc.chemistry-50)*.025;
+ if(pc.injury?.status==="Playing through soreness"){base*=.88;energy-=2;}
+ if(pc.injury?.status==="Limited workload"){base*=.72;energy+=1;}
  let pts=Math.max(0,Math.round(base+energy+chem+(Math.random()*12-5)));
  let reb=Math.max(0,Math.round(((p.pos==="C"||p.pos==="PF")?7:4)*roleMult+Math.random()*5));
  let ast=Math.max(0,Math.round(((p.pos==="PG")?7:3)*roleMult+Math.random()*5));
@@ -1008,7 +1014,7 @@ function recordControlledPlayerGame(g){
  let impact=row.pts+row.reb*.55+row.ast*.75+(entry.playoff?4:0);
  if(impact>=38){pc.reputation=Math.min(100,pc.reputation+3);pc.timeline.push({year:state.currentYear,text:`Breakout performance: ${row.pts} PTS, ${row.reb} REB, ${row.ast} AST${entry.playoff?" in the playoffs":""}.`});}
  else if(impact>=28)pc.reputation=Math.min(100,pc.reputation+1);
- updatePlayerTeamRole();
+ updatePlayerTeamRole();tickCareerInjury();
 }
 function updatePlayerTeamRole(){
  ensureCareerPerformance();let pc=state.playerCareer,p=playerCareerPlayer();if(!p)return;
@@ -1055,6 +1061,89 @@ function careerMarketValue(){
  let av=playerSeasonAverages();
  return Math.max(1,Math.round(((p.ovr||60)-50)*.45+av.ppg*.15+pc.reputation*.05+pc.legacy*.03));
 }
+
+function ensureCareerEvents(){
+ if(state.role!=="Player")return;
+ ensurePlayerContract();let pc=state.playerCareer;
+ pc.eventHistory=pc.eventHistory||[];
+ pc.currentEvent=pc.currentEvent||null;
+ pc.injury=pc.injury||null;
+}
+function maybeCreateCareerEvent(){
+ if(state.role!=="Player")return null;
+ ensureCareerEvents();let pc=state.playerCareer,p=playerCareerPlayer();if(!p||pc.currentEvent)return pc.currentEvent;
+ let games=pc.seasonTotals?.gp||0;
+ if(games===0)return null;
+ if(pc.lastEventGame!=null && games-pc.lastEventGame<8)return null;
+ let seed=(games+state.currentYear+(p.ovr||60)+pc.reputation)%100;
+
+ if(seed<18){
+   pc.currentEvent={type:"coach",title:"Coach Meeting",text:"The coach wants to talk about your role and shot selection.",options:[
+    {id:"accept",label:"Accept the coaching",effects:{coach:7,rep:1,chem:1},result:"You accept the feedback and work within the system."},
+    {id:"push",label:"Push for a bigger role",effects:{coach:-5,rep:2,ambition:4},result:"You tell the coach you are ready for more responsibility."},
+    {id:"argue",label:"Challenge the coach publicly",effects:{coach:-12,rep:-3,ambition:6},result:"The disagreement becomes public and creates tension."}
+   ]};
+ }else if(seed<36){
+   pc.currentEvent={type:"teammate",title:"Teammate Tension",text:"A teammate is frustrated with touches and the locker room is watching how you respond.",options:[
+    {id:"talk",label:"Talk it out privately",effects:{teammates:7,chem:4},result:"You smooth things over privately."},
+    {id:"defer",label:"Give him more touches",effects:{teammates:9,chem:5,rep:-1},result:"You sacrifice some touches to improve the locker room."},
+    {id:"ignore",label:"Ignore it and keep playing your game",effects:{teammates:-5,chem:-3,rep:2},result:"You refuse to change your approach."}
+   ]};
+ }else if(seed<52){
+   pc.currentEvent={type:"injury",title:"Minor Injury",text:"You are dealing with soreness that could worsen if you push through it.",options:[
+    {id:"play",label:"Play through it",effects:{energy:-12,rep:3},result:"You stay in the lineup, but recovery takes a hit."},
+    {id:"rest",label:"Rest and recover",effects:{energy:10,rep:-1},result:"You sit out and prioritize recovery."},
+    {id:"limited",label:"Play limited minutes",effects:{energy:-3,rep:1,coach:2},result:"You compromise with the staff and accept a reduced workload."}
+   ]};
+ }else if(seed<68 && pc.reputation>=60){
+   pc.currentEvent={type:"recruit",title:"Recruit a Player",text:"A player around the league is considering his future. Do you get involved?",options:[
+    {id:"recruit",label:"Recruit him aggressively",effects:{rep:2,front:3,ambition:3},result:"You make a strong pitch and signal that you want more help."},
+    {id:"quiet",label:"Reach out privately",effects:{rep:1,teammates:1},result:"You make contact without turning it into a public story."},
+    {id:"stayout",label:"Stay out of it",effects:{loyalty:2},result:"You leave roster-building to management."}
+   ]};
+ }else{
+   pc.currentEvent={type:"leadership",title:"Locker Room Moment",text:"The team has hit a rough patch and teammates are looking for leadership.",options:[
+    {id:"lead",label:"Call a players-only meeting",effects:{teammates:6,chem:5,rep:3},result:"You take charge and try to reset the locker room."},
+    {id:"work",label:"Lead by example in practice",effects:{development:2,rep:2,energy:-3},result:"You respond by setting the tone in the gym."},
+    {id:"coach",label:"Let the coaches handle it",effects:{coach:3,chem:-1},result:"You stay out of the leadership spotlight."}
+   ]};
+ }
+ pc.lastEventGame=games;
+ return pc.currentEvent;
+}
+function chooseCareerEvent(id){
+ ensureCareerEvents();let pc=state.playerCareer,e=pc.currentEvent;if(!e)return;
+ let o=e.options.find(x=>x.id===id);if(!o)return;
+ let fx=o.effects||{},r=pc.relationships;
+ if(fx.coach)r.coach=Math.max(0,Math.min(100,r.coach+fx.coach));
+ if(fx.front)r.frontOffice=Math.max(0,Math.min(100,r.frontOffice+fx.front));
+ if(fx.teammates)r.teammates=Math.max(0,Math.min(100,r.teammates+fx.teammates));
+ if(fx.chem)pc.chemistry=Math.max(0,Math.min(100,pc.chemistry+fx.chem));
+ if(fx.rep)pc.reputation=Math.max(0,Math.min(100,pc.reputation+fx.rep));
+ if(fx.energy)pc.energy=Math.max(0,Math.min(100,pc.energy+fx.energy));
+ if(fx.ambition)pc.ambition=Math.max(0,Math.min(100,pc.ambition+fx.ambition));
+ if(fx.loyalty)pc.loyalty=Math.max(0,Math.min(100,pc.loyalty+fx.loyalty));
+ if(fx.development)pc.development=Math.max(0,Math.min(100,pc.development+fx.development));
+ if(e.type==="injury"){
+   if(id==="play")pc.injury={status:"Playing through soreness",games:3};
+   else if(id==="limited")pc.injury={status:"Limited workload",games:2};
+   else pc.injury=null;
+ }
+ pc.eventHistory.push({year:state.currentYear,type:e.title,result:o.result});
+ pc.timeline.push({year:state.currentYear,text:o.result});
+ pc.currentEvent=null;
+ updateCareerIdentity();renderCareerPage();saveState();
+}
+function tickCareerInjury(){
+ if(state.role!=="Player"||!state.playerCareer?.injury)return;
+ let i=state.playerCareer.injury;i.games--;
+ if(i.games<=0){
+   state.playerCareer.timeline.push({year:state.currentYear,text:"Returned to full health."});
+   state.playerCareer.injury=null;
+ }
+}
+window.chooseCareerEvent=chooseCareerEvent;
+
 function extensionDecision(){
  ensurePlayerContract();let pc=state.playerCareer,p=playerCareerPlayer(),c=pc.contract;if(!p||!c)return null;
  if(c.years>1||pc.extensionDecisionYear===state.currentYear)return null;
@@ -1152,8 +1241,10 @@ function renderCareerPage(){
  <div class="grid4" style="margin-top:10px"><div class="careerMetric"><b>${pc.development}</b><div class="small muted">Development</div></div><div class="careerMetric"><b>${pc.energy}</b><div class="small muted">Energy</div></div><div class="careerMetric"><b>${pc.chemistry}</b><div class="small muted">Chemistry</div></div><div class="careerMetric"><b>${pc.reputation}</b><div class="small muted">Reputation</div></div></div>`;
  document.getElementById("careerIdentity").innerHTML=`<h3>${pc.path}</h3><div class="small muted">This emerges from your choices; you do not select a Kobe/LeBron/KD template.</div><div class="grid2" style="margin-top:10px"><div class="careerMetric"><b>${pc.loyalty}</b><div class="small muted">Loyalty</div></div><div class="careerMetric"><b>${pc.ambition}</b><div class="small muted">Ambition</div></div></div><p><b>Legacy score: ${pc.legacy}</b></p>`;
  ensurePlayerContract();
- let cb=document.getElementById("careerContractBox");if(cb){let c=pc.contract;cb.innerHTML=`<div class="contractBig">${c.years>0?`${c.years} year${c.years===1?"":"s"} remaining`:"Free Agent"}</div><div>$${c.salary||0}M/year · ${c.team||p?.teamName||""}</div><div class="small muted">Estimated market value: $${careerMarketValue()}M/year</div>`;}
+ let cb=document.getElementById("careerContractBox");if(cb){let c=pc.contract;cb.innerHTML=`<div class="contractBig">${c.years>0?`${c.years} year${c.years===1?"":"s"} remaining`:"Free Agent"}</div><div>$${c.salary||0}M/year · ${c.team||p?.teamName||""}</div><div class="small muted">Estimated market value: $${careerMarketValue()}M/year</div>${pc.injury?`<div style="margin-top:8px"><span class="injuryTag">${pc.injury.status}</span></div>`:""}`;}
  let rel=document.getElementById("careerRelationshipsBox");if(rel){let r=pc.relationships;rel.innerHTML=`<div class="relationshipRow"><span>Coach</span><b>${r.coach}</b></div><div class="relationshipRow"><span>Front Office</span><b>${r.frontOffice}</b></div><div class="relationshipRow"><span>Teammates</span><b>${r.teammates}</b></div><div class="relationshipRow"><span>Fans</span><b>${r.fans}</b></div>`;}
+ let ev=maybeCreateCareerEvent(),evBox=document.getElementById("careerEventBox");
+ if(evBox)evBox.innerHTML=ev?`<div class="eventCard"><h3>${ev.title}</h3><p class="muted">${ev.text}</p><div class="choicebar">${ev.options.map(o=>`<button onclick="chooseCareerEvent('${o.id}')">${o.label}</button>`).join("")}</div></div>`:`<span class="muted">No career event is pending.</span>`;
  let d=extensionDecision()||freeAgencyDecision()||requestTradeOptions()||majorCareerDecision();
  let md=document.getElementById("majorCareerDecision");
  if(d){
