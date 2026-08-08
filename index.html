@@ -223,7 +223,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.1 · Viewer Mode</div>
+    <div class="pill">v0.37.2 · Viewer Cleanup</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -257,7 +257,7 @@ pre{white-space:pre-wrap}
       <div class="role" data-role="Owner"><b>👑 Owner</b><span class="small muted">Run the organization: executives, finances, arena, direction.</span></div>
       <div class="role" data-role="GM"><b>🏀 GM</b><span class="small muted">Build the roster: draft, trades, contracts, staff.</span></div>
       <div class="role" data-role="Coach"><b>📋 Coach</b><span class="small muted">Win with the roster: rotations, roles, strategy, development.</span></div>
-      <div class="role" data-role="Viewer"><b>👁 Viewer</b><span class="small muted">Watch the universe unfold and jump freely between simulation checkpoints.</span></div>
+      <div class="role" data-role="Viewer"><b>👁 Viewer</b><span class="small muted">Watch the universe unfold without required decisions or team-management responsibilities.</span></div>
       <div class="role" data-role="Player"><b>⭐ Player</b><span class="small muted">Live one career: training, relationships, contracts, and legacy.</span></div>
     </div>
   </div>
@@ -357,45 +357,7 @@ pre{white-space:pre-wrap}
       </div>
       <p class="small muted" style="margin:10px 0 0">Long simulations stop automatically if a decision requiring your role appears.</p>
     </div>
-    <div class="card hidden" id="viewerJumpCard">
-      <div class="calendarline">
-        <div>
-          <div class="pill">VIEWER MODE</div>
-          <h2 style="margin:8px 0 0">Jump to Checkpoint</h2>
-        </div>
-        <div class="small muted">No decisions will interrupt simulation.</div>
-      </div>
-      <div class="advancebar" style="margin-top:12px">
-        <div>
-          <label>Checkpoint</label>
-          <select id="viewerCheckpoint">
-            <option value="nextgame">Next Game</option>
-            <option value="week">One Week</option>
-            <option value="month">One Month</option>
-            <option value="half">Half Season</option>
-            <option value="deadline">Trade Deadline</option>
-            <option value="allstar">All-Star Break</option>
-            <option value="regularend">End of Regular Season</option>
-            <option value="playoffs">Start Playoffs</option>
-            <option value="playoffround">Finish Current Playoff Round</option>
-            <option value="finals">NBA Finals</option>
-            <option value="seasonend">End of Season</option>
-            <option value="awards">Offseason: Awards</option>
-            <option value="retirements">Offseason: Retirements</option>
-            <option value="development">Offseason: Development</option>
-            <option value="draftorder">Offseason: Draft Order</option>
-            <option value="draft">Offseason: Draft</option>
-            <option value="freeagency">Offseason: Free Agency</option>
-            <option value="rostercuts">Offseason: Roster Cuts</option>
-            <option value="nextseason">Next Season</option>
-          </select>
-        </div>
-        <button class="primary" id="viewerJumpBtn">⏩ JUMP</button>
-      </div>
-      <p class="small muted" style="margin:10px 0 0">Viewer mode is designed for testing and spectating. It uses the normal simulation; it only removes required human decision stops.</p>
-    </div>
-
-    <div class="grid2">
+<div class="grid2">
       <div class="card">
         <h2>Current Assignment</h2>
         <div id="assignmentText"></div>
@@ -1340,7 +1302,6 @@ document.getElementById("inGameLeagueFileInput")?.addEventListener("change",asyn
  }
 });
 
-document.getElementById("viewerJumpBtn")?.addEventListener("click",viewerJump);
 
 document.getElementById("loadBtn").onclick=()=>{
  const s=loadState(); if(!s){alert("No saved universe found in this browser.");return;}
@@ -1401,7 +1362,7 @@ function showGame(){
  document.getElementById("teamKpi").textContent=state.controlledTeamId?teamById(state.controlledTeamId).name:"Entire League";
  document.getElementById("decisionKpi").textContent=(viewerMode()?0:state.decisions.filter(d=>!d.resolved).length);
  document.getElementById("assignmentText").innerHTML=state.role==="Viewer"
-  ? `<b>League Viewer</b><div class="muted small">Spectate the entire universe and jump between checkpoints without decision stops.</div>`
+  ? `<b>League Viewer</b><div class="muted small">Spectate the entire universe using the normal simulation controls without decision stops.</div>`
   : state.controlledTeamId
     ? `${logoHTML(teamById(state.controlledTeamId))}<div style="margin-top:10px"><b>${teamById(state.controlledTeamId).name}</b><div class="muted small">${state.role}</div></div>`
     : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`;
@@ -1770,140 +1731,6 @@ function renderPlayerCareer(){
 window.choosePlayerDecision=choosePlayerDecision;
 
 
-function renderViewerMode(){
- let card=document.getElementById("viewerJumpCard");
- if(!card||!state)return;
- card.classList.toggle("hidden",state.role!=="Viewer");
-}
-function viewerSimRegularUntil(target){
- initSeasonIfNeeded();
- let safety=20000;
- while(safety-->0 && state.season?.phase==="Regular Season"){
-   let gp=state.season.gamesPlayed||0,total=state.season.totalGames||1;
-   let pct=gp/total;
-   if(target==="nextgame"&&gp>viewerSimRegularUntil.startGp)break;
-   if(target==="week"&&(state.season.leagueDay||0)>=viewerSimRegularUntil.startDay+7)break;
-   if(target==="month"&&(state.season.leagueDay||0)>=viewerSimRegularUntil.startDay+30)break;
-   if(target==="half"&&pct>=.5)break;
-   if(target==="deadline"&&pct>=.62)break;
-   if(target==="allstar"&&pct>=.70){chooseAllStars?.();break;}
-   if((target==="regularend"||target==="playoffs"||target==="finals"||target==="seasonend")&&gp>=total)break;
-   if(!playOneLeagueGame())break;
- }
- if((target==="playoffs"||target==="finals"||target==="seasonend") && state.season?.gamesPlayed>=state.season?.totalGames){
-   if(state.season.phase==="Regular Season")state.season.phase="Regular Season Complete";
-   if(state.season.phase==="Regular Season Complete")runPostseason();
- }
-}
-function viewerFinishCurrentRound(){
- if(!state.season?.playoffState){
-   if(state.season?.phase==="Regular Season Complete")runPostseason();
- }
- if(state.season?.phase!=="Playoffs")return;
- advancePlayoffs("round");
-}
-function viewerSimToFinals(){
- if(!state.season?.playoffState){
-   if(state.season?.phase==="Regular Season Complete")runPostseason();
- }
- let guard=20;
- while(state.season?.phase==="Playoffs" && state.season?.playoffState?.round<4 && guard-->0){
-   advancePlayoffs("round");
- }
-}
-function viewerSimToSeasonEnd(){
- let safety=2500;
- while(safety-->0){
-   if(state.season?.phase==="Season Complete")break;
-
-   if(state.season?.phase==="Regular Season"){
-     viewerSimRegularUntil("regularend");
-     if(state.season?.gamesPlayed>=state.season?.totalGames){
-       state.season.phase="Regular Season Complete";
-       renderAll();
-     }
-   }else if(state.season?.phase==="Regular Season Complete"){
-     runPostseason();
-   }else if(state.season?.phase==="Playoffs"){
-     advancePlayoffs("round");
-   }else{
-     break;
-   }
- }
-}
-function viewerAdvanceOffseasonTo(target){
- if(state.season?.phase!=="Season Complete")viewerSimToSeasonEnd();
- initOffseason();
- let targetMap={
-   awards:"Awards",retirements:"Retirements",development:"Development",
-   draftorder:"Draft Order",draft:"Draft",freeagency:"Free Agency",
-   rostercuts:"Roster Cuts",nextseason:"Next Season"
- };
- let wanted=targetMap[target];if(!wanted)return;
- let safety=20;
- while(safety-->0 && state.offseason && state.offseason.phase!==wanted){
-   if(state.offseason.phase==="Draft" && !state.draftRoom?.completed){
-     ensureDraftRoom();
-     if(!state.draftRoom.active)startDraftRoom();
-     let guard=500;
-     while(state.draftRoom.active&&guard-->0){
-       let team=currentDraftTeam();
-       let p=aiDraftChoice(team?.name||"");
-       if(!p)break;
-       makeDraftPick(p.draftId||p.id);
-     }
-   }
-   advanceOffseason();
- }
- if(wanted==="Draft"){
-   ensureDraftRoom();
-   if(!state.draftRoom.active&&!state.draftRoom.completed)startDraftRoom();
-   switchTab("draftroom");
- }else if(wanted==="Next Season"){
-   if(state.offseason?.phase==="Next Season")advanceOffseason();
-   switchTab("dashboard");
- }else{
-   switchTab("offseason");
-   if(typeof viewOffseasonStep==="function")viewOffseasonStep(wanted);
- }
-}
-function viewerJump(){
- if(state.role!=="Viewer")return;
- let target=document.getElementById("viewerCheckpoint")?.value;
- if(!target)return;
-
- viewerSimRegularUntil.startGp=state.season?.gamesPlayed||0;
- viewerSimRegularUntil.startDay=state.season?.leagueDay||0;
-
- if(["nextgame","week","month","half","deadline","allstar","regularend"].includes(target)){
-   viewerSimRegularUntil(target);
- }else if(target==="playoffs"){
-   viewerSimRegularUntil("regularend");
-   if(state.season?.phase==="Regular Season")state.season.phase="Regular Season Complete";
-   if(state.season?.phase==="Regular Season Complete")runPostseason();
-   switchTab("playoffs");
- }else if(target==="playoffround"){
-   viewerSimRegularUntil("regularend");
-   if(state.season?.phase==="Regular Season")state.season.phase="Regular Season Complete";
-   if(state.season?.phase==="Regular Season Complete")runPostseason();
-   viewerFinishCurrentRound();
-   switchTab("playoffs");
- }else if(target==="finals"){
-   viewerSimRegularUntil("regularend");
-   if(state.season?.phase==="Regular Season")state.season.phase="Regular Season Complete";
-   if(state.season?.phase==="Regular Season Complete")runPostseason();
-   viewerSimToFinals();
-   switchTab("playoffs");
- }else if(target==="seasonend"){
-   viewerSimToSeasonEnd();
-   switchTab("offseason");
- }else{
-   viewerAdvanceOffseasonTo(target);
- }
- renderAll();saveState();
-}
-window.viewerJump=viewerJump;
-
 function renderAll(){
  initPlayersIfNeeded();
  renderTeams(); renderDecisions(); renderIdentities(); renderNews(); renderPlayers(); renderOffseason(); renderLeagueOffice(); renderFranchiseHealth(); renderExpansionDraft(); renderExpansionBids();
@@ -1924,7 +1751,6 @@ function renderAll(){
  renderStatsCenter();
  enforceOffseasonDraftRouting();
  refreshUniverseHeader();
- renderViewerMode();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`

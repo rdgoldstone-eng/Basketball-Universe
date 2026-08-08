@@ -1,37 +1,23 @@
-v0.37.1 Basketball Universe — Viewer Mode
+v0.37.2 Basketball Universe — Viewer Cleanup
 
-NEW SIXTH MODE: VIEWER
-Viewer is a spectator/testing role with no controlled franchise and no required decision interruptions.
+VIEWER MODE
+Viewer is the sixth role and is intentionally simple.
 
-VIEWER CHECKPOINT JUMPS
-- Next Game
-- One Week
-- One Month
-- Half Season
-- Trade Deadline
-- All-Star Break
-- End of Regular Season
-- Start Playoffs
-- Finish Current Playoff Round
-- NBA Finals
-- End of Season
-- Offseason: Awards
-- Offseason: Retirements
-- Offseason: Development
-- Offseason: Draft Order
-- Offseason: Draft
-- Offseason: Free Agency
-- Offseason: Roster Cuts
-- Next Season
+Viewer:
+- Controls no team.
+- Receives no required role decisions.
+- Is not interrupted by decision checkpoints.
+- Uses the normal Season simulation selector.
+- Uses the normal Playoffs controls, including Finish Round.
+- Uses the normal Offseason checklist and Advance Offseason button.
+- Can quickly test multi-season timelines without adding a separate jump system.
 
-BEHAVIOR
-- No team selection.
-- No role-decision stops.
-- Uses the normal regular-season and playoff simulation engines.
-- Can fast-forward AI through the draft when jumping beyond it.
-- Does not change the required decision/offseason flow for Commissioner, Owner, GM, Coach or Player.
-- Built specifically for rapid testing and spectator simulations.
+REMOVED
+- Separate Viewer Jump to Checkpoint panel.
+- Duplicate Viewer fast-forward controls.
 
-v0.37.1 corrects Viewer playoff jumps to use Basketball Universe's actual playoff engine.
+TEST RESULT
+The first Viewer rollover successfully moved from 1976-77 into 1977-78.
 
-GitHub update: upload index.html and README.txt over the existing files and commit.
+GitHub update:
+Upload index.html and README.txt over the existing files and commit.
