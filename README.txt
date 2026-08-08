@@ -1,12 +1,26 @@
-v0.33.1 Basketball Universe — Create Universe Fix
+v0.34 Basketball Universe — Scouting & Player Development
 
-BUG FIX
-- Fixed Create Universe doing nothing in v0.33.
-- The League File variable was declared too late in page startup.
-- That caused the JavaScript to stop before the Create Universe button handler was attached.
-- League File import/export and custom setup remain included.
+NEW SCOUTING TAB
+- Every franchise has scouting quality, development staff, patience and scouting focus.
+- Scouting reports show rating ranges instead of perfect prospect ratings.
+- Better scouting produces narrower OVR/POT ranges and higher confidence.
+- Draft Room now uses scouting estimates for the controlled team rather than revealing exact ratings.
 
-No gameplay systems were changed in this hotfix.
+PLAYER DEVELOPMENT OVERHAUL
+- Players now have hidden true potential and work ethic.
+- Growth depends on:
+  * Age
+  * True potential
+  * Work ethic
+  * Playing time / role
+  * Team development staff
+  * Controlled randomness
+- Young players can stall if buried on the bench.
+- High-work-ethic prospects can make larger jumps.
+- Older players can decline.
+- Development changes are logged.
 
-GitHub update:
-Upload index.html and README.txt over the current files and commit.
+PHILOSOPHY
+Draft reputation still reflects how players were viewed at the time. Scouting uncertainty and development determine what they actually become in this universe.
+
+GitHub update: upload index.html and README.txt over the existing files and commit.
