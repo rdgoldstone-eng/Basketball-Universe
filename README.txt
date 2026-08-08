@@ -1,10 +1,6 @@
-Basketball Universe v0.18 — Single-File GitHub Build
+Basketball Universe v0.20.1 — Player Mode Fix
 
-This is the same v0.18 Crunch Time build, but its bundled logo artwork is embedded directly
-inside index.html.
+Fix: Player now visibly appears as the fifth role on the Create Universe screen.
+Includes all v0.20 Player Mode systems.
 
-For GitHub's browser upload, upload only:
-- index.html
-- README.txt
-
-No assets folder is needed for this version.
+Upload index.html over the existing GitHub index.html and commit.
