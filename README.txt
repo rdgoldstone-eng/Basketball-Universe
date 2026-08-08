@@ -1,15 +1,37 @@
-v0.36.3 Basketball Universe — Season Header Fix
+v0.37.1 Basketball Universe — Viewer Mode
 
-FIRST PLAYTHROUGH HOTFIX
-- Fixed the top Season KPI staying on the prior season after offseason rollover.
-- When currentYear moves from 1976 to 1977, the header now immediately changes from 1976-77 to 1977-78.
-- The header now refreshes every time the game UI renders, so future season rollovers stay synchronized.
-- Also refreshes role, controlled team and open-decision header values.
+NEW SIXTH MODE: VIEWER
+Viewer is a spectator/testing role with no controlled franchise and no required decision interruptions.
 
-IMPORTANT
-The screenshot showing October 15, 1977 and 0/82 games confirmed the 1977-78 season had actually started. The stale 1976-77 text was a display bug, not a failed offseason rollover.
+VIEWER CHECKPOINT JUMPS
+- Next Game
+- One Week
+- One Month
+- Half Season
+- Trade Deadline
+- All-Star Break
+- End of Regular Season
+- Start Playoffs
+- Finish Current Playoff Round
+- NBA Finals
+- End of Season
+- Offseason: Awards
+- Offseason: Retirements
+- Offseason: Development
+- Offseason: Draft Order
+- Offseason: Draft
+- Offseason: Free Agency
+- Offseason: Roster Cuts
+- Next Season
 
-Includes the v0.36.2 offseason navigation buttons.
+BEHAVIOR
+- No team selection.
+- No role-decision stops.
+- Uses the normal regular-season and playoff simulation engines.
+- Can fast-forward AI through the draft when jumping beyond it.
+- Does not change the required decision/offseason flow for Commissioner, Owner, GM, Coach or Player.
+- Built specifically for rapid testing and spectator simulations.
 
-GitHub update:
-Upload index.html and README.txt over the current files and commit.
+v0.37.1 corrects Viewer playoff jumps to use Basketball Universe's actual playoff engine.
+
+GitHub update: upload index.html and README.txt over the existing files and commit.
