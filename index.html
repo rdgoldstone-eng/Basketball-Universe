@@ -225,7 +225,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.7 · Finals MVP Stat Fix</div>
+    <div class="pill">v0.37.8 · Awards Eligibility Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -4161,7 +4161,7 @@ function makeDraftPick(prospectId){
  dr.results.push({pick:pick.pick,teamId:team.id,teamName:team.name,playerName:p.name,pos:p.pos,ovr:p.ovr||p.rating||60,pot:p.pot||p.potential||p.ovr||60});
  if(pick.pickAssetId)state.draftPicks=state.draftPicks.filter(x=>x.id!==pick.pickAssetId);
  dr.available=dr.available.filter(x=>x!==p);
- let newPlayer={...p,id:p.id||p.draftId,teamName:team.name,age:p.age||21,rookie:true,contract:{years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))}};
+ let newPlayer={...p,id:p.id||p.draftId,teamName:team.name,age:p.age||21,rookie:true,rookieYear:dr.year||state.currentYear+1,draftYear:dr.year||state.currentYear+1,contract:{years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))}};
  state.players.push(newPlayer);
  state.news.push({year:state.currentYear,title:`Draft Pick #${pick.pick}`,text:`${team.name} selects ${p.name}, ${p.pos}.`});
  dr.pickIndex++;
@@ -4319,22 +4319,50 @@ function determineFinalsRunnerUp(){
  return a.name===champ?b.name:a.name;
 }
 
+
+function rookieAwardEligible(p,year){
+ if(!p||p.retired||p.deferredEntry)return false;
+ return Number(p.rookieYear)===Number(year) && (p.stats?.gp||p.sim?.gp||0)>0;
+}
+
+function sixthManEligible(p){
+ if(!p||p.retired||p.deferredEntry||p.starter)return false;
+ let gp=p.stats?.gp||p.sim?.gp||0;
+ let min=p.stats?.min||p.sim?.min||0;
+ let mpg=gp?min/gp:0;
+ // A real rotation bench player, not a reserve who barely appeared.
+ return gp>=20 && mpg>=12 && mpg<=30;
+}
+
+function defensiveAwardScore(p){
+ let stl=statAvg(p,"stl"),blk=statAvg(p,"blk");
+ let defense=Number(p.defense??p.ovr??60);
+ let reb=statAvg(p,"reb");
+ return stl*2.2+blk*2.5+reb*.08+defense*.035;
+}
+
 function recordSeasonHonors(){
  ensureLeagueHistory();
  let year=state.currentYear;
  if(state.history.seasons.some(x=>x.year===year))return;
  let mvp=chooseSeasonAwardWinner();
- let rookie=chooseSeasonAwardWinner(p=>(p.age||99)<=23);
- let dpoy=qualifiedStatPlayers().slice().sort((a,b)=>((statAvg(b,"stl")+statAvg(b,"blk")*1.5)+(b.ovr||60)*.02)-((statAvg(a,"stl")+statAvg(a,"blk")*1.5)+(a.ovr||60)*.02))[0]||null;
- let sixth=chooseSeasonAwardWinner(p=>!p.starter);
+ let rookie=chooseSeasonAwardWinner(p=>rookieAwardEligible(p,year));
+ let dpoy=qualifiedStatPlayers().slice().sort((a,b)=>defensiveAwardScore(b)-defensiveAwardScore(a))[0]||null;
+ let sixth=chooseSeasonAwardWinner(p=>sixthManEligible(p));
  let champion=state.playoffs?.champion||state.season?.champion||null;
  let finalsMvp=state.finalsMvp||chooseFinalsMvp()||null;
  let runnerUp=determineFinalsRunnerUp();
  let season={year,mvp:mvp?.name||null,rookie:rookie?.name||null,dpoy:dpoy?.name||null,sixth:sixth?.name||null,champion,runnerUp,finalsMvp:finalsMvp?.name||finalsMvp||null};
  state.history.seasons.push(season);
  if(champion)state.history.champions.push({year,team:champion,runnerUp:season.runnerUp,finalsMvp:season.finalsMvp});
- if(mvp){mvp.awards=mvp.awards||[];mvp.awards.push(`${year} MVP`);}
- if(rookie){rookie.awards=rookie.awards||[];rookie.awards.push(`${year} Rookie of the Year`);}
+ if(mvp){
+   mvp.awards=mvp.awards||[];
+   if(!mvp.awards.includes(`${year} MVP`))mvp.awards.push(`${year} MVP`);
+ }
+ if(rookie){
+   rookie.awards=rookie.awards||[];
+   if(!rookie.awards.includes(`${year} Rookie of the Year`))rookie.awards.push(`${year} Rookie of the Year`);
+ }
  state.news.push({year,title:"Season awards",text:`${mvp?.name||"A league star"} wins MVP${champion?`; ${champion} wins the championship`:""}.`});
  updateLeagueRecords(year);
 }
@@ -4386,13 +4414,30 @@ function repairCompletedFinalsHistory(){
  }
 }
 
+
+function repairRookieAwardHistory(){
+ ensureLeagueHistory();
+ let seen=new Set();
+ let seasons=(state.history.seasons||[]).slice().sort((a,b)=>a.year-b.year);
+ seasons.forEach(s=>{
+   if(!s.rookie)return;
+   let p=state.players.find(x=>x.name===s.rookie);
+   let valid=p && Number(p.rookieYear)===Number(s.year);
+   if(seen.has(s.rookie)||!valid){
+     s.rookie=null;
+   }else{
+     seen.add(s.rookie);
+   }
+ });
+}
+
 function renderLeagueHistory(){
- if(!state)return;ensureLeagueHistory();repairCompletedFinalsHistory();
+ if(!state)return;ensureLeagueHistory();repairCompletedFinalsHistory();repairRookieAwardHistory();
  let sh=document.getElementById("seasonHonorsBox"),ah=document.getElementById("allStarHistoryBox"),ch=document.getElementById("championsHistoryBox"),rh=document.getElementById("recordsHistoryBox");
  if(!sh)return;
- sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
+ sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}-${String((s.year+1)%100).padStart(2,"0")}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
  ah.innerHTML=state.history.allStars.length?state.history.allStars.slice().reverse().map(a=>`<div class="historyRow"><b>${a.year}</b><div><b>East</b><div class="small muted">${a.east.join(", ")}</div></div><div><b>West</b><div class="small muted">${a.west.join(", ")}</div></div></div>`).join(""):`<span class="muted">No All-Star selections yet.</span>`;
- ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}</b><div><b>Champion: ${c.team}</b><br><span class="small muted">Runner-up: ${c.runnerUp||"—"}</span></div><div>${c.finalsMvp?`<b>Finals MVP:</b> ${c.finalsMvp}`:"Finals MVP: —"}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
+ ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}-${String((c.year+1)%100).padStart(2,"0")}</b><div><b>Champion: ${c.team}</b><br><span class="small muted">Runner-up: ${c.runnerUp||"—"}</span></div><div>${c.finalsMvp?`<b>Finals MVP:</b> ${c.finalsMvp}`:"Finals MVP: —"}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
  rh.innerHTML=state.history.records.length?state.history.records.map(r=>`<div class="historyRow"><b>${r.type}</b><div><b>${r.player}</b></div><div>${r.value.toFixed(1)} · ${r.year}</div></div>`).join(""):`<span class="muted">No records recorded yet.</span>`;
 }
 
@@ -4494,10 +4539,28 @@ function renderHealthCenter(){
 }
 
 // ----- Player engine v0.3 -----
+
+const startingRookies1976=new Set([
+ "Adrian Dantley","John Lucas","Scott May","Richard Washington","Leon Douglas",
+ "Ron Lee","Robert Parish","Mitch Kupchak","Quinn Buckner","Alex English",
+ "Dennis Johnson","John Long","Tom Abernethy","Phil Sellers","Mike Dunleavy"
+]);
+
+function ensureRookieSeasons(){
+ if(!state?.players)return;
+ state.players.forEach(p=>{
+   // Historical starting roster: only actual 1976-77 rookies are marked as rookies.
+   if(p.rookieYear==null && state.startYear===1976 && startingRookies1976.has(p.name)){
+     p.rookieYear=1976;
+   }
+ });
+}
+
 function initPlayersIfNeeded(){
  if(!state.players || !state.players.length){
    state.players=JSON.parse(JSON.stringify(historicalPlayers1976));
  }
+ ensureRookieSeasons();
  state.players.forEach(p=>{
    if(!p.sim)p.sim={gp:0,min:0,pts:0,reb:0,ast:0};
    if(p.rotationMinutes==null)p.rotationMinutes=12;

@@ -1,24 +1,23 @@
-v0.37.7 Basketball Universe — Finals MVP Stat Fix
+v0.37.8 Basketball Universe — Awards Eligibility Fix
 
-ROOT CAUSE FOUND
-Normal simulated playoff games were generating box scores but were NOT adding those box scores to playoffPlayerStats.
-Only Watch Game was doing that.
-
-That meant:
-- Sim Next Game / Finish Series / Finish Round could complete the Finals.
-- But Finals player totals stayed empty.
-- The Finals MVP selector therefore had no eligible candidates.
-- History correctly asked for a Finals MVP, but none existed.
+ROOT CAUSE
+Rookie of the Year eligibility was simply age <= 23. That allowed the same young player to win ROY in multiple seasons.
 
 FIXED
-- Every normally simulated playoff game now adds its box score to playoffPlayerStats.
-- Finals games now accumulate finalsGp, finalsPts, finalsReb and finalsAst.
-- Finals MVP is selected from actual Finals production.
+- ROY now requires rookieYear to exactly match the current season.
+- Draft Room rookies are assigned rookieYear based on their actual draft/entry season.
+- Deferred draft-rights players become ROY eligible in the season they actually join.
+- The starting 1976-77 universe now seeds the actual 1976 rookie group rather than treating every young player as a rookie.
+- Existing history removes impossible repeated ROY entries when they can be identified from rookieYear data.
 
-SAVE REPAIR
-- For older completed seasons where those accumulated stats are missing, the game can reconstruct the current Finals MVP directly from the stored Finals game box scores.
-- Opening History on a currently completed season can therefore repair the missing Finals MVP when the Finals games are still in the save.
+OTHER AWARD CLEANUP
+- Sixth Man now requires a meaningful bench role: non-starter, at least 20 games, roughly 12-30 MPG.
+- DPOY now weights steals, blocks, rebounding and defense rating rather than leaning mostly on OVR.
+- Repeated DPOY winners are still possible if a player genuinely remains the best defensive performer.
+
+DISPLAY
+- History season labels now show full season format, e.g. 1983-84 instead of just 1983.
 
 GitHub update:
-Upload index.html and README.txt over the current files and commit.
+Upload index.html and README.txt over the existing files and commit.
 Existing saves should continue working.
