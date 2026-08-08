@@ -1,31 +1,31 @@
-v0.41 Basketball Universe — Franchise History
+v0.42 Basketball Universe — Historical Identity Framework
 
-NEW: FRANCHISE HISTORY
-The Teams tab now contains a selectable Franchise History profile for every organization.
+NEW ERA STRUCTURE
+The universe now uses the era framework:
+- The Founding Era (1946-47 to 1966-67)
+- ABA Rivalry Era (1967-68 to 1975-76)
+- Merger Era (1976-77 to 1987-88)
+- Expansion Era (1988-89 to 2003-04)
+- Realignment Era (2004-05 onward)
 
-TRACKS
-- Season-by-season W/L records
-- Championships
-- Finals appearances
-- Best recorded season
-- Draft selections
-- Franchise legends based on actual simulated career production with that franchise
-- Identity / rebrand timeline
-- Past franchise names remain part of the same lineage
+HISTORICAL IDENTITY FRAMEWORK
+This build creates the structure for era-specific logos and franchise identities:
+- historical identity records with active year ranges
+- identity resolution by season year
+- team asset assignment using the active historical identity
+- franchise history now shows the active identity asset / era
+- setup screen now documents the era architecture
 
-FRANCHISE LINEAGE
-A rename or relocation does not erase the old team's history.
-The franchise keeps the same lineage and its previous identity is preserved in the timeline.
+LOGO FRAMEWORK
+This is the system layer that real logo packs will attach to next:
+- resolves identity artwork from historical records first
+- falls back to team/identity logo libraries already in the game
+- supports future era-specific artwork swaps for rebrands / relocations / historical starts
 
-SEASON ARCHIVING
-Beginning with v0.41, completed team seasons are permanently archived before the next season resets standings.
-
-EXISTING SAVES
-Older championship and draft information can still appear because it was already stored by the league.
-Old W/L records from before v0.41 cannot be reconstructed after they were reset, so complete season-by-season franchise records begin with the next completed season.
-
-NEXT FOUNDATION
-This supports future retired numbers, franchise records, all-time team rosters, rivalry history, and team-specific Hall/legend recognition.
+NOTES
+- The game still uses its current playable data foundation, but the era and asset framework is now in place.
+- Full pre-1976 playable data remains a separate content expansion step.
+- This build is about making future real-logo integration clean and scalable.
 
 GitHub update:
-Upload index.html and README.txt over the existing files and commit.
+Upload index.html and README.txt over the current files and commit.

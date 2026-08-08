@@ -228,6 +228,11 @@ pre{white-space:pre-wrap}
 .franchiseHero .logo{width:64px;height:64px;border-radius:14px}
 .franchiseEvent{padding:8px 0;border-bottom:1px solid var(--line)}
 @media(max-width:650px){.franchiseSeasonRow{grid-template-columns:76px minmax(130px,1fr) 55px 65px}.franchiseSeasonHide{display:none}}
+
+.eraRow{display:grid;grid-template-columns:minmax(150px,1fr) 130px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.eraBadge{display:inline-block;padding:4px 10px;border-radius:999px;background:#1e2634;border:1px solid var(--line);font-size:11px;font-weight:800}
+.identityMetaGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:700px){.eraRow{grid-template-columns:1fr}.identityMetaGrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -242,9 +247,20 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.41 · Franchise History</div>
+    <div class="pill">v0.42 · Historical Identity Framework</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
+
+  </div>
+
+  <div class="card">
+    <h2>Era Architecture</h2>
+    <p class="small muted">This universe now uses a formal era system for historical identities, logos, and future rules packages.</p>
+    <div id="eraArchitectureBox"></div>
+    <div class="notice" style="margin-top:12px">
+      <b>Logo system note</b><br>
+      This build lays the historical identity + asset framework. Real era-specific logo files can now be attached to these identity records in the next phase.
+    </div>
   </div>
 
   <div class="card">
@@ -253,13 +269,14 @@ pre{white-space:pre-wrap}
       <div>
         <label>Start year</label>
         <select id="startYear">
-          <option value="1976">1976 — Merger Era</option>
-          <option value="1984">1984 — Bird/Magic to Jordan</option>
-          <option value="1996">1996 — Kobe/AI Era</option>
-          <option value="2003">2003 — LeBron Era</option>
-          <option value="2011">2011 — Modern Superteam Era</option>
-          <option value="2025">2025 — Modern NBA</option>
+          <option value="1976">1976 — The Merger Era</option>
+          <option value="1984">1984 — The Merger Era</option>
+          <option value="1996">1996 — The Expansion Era</option>
+          <option value="2003">2003 — The Expansion Era</option>
+          <option value="2011">2011 — The Realignment Era</option>
+          <option value="2025">2025 — The Realignment Era</option>
         </select>
+        <div class="small muted" style="margin-top:8px">Era buckets now follow: Founding, ABA Rivalry, Merger, Expansion, and Realignment. Full 1946/1967 playable datasets are still a future data-pack step.</div>
       </div>
       <div>
         <label>Universe name</label>
@@ -964,7 +981,7 @@ pre{white-space:pre-wrap}
     <div class="grid2">
       <div class="card">
         <h2>Franchises</h2>
-        <p class="small muted">Select a franchise to view the history it has created in this universe.</p>
+        <p class="small muted">Select a franchise to view the history it has created in this universe.</p><div class="small muted">Historical identity framework active · ${(state?.identityLibrary||[]).length||0} built-in identities available for expansion/rebrands.</div>
         <div id="teamsList"></div>
       </div>
       <div class="card">
@@ -1280,10 +1297,118 @@ let state=null;
 function initials(name){
   return name.split(" ").filter(x=>!["of","the"].includes(x.toLowerCase())).slice(-2).map(x=>x[0]).join("").toUpperCase();
 }
+
+const eraDefinitions = [
+ {id:"founding",name:"The Founding Era",start:1946,end:1966,description:"1946-47 to 1966-67"},
+ {id:"aba",name:"ABA Rivalry Era",start:1967,end:1975,description:"1967-68 to 1975-76"},
+ {id:"merger",name:"Merger Era",start:1976,end:1987,description:"1976-77 to 1987-88"},
+ {id:"expansion",name:"Expansion Era",start:1988,end:2003,description:"1988-89 to 2003-04"},
+ {id:"realignment",name:"Realignment Era",start:2004,end:9999,description:"2004-05 onward"}
+];
+
+const historicalIdentityRecords = [
+ // Core franchise identities by era (foundation structure, can be expanded with real artwork packs)
+ {name:"Atlanta Hawks",market:"Atlanta",franchiseKey:"hawks",start:1968,end:9999,assetSource:"team",assetKey:"Atlanta Hawks",colors:["#E03A3E","#C1D32F"]},
+ {name:"Boston Celtics",market:"Boston",franchiseKey:"celtics",start:1946,end:9999,assetSource:"team",assetKey:"Boston Celtics",colors:["#007A33","#BA9653"]},
+ {name:"Buffalo Braves",market:"Buffalo",franchiseKey:"braves-clippers",start:1970,end:1978,assetSource:"team",assetKey:"Buffalo Braves",colors:["#0057B8","#F15A22"]},
+ {name:"San Diego Clippers",market:"San Diego",franchiseKey:"braves-clippers",start:1978,end:1984,assetSource:"identity",assetKey:"lib_1028_san_diego_clippers",colors:["#006BB6","#ED174C"]},
+ {name:"Los Angeles Clippers",market:"Los Angeles",franchiseKey:"braves-clippers",start:1984,end:9999,assetSource:"team",assetKey:"Los Angeles Clippers",colors:["#C8102E","#1D428A"]},
+ {name:"Chicago Bulls",market:"Chicago",franchiseKey:"bulls",start:1966,end:9999,assetSource:"team",assetKey:"Chicago Bulls",colors:["#CE1141","#000000"]},
+ {name:"Cleveland Cavaliers",market:"Cleveland",franchiseKey:"cavaliers",start:1970,end:9999,assetSource:"team",assetKey:"Cleveland Cavaliers",colors:["#860038","#FDBB30"]},
+ {name:"Denver Nuggets",market:"Denver",franchiseKey:"nuggets",start:1976,end:9999,assetSource:"team",assetKey:"Denver Nuggets",colors:["#0E2240","#FEC524"]},
+ {name:"Detroit Pistons",market:"Detroit",franchiseKey:"pistons",start:1957,end:9999,assetSource:"team",assetKey:"Detroit Pistons",colors:["#C8102E","#1D42BA"]},
+ {name:"Golden State Warriors",market:"Golden State",franchiseKey:"warriors",start:1971,end:9999,assetSource:"team",assetKey:"Golden State Warriors",colors:["#1D428A","#FFC72C"]},
+ {name:"Houston Rockets",market:"Houston",franchiseKey:"rockets",start:1971,end:9999,assetSource:"team",assetKey:"Houston Rockets",colors:["#CE1141","#000000"]},
+ {name:"Indiana Pacers",market:"Indiana",franchiseKey:"pacers",start:1967,end:9999,assetSource:"team",assetKey:"Indiana Pacers",colors:["#002D62","#FDBB30"]},
+ {name:"Kansas City Kings",market:"Kansas City",franchiseKey:"royals-kings",start:1975,end:1985,assetSource:"team",assetKey:"Kansas City Kings",colors:["#5A2D81","#63727A"]},
+ {name:"Kansas City-Omaha Kings",market:"Kansas City / Omaha",franchiseKey:"royals-kings",start:1972,end:1975,assetSource:"identity",assetKey:"kc-omaha-kings",colors:["#5A2D81","#63727A"]},
+ {name:"Sacramento Kings",market:"Sacramento",franchiseKey:"royals-kings",start:1985,end:9999,assetSource:"team",assetKey:"Sacramento Kings",colors:["#5A2D81","#63727A"]},
+ {name:"Los Angeles Lakers",market:"Los Angeles",franchiseKey:"lakers",start:1960,end:9999,assetSource:"team",assetKey:"Los Angeles Lakers",colors:["#552583","#FDB927"]},
+ {name:"Milwaukee Bucks",market:"Milwaukee",franchiseKey:"bucks",start:1968,end:9999,assetSource:"team",assetKey:"Milwaukee Bucks",colors:["#00471B","#EEE1C6"]},
+ {name:"New Orleans Jazz",market:"New Orleans",franchiseKey:"jazz",start:1974,end:1979,assetSource:"team",assetKey:"New Orleans Jazz",colors:["#5D76A9","#5A2D81"]},
+ {name:"Utah Jazz",market:"Utah",franchiseKey:"jazz",start:1979,end:9999,assetSource:"team",assetKey:"Utah Jazz",colors:["#002B5C","#F9A01B"]},
+ {name:"New York Knicks",market:"New York",franchiseKey:"knicks",start:1946,end:9999,assetSource:"team",assetKey:"New York Knicks",colors:["#006BB6","#F58426"]},
+ {name:"Brooklyn Nets",market:"Brooklyn",franchiseKey:"nets",start:2012,end:9999,assetSource:"team",assetKey:"Brooklyn Nets",colors:["#000000","#FFFFFF"]},
+ {name:"New York Nets",market:"New York",franchiseKey:"nets",start:1968,end:1977,assetSource:"team",assetKey:"New York Nets",colors:["#002A60","#D00027"]},
+ {name:"New Jersey Nets",market:"New Jersey",franchiseKey:"nets",start:1977,end:2012,assetSource:"team",assetKey:"New Jersey Nets",colors:["#002A60","#D00027"]},
+ {name:"Philadelphia 76ers",market:"Philadelphia",franchiseKey:"76ers",start:1963,end:9999,assetSource:"team",assetKey:"Philadelphia 76ers",colors:["#006BB6","#ED174C"]},
+ {name:"Phoenix Suns",market:"Phoenix",franchiseKey:"suns",start:1968,end:9999,assetSource:"team",assetKey:"Phoenix Suns",colors:["#1D1160","#E56020"]},
+ {name:"Portland Trail Blazers",market:"Portland",franchiseKey:"blazers",start:1970,end:9999,assetSource:"team",assetKey:"Portland Trail Blazers",colors:["#E03A3E","#000000"]},
+ {name:"San Antonio Spurs",market:"San Antonio",franchiseKey:"spurs",start:1973,end:9999,assetSource:"team",assetKey:"San Antonio Spurs",colors:["#C4CED4","#000000"]},
+ {name:"Seattle SuperSonics",market:"Seattle",franchiseKey:"supersonics-thunder",start:1967,end:2008,assetSource:"identity",assetKey:"seattle-supersonics",colors:["#00653A","#FFC72C"]},
+ {name:"Oklahoma City Thunder",market:"Oklahoma City",franchiseKey:"supersonics-thunder",start:2008,end:9999,assetSource:"team",assetKey:"Oklahoma City Thunder",colors:["#007AC1","#EF3B24"]},
+ {name:"St. Louis Hawks",market:"St. Louis",franchiseKey:"hawks",start:1955,end:1968,assetSource:"identity",assetKey:"stl-hawks",colors:["#E03A3E","#FDB927"]},
+ {name:"Washington Bullets",market:"Washington",franchiseKey:"bullets-wizards",start:1973,end:1997,assetSource:"team",assetKey:"Washington Bullets",colors:["#C8102E","#002B5C"]},
+ {name:"Washington Wizards",market:"Washington",franchiseKey:"bullets-wizards",start:1997,end:9999,assetSource:"team",assetKey:"Washington Wizards",colors:["#002B5C","#E31837"]},
+
+ // Expansion/alternate identities that should eventually support real era-specific packs
+ {name:"Kentucky Colonels",market:"Kentucky / Louisville",franchiseKey:"kentucky-colonels",start:1967,end:9999,assetSource:"identity",assetKey:"kentucky-colonels",colors:["#124734","#F4C542"]},
+ {name:"Virginia Squires",market:"Virginia",franchiseKey:"virginia-squires",start:1970,end:9999,assetSource:"identity",assetKey:"virginia-squires",colors:["#0F4C81","#C8A15A"]},
+ {name:"Spirits of St. Louis",market:"St. Louis",franchiseKey:"spirits-stl",start:1974,end:9999,assetSource:"identity",assetKey:"spirits-stl",colors:["#79242F","#F0B44C"]},
+ {name:"Vancouver Grizzlies",market:"Vancouver",franchiseKey:"grizzlies",start:1995,end:9999,assetSource:"identity",assetKey:"vancouver-grizzlies",colors:["#00B2A9","#001F5B"]},
+ {name:"San Diego Rockets",market:"San Diego",franchiseKey:"rockets",start:1967,end:1971,assetSource:"identity",assetKey:"san-diego-rockets",colors:["#CC5C2F","#1B4C80"]}
+];
+
+function eraInfoForYear(year){
+ const y=Number(year||1976);
+ return eraDefinitions.find(e=>y>=e.start&&y<=e.end)||eraDefinitions[eraDefinitions.length-1];
+}
+function seasonLabelFromYear(year){
+ return `${year}-${String((Number(year)+1)%100).padStart(2,"0")}`;
+}
+function renderEraArchitecture(){
+ const box=document.getElementById("eraArchitectureBox");
+ if(!box)return;
+ box.innerHTML=eraDefinitions.map(e=>`<div class="eraRow"><div><b>${e.name}</b></div><div><span class="eraBadge">${e.description}</span></div><div class="small muted">${e.start<1976?"Historical/logo framework now, full playable data later.":"Live rules/logo bucket in the current engine."}</div></div>`).join("");
+}
+
+function identityRecordForName(name, year){
+ const y=Number(year||1976);
+ const exact=historicalIdentityRecords.filter(r=>r.name===name && y>=r.start && y<=r.end);
+ if(exact.length)return exact[0];
+ const any=historicalIdentityRecords.filter(r=>r.name===name).sort((a,b)=>a.start-b.start);
+ return any[0]||null;
+}
+
+function resolveIdentityForObject(obj, year){
+ const y=Number(year||((state&&state.currentYear)||1976));
+ const name=obj?.name||"";
+ const rec=identityRecordForName(name,y);
+ if(rec)return {...rec, era:eraInfoForYear(y).name};
+ const built=(state?.identityLibrary||builtInIdentities||[]).find(x=>x.name===name);
+ if(built)return {name:built.name,market:built.market||"",assetSource:"identity",assetKey:built.id,era:eraInfoForYear(y).name,colors:[]};
+ return {name,market:"",assetSource:"team",assetKey:name,era:eraInfoForYear(y).name,colors:[]};
+}
+
+function resolvedLogoSrc(obj, year){
+ const y=Number(year||((state&&state.currentYear)||1976));
+ const rec=resolveIdentityForObject(obj,y);
+ const explicit=obj?.logo || historicalLogoFor(rec.name,y);
+ if(explicit)return explicit;
+ if(rec.assetSource==="identity"){
+   return generatedIdentityLogos[rec.assetKey] || generatedIdentityLogos[obj?.id] || generatedTeamLogos[rec.name] || generatedTeamLogos[obj?.name] || null;
+ }
+ return generatedTeamLogos[rec.assetKey] || generatedTeamLogos[rec.name] || generatedIdentityLogos[rec.assetKey] || generatedIdentityLogos[obj?.id] || null;
+}
+
+function applyHistoricalIdentityAssets(){
+ if(!state?.teams)return;
+ state.teams.forEach(t=>{
+   const rec=resolveIdentityForObject(t,state.currentYear);
+   t.assetIdentity={name:rec.name,market:rec.market||"",era:rec.era,assetKey:rec.assetKey,assetSource:rec.assetSource,colors:rec.colors||[]};
+   if(!t.logo || state.settings?.historicalLogos)t.logo=resolvedLogoSrc(t,state.currentYear);
+  });
+}
+
+function currentEraSummary(year){
+ const e=eraInfoForYear(year);
+ return `${e.name} · ${e.description}`;
+}
+
 function logoHTML(obj){
   const year=(state&&state.currentYear)||1976;
-  const src=obj.logo||generatedIdentityLogos[obj.id]||generatedTeamLogos[obj.name]||null;
-  return `<div class="logo">${src?`<img src="${src}" alt="${obj.name} logo" onerror="this.parentElement.textContent='${initials(obj.name)}'">`:initials(obj.name)}</div>`;
+  const src=resolvedLogoSrc(obj,year);
+  return `<div class="logo">${src?`<img src="${src}" alt="${obj?.name||"Team"} logo" onerror="this.outerHTML='<span class=\'small\'>${initials(obj?.name||"Team")}</span>'">`:initials(obj?.name||"Team")}</div>`;
 }
 
 function ensureIdentityLogos(){
@@ -1340,6 +1465,7 @@ function renderPlayerChoicePreview(){
 }
 document.getElementById("teamChoice").addEventListener("change",fillPlayerChoices);
 document.getElementById("playerChoice").addEventListener("change",renderPlayerChoicePreview);
+renderEraArchitecture();
 
 document.querySelectorAll(".role").forEach(el=>{
  el.onclick=()=>{
@@ -1369,11 +1495,12 @@ document.getElementById("createBtn").onclick=()=>{
    customIdentities:[],
    decisions:[],
    news:[{year,title:"Universe created",text:`History branches beginning in ${year}.`}],
-   settings:{historicalLogos:true,customLogos:true},
+   settings:{historicalLogos:true,customLogos:true,identityMode:"historical-framework"},
    offseason:null,
    draftClasses:Object.assign({"1977":JSON.parse(JSON.stringify(historicalDraft1977))},
      Object.fromEntries(Object.entries(historicalDraftPipeline).map(([y,c])=>[y,JSON.parse(JSON.stringify(c))])))
  };
+ applyHistoricalIdentityAssets();
  seedDecisions();
  saveState(); showGame();
 };
@@ -1412,7 +1539,7 @@ document.getElementById("inGameLeagueFileInput")?.addEventListener("change",asyn
 
 document.getElementById("loadBtn").onclick=()=>{
  const s=loadState(); if(!s){alert("No saved universe found in this browser.");return;}
- state=s; showGame();
+ state=s; applyHistoricalIdentityAssets(); showGame();
 };
 
 function seedDecisions(){
@@ -1455,6 +1582,8 @@ function refreshUniverseHeader(){
 
 function showGame(){
  ensureLeagueRules();
+ renderEraArchitecture();
+ applyHistoricalIdentityAssets();
  initPlayersIfNeeded();
  initManagementIfNeeded();
  initFranchiseHealth();
@@ -1463,16 +1592,16 @@ function showGame(){
  document.getElementById("gameView").classList.remove("hidden");
  document.getElementById("rolePill").textContent=state.role;
  document.getElementById("gameTitle").textContent=state.name;
- document.getElementById("gameSubtitle").textContent=`A branching basketball timeline beginning in ${state.startYear}.`;
+ document.getElementById("gameSubtitle").textContent=`A branching basketball timeline beginning in ${state.startYear} (${currentEraSummary(state.startYear)}).`;
  document.getElementById("yearKpi").textContent=seasonName();
  document.getElementById("roleKpi").textContent=state.role;
  document.getElementById("teamKpi").textContent=state.controlledTeamId?teamById(state.controlledTeamId).name:"Entire League";
  document.getElementById("decisionKpi").textContent=(viewerMode()?0:state.decisions.filter(d=>!d.resolved).length);
- document.getElementById("assignmentText").innerHTML=state.role==="Viewer"
+ document.getElementById("assignmentText").innerHTML=`<div class="small muted" style="margin-bottom:8px">Current league era: ${currentEraSummary(state.currentYear)}</div>` + (state.role==="Viewer"
   ? `<b>League Viewer</b><div class="muted small">Spectate the entire universe using the normal simulation controls without decision stops.</div>`
   : state.controlledTeamId
     ? `${logoHTML(teamById(state.controlledTeamId))}<div style="margin-top:10px"><b>${teamById(state.controlledTeamId).name}</b><div class="muted small">${state.role}</div></div>`
-    : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`;
+    : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`);
  document.getElementById("permissionsText").innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("")+"</ul>";
  updateDraftRoomNav();
  renderAll();
@@ -2148,7 +2277,7 @@ function renderFranchiseHistory(){
  let names=franchiseIdentityNames(t);
 
  box.innerHTML=`
-   <div class="franchiseHero">${logoHTML(t)}<div><h2 style="margin:0">${t.name}</h2><div class="small muted">${t.conference} Conference · Franchise lineage since ${fh.foundedYear}</div>${names.length>1?`<div class="small muted">Past identities: ${names.filter(n=>n!==t.name).join(", ")}</div>`:""}</div></div>
+   <div class="franchiseHero">${logoHTML(t)}<div><h2 style="margin:0">${t.name}</h2><div class="small muted">${t.conference} Conference · Franchise lineage since ${fh.foundedYear}</div><div class="small muted">Active identity asset: ${(t.assetIdentity&&t.assetIdentity.name)||t.name} · ${(t.assetIdentity&&t.assetIdentity.era)||currentEraSummary(state.currentYear)}</div>${names.length>1?`<div class="small muted">Past identities: ${names.filter(n=>n!==t.name).join(", ")}</div>`:""}</div></div>
    <div class="grid4" style="margin-top:14px">
      <div class="careerMetric"><b>${titles.length}</b><div class="small muted">Championships</div></div>
      <div class="careerMetric"><b>${finals.length}</b><div class="small muted">Finals</div></div>
