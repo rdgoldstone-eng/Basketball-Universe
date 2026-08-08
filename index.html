@@ -225,7 +225,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.4 · Draft Calendar Flow</div>
+    <div class="pill">v0.37.5 · Rookie Simulation Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -4508,27 +4508,63 @@ function teamPlayerPower(teamName){
  return top*.72+depth*.28+coachingTeamModifier(teamName)+staffPerformanceModifier(teamName)+eraFit;
 }
 function playerById(id){initPlayersIfNeeded();return state.players.find(p=>p.id===id)}
+function playerPer36Profile(p){
+ const h=p.historical||{};
+ // Original historical players use their supplied draft/season context.
+ // Generated/drafted/custom players fall back to ratings so they remain fully playable.
+ const scoring=Number(p.scoring??p.ovr??60);
+ const shooting=Number(p.shooting??p.ovr??60);
+ const passing=Number(p.passing??p.ovr??60);
+ const rebounding=Number(p.rebounding??p.ovr??60);
+ const defense=Number(p.defense??p.ovr??60);
+ const ovr=Number(p.ovr??60);
+
+ return {
+   pts36:Number.isFinite(Number(h.pts36))?Number(h.pts36):Math.max(5,Math.min(32,6+(scoring-45)*.30+(shooting-45)*.12+(ovr-55)*.08)),
+   reb36:Number.isFinite(Number(h.reb36))?Number(h.reb36):Math.max(1.5,Math.min(16,2+(rebounding-40)*.18)),
+   ast36:Number.isFinite(Number(h.ast36))?Number(h.ast36):Math.max(1,Math.min(13,1.2+(passing-40)*.15)),
+   stl36:Number.isFinite(Number(h.stl36))?Number(h.stl36):Math.max(.3,Math.min(3.2,.4+(defense-40)*.035)),
+   blk36:Number.isFinite(Number(h.blk36))?Number(h.blk36):Math.max(.1,Math.min(4,.15+(defense-40)*.025+(rebounding-40)*.012))
+ };
+}
+
 function simPlayersForTeam(teamName, teamScore){
- let roster=rosterFor(teamName).filter(p=>p.rotationMinutes>0);
+ let roster=rosterFor(teamName).filter(p=>!p.retired&&!p.deferredEntry&&(p.rotationMinutes||0)>0);
  if(!roster.length)return;
- let totalMin=roster.reduce((s,p)=>s+p.rotationMinutes,0)||240;
+
+ let totalMin=roster.reduce((s,p)=>s+(p.rotationMinutes||0),0)||240;
+
+ // Every player, including newly drafted/custom players, must have season totals before a game.
  roster.forEach(p=>{
-   let mins=p.rotationMinutes/totalMin*240;
+   if(!p.sim)p.sim={gp:0,min:0,pts:0,reb:0,ast:0};
+   let profile=playerPer36Profile(p);
+   let mins=(p.rotationMinutes||0)/totalMin*240;
    let noise=.82+Math.random()*.36;
-   let expectedPts=(p.historical.pts36||8)*(mins/36)*noise;
-   let expectedReb=(p.historical.reb36||3)*(mins/36)*(.82+Math.random()*.36);
-   let expectedAst=(p.historical.ast36||2)*(mins/36)*(.82+Math.random()*.36);
-   p.sim.gp++;p.sim.min+=mins;p.sim.pts+=expectedPts;p.sim.reb+=expectedReb;p.sim.ast+=expectedAst;
+   let expectedPts=profile.pts36*(mins/36)*noise;
+   let expectedReb=profile.reb36*(mins/36)*(.82+Math.random()*.36);
+   let expectedAst=profile.ast36*(mins/36)*(.82+Math.random()*.36);
+
+   p.sim.gp++;
+   p.sim.min+=mins;
+   p.sim.pts+=expectedPts;
+   p.sim.reb+=expectedReb;
+   p.sim.ast+=expectedAst;
  });
- // Scale team player points to roughly match final team score.
- let today = roster.map(p=>({p, est:(p.historical.pts36||8)*(p.rotationMinutes/totalMin*240/36)}));
+
+ // Scale player scoring toward the actual simulated team total.
+ let today=roster.map(p=>{
+   let profile=playerPer36Profile(p);
+   let mins=(p.rotationMinutes||0)/totalMin*240;
+   return {p,est:profile.pts36*(mins/36)};
+ });
  let estTotal=today.reduce((s,x)=>s+x.est,0)||1;
  let scale=teamScore/estTotal;
- // Apply a small correction to cumulative points only (keeps team/player scoring aligned).
+
  roster.forEach(p=>{
-   let mins=p.rotationMinutes/totalMin*240;
-   let est=(p.historical.pts36||8)*(mins/36);
-   p.sim.pts += est*(scale-1);
+   let profile=playerPer36Profile(p);
+   let mins=(p.rotationMinutes||0)/totalMin*240;
+   let est=profile.pts36*(mins/36);
+   p.sim.pts+=est*(scale-1);
  });
 }
 function statPerGame(p,key){return p.sim.gp?p.sim[key]/p.sim.gp:0}
@@ -4583,7 +4619,7 @@ window.showPlayer=function(id){
  <h3 style="margin-top:16px">Simulated Season</h3>
  <div class="small">${p.sim.gp} GP · ${statPerGame(p,"pts").toFixed(1)} PPG · ${statPerGame(p,"reb").toFixed(1)} RPG · ${statPerGame(p,"ast").toFixed(1)} APG</div>
  <h3 style="margin-top:16px">1976-77 Reference Profile</h3>
- <div class="small muted">${p.historical.g} real-season GP · ${p.historical.mpg} MPG · ${p.historical.pts36} PTS/36 · ${p.historical.reb36} REB/36 · ${p.historical.ast36} AST/36 · PER ${p.historical.per}</div>
+ <div class="small muted">${p.historical.g} real-season GP · ${p.historical.mpg} MPG · ${playerPer36Profile(p).pts36} PTS/36 · ${playerPer36Profile(p).reb36} REB/36 · ${playerPer36Profile(p).ast36} AST/36 · PER ${p.historical.per}</div>
  <div class="small muted" style="margin-top:10px">Game ratings are derived from historical performance with small-sample shrinkage. Potential is age-based and does not use future career outcomes.</div>`;
 }
 window.adjustMinutes=function(id,delta){

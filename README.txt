@@ -1,23 +1,22 @@
-v0.37.4 Basketball Universe — Draft Calendar Flow
+v0.37.5 Basketball Universe — Rookie Simulation Fix
 
-DRAFT FLOW CLEANUP
-- The upcoming draft class now lives in the Scouting tab throughout the entire season.
-- Viewer and Commissioner can see the league-wide draft board even though they do not control a team.
-- Team-based roles still receive private scouting ranges and confidence.
-- Removed the duplicate Draft Board from the Offseason page.
+FIXED: ADVANCE BUTTON APPEARING TO STOP AFTER OFFSEASON
 
-DRAFT ROOM
-- Draft Room is disabled/grayed out until the offseason reaches the Draft step.
-- It cannot be manually started during the regular season.
-- When Draft Order is finished and the offseason reaches Draft, the game automatically opens the Draft Room.
-- The generic Advance Offseason button is hidden while the draft is active.
-- The draft must be completed in the Draft Room.
-- After the final pick, a Continue Offseason button returns to the checklist and advances to Free Agency.
-- Viewer/Commissioner get a clearly labeled Sim Rest of Draft button.
+Root cause:
+- The original 1976 players include historical per-36 stat data.
+- Newly drafted players do not.
+- Once a drafted rookie entered a rotation, the regular-season simulator tried to read missing historical data and the first game crashed silently.
 
-TEST RESULT
-Viewer multi-season loop has successfully reached 1982-83.
+Fix:
+- Added a universal player per-36 profile.
+- Historical players still use their supplied historical context.
+- Drafted, generated, and custom players now derive scoring/rebounding/assists/steals/blocks from their ratings when historical data is unavailable.
+- New players automatically receive initialized season-stat totals before playing.
+- The same fallback is used by regular-season box-score generation.
+
+This is important beyond the bug fix: alternate-history players no longer depend on real-life NBA statistics to function after being drafted.
+
+Your existing save should continue working. You do not need to restart.
 
 GitHub update:
-Upload index.html and README.txt over the existing files and commit.
-Existing saves should continue working.
+Upload index.html and README.txt over the current files and commit.
