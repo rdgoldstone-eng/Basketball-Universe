@@ -1,35 +1,36 @@
-v0.55 Basketball Universe — 2017–2020 Draft Pipeline
+v0.56 Basketball Universe — 2021–2024 Draft Pipeline
 
-Historical draft classes now extend through 2020.
+Historical draft classes now extend through 2024.
 
-2017
-Markelle Fultz is the top prospect.
-Lonzo Ball, Jayson Tatum, Josh Jackson and De'Aaron Fox form the next elite group.
-Donovan Mitchell, Bam Adebayo, OG Anunoby and other later standouts keep their draft-time positioning rather than being hindsight-promoted.
+2021
+Cade Cunningham is the clear No. 1 prospect.
+Jalen Green and Evan Mobley are elite alternatives, followed by Jalen Suggs.
+Scottie Barnes and Jonathan Kuminga carry high upside but greater uncertainty.
+Franz Wagner, Alperen Sengun and later hits retain their draft-time positioning rather than receiving hindsight boosts.
 
-2018
-Deandre Ayton and Marvin Bagley III remain elite top-of-draft prospects.
-Luka Doncic is also elite, but his international translation uncertainty is preserved.
-Jaren Jackson Jr., Trae Young and Mohamed Bamba remain high-level prospects.
-Shai Gilgeous-Alexander is a strong later-lottery prospect rather than a known MVP-level talent.
-Michael Porter Jr. has huge upside and extreme medical risk.
+2022
+Paolo Banchero, Chet Holmgren and Jabari Smith Jr. form an elite three-player top tier.
+Jaden Ivey follows as the premier guard.
+Shaedon Sharpe carries enormous upside with unusual uncertainty because of his limited post-high-school game film.
+Jalen Williams and Walker Kessler are not hindsight-promoted.
 
-2019
-Zion Williamson is a generational No. 1 prospect.
-Ja Morant is an elite No. 2-level prospect.
-RJ Barrett remains a premium top-three prospect.
-Darius Garland, Jarrett Culver and others retain their draft-night value.
-Jordan Poole and later hits are not hindsight-promoted.
+2023
+Victor Wembanyama is a true generational prospect and overwhelming No. 1.
+Scoot Henderson and Brandon Miller are elite prospects immediately behind him.
+Amen and Ausar Thompson carry huge athletic upside.
+Cam Whitmore's medical/evaluation uncertainty is represented.
+Later success does not rewrite the original board.
 
-2020
-Anthony Edwards, James Wiseman and LaMelo Ball form the clear top tier.
-Edwards has the highest overall grade, but the class still reflects the real uncertainty around the No. 1 decision.
-Patrick Williams, Isaac Okoro, Onyeka Okongwu, Killian Hayes and Obi Toppin remain strong lottery prospects.
-Tyrese Haliburton, Tyrese Maxey and Desmond Bane stay much closer to where they were viewed at the time.
+2024
+This class intentionally does NOT have a generational prospect.
+Zaccharie Risacher and Alex Sarr lead a relatively flat top tier.
+Reed Sheppard, Stephon Castle, Ron Holland, Matas Buzelis and Donovan Clingan remain close enough that team preference and fit can matter.
+High-upside younger players have wide ranges.
+Older/more polished prospects have narrower ranges.
 
 PIPELINE
-Historical classes available: 1977–2020.
-Next missing class: 2021.
+Historical classes available: 1977–2024.
+Next missing class: 2025.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
