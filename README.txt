@@ -1,35 +1,38 @@
-v0.52 Basketball Universe — 2005–2008 Draft Pipeline
+v0.53 Basketball Universe — 2009–2012 Draft Pipeline
 
-Historical draft classes now extend through 2008.
+Historical draft classes now extend through 2012.
 
-2005
-Andrew Bogut, Marvin Williams, Deron Williams and Chris Paul form the elite top group in their actual draft-time neighborhood.
-Andrew Bynum, Gerald Green and other young players carry high ceilings with major uncertainty.
-Danny Granger's medical concern is represented through uncertainty.
-David Lee, Monta Ellis and Lou Williams are not hindsight-boosted.
+2009
+Blake Griffin is the clear No. 1 prospect.
+Hasheem Thabeet and James Harden remain elite prospects.
+Tyreke Evans and Ricky Rubio follow.
+Stephen Curry is a strong lottery prospect with shooting/scoring appeal but real questions about size and role; he is not hindsight-ranked as the best player in the class.
+Jrue Holiday and other later standouts retain their lower draft-time profiles.
 
-2006
-Andrea Bargnani, LaMarcus Aldridge, Adam Morrison and Tyrus Thomas form the top group.
-Brandon Roy is a strong prospect but not rewritten into an obvious No. 1 based on his early NBA success.
-Rajon Rondo, Kyle Lowry and Paul Millsap retain the lower draft-time profiles they actually carried.
+2010
+John Wall is the clear franchise-point-guard prospect.
+Evan Turner, Derrick Favors and Wesley Johnson form the next tier.
+DeMarcus Cousins has elite talent but meaningful uncertainty.
+Paul George is treated as a high-upside mid-first-round wing rather than a known future star.
+Hassan Whiteside and Lance Stephenson carry late-draft uncertainty.
 
-2007
-Greg Oden and Kevin Durant form an extraordinary two-player top tier.
-Oden is a legitimate franchise-center No. 1 prospect; the game does not know his future injury history.
-Durant is nearly as strong with enormous scoring upside.
-Al Horford and Mike Conley lead the next group.
-Marc Gasol remains a second-round-level international prospect rather than receiving hindsight treatment.
+2011
+Kyrie Irving and Derrick Williams form the top tier.
+Enes Kanter, Tristan Thompson, Jonas Valanciunas and the other top-10 prospects remain highly regarded.
+Kawhi Leonard, Klay Thompson and Jimmy Butler are not hindsight-boosted into the elite tier.
+Isaiah Thomas is intentionally a very late, highly uncertain prospect.
 
-2008
-Derrick Rose and Michael Beasley form the elite top tier.
-O.J. Mayo follows as another premium prospect.
-Russell Westbrook and Kevin Love are strong lottery prospects but are not ranked using their eventual careers.
-Anthony Randolph carries major upside uncertainty.
-DeAndre Jordan and Goran Dragic remain lower-tier prospects with wide ceilings.
+2012
+Anthony Davis is a generational No. 1 prospect.
+Michael Kidd-Gilchrist and Bradley Beal form the next tier.
+Dion Waiters and Thomas Robinson remain major top-five prospects.
+Damian Lillard is a strong lottery prospect but not rewritten as the obvious second-best player.
+Andre Drummond has huge physical upside and huge uncertainty.
+Draymond Green and Khris Middleton retain their lower draft-time status.
 
 PIPELINE
-Historical classes available: 1977–2008.
-Next missing class: 2009.
+Historical classes available: 1977–2012.
+Next missing class: 2013.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
