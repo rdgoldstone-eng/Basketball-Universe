@@ -225,7 +225,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.8 · Awards Eligibility Fix</div>
+    <div class="pill">v0.37.9 · Drafted Rookie Ratings Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -4158,11 +4158,32 @@ function makeDraftPick(prospectId){
  ensureDraftRoom();let dr=state.draftRoom,pick=currentDraftPick();if(!dr.active||!pick)return;
  let p=dr.available.find(x=>x.draftId===prospectId||x.id===prospectId);if(!p)return;
  let team=state.teams.find(t=>t.id===pick.teamId);if(!team)return;
- dr.results.push({pick:pick.pick,teamId:team.id,teamName:team.name,playerName:p.name,pos:p.pos,ovr:p.ovr||p.rating||60,pot:p.pot||p.potential||p.ovr||60});
+ 
  if(pick.pickAssetId)state.draftPicks=state.draftPicks.filter(x=>x.id!==pick.pickAssetId);
  dr.available=dr.available.filter(x=>x!==p);
- let newPlayer={...p,id:p.id||p.draftId,teamName:team.name,age:p.age||21,rookie:true,rookieYear:dr.year||state.currentYear+1,draftYear:dr.year||state.currentYear+1,contract:{years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))}};
+ let draftYear=dr.year||state.currentYear+1;
+ let newPlayer;
+ if(typeof convertProspectToPlayer==="function"){
+   newPlayer=convertProspectToPlayer(p,team.name,pick.pick);
+   newPlayer.id=p.id||p.draftId||newPlayer.id;
+   newPlayer.rookie=true;
+   newPlayer.rookieYear=newPlayer.deferredEntry?(newPlayer.rightsOnlyUntil||draftYear):draftYear;
+   newPlayer.draftYear=draftYear;
+ }else{
+   // Fallback should only be used if the historical conversion helper is unavailable.
+   let seed=parseInt(hashlibCompat(`${p.name}${draftYear}${pick.pick}`).slice(0,4),16);
+   let low=Number(p.ceilingLow??p.prospect??60),high=Number(p.ceilingHigh??low+8);
+   let realized=Math.round(low+(seed%1000)/999*Math.max(0,high-low));
+   let ovr=Math.max(45,Math.min(realized,Math.round((p.prospect||60)*.72+realized*.28)));
+   newPlayer={...p,id:p.id||p.draftId,teamName:team.name,age:p.age||21,ovr,pot:realized,truePotential:realized,
+     scoring:Math.max(40,ovr+((seed>>2)%9)-4),shooting:Math.max(40,ovr+((seed>>4)%9)-4),
+     passing:Math.max(35,ovr+(p.pos==="PG"?5:-3)),rebounding:Math.max(35,ovr+(["C","PF"].includes(p.pos)?5:-4)),
+     defense:Math.max(40,ovr+((seed>>6)%9)-4),rotationMinutes:8,starter:false,
+     rookie:true,rookieYear:draftYear,draftYear,sim:{gp:0,min:0,pts:0,reb:0,ast:0}};
+ }
+ newPlayer.contract={years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))};
  state.players.push(newPlayer);
+ dr.results.push({pick:pick.pick,teamId:team.id,teamName:team.name,playerName:newPlayer.name,pos:newPlayer.pos,ovr:newPlayer.ovr||60,pot:newPlayer.pot||newPlayer.truePotential||newPlayer.ovr||60});
  state.news.push({year:state.currentYear,title:`Draft Pick #${pick.pick}`,text:`${team.name} selects ${p.name}, ${p.pos}.`});
  dr.pickIndex++;
  dr.tradeOffers=[];
@@ -4341,12 +4362,23 @@ function defensiveAwardScore(p){
  return stl*2.2+blk*2.5+reb*.08+defense*.035;
 }
 
+
+function chooseRookieOfYear(year){
+ let pool=state.players.filter(p=>rookieAwardEligible(p,year));
+ if(!pool.length)return null;
+ return pool.sort((a,b)=>{
+   let aScore=playerSeasonScore(a)+(a.ovr||60)*.08;
+   let bScore=playerSeasonScore(b)+(b.ovr||60)*.08;
+   return bScore-aScore;
+ })[0]||null;
+}
+
 function recordSeasonHonors(){
  ensureLeagueHistory();
  let year=state.currentYear;
  if(state.history.seasons.some(x=>x.year===year))return;
  let mvp=chooseSeasonAwardWinner();
- let rookie=chooseSeasonAwardWinner(p=>rookieAwardEligible(p,year));
+ let rookie=chooseRookieOfYear(year);
  let dpoy=qualifiedStatPlayers().slice().sort((a,b)=>defensiveAwardScore(b)-defensiveAwardScore(a))[0]||null;
  let sixth=chooseSeasonAwardWinner(p=>sixthManEligible(p));
  let champion=state.playoffs?.champion||state.season?.champion||null;
@@ -4415,6 +4447,16 @@ function repairCompletedFinalsHistory(){
 }
 
 
+
+function repairCurrentRookieAward(){
+ if(!state?.season||state.season.phase!=="Season Complete")return;
+ let year=state.currentYear;
+ let row=state.history?.seasons?.find(x=>x.year===year);
+ if(!row)return;
+ let winner=chooseRookieOfYear(year);
+ if(winner)row.rookie=winner.name;
+}
+
 function repairRookieAwardHistory(){
  ensureLeagueHistory();
  let seen=new Set();
@@ -4432,7 +4474,7 @@ function repairRookieAwardHistory(){
 }
 
 function renderLeagueHistory(){
- if(!state)return;ensureLeagueHistory();repairCompletedFinalsHistory();repairRookieAwardHistory();
+ if(!state)return;ensureLeagueHistory();repairCompletedFinalsHistory();repairCurrentRookieAward();repairRookieAwardHistory();
  let sh=document.getElementById("seasonHonorsBox"),ah=document.getElementById("allStarHistoryBox"),ch=document.getElementById("championsHistoryBox"),rh=document.getElementById("recordsHistoryBox");
  if(!sh)return;
  sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}-${String((s.year+1)%100).padStart(2,"0")}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
