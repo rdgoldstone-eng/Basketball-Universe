@@ -247,20 +247,23 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.42 · Historical Identity Framework</div>
+    <div class="pill">v0.42.1 · Era Dropdown Cleanup</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
   </div>
 
   <div class="card">
-    <h2>Era Architecture</h2>
-    <p class="small muted">This universe now uses a formal era system for historical identities, logos, and future rules packages.</p>
-    <div id="eraArchitectureBox"></div>
-    <div class="notice" style="margin-top:12px">
-      <b>Logo system note</b><br>
-      This build lays the historical identity + asset framework. Real era-specific logo files can now be attached to these identity records in the next phase.
-    </div>
+    <h2>Era Guide</h2>
+    <label>Basketball era</label>
+    <select id="eraGuideSelect" onchange="renderEraArchitecture()">
+      <option value="founding">The Founding Era</option>
+      <option value="aba">ABA Rivalry Era</option>
+      <option value="merger" selected>Merger Era</option>
+      <option value="expansion">Expansion Era</option>
+      <option value="realignment">Realignment Era</option>
+    </select>
+    <div id="eraArchitectureBox" style="margin-top:10px"></div>
   </div>
 
   <div class="card">
@@ -276,7 +279,6 @@ pre{white-space:pre-wrap}
           <option value="2011">2011 — The Realignment Era</option>
           <option value="2025">2025 — The Realignment Era</option>
         </select>
-        <div class="small muted" style="margin-top:8px">Era buckets now follow: Founding, ABA Rivalry, Merger, Expansion, and Realignment. Full 1946/1967 playable datasets are still a future data-pack step.</div>
       </div>
       <div>
         <label>Universe name</label>
@@ -1359,7 +1361,10 @@ function seasonLabelFromYear(year){
 function renderEraArchitecture(){
  const box=document.getElementById("eraArchitectureBox");
  if(!box)return;
- box.innerHTML=eraDefinitions.map(e=>`<div class="eraRow"><div><b>${e.name}</b></div><div><span class="eraBadge">${e.description}</span></div><div class="small muted">${e.start<1976?"Historical/logo framework now, full playable data later.":"Live rules/logo bucket in the current engine."}</div></div>`).join("");
+ const sel=document.getElementById("eraGuideSelect");
+ const id=sel?.value||"merger";
+ const e=eraDefinitions.find(x=>x.id===id)||eraDefinitions[2];
+ box.innerHTML=`<div class="notice"><b>${e.name}</b><br><span class="small">${e.description}</span><br><span class="small muted">${e.start<1976?"Historical/logo framework is prepared; full playable data comes later.":"This era is part of the active historical identity/logo framework."}</span></div>`;
 }
 
 function identityRecordForName(name, year){
