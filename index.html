@@ -154,6 +154,9 @@ pre{white-space:pre-wrap}
 
 .playerGameRow{display:grid;grid-template-columns:90px 1fr auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
 .roleBadge{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-weight:800}
+
+.relationshipRow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.contractBig{font-size:22px;font-weight:900}
 </style>
 </head>
 <body>
@@ -168,7 +171,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.22 · Player Performance</div>
+    <div class="pill">v0.23 · Player Contracts & Movement</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -384,6 +387,10 @@ pre{white-space:pre-wrap}
     <div class="grid2">
       <div class="card"><h2>Season Performance</h2><div id="careerPerformance" class="muted">No games played yet.</div></div>
       <div class="card"><h2>Team Role</h2><div id="careerRoleBox" class="muted">No role established yet.</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Contract</h2><div id="careerContractBox" class="muted">No contract information.</div></div>
+      <div class="card"><h2>Team Relationships</h2><div id="careerRelationshipsBox" class="muted">No relationship information.</div></div>
     </div>
     <div class="card"><h2>Recent Games</h2><div id="careerRecentGames" class="muted">No games played yet.</div></div>
     <div class="card"><h2>Major Career Decision</h2><div id="majorCareerDecision" class="muted">No major decision is pending.</div></div>
@@ -949,6 +956,7 @@ function choosePlayerDecision(id){
  pc.development=Math.max(0,Math.min(100,pc.development+o.dev));
  pc.energy=Math.max(0,Math.min(100,pc.energy+o.energy));
  pc.chemistry=Math.max(0,Math.min(100,pc.chemistry+o.chem));
+ if(pc.relationships){pc.relationships.teammates=Math.max(0,Math.min(100,pc.relationships.teammates+(o.id==="club"?5:o.id==="teammate"?4:0)));}
  pc.reputation=Math.max(0,Math.min(100,pc.reputation+o.rep));
  pc.lastChoice={year:state.currentYear,label:o.label,type:d.type};
  let p=playerCareerPlayer();
@@ -1023,6 +1031,99 @@ function updateCareerIdentity(){
  else pc.path="Balanced Career";
  pc.legacy=Math.round((pc.development+pc.reputation+pc.chemistry)/3);
 }
+
+function ensurePlayerContract(){
+ if(state.role!=="Player")return;
+ initPlayerCareer();
+ let pc=state.playerCareer,p=playerCareerPlayer();if(!p)return;
+ if(!pc.contract){
+   let yrs=p.contract?.years||2;
+   let salary=p.contract?.salary||Math.max(1,Math.round(((p.ovr||65)-50)*.35));
+   pc.contract={years:yrs,salary,team:p.teamName,expires:state.currentYear+yrs};
+ }
+ pc.relationships=pc.relationships||{coach:55,frontOffice:55,teammates:55,fans:55};
+ pc.tradeRequested=!!pc.tradeRequested;
+}
+function contractSeasonTick(){
+ if(state.role!=="Player"||!state.playerCareer?.contract)return;
+ let c=state.playerCareer.contract;
+ c.years=Math.max(0,c.years-1);
+ c.expires=state.currentYear+c.years;
+}
+function careerMarketValue(){
+ let p=playerCareerPlayer(),pc=state.playerCareer;if(!p||!pc)return 1;
+ let av=playerSeasonAverages();
+ return Math.max(1,Math.round(((p.ovr||60)-50)*.45+av.ppg*.15+pc.reputation*.05+pc.legacy*.03));
+}
+function extensionDecision(){
+ ensurePlayerContract();let pc=state.playerCareer,p=playerCareerPlayer(),c=pc.contract;if(!p||!c)return null;
+ if(c.years>1||pc.extensionDecisionYear===state.currentYear)return null;
+ let market=careerMarketValue();
+ return {title:"Contract Extension",text:`${p.teamName} is ready to discuss your future. Your estimated market value is about $${market}M per year.`,options:[
+   {id:"extend",label:`Sign 3 years / $${market*3}M`,action:"extend",years:3,salary:market,loyalty:8,ambition:-2},
+   {id:"short",label:`Sign 1 year / $${Math.max(1,market+2)}M`,action:"short",years:1,salary:Math.max(1,market+2),loyalty:1,ambition:4},
+   {id:"decline",label:"Decline and test free agency",action:"decline",years:0,salary:0,loyalty:-5,ambition:8}
+ ]};
+}
+function requestTradeOptions(){
+ ensurePlayerContract();let pc=state.playerCareer,p=playerCareerPlayer();
+ if(!p||pc.tradeRequested)return null;
+ if(pc.chemistry>=70&&pc.relationships.frontOffice>=65)return null;
+ return {title:"Trade Request",text:"You are frustrated with your situation. Do you want to push for a change?",options:[
+   {id:"stay",label:"Keep it private and stay",action:"stay",chem:3,front:3,rep:1},
+   {id:"private",label:"Privately request a trade",action:"trade",chem:-4,front:-8,rep:0},
+   {id:"public",label:"Publicly demand a trade",action:"tradePublic",chem:-8,front:-15,rep:-4}
+ ]};
+}
+function freeAgencyDecision(){
+ ensurePlayerContract();let pc=state.playerCareer,p=playerCareerPlayer(),c=pc.contract;
+ if(!p||!c||c.years>0||pc.freeAgencyYear===state.currentYear)return null;
+ let teams=state.teams.filter(t=>t.name!==p.teamName).map(t=>({team:t,fit:teamPlayerPower(t.name)+Math.random()*10})).sort((a,b)=>b.fit-a.fit).slice(0,3);
+ return {title:"Free Agency",text:"Your contract has expired. Choose the direction of your career.",options:[
+   {id:"reup",label:`Re-sign with ${p.teamName}`,team:p.teamName,loyalty:10,ambition:-2},
+   ...teams.map((x,i)=>({id:"fa"+i,label:`Sign with ${x.team.name}`,team:x.team.name,loyalty:-8,ambition:7+i,fit:x.fit}))
+ ]};
+}
+function choosePlayerMovement(id,type){
+ ensurePlayerContract();let pc=state.playerCareer,p=playerCareerPlayer();if(!p)return;
+ if(type==="extension"){
+   let d=extensionDecision(),o=d?.options.find(x=>x.id===id);if(!o)return;
+   pc.extensionDecisionYear=state.currentYear;
+   pc.loyalty=Math.max(0,Math.min(100,pc.loyalty+(o.loyalty||0)));
+   pc.ambition=Math.max(0,Math.min(100,pc.ambition+(o.ambition||0)));
+   if(o.action==="decline"){pc.contract.years=0;pc.contract.expires=state.currentYear;pc.timeline.push({year:state.currentYear,text:"Declined an extension and chose to test free agency."});}
+   else{pc.contract={years:o.years,salary:o.salary,team:p.teamName,expires:state.currentYear+o.years};pc.timeline.push({year:state.currentYear,text:`Signed a ${o.years}-year extension with ${p.teamName}.`});}
+ }else if(type==="trade"){
+   let d=requestTradeOptions(),o=d?.options.find(x=>x.id===id);if(!o)return;
+   pc.chemistry=Math.max(0,Math.min(100,pc.chemistry+(o.chem||0)));
+   pc.relationships.frontOffice=Math.max(0,Math.min(100,pc.relationships.frontOffice+(o.front||0)));
+   pc.reputation=Math.max(0,Math.min(100,pc.reputation+(o.rep||0)));
+   if(o.action.startsWith("trade")){pc.tradeRequested=true;pc.timeline.push({year:state.currentYear,text:o.action==="tradePublic"?"Publicly demanded a trade.":"Privately requested a trade."});}
+   else pc.timeline.push({year:state.currentYear,text:"Chose not to request a trade."});
+ }else if(type==="fa"){
+   let d=freeAgencyDecision(),o=d?.options.find(x=>x.id===id);if(!o)return;
+   let old=p.teamName;p.teamName=o.team;pc.contract={years:3,salary:careerMarketValue(),team:o.team,expires:state.currentYear+3};
+   pc.freeAgencyYear=state.currentYear;pc.loyalty=Math.max(0,Math.min(100,pc.loyalty+(o.loyalty||0)));pc.ambition=Math.max(0,Math.min(100,pc.ambition+(o.ambition||0)));
+   pc.timeline.push({year:state.currentYear,text:`Left ${old} and signed with ${o.team} in free agency.`});
+   let t=state.teams.find(x=>x.name===o.team);if(t)state.controlledTeamId=t.id;
+ }
+ updateCareerIdentity();renderCareerPage();saveState();
+}
+function processTradeRequest(){
+ if(state.role!=="Player")return;
+ ensurePlayerContract();let pc=state.playerCareer,p=playerCareerPlayer();
+ if(!pc.tradeRequested||!p||pc.tradeProcessedYear===state.currentYear)return;
+ let candidates=state.teams.filter(t=>t.name!==p.teamName).sort((a,b)=>teamPlayerPower(b.name)-teamPlayerPower(a.name)).slice(0,6);
+ if(!candidates.length)return;
+ let target=candidates[Math.floor(Math.random()*Math.min(3,candidates.length))];
+ let old=p.teamName;p.teamName=target.name;pc.contract.team=target.name;pc.tradeRequested=false;pc.tradeProcessedYear=state.currentYear;
+ pc.relationships={coach:50,frontOffice:50,teammates:45,fans:45};
+ pc.timeline.push({year:state.currentYear,text:`Traded from ${old} to ${target.name}.`});
+ state.news.push({year:state.currentYear,title:"Player trade",text:`${p.name} was traded from ${old} to ${target.name}.`});
+ state.controlledTeamId=target.id;
+}
+window.choosePlayerMovement=choosePlayerMovement;
+
 function majorCareerDecision(){
  if(state.role!=="Player")return null;
  initPlayerCareer();let pc=state.playerCareer;
@@ -1050,8 +1151,15 @@ function renderCareerPage(){
  s.innerHTML=`<div class="teamrow"><div class="teammeta"><b>${p?.name||"Player"}</b><span class="small muted">${p?.teamName||"Free Agent"} · ${p?.pos||""} · Age ${p?.age||"—"} · OVR ${p?.ovr||"—"}</span></div></div>
  <div class="grid4" style="margin-top:10px"><div class="careerMetric"><b>${pc.development}</b><div class="small muted">Development</div></div><div class="careerMetric"><b>${pc.energy}</b><div class="small muted">Energy</div></div><div class="careerMetric"><b>${pc.chemistry}</b><div class="small muted">Chemistry</div></div><div class="careerMetric"><b>${pc.reputation}</b><div class="small muted">Reputation</div></div></div>`;
  document.getElementById("careerIdentity").innerHTML=`<h3>${pc.path}</h3><div class="small muted">This emerges from your choices; you do not select a Kobe/LeBron/KD template.</div><div class="grid2" style="margin-top:10px"><div class="careerMetric"><b>${pc.loyalty}</b><div class="small muted">Loyalty</div></div><div class="careerMetric"><b>${pc.ambition}</b><div class="small muted">Ambition</div></div></div><p><b>Legacy score: ${pc.legacy}</b></p>`;
- let d=majorCareerDecision();
- document.getElementById("majorCareerDecision").innerHTML=d?`<h3>${d.title}</h3><p class="muted">${d.text}</p><div class="choicebar">${d.options.map(o=>`<button onclick="chooseMajorCareer('${o.id}')">${o.label}</button>`).join("")}</div>`:`<span class="muted">No major career decision is pending.</span>`;
+ ensurePlayerContract();
+ let cb=document.getElementById("careerContractBox");if(cb){let c=pc.contract;cb.innerHTML=`<div class="contractBig">${c.years>0?`${c.years} year${c.years===1?"":"s"} remaining`:"Free Agent"}</div><div>$${c.salary||0}M/year · ${c.team||p?.teamName||""}</div><div class="small muted">Estimated market value: $${careerMarketValue()}M/year</div>`;}
+ let rel=document.getElementById("careerRelationshipsBox");if(rel){let r=pc.relationships;rel.innerHTML=`<div class="relationshipRow"><span>Coach</span><b>${r.coach}</b></div><div class="relationshipRow"><span>Front Office</span><b>${r.frontOffice}</b></div><div class="relationshipRow"><span>Teammates</span><b>${r.teammates}</b></div><div class="relationshipRow"><span>Fans</span><b>${r.fans}</b></div>`;}
+ let d=extensionDecision()||freeAgencyDecision()||requestTradeOptions()||majorCareerDecision();
+ let md=document.getElementById("majorCareerDecision");
+ if(d){
+   let kind=d.title==="Contract Extension"?"extension":d.title==="Free Agency"?"fa":d.title==="Trade Request"?"trade":"career";
+   md.innerHTML=`<h3>${d.title}</h3><p class="muted">${d.text}</p><div class="choicebar">${d.options.map(o=>kind==="career"?`<button onclick="chooseMajorCareer('${o.id}')">${o.label}</button>`:`<button onclick="choosePlayerMovement('${o.id}','${kind}')">${o.label}</button>`).join("")}</div>`;
+ }else md.innerHTML=`<span class="muted">No major career decision is pending.</span>`;
  let av=playerSeasonAverages();updatePlayerTeamRole();
  let perf=document.getElementById("careerPerformance");
  if(perf)perf.innerHTML=av.gp?`<div class="grid4"><div class="careerMetric"><b>${av.ppg.toFixed(1)}</b><div class="small muted">PPG</div></div><div class="careerMetric"><b>${av.rpg.toFixed(1)}</b><div class="small muted">RPG</div></div><div class="careerMetric"><b>${av.apg.toFixed(1)}</b><div class="small muted">APG</div></div><div class="careerMetric"><b>${av.gp}</b><div class="small muted">Games</div></div></div><p class="small muted">Career highs: ${pc.careerHigh.pts} PTS · ${pc.careerHigh.reb} REB · ${pc.careerHigh.ast} AST</p>`:`<span class="muted">No games played yet.</span>`;
@@ -1365,6 +1473,7 @@ function beginNextSeason(){
  state.news.push({year:state.currentYear,title:`${seasonName()} season begins`,text:"The alternate timeline continues."});
  saveState();renderAll();switchTab("dashboard");
  if(state.role==="Player"&&state.playerCareer){state.playerCareer.seasonTotals={gp:0,pts:0,reb:0,ast:0};}
+ if(state.role==="Player"){contractSeasonTick();processTradeRequest();}
 }
 function advanceOffseason(){
  initOffseason();

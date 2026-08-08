@@ -1,13 +1,15 @@
-v0.22 Basketball Universe — Player Performance
+v0.23 Basketball Universe — Player Contracts & Movement
 
-PLAYER CAREER LOOP
-- Controlled player now accumulates game-by-game production.
-- Career page shows PPG, RPG, APG, games played and career highs.
-- Recent Games panel tracks the player's last performances.
-- Team role can evolve: Bench Player, Rotation Player, Starter, Star, Superstar.
-- Role is based on rating, production, reputation and development and can rise or fall.
-- Big performances increase reputation and create career timeline moments.
-- Playoff performances receive extra weight.
-- Existing training, lifestyle, loyalty, ambition and career-direction systems remain.
+PLAYER CAREER
+- Contract status now appears on the Career page.
+- Extension decisions appear as the contract nears expiration.
+- Players can sign long extensions, take a short deal, or test free agency.
+- Free agency presents multiple team options.
+- Player mode can request a trade privately or publicly.
+- Trade requests can eventually produce an actual move to another team.
+- Team control follows the player after a trade/free-agent signing.
+- Career tracks relationships with coach, front office, teammates and fans.
+- Lifestyle/training choices can affect relationships in addition to development/chemistry.
+- Loyalty and ambition continue shaping the player's emergent career identity.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.
