@@ -1,19 +1,23 @@
-v0.37.3 Basketball Universe — Season Transition Fix
+v0.37.4 Basketball Universe — Draft Calendar Flow
 
-FIXED
-- Hardened the offseason -> next season transition after Viewer testing got stuck trying to begin 1978-79.
-- Noncritical systems (development, staff, ownership, coaching, draft-pick maintenance) can no longer prevent the next season from starting if one of them errors.
-- Added a fallback season initializer so the league always reaches the next October with standings reset to 0-0.
-- Start Next Season now gives visible button feedback while transitioning.
-- Any bypassed background transition error is recorded internally for later debugging instead of trapping the save.
+DRAFT FLOW CLEANUP
+- The upcoming draft class now lives in the Scouting tab throughout the entire season.
+- Viewer and Commissioner can see the league-wide draft board even though they do not control a team.
+- Team-based roles still receive private scouting ranges and confidence.
+- Removed the duplicate Draft Board from the Offseason page.
 
-Viewer remains simple:
-- No team control
-- No decision interruptions
-- Normal season selector
-- Normal playoff controls
-- Normal offseason flow
+DRAFT ROOM
+- Draft Room is disabled/grayed out until the offseason reaches the Draft step.
+- It cannot be manually started during the regular season.
+- When Draft Order is finished and the offseason reaches Draft, the game automatically opens the Draft Room.
+- The generic Advance Offseason button is hidden while the draft is active.
+- The draft must be completed in the Draft Room.
+- After the final pick, a Continue Offseason button returns to the checklist and advances to Free Agency.
+- Viewer/Commissioner get a clearly labeled Sim Rest of Draft button.
+
+TEST RESULT
+Viewer multi-season loop has successfully reached 1982-83.
 
 GitHub update:
-Upload index.html and README.txt over the current files and commit.
-Your existing save should continue; you should not need to restart.
+Upload index.html and README.txt over the existing files and commit.
+Existing saves should continue working.

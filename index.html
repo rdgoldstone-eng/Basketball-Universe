@@ -209,6 +209,8 @@ pre{white-space:pre-wrap}
 
 .offseasonStepRow{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .offseasonStepRow .offseasonStep{margin:0}
+
+.nav button:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
 </style>
 </head>
 <body>
@@ -223,7 +225,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.3 · Season Transition Fix</div>
+    <div class="pill">v0.37.4 · Draft Calendar Flow</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -734,11 +736,6 @@ pre{white-space:pre-wrap}
         <div id="offseasonSteps" style="margin-top:12px"></div>
         <button class="primary hidden" id="advanceOffseasonBtn">Advance Offseason</button>
       </div>
-      <div class="card">
-        <h2 id="draftBoardTitle">Draft Board</h2>
-        <p class="small muted">Prospect grades reflect draft-time perception. They do not use future NBA career accomplishments.</p>
-        <div id="draftBoard"></div>
-      </div>
     </div>
     <div class="card">
       <h2 id="offseasonDetailTitle">Offseason Details</h2>
@@ -748,9 +745,6 @@ pre{white-space:pre-wrap}
       <h2>Draft Results</h2>
       <div id="draftResults" class="muted">The draft has not started.</div>
     </div>
-    <div class="card">
-      <h2>Historical Draft Pipeline</h2>
-      <div class="small muted">Loaded real first-round/key prospect classes: 1977 through 1986. Historical selection order is used as a draft-time reputation anchor; future NBA career success is not used to force development.</div>
     </div>
     <div class="card">
       <h2>Free Agency</h2>
@@ -1367,6 +1361,7 @@ function showGame(){
     ? `${logoHTML(teamById(state.controlledTeamId))}<div style="margin-top:10px"><b>${teamById(state.controlledTeamId).name}</b><div class="muted small">${state.role}</div></div>`
     : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`;
  document.getElementById("permissionsText").innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("")+"</ul>";
+ updateDraftRoomNav();
  renderAll();
 }
 
@@ -2110,16 +2105,27 @@ function beginNextSeason(){
  if(state.role==="Player")safeTransitionStep("player contract/trade",()=>{contractSeasonTick();processTradeRequest();});
 }
 function advanceOffseason(){
- if(!canAdvancePastDraft())return;
  initOffseason();
  let p=state.offseason.phase;
+
+ // The Draft stage is completed in the Draft Room, never by the generic offseason advance button.
+ if(p==="Draft"){
+   if(!draftCompletedForCurrentOffseason()){
+     openScheduledDraftRoom();
+     return;
+   }
+   state.offseason.phaseIndex++;
+   state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+   renderOffseason();renderAll();saveState();
+   return;
+ }
+
  if(p==="Awards"){
    let leaders=state.players.filter(x=>x.sim&&x.sim.gp>0).sort((a,b)=>statPerGame(b,"pts")-statPerGame(a,"pts"));
    if(leaders[0])state.news.push({year:state.currentYear,title:"Season awards",text:`${leaders[0].name} headlines the postseason award review.`});
  }else if(p==="Retirements")retirePlayers();
  else if(p==="Development")developPlayers();
  else if(p==="Draft Order")buildDraftOrder();
- else if(p==="Draft")runDraft();
  else if(p==="Free Agency")runFreeAgencyAI();
  else if(p==="Roster Cuts"){
    state.news.push({year:state.currentYear+1,title:"Training camp",text:"Teams trimmed rosters and set preliminary rotations."});
@@ -2129,8 +2135,17 @@ function advanceOffseason(){
    beginNextSeason();
    return;
  }
+
  state.offseason.phaseIndex++;
  state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+
+ // Reaching Draft automatically opens the real Draft Room.
+ if(state.offseason.phase==="Draft"){
+   renderOffseason();renderAll();saveState();
+   openScheduledDraftRoom();
+   return;
+ }
+
  renderOffseason();renderAll();saveState();
 }
 
@@ -2140,7 +2155,7 @@ function offseasonViewLabel(step){
    "Retirements":"View Retirements",
    "Development":"View Development",
    "Draft Order":"View Draft Order",
-   "Draft":"Open Draft Room",
+   "Draft":draftCalendarOpen()?"Open Draft Room":"View Draft Class",
    "Free Agency":"View Free Agency",
    "Roster Cuts":"View Rosters",
    "Next Season":"View Season"
@@ -2149,7 +2164,11 @@ function offseasonViewLabel(step){
 function viewOffseasonStep(step){
  let title=document.getElementById("offseasonDetailTitle"),box=document.getElementById("offseasonDetailBox");
  if(step==="Awards"){switchTab("history");return;}
- if(step==="Draft"){switchTab("draftroom");return;}
+ if(step==="Draft"){
+   if(draftCalendarOpen())openScheduledDraftRoom();
+   else switchTab("scouting");
+   return;
+ }
  if(step==="Free Agency"){switchTab("frontoffice");return;}
  if(step==="Next Season"){switchTab("dashboard");return;}
  if(!title||!box)return;
@@ -2183,17 +2202,14 @@ function renderOffseason(){
    initOffseason();
    status.innerHTML=`<b>${state.offseason.phase}</b><div class="small muted">Advance through the offseason one decision stage at a time.</div>`;
    steps.innerHTML=state.offseason.phases.map((x,i)=>`<div class="offseasonStepRow"><div class="offseasonStep ${i<state.offseason.phaseIndex?"done":""}">${i<state.offseason.phaseIndex?"✓":i===state.offseason.phaseIndex?"→":"○"} ${x}</div><button onclick="viewOffseasonStep('${x}')">${offseasonViewLabel(x)}</button></div>`).join("");
-   btn.classList.remove("hidden");
-   btn.disabled=false;
-   btn.textContent=state.offseason.phase==="Next Season"?"Start Next Season":"Advance Offseason";
+   if(state.offseason.phase==="Draft"){
+     btn.classList.add("hidden");
+   }else{
+     btn.classList.remove("hidden");
+     btn.disabled=false;
+     btn.textContent=state.offseason.phase==="Next Season"?"Start Next Season":"Advance Offseason";
+   }
  }
- let board=prospectBoard();
- const draftYear=currentDraftYear();
- const title=document.getElementById("draftBoardTitle");if(title)title.textContent=`${draftYear} Draft Board`;
- document.getElementById("draftBoard").innerHTML=board.length?
- `<div class="prospectRow small muted"><div>#</div><div>Prospect</div><div>Pos</div><div>Grade</div><div class="prospectCollege">College</div></div>`+
- board.map((p,i)=>`<div class="prospectRow"><div>${i+1}</div><div><b>${p.name}</b><div class="small muted">Historical pick ${p.historicalPick} · Potential ${p.ceilingLow}-${p.ceilingHigh} · Uncertainty ${p.scoutUncertainty||6}${p.note?` · ${p.note}`:""}</div></div><div>${p.pos}</div><div>${p.prospect}</div><div class="prospectCollege small muted">${p.college}</div></div>`).join("")
- : `<div class="muted">The historical ${draftYear} draft class has not been loaded yet.</div>`;
  let dr=state.offseason?.draftResults||[];
  document.getElementById("draftResults").innerHTML=dr.length?dr.map(r=>`<div class="teamrow"><div class="teammeta"><b>#${r.pick} ${r.player}</b><span class="small muted">${r.team} · ${r.pos}</span></div></div>`).join(""):"The draft has not started.";
  let fa=state.offseason?.freeAgents||[];
@@ -2915,29 +2931,44 @@ function applyAdvancedDevelopment(){
 }
 function renderScouting(){
  let deptBox=document.getElementById("scoutingDepartmentBox");if(!deptBox)return;
- ensureScouting();let team=currentControlledTeam();
- if(!team){
-   deptBox.innerHTML=`<span class="muted">Scouting controls are available for team-based roles.</span>`;
-   document.getElementById("developmentEnvironmentBox").innerHTML=`<span class="muted">No controlled organization.</span>`;
-   return;
- }
- let d=scoutingDept(team.id);
- deptBox.innerHTML=`<div class="grid2"><div class="ownerMetric"><b>${d.quality}</b><div class="small muted">Scouting Quality</div></div><div class="ownerMetric"><b>${d.development}</b><div class="small muted">Development Staff</div></div><div class="ownerMetric"><b>${d.patience}</b><div class="small muted">Patience</div></div><div class="ownerMetric"><b>${d.focus}</b><div class="small muted">Focus</div></div></div>
- <div class="choicebar" style="margin-top:10px"><button onclick="setScoutingFocus('Best Player')">Best Player</button><button onclick="setScoutingFocus('Upside')">Upside</button><button onclick="setScoutingFocus('Need')">Team Need</button><button onclick="setScoutingFocus('Balanced')">Balanced</button></div>`;
+ ensureScouting();
+ let team=currentControlledTeam();
+ let env=document.getElementById("developmentEnvironmentBox");
 
- document.getElementById("developmentEnvironmentBox").innerHTML=`<p><b>${team.name}</b></p><p class="small muted">Growth now depends on true potential, age, work ethic, development staff, playing time, and controlled randomness. Young players can stall or break out.</p>`;
+ if(team){
+   let d=scoutingDept(team.id);
+   deptBox.innerHTML=`<div class="grid2"><div class="ownerMetric"><b>${d.quality}</b><div class="small muted">Scouting Quality</div></div><div class="ownerMetric"><b>${d.development}</b><div class="small muted">Development Staff</div></div><div class="ownerMetric"><b>${d.patience}</b><div class="small muted">Patience</div></div><div class="ownerMetric"><b>${d.focus}</b><div class="small muted">Focus</div></div></div>
+   <div class="choicebar" style="margin-top:10px"><button onclick="setScoutingFocus('Best Player')">Best Player</button><button onclick="setScoutingFocus('Upside')">Upside</button><button onclick="setScoutingFocus('Need')">Team Need</button><button onclick="setScoutingFocus('Balanced')">Balanced</button></div>`;
+   if(env)env.innerHTML=`<p><b>${team.name}</b></p><p class="small muted">Growth depends on true potential, age, work ethic, development staff, playing time, and controlled randomness.</p>`;
+ }else{
+   deptBox.innerHTML=`<b>League Scouting View</b><p class="small muted">The upcoming draft class can be followed throughout the season. Team-specific scouting confidence is available when controlling a franchise.</p>`;
+   if(env)env.innerHTML=`<p class="small muted">Viewer and Commissioner modes see the league-wide prospect board rather than one franchise's private scouting department.</p>`;
+ }
 
  let cls=draftClassForCurrentYear();
+ let draftYear=state.currentYear+1;
  let draftTitle=document.getElementById("scoutingDraftClassTitle");
- if(draftTitle)draftTitle.textContent=`${state.currentYear+1} Draft Class`;
- let reports=(cls||[]).slice().sort((a,b)=>estimateProspectValue(b)-estimateProspectValue(a)).slice(0,30);
- document.getElementById("scoutingProspectBox").innerHTML=reports.length?reports.map(p=>{
-   let r=scoutProspectReport(team.id,p);
-   return `<div class="scoutRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"}</div></div><div class="scoutRange">OVR ${r.estOvrLow}-${r.estOvrHigh}</div><div class="scoutRange">POT ${r.estPotLow}-${r.estPotHigh}</div><div class="scoutHide">${r.confidence}% confidence</div></div>`;
- }).join(""):`<span class="muted">No upcoming draft class is available.</span>`;
+ if(draftTitle)draftTitle.textContent=`${draftYear} Draft Class`;
+ let reports=(cls||[]).slice().sort((a,b)=>estimateProspectValue(b)-estimateProspectValue(a)).slice(0,60);
+ let prospectBox=document.getElementById("scoutingProspectBox");
 
- let young=state.players.filter(p=>p.teamName===team.name&&!p.retired&&(p.age||99)<=26).sort((a,b)=>(b.truePotential||b.pot||0)-(a.truePotential||a.pot||0)).slice(0,20);
- document.getElementById("youngDevelopmentBox").innerHTML=young.length?young.map(p=>`<div class="scoutRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"} · ${p.rotationRole||"Role TBD"}</div></div><div>OVR ${p.ovr}</div><div>POT ${p.pot||p.truePotential}</div><div class="scoutHide">Work ${p.workEthic}</div></div>`).join(""):`<span class="muted">No young players to evaluate.</span>`;
+ prospectBox.innerHTML=reports.length?reports.map((p,i)=>{
+   if(team){
+     let r=scoutProspectReport(team.id,p);
+     return `<div class="scoutRow"><div><b>${i+1}. ${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"}${p.college?` · ${p.college}`:""}</div></div><div class="scoutRange">OVR ${r.estOvrLow}-${r.estOvrHigh}</div><div class="scoutRange">POT ${r.estPotLow}-${r.estPotHigh}</div><div class="scoutHide">${r.confidence}% confidence</div></div>`;
+   }
+   let grade=p.prospect!=null?`Grade ${p.prospect}`:"Prospect";
+   let ceiling=(p.ceilingLow!=null&&p.ceilingHigh!=null)?`${p.ceilingLow}-${p.ceilingHigh}`:"Unknown";
+   return `<div class="scoutRow"><div><b>${i+1}. ${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"}${p.college?` · ${p.college}`:""}</div></div><div>${grade}</div><div>Ceiling ${ceiling}</div><div class="scoutHide">Public board</div></div>`;
+ }).join(""):`<span class="muted">No ${draftYear} draft class is loaded.</span>`;
+
+ let youngBox=document.getElementById("youngDevelopmentBox");
+ if(team){
+   let young=state.players.filter(p=>p.teamName===team.name&&!p.retired&&(p.age||99)<=26).sort((a,b)=>(b.truePotential||b.pot||0)-(a.truePotential||a.pot||0)).slice(0,20);
+   youngBox.innerHTML=young.length?young.map(p=>`<div class="scoutRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"} · ${p.rotationRole||"Role TBD"}</div></div><div>OVR ${p.ovr}</div><div>POT ${p.pot||p.truePotential}</div><div class="scoutHide">Work ${p.workEthic}</div></div>`).join(""):`<span class="muted">No young players to evaluate.</span>`;
+ }else{
+   youngBox.innerHTML=`<span class="muted">Young-player development reports are shown when controlling a franchise.</span>`;
+ }
 }
 window.setScoutingFocus=setScoutingFocus;
 
@@ -4025,23 +4056,21 @@ function forceDraftRoomForOffseason(){
  document.querySelector('[data-tab="draftroom"]')?.click();
 }
 function canAdvancePastDraft(){
- if(state?.role==="Viewer")return true;
  if(!offseasonDraftRequired())return true;
  if(draftCompletedForCurrentOffseason())return true;
- forceDraftRoomForOffseason();
- alert("Complete the draft before continuing the offseason.");
+ openScheduledDraftRoom();
  return false;
 }
 
 
 function enforceOffseasonDraftRouting(){
- if(!state||state.role==="Viewer")return;
- if(offseasonDraftRequired()&&!draftCompletedForCurrentOffseason()){
+ if(!state)return;
+ updateDraftRoomNav();
+ if(draftCalendarOpen()&&!draftCompletedForCurrentOffseason()){
    ensureDraftRoom();
-   let tab=document.querySelector('[data-tab="draftroom"]');
-   if(tab && !document.getElementById("draftroom")?.classList.contains("active")){
-     tab.click();
-   }
+   if(!state.draftRoom.active)startDraftRoom();
+   let sec=document.getElementById("draftroom");
+   if(sec&&!sec.classList.contains("active"))switchTab("draftroom");
  }
 }
 
@@ -4178,24 +4207,44 @@ function draftGrade(result){
  let delta=value-expected;
  return delta>8?"A+":delta>4?"A":delta>0?"B+":delta>-4?"B":delta>-8?"C":"D";
 }
+
+function draftCalendarOpen(){
+ return !!(state?.offseason && state.offseason.phase==="Draft");
+}
+function updateDraftRoomNav(){
+ let btn=document.querySelector('.nav button[data-tab="draftroom"]');
+ if(!btn||!state)return;
+ let open=draftCalendarOpen()||state.draftRoom?.active;
+ btn.disabled=!open;
+ btn.title=open?"Draft Room":"Draft Room opens when the offseason reaches the Draft step.";
+}
+function openScheduledDraftRoom(){
+ if(!draftCalendarOpen())return false;
+ ensureDraftRoom();
+ if(!state.draftRoom.active&&!state.draftRoom.completed)startDraftRoom();
+ updateDraftRoomNav();
+ switchTab("draftroom");
+ return true;
+}
+
 function renderDraftRoom(){
  let title=document.getElementById("draftRoomTitle");if(!title)return;
  ensureDraftRoom();let dr=state.draftRoom;
  let clock=document.getElementById("draftClockLabel"),on=document.getElementById("draftOnClockBox"),need=document.getElementById("draftTeamNeed"),board=document.getElementById("draftProspectBoard"),offers=document.getElementById("draftTradeOffers"),results=document.getElementById("draftResultsBox");
  title.textContent=dr.year?`${dr.year} Draft Room`:"Draft Room";
  if(!dr.active&&!dr.completed){
-   clock.textContent="Draft not active.";
-   on.innerHTML=`<button class="primary" onclick="startDraftRoom()">Start Draft</button>`;
+   clock.textContent=draftCalendarOpen()?"Draft is opening...":"Draft Room locked until the Draft stage.";
+   on.innerHTML=`<span class="muted">${draftCalendarOpen()?"The draft is being initialized.":"Follow the upcoming class from the Scouting tab during the season."}</span>`;
    need.innerHTML=`<span class="muted">No team on the clock.</span>`;
  }else if(dr.active){
    let pick=currentDraftPick(),team=currentDraftTeam();
    clock.textContent=`Pick #${pick.pick} of ${dr.order.length}`;
-   on.innerHTML=`<h3>${team?.name||"Team"} is on the clock</h3>${isUserDraftPick()?`<div class="pill">YOUR PICK</div><p class="small muted">Choose a prospect or consider a trade offer.</p>`:`<button onclick="simNextDraftPick()">Sim This Pick</button> <button onclick="simToUserDraftPick()">Sim to My Pick</button>`}`;
+   on.innerHTML=`<h3>${team?.name||"Team"} is on the clock</h3>${isUserDraftPick()?`<div class="pill">YOUR PICK</div><p class="small muted">Choose a prospect or consider a trade offer.</p>`:`<button onclick="simNextDraftPick()">Sim This Pick</button> <button onclick="simToUserDraftPick()">${state.role==="Viewer"||state.role==="Commissioner"?"Sim Rest of Draft":"Sim to My Pick"}</button>`}`;
    let needs=teamNeedProfile(team?.name||"");
    need.innerHTML=`<b>Biggest needs:</b><div style="margin-top:8px">${needs.slice(0,3).map((x,i)=>`<span class="honorBadge">${i+1}. ${x}</span>`).join(" ")}</div>`;
  }else{
    clock.textContent="Draft complete.";
-   on.innerHTML=`<b>The ${dr.year||""} draft is complete.</b>`;
+   on.innerHTML=`<b>The ${dr.year||""} draft is complete.</b>${draftCalendarOpen()?`<div style="margin-top:10px"><button class="primary" onclick="continueAfterDraft()">Continue Offseason</button></div>`:""}`;
    need.innerHTML=`<span class="muted">No team on the clock.</span>`;
  }
  let sorted=(dr.available||[]).slice().sort((a,b)=>estimateProspectValue(b)-estimateProspectValue(a)).slice(0,40);
@@ -4209,6 +4258,15 @@ function renderDraftRoom(){
  offers.innerHTML=dr.tradeOffers?.length?dr.tradeOffers.map(o=>`<div class="draftOffer"><b>${o.fromTeamName}</b><p class="small muted">${o.text}</p><button onclick="acceptDraftTradeOffer('${o.id}')">Accept Offer</button></div>`).join(""):`<span class="muted">${dr.active&&isUserDraftPick()?"No offers yet.":"Trade offers appear when your team is on the clock."}</span>`;
  results.innerHTML=dr.results?.length?dr.results.slice().reverse().map(r=>`<div class="draftPickRow"><b>#${r.pick}</b><div><b>${r.teamName}</b></div><div>${r.playerName} · ${r.pos}</div><div class="draftHide"><span class="honorBadge">${draftGrade(r)}</span></div></div>`).join(""):`<span class="muted">No picks have been made.</span>`;
 }
+function continueAfterDraft(){
+ if(!draftCompletedForCurrentOffseason())return;
+ if(state.offseason?.phase==="Draft"){
+   state.offseason.phaseIndex++;
+   state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+ }
+ renderOffseason();renderAll();saveState();switchTab("offseason");
+}
+window.continueAfterDraft=continueAfterDraft;
 window.startDraftRoom=startDraftRoom;
 window.simNextDraftPick=simNextDraftPick;
 window.simToUserDraftPick=simToUserDraftPick;
