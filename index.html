@@ -223,7 +223,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.2 · Viewer Cleanup</div>
+    <div class="pill">v0.37.3 · Season Transition Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -2034,17 +2034,32 @@ function runFreeAgencyAI(){
  state.offseason.faResults=moves;
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
-function beginNextSeason(){ 
- if(state.draftRoom){state.draftRoom={active:false,year:null,pickIndex:0,order:[],available:[],results:[],tradeOffers:[],completed:false};}
+function beginNextSeason(){
+ const oldYear=Number(state.currentYear||state.startYear||1976);
+ const newYear=oldYear+1;
+ const transitionErrors=[];
 
+ function safeTransitionStep(label,fn){
+   try{ fn(); }
+   catch(err){
+     transitionErrors.push(`${label}: ${err?.message||err}`);
+     console.error(`Season transition step failed: ${label}`,err);
+   }
+ }
+
+ // Finish old-year maintenance, but no secondary system is allowed to trap the league in the offseason.
+ safeTransitionStep("draft pick horizon",()=>extendDraftPickHorizon());
+ safeTransitionStep("advanced development",()=>applyAdvancedDevelopment());
+ safeTransitionStep("staff security",()=>{updateStaffSecurity();maybeAutoFireStaff();});
+ safeTransitionStep("owner economics",()=>updateOwnerEconomics());
+ safeTransitionStep("coach development",()=>applyCoachDevelopment());
+
+ // The new season itself is the essential transition.
+ state.currentYear=newYear;
  state.regularBoxScores=[];
- extendDraftPickHorizon();
- applyAdvancedDevelopment();
- updateStaffSecurity();maybeAutoFireStaff();
- updateOwnerEconomics();
- applyCoachDevelopment();
- state.currentYear++;
- refreshUniverseHeader();
+ state.offseason=null;
+ state.draftRoom={active:false,year:null,pickIndex:0,order:[],available:[],results:[],tradeOffers:[],completed:false};
+
  state.players.forEach(p=>{
    if(p.deferredEntry && p.rightsOnlyUntil && state.currentYear>=p.rightsOnlyUntil){
      p.deferredEntry=false;
@@ -2053,14 +2068,46 @@ function beginNextSeason(){
      state.news.push({year:state.currentYear,title:"Draft rights arrival",text:`${p.name} has joined ${p.teamName} after being drafted earlier.`});
    }
  });
- state.offseason=null;
+
  state.season=null;
- initSeasonIfNeeded();
- updateTeamDirections();
- state.news.push({year:state.currentYear,title:`${seasonName()} season begins`,text:"The alternate timeline continues."});
- saveState();renderAll();switchTab("dashboard");
- if(state.role==="Player"&&state.playerCareer){state.playerCareer.seasonTotals={gp:0,pts:0,reb:0,ast:0};}
- if(state.role==="Player"){contractSeasonTick();processTradeRequest();}
+
+ // Try the normal initializer first.
+ safeTransitionStep("season initialization",()=>initSeasonIfNeeded());
+
+ // Failsafe: even if another subsystem breaks team-power calculation, Viewer/testing must still get a playable season.
+ if(!state.season || state.season.year!==state.currentYear){
+   state.players.forEach(p=>p.sim={gp:0,min:0,pts:0,reb:0,ast:0});
+   state.teams.forEach(t=>{t.w=0;t.l=0;t.gp=0;if(!Number.isFinite(t.power))t.power=65;});
+   state.season={
+     year:state.currentYear,phase:"Regular Season",leagueDay:0,
+     gamesPlayed:0,totalGames:Math.round(state.teams.length*82/2),recent:[],postseason:[],champion:null,
+     markers:{half:false,allstar:false,deadline:false}
+   };
+   transitionErrors.push("Normal season initializer failed; fallback season initializer was used.");
+ }
+
+ safeTransitionStep("team directions",()=>updateTeamDirections());
+
+ state.news.push({
+   year:state.currentYear,
+   title:`${seasonName()} season begins`,
+   text:transitionErrors.length
+     ? `The alternate timeline continues. ${transitionErrors.length} background transition issue${transitionErrors.length===1?"":"s"} were bypassed so the season could start.`
+     : "The alternate timeline continues."
+ });
+
+ if(transitionErrors.length){
+   state.transitionErrors=state.transitionErrors||[];
+   state.transitionErrors.push({from:oldYear,to:newYear,errors:transitionErrors});
+ }
+
+ refreshUniverseHeader();
+ saveState();
+ renderAll();
+ switchTab("dashboard");
+
+ if(state.role==="Player"&&state.playerCareer)state.playerCareer.seasonTotals={gp:0,pts:0,reb:0,ast:0};
+ if(state.role==="Player")safeTransitionStep("player contract/trade",()=>{contractSeasonTick();processTradeRequest();});
 }
 function advanceOffseason(){
  if(!canAdvancePastDraft())return;
@@ -2076,7 +2123,12 @@ function advanceOffseason(){
  else if(p==="Free Agency")runFreeAgencyAI();
  else if(p==="Roster Cuts"){
    state.news.push({year:state.currentYear+1,title:"Training camp",text:"Teams trimmed rosters and set preliminary rotations."});
- }else if(p==="Next Season"){beginNextSeason();return;}
+ }else if(p==="Next Season"){
+   let btn=document.getElementById("advanceOffseasonBtn");
+   if(btn){btn.disabled=true;btn.textContent="Starting Next Season...";}
+   beginNextSeason();
+   return;
+ }
  state.offseason.phaseIndex++;
  state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
  renderOffseason();renderAll();saveState();
@@ -2132,6 +2184,7 @@ function renderOffseason(){
    status.innerHTML=`<b>${state.offseason.phase}</b><div class="small muted">Advance through the offseason one decision stage at a time.</div>`;
    steps.innerHTML=state.offseason.phases.map((x,i)=>`<div class="offseasonStepRow"><div class="offseasonStep ${i<state.offseason.phaseIndex?"done":""}">${i<state.offseason.phaseIndex?"✓":i===state.offseason.phaseIndex?"→":"○"} ${x}</div><button onclick="viewOffseasonStep('${x}')">${offseasonViewLabel(x)}</button></div>`).join("");
    btn.classList.remove("hidden");
+   btn.disabled=false;
    btn.textContent=state.offseason.phase==="Next Season"?"Start Next Season":"Advance Offseason";
  }
  let board=prospectBoard();

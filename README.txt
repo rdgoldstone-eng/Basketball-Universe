@@ -1,23 +1,19 @@
-v0.37.2 Basketball Universe — Viewer Cleanup
+v0.37.3 Basketball Universe — Season Transition Fix
 
-VIEWER MODE
-Viewer is the sixth role and is intentionally simple.
+FIXED
+- Hardened the offseason -> next season transition after Viewer testing got stuck trying to begin 1978-79.
+- Noncritical systems (development, staff, ownership, coaching, draft-pick maintenance) can no longer prevent the next season from starting if one of them errors.
+- Added a fallback season initializer so the league always reaches the next October with standings reset to 0-0.
+- Start Next Season now gives visible button feedback while transitioning.
+- Any bypassed background transition error is recorded internally for later debugging instead of trapping the save.
 
-Viewer:
-- Controls no team.
-- Receives no required role decisions.
-- Is not interrupted by decision checkpoints.
-- Uses the normal Season simulation selector.
-- Uses the normal Playoffs controls, including Finish Round.
-- Uses the normal Offseason checklist and Advance Offseason button.
-- Can quickly test multi-season timelines without adding a separate jump system.
-
-REMOVED
-- Separate Viewer Jump to Checkpoint panel.
-- Duplicate Viewer fast-forward controls.
-
-TEST RESULT
-The first Viewer rollover successfully moved from 1976-77 into 1977-78.
+Viewer remains simple:
+- No team control
+- No decision interruptions
+- Normal season selector
+- Normal playoff controls
+- Normal offseason flow
 
 GitHub update:
-Upload index.html and README.txt over the existing files and commit.
+Upload index.html and README.txt over the current files and commit.
+Your existing save should continue; you should not need to restart.
