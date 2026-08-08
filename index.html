@@ -144,6 +144,10 @@ pre{white-space:pre-wrap}
 
 .crunchTag{display:inline-block;padding:4px 8px;border-radius:999px;background:#2b1f0e;border:1px solid #6d5219;font-size:11px;font-weight:800}
 .playMoment{padding:10px;border-left:3px solid var(--gold);background:var(--panel2);margin-top:8px;border-radius:8px}
+
+.leaderRow{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.mvpCard{border:1px solid var(--accent);border-radius:14px;padding:14px;background:var(--panel2)}
+.mvpName{font-size:22px;font-weight:900}
 </style>
 </head>
 <body>
@@ -158,7 +162,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.18 · Crunch Time · Single File</div>
+    <div class="pill">v0.19 · Playoff History</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -323,6 +327,10 @@ pre{white-space:pre-wrap}
       <div class="card"><h2>Western Conference</h2><div id="westBracket"></div></div>
     </div>
     <div class="card"><h2>NBA Finals</h2><div id="finalsBracket" class="muted">The Finals matchup has not been determined.</div></div>
+    <div class="grid2">
+      <div class="card"><h2>Playoff Leaders</h2><div id="playoffLeadersBox" class="muted">No playoff statistics yet.</div></div>
+      <div class="card"><h2>Finals MVP</h2><div id="finalsMvpBox" class="muted">The Finals have not been completed.</div></div>
+    </div>
     <div class="card"><h2>Playoff Game Log</h2><div id="playoffGameLog" class="muted">The playoffs have not started.</div></div>
   </section>
 
@@ -1985,6 +1993,7 @@ function initPostseasonExperience(){
  if(state.season.playoffState)return;
  const east=ordered("East").slice(0,6),west=ordered("West").slice(0,6);
  state.season.playoffState={round:1,gameNo:1,series:[],gameLog:[],championId:null,slateCursor:0};
+ state.playoffPlayerStats={};state.finalsMvp=null;
  [["East",east],["West",west]].forEach(([conf,s])=>{
    if(s.length>=6){
      state.season.playoffState.series.push(playoffSeriesObj(s[2],s[5],"First Round",conf,3));
@@ -2012,6 +2021,44 @@ function gameRoster(teamName){
  let roster=activePlayersForTeam(teamName).slice().sort((a,b)=>(b.starter?1:0)-(a.starter?1:0)||(b.ovr||0)-(a.ovr||0));
  return roster.slice(0,Math.min(10,roster.length));
 }
+
+function ensurePlayoffStats(){
+ if(!state.playoffPlayerStats)state.playoffPlayerStats={};
+}
+function addBoxToPlayoffStats(g){
+ ensurePlayoffStats();
+ ["a","b"].forEach(side=>{
+   (g.box?.[side]||[]).forEach(row=>{
+     if(!state.playoffPlayerStats[row.id])state.playoffPlayerStats[row.id]={gp:0,pts:0,reb:0,ast:0,stl:0,blk:0,min:0,finalsGp:0,finalsPts:0,finalsReb:0,finalsAst:0};
+     let s=state.playoffPlayerStats[row.id];
+     s.gp++;s.pts+=row.pts;s.reb+=row.reb;s.ast+=row.ast;s.stl+=row.stl;s.blk+=row.blk;s.min+=row.min;
+     if(g.round==="NBA Finals"){s.finalsGp++;s.finalsPts+=row.pts;s.finalsReb+=row.reb;s.finalsAst+=row.ast;}
+   });
+ });
+}
+function playoffStat(id,key){
+ let s=state.playoffPlayerStats?.[id];return s&&s.gp?s[key]/s.gp:0;
+}
+function finalsStat(id,key){
+ let s=state.playoffPlayerStats?.[id];return s&&s.finalsGp?s[key]/s.finalsGp:0;
+}
+function applyCrunchMomentToBox(w,g){
+ if(!w?.crunchActions?.length||!g?.box)return;
+ let all=[...(g.box.a||[]),...(g.box.b||[])];
+ w.crunchActions.forEach(a=>{
+   let row=all.find(x=>x.id===a.playerId);if(!row)return;
+   row.pts += a.pts||0;
+   row.ast += a.ast||0;
+   row.reb += a.reb||0;
+   row.stl += a.stl||0;
+ });
+ // Reconcile team totals after adding crunch stats so box score still equals scoreboard.
+ [["a",g.as],["b",g.bs]].forEach(([side,total])=>{
+   let rows=g.box[side]||[],sum=rows.reduce((s,x)=>s+x.pts,0),diff=total-sum;
+   if(rows.length)rows[0].pts=Math.max(0,rows[0].pts+diff);
+ });
+}
+
 function generateTeamBox(teamName,totalPoints,totalReb=42,totalAst=23){
  let roster=gameRoster(teamName);
  if(!roster.length)return [];
@@ -2149,7 +2196,8 @@ function buildNextPlayoffRound(){
    ps.championId=f.winnerId;state.season.champion=teamById(f.winnerId).name;state.season.phase="Season Complete";
    state.season.postseason=ps.series.filter(s=>s.complete).map(s=>`${s.round}: ${teamById(s.winnerId).name} won ${Math.max(s.aw,s.bw)}-${Math.min(s.aw,s.bw)}`);
    updateFranchiseHealthAfterSeason();maybeCreateRelocationDecision();
-   state.news.push({year:state.currentYear,title:`${state.season.champion} are champions`,text:`They win the ${seasonName()} championship.`});
+   chooseFinalsMvp();
+   state.news.push({year:state.currentYear,title:`${state.season.champion} are champions`,text:`They win the ${seasonName()} championship${state.finalsMvp?`, with ${state.finalsMvp.name} named Finals MVP`:""}.`});
  }
 }
 function roundName(n){return n===1?"First Round":n===2?"Semifinals":n===3?"Conference Finals":"NBA Finals"}
@@ -2245,7 +2293,7 @@ function startWatchGame(){
  let a=teamById(s.aId),b=teamById(s.bId);
  ps.watchGame={
    seriesId:s.id,aId:a.id,bId:b.id,quarter:0,aScore:0,bScore:0,complete:false,
-   moments:[],box:null,story:null,crunch:false,crunchStage:0
+   moments:[],box:null,story:null,crunch:false,crunchStage:0,crunchActions:[]
  };
  renderWatchGame();saveState();
 }
@@ -2257,16 +2305,16 @@ function watchLeader(teamName){
  let p=weightedStar(teamName);
  return p?`${p.name} is setting the tone for ${teamName}.`:`${teamName} is getting balanced production.`;
 }
-function keyMomentText(teamName,oppName,scoreDiff,stage){
+function keyMoment(teamName,oppName,scoreDiff,stage){
  let hero=weightedStar(teamName,stage+1),def=weightedStar(oppName,stage+4);
- let plays=[
-   `${hero?.name||teamName} attacks the lane and finishes through contact.`,
-   `${hero?.name||teamName} drills a jumper over ${def?.name||"the defender"}.`,
-   `${hero?.name||teamName} finds a teammate for a clean look after drawing the defense.`,
-   `${hero?.name||teamName} forces a turnover and starts the break.`,
-   `${hero?.name||teamName} grabs a huge offensive rebound and converts the second chance.`
- ];
- return plays[(stage+Math.abs(scoreDiff))%plays.length];
+ let type=(stage+Math.abs(scoreDiff))%5;
+ let text,impact={playerId:hero?.id||null,pts:0,ast:0,reb:0,stl:0};
+ if(type===0){text=`${hero?.name||teamName} attacks the lane and finishes through contact.`;impact.pts=2;}
+ else if(type===1){text=`${hero?.name||teamName} drills a jumper over ${def?.name||"the defender"}.`;impact.pts=2;}
+ else if(type===2){text=`${hero?.name||teamName} draws the defense and creates an open basket.`;impact.ast=1;}
+ else if(type===3){text=`${hero?.name||teamName} forces a turnover and starts the break.`;impact.stl=1;}
+ else {text=`${hero?.name||teamName} grabs a huge offensive rebound and converts the second chance.`;impact.reb=1;impact.pts=2;}
+ return {text,impact};
 }
 function advanceWatchQuarter(){
  let ps=state.season.playoffState,w=ps?.watchGame;if(!w||w.complete)return;
@@ -2332,7 +2380,9 @@ function advanceCrunchTime(){
 
  let leader=w.aScore>=w.bScore?a:b,other=leader.id===a.id?b:a;
  let diff=Math.abs(w.aScore-w.bScore);
- let text=`${st.label}: ${leader.name} ${w.aScore>=w.bScore?w.aScore:w.bScore}, ${other.name} ${w.aScore>=w.bScore?w.bScore:w.aScore}. ${keyMomentText(leader.name,other.name,diff,w.crunchStage)}`;
+ let km=keyMoment(leader.name,other.name,diff,w.crunchStage);
+ let text=`${st.label}: ${leader.name} ${w.aScore>=w.bScore?w.aScore:w.bScore}, ${other.name} ${w.aScore>=w.bScore?w.bScore:w.aScore}. ${km.text}`;
+ if(km.impact?.playerId)w.crunchActions.push(km.impact);
  w.moments.unshift(text);
  w.crunchStage++;
 
@@ -2357,6 +2407,8 @@ function finishWatchedGame(){
  let g={round:s.round,conf:s.conf,game:s.games.length+1,a:a.name,b:b.name,as:w.aScore,bs:w.bScore,seriesId:s.id};
  if(s.aw>=need||s.bw>=need){s.complete=true;s.winnerId=s.aw>s.bw?s.aId:s.bId}
  g.box=generateFullBox(g);
+ applyCrunchMomentToBox(w,g);
+ addBoxToPlayoffStats(g);
  g.story=createGameBoxStory(g,s);
  if(g.story?.heroId){
    let hp=state.players.find(p=>p.id===g.story.heroId);
@@ -2405,6 +2457,40 @@ function renderWatchGame(){
 }
 window.startWatchGame=startWatchGame;window.advanceWatchQuarter=advanceWatchQuarter;window.advanceCrunchTime=advanceCrunchTime;window.closeWatchGame=closeWatchGame;
 
+
+function chooseFinalsMvp(){
+ if(state.finalsMvp)return state.finalsMvp;
+ let finals=state.season?.playoffState?.series.find(s=>s.round==="NBA Finals");
+ if(!finals?.complete)return null;
+ let winner=teamById(finals.winnerId);if(!winner)return null;
+ let candidates=activePlayersForTeam(winner.name).filter(p=>state.playoffPlayerStats?.[p.id]?.finalsGp>0);
+ candidates.sort((a,b)=>{
+   let av=finalsStat(a.id,"finalsPts")+finalsStat(a.id,"finalsReb")*.55+finalsStat(a.id,"finalsAst")*.75;
+   let bv=finalsStat(b.id,"finalsPts")+finalsStat(b.id,"finalsReb")*.55+finalsStat(b.id,"finalsAst")*.75;
+   return bv-av;
+ });
+ if(candidates[0]){
+   state.finalsMvp={playerId:candidates[0].id,name:candidates[0].name,team:winner.name,
+     ppg:finalsStat(candidates[0].id,"finalsPts"),rpg:finalsStat(candidates[0].id,"finalsReb"),apg:finalsStat(candidates[0].id,"finalsAst"),year:state.currentYear};
+   let p=candidates[0];p.awards=p.awards||[];p.awards.push({year:state.currentYear,type:"Finals MVP"});
+ }
+ return state.finalsMvp;
+}
+function renderPlayoffLeaders(){
+ let el=document.getElementById("playoffLeadersBox");if(!el)return;
+ ensurePlayoffStats();
+ let players=state.players.filter(p=>state.playoffPlayerStats[p.id]?.gp>0);
+ if(!players.length){el.innerHTML=`<span class="muted">No playoff statistics yet.</span>`;return;}
+ let leaders=players.slice().sort((a,b)=>playoffStat(b.id,"pts")-playoffStat(a.id,"pts")).slice(0,8);
+ el.innerHTML=leaders.map((p,i)=>`<div class="leaderRow"><b>${i+1}</b><div><b>${p.name}</b><div class="small muted">${p.teamName}</div></div><div><b>${playoffStat(p.id,"pts").toFixed(1)}</b> PPG<br><span class="small muted">${playoffStat(p.id,"reb").toFixed(1)} RPG · ${playoffStat(p.id,"ast").toFixed(1)} APG</span></div></div>`).join("");
+}
+function renderFinalsMvp(){
+ let el=document.getElementById("finalsMvpBox");if(!el)return;
+ let m=chooseFinalsMvp();
+ if(!m){el.innerHTML=`<span class="muted">The Finals have not been completed.</span>`;return;}
+ el.innerHTML=`<div class="mvpCard"><div class="small muted">${seasonName()} FINALS MVP</div><div class="mvpName">${m.name}</div><div>${m.team}</div><div style="margin-top:8px"><b>${m.ppg.toFixed(1)}</b> PPG · <b>${m.rpg.toFixed(1)}</b> RPG · <b>${m.apg.toFixed(1)}</b> APG</div></div>`;
+}
+
 function renderPlayoffs(){
  let ps=state.season?.playoffState;
  let controls=document.getElementById("playoffControls");if(!controls)return;
@@ -2422,6 +2508,8 @@ function renderPlayoffs(){
  document.getElementById("playoffGameLog").innerHTML=ps.gameLog.length?ps.gameLog.map(g=>`<div class="playoffLogGame"><b>${g.round} · Game ${g.game}</b><div>${g.a} ${g.as} — ${g.b} ${g.bs}</div>${g.story?`<div class="small muted">${g.story.headline}</div>`:""}</div>`).join(""):"No playoff games played yet.";
  renderLatestPlayoffResult();
  renderWatchGame();
+ renderPlayoffLeaders();
+ renderFinalsMvp();
 }
 window.runPostseason=runPostseason;window.advancePlayoffs=advancePlayoffs;
 function renderSeason(){
