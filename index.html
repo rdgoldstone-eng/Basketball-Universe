@@ -191,6 +191,9 @@ pre{white-space:pre-wrap}
 
 .ruleCard{padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);margin-bottom:8px}
 .ruleStatus{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:800}
+
+.fileStatusGood{color:#57c785}.fileStatusBad{color:#ef6b73}
+.fileSummaryRow{display:grid;grid-template-columns:170px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -205,7 +208,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.32 · League Rules & Era Evolution</div>
+    <div class="pill">v0.33 · League Files & Custom Setup</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -258,6 +261,17 @@ pre{white-space:pre-wrap}
   </div>
 
   <div class="card">
+    <h2>Custom League File</h2>
+    <p class="small muted">Import a Basketball Universe league file to replace the built-in starting league with custom teams, players, rules, identities, and draft classes.</p>
+    <input id="leagueFileInput" type="file" accept=".json,application/json">
+    <div id="leagueFileStatus" class="small muted" style="margin-top:8px">No custom league file loaded.</div>
+    <div class="choicebar" style="margin-top:10px">
+      <button id="clearLeagueFileBtn">Clear Custom File</button>
+      <button id="downloadLeagueTemplateBtn">Download League Template</button>
+    </div>
+  </div>
+
+  <div class="card">
     <button class="primary" id="createBtn">Create Universe</button>
     <button id="loadBtn">Load Existing Universe</button>
   </div>
@@ -297,6 +311,7 @@ pre{white-space:pre-wrap}
     <button data-tab="teams">Teams</button>
     <button data-tab="decisions">Decisions</button>
     <button data-tab="identities">Identity Library</button>
+    <button data-tab="leaguefiles">League Files</button>
     <button data-tab="save">Save / Export</button>
   </div>
 
@@ -834,6 +849,35 @@ pre{white-space:pre-wrap}
     </div>
   </section>
 
+
+  <section id="leaguefiles" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Export League File</h2>
+        <p class="small muted">Exports the league definition: teams, players, draft classes, identities, rules, conferences, and starting year. It does not include season progress.</p>
+        <button class="primary" id="exportLeagueFileBtn">Export Current League File</button>
+      </div>
+      <div class="card">
+        <h2>Import League File</h2>
+        <p class="small muted">Importing here creates a new universe from the file. Your current save is not overwritten until you create the new universe.</p>
+        <input id="inGameLeagueFileInput" type="file" accept=".json,application/json">
+        <div id="inGameLeagueFileStatus" class="small muted" style="margin-top:8px">No file selected.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>League File Contents</h2>
+      <div id="leagueFileSummaryBox" class="muted">No custom league file loaded.</div>
+    </div>
+
+    <div class="card">
+      <h2>League File Rules</h2>
+      <div id="leagueFileRulesBox" class="muted">
+        League files define the starting universe. Saved games store everything that happens after the universe begins.
+      </div>
+    </div>
+  </section>
+
   <section id="save" class="section">
     <div class="card">
       <h2>Save Universe</h2>
@@ -1087,7 +1131,8 @@ function loadState(){
 }
 function fillTeams(){
   const sel=document.getElementById("teamChoice");
-  sel.innerHTML=historical1976.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
+  const teams=pendingLeagueFile?.teams||historical1976;
+  sel.innerHTML=teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
 }
 fillTeams();
 
@@ -1098,15 +1143,18 @@ function fillPlayerChoices(){
  if(selectedRole!=="Player"){card.classList.add("hidden");return;}
  card.classList.remove("hidden");
  const teamId=document.getElementById("teamChoice").value;
- const team=historical1976.find(t=>t.id===teamId);
- const players=historicalPlayers1976.filter(p=>p.teamName===team?.name).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ const teams=pendingLeagueFile?.teams||historical1976;
+ const sourcePlayers=pendingLeagueFile?.players||historicalPlayers1976;
+ const team=teams.find(t=>t.id===teamId);
+ const players=sourcePlayers.filter(p=>p.teamName===team?.name).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
  sel.innerHTML=players.map(p=>`<option value="${p.id}">${p.name} · ${p.pos} · OVR ${p.ovr}</option>`).join("");
  renderPlayerChoicePreview();
 }
 function renderPlayerChoicePreview(){
  const box=document.getElementById("playerChoicePreview"),sel=document.getElementById("playerChoice");
  if(!box||!sel)return;
- const p=historicalPlayers1976.find(x=>x.id===sel.value);
+ const sourcePlayers=pendingLeagueFile?.players||historicalPlayers1976;
+ const p=sourcePlayers.find(x=>x.id===sel.value);
  box.innerHTML=p?`<div class="teamrow"><div class="teammeta"><b>${p.name}</b><span class="small muted">${p.teamName} · ${p.pos} · Age ${p.age} · OVR ${p.ovr} · POT ${p.pot}</span></div></div>`:"";
 }
 document.getElementById("teamChoice").addEventListener("change",fillPlayerChoices);
@@ -1127,6 +1175,11 @@ document.getElementById("createBtn").onclick=()=>{
  const teamId=selectedRole==="Commissioner"?null:document.getElementById("teamChoice").value;
  const careerPlayerId=selectedRole==="Player"?document.getElementById("playerChoice").value:null;
  if(selectedRole==="Player"&&!careerPlayerId){alert("Choose a player.");return;}
+ if(pendingLeagueFile){
+   createUniverseFromLeagueFile(pendingLeagueFile,selectedRole,teamId,name);
+   if(selectedRole==="Player"){state.careerPlayerId=careerPlayerId;initPlayerCareer();saveState();}
+   return;
+ }
  state={
    version:1,name,startYear:year,currentYear:year,role:selectedRole,controlledTeamId:teamId,careerPlayerId,
    teams:JSON.parse(JSON.stringify(historical1976)),
@@ -1143,6 +1196,37 @@ document.getElementById("createBtn").onclick=()=>{
  seedDecisions();
  saveState(); showGame();
 };
+
+
+document.getElementById("leagueFileInput")?.addEventListener("change",async e=>{
+ let status=document.getElementById("leagueFileStatus");
+ let f=await readLeagueFileInput(e.target.files?.[0],status);
+ if(f)applyPendingLeagueToSetup(f);
+});
+document.getElementById("clearLeagueFileBtn")?.addEventListener("click",()=>{
+ pendingLeagueFile=null;
+ let status=document.getElementById("leagueFileStatus");
+ status.className="small muted";status.textContent="No custom league file loaded.";
+ fillTeams();
+ renderLeagueFileSummary(null);
+});
+document.getElementById("downloadLeagueTemplateBtn")?.addEventListener("click",downloadLeagueTemplate);
+
+document.getElementById("exportLeagueFileBtn")?.addEventListener("click",()=>{
+ if(!state)return;
+ let file=leagueFileFromState();
+ let safe=(state.name||"Basketball_Universe").replace(/[^\w\-]+/g,"_");
+ downloadJsonFile(file,`${safe}_League_File.json`);
+});
+document.getElementById("inGameLeagueFileInput")?.addEventListener("change",async e=>{
+ let status=document.getElementById("inGameLeagueFileStatus");
+ let f=await readLeagueFileInput(e.target.files?.[0],status);
+ if(f){
+   pendingLeagueFile=f;
+   renderLeagueFileSummary(f);
+   status.textContent+=` · Return to setup/reload the page to create a new universe from it.`;
+ }
+});
 
 document.getElementById("loadBtn").onclick=()=>{
  const s=loadState(); if(!s){alert("No saved universe found in this browser.");return;}
@@ -1562,6 +1646,7 @@ function renderAll(){
  renderOwnership();
  renderStaff();
  renderLeagueRules();
+ renderLeagueFiles();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2405,6 +2490,218 @@ document.addEventListener("change",e=>{
 
 
 
+
+
+// ----- League File Import/Export & Custom Setup v0.33 -----
+let pendingLeagueFile=null;
+
+function leagueFileFromState(){
+ ensureLeagueRules();ensureIdentityLogos();
+ return {
+   format:"Basketball Universe League File",
+   formatVersion:1,
+   name:state.name||"Basketball Universe",
+   startYear:state.startYear,
+   teams:JSON.parse(JSON.stringify(state.teams||[])),
+   players:JSON.parse(JSON.stringify(state.players||[])).map(p=>{
+     let q={...p};
+     delete q.stats;delete q.playoffStats;delete q.gameLog;delete q.awards;
+     delete q.fatigue;delete q.healthStatus;delete q.injuryGames;delete q.injuryType;
+     return q;
+   }),
+   draftClasses:JSON.parse(JSON.stringify(state.draftClasses||{})),
+   identities:JSON.parse(JSON.stringify([...(state.identityLibrary||[]),...(state.customIdentities||[])])),
+   leagueRules:JSON.parse(JSON.stringify(state.leagueRules||{})),
+   metadata:{
+     exportedYear:state.currentYear,
+     source:"Basketball Universe v0.33"
+   }
+ };
+}
+
+function validateLeagueFile(data){
+ let errors=[];
+ if(!data||typeof data!=="object")errors.push("File is not a valid JSON object.");
+ if(!Array.isArray(data?.teams)||data.teams.length<2)errors.push("League file needs at least two teams.");
+ if(!Array.isArray(data?.players))errors.push("League file needs a players array.");
+ if(data?.startYear==null||isNaN(+data.startYear))errors.push("League file needs a numeric startYear.");
+
+ if(Array.isArray(data?.teams)){
+   let ids=new Set();
+   data.teams.forEach((t,i)=>{
+     if(!t.id)errors.push(`Team ${i+1} is missing id.`);
+     if(!t.name)errors.push(`Team ${i+1} is missing name.`);
+     if(t.id&&ids.has(t.id))errors.push(`Duplicate team id: ${t.id}.`);
+     if(t.id)ids.add(t.id);
+   });
+ }
+ if(Array.isArray(data?.players)){
+   data.players.forEach((p,i)=>{
+     if(!p.name)errors.push(`Player ${i+1} is missing name.`);
+     if(!p.teamName)errors.push(`Player ${p.name||i+1} is missing teamName.`);
+     if(!p.pos)errors.push(`Player ${p.name||i+1} is missing position.`);
+   });
+ }
+ return {ok:errors.length===0,errors};
+}
+
+function normalizeLeagueFile(data){
+ let file=JSON.parse(JSON.stringify(data));
+ file.format=file.format||"Basketball Universe League File";
+ file.formatVersion=file.formatVersion||1;
+ file.name=file.name||"Custom Basketball Universe";
+ file.startYear=+file.startYear;
+ file.teams=file.teams||[];
+ file.players=file.players||[];
+ file.draftClasses=file.draftClasses||{};
+ file.identities=file.identities||[];
+ file.leagueRules=file.leagueRules||{};
+ file.players=file.players.map((p,i)=>({
+   id:p.id||`custom_player_${i}_${String(p.name||"player").replace(/\W+/g,"_")}`,
+   age:p.age||22,
+   ovr:p.ovr||p.rating||60,
+   pot:p.pot||p.potential||p.ovr||p.rating||60,
+   ...p
+ }));
+ return file;
+}
+
+function applyPendingLeagueToSetup(file){
+ pendingLeagueFile=file;
+ let status=document.getElementById("leagueFileStatus");
+ if(status){
+   status.className="small fileStatusGood";
+   status.textContent=`Loaded: ${file.name} · ${file.teams.length} teams · ${file.players.length} players · starts ${file.startYear}`;
+ }
+ let year=document.getElementById("startYear"),name=document.getElementById("universeName");
+ if(year){
+   let opt=[...year.options].find(o=>+o.value===+file.startYear);
+   if(!opt){
+     opt=document.createElement("option");
+     opt.value=file.startYear;opt.textContent=`${file.startYear} — Custom League`;
+     year.appendChild(opt);
+   }
+   year.value=String(file.startYear);
+ }
+ if(name)name.value=file.name;
+ fillTeamsFromLeagueFile(file);
+ renderLeagueFileSummary(file);
+}
+
+function fillTeamsFromLeagueFile(file){
+ let sel=document.getElementById("teamChoice");if(!sel)return;
+ let teams=file?.teams||historical1976;
+ sel.innerHTML=teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
+ fillPlayerChoices();
+}
+
+async function readLeagueFileInput(file,statusEl){
+ if(!file)return;
+ try{
+   let text=await file.text(),data=JSON.parse(text),valid=validateLeagueFile(data);
+   if(!valid.ok){
+     statusEl.className="small fileStatusBad";
+     statusEl.textContent=`Invalid league file: ${valid.errors.slice(0,3).join(" ")}`;
+     return null;
+   }
+   let normalized=normalizeLeagueFile(data);
+   statusEl.className="small fileStatusGood";
+   statusEl.textContent=`Valid league file: ${normalized.name}`;
+   return normalized;
+ }catch(err){
+   statusEl.className="small fileStatusBad";
+   statusEl.textContent=`Could not read league file: ${err.message}`;
+   return null;
+ }
+}
+
+function renderLeagueFileSummary(file){
+ let box=document.getElementById("leagueFileSummaryBox");if(!box)return;
+ let f=file||pendingLeagueFile;
+ if(!f){
+   if(state)f=leagueFileFromState();
+   else {box.innerHTML=`<span class="muted">No custom league file loaded.</span>`;return;}
+ }
+ let drafts=Object.keys(f.draftClasses||{}).length;
+ box.innerHTML=`<div class="fileSummaryRow"><b>League</b><div>${f.name||"Custom League"}</div></div>
+ <div class="fileSummaryRow"><b>Start Year</b><div>${f.startYear}</div></div>
+ <div class="fileSummaryRow"><b>Teams</b><div>${f.teams?.length||0}</div></div>
+ <div class="fileSummaryRow"><b>Players</b><div>${f.players?.length||0}</div></div>
+ <div class="fileSummaryRow"><b>Draft Classes</b><div>${drafts}</div></div>
+ <div class="fileSummaryRow"><b>Identities</b><div>${f.identities?.length||0}</div></div>
+ <div class="fileSummaryRow"><b>Rules Included</b><div>${Object.keys(f.leagueRules||{}).length?"Yes":"No"}</div></div>`;
+}
+
+function downloadJsonFile(obj,filename){
+ let blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"});
+ let url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function downloadLeagueTemplate(){
+ let template={
+   format:"Basketball Universe League File",
+   formatVersion:1,
+   name:"My Custom League",
+   startYear:2026,
+   teams:[
+     {id:"alpha",name:"Alpha City Comets",city:"Alpha City",conf:"East"},
+     {id:"beta",name:"Beta Bay Breakers",city:"Beta Bay",conf:"West"}
+   ],
+   players:[
+     {id:"p1",name:"Example Guard",teamName:"Alpha City Comets",pos:"PG",age:23,ovr:72,pot:79},
+     {id:"p2",name:"Example Center",teamName:"Beta Bay Breakers",pos:"C",age:24,ovr:73,pot:78}
+   ],
+   draftClasses:{
+     "2027":[
+       {id:"d1",name:"Example Prospect",pos:"SF",age:20,ovr:66,pot:84}
+     ]
+   },
+   identities:[],
+   leagueRules:{
+     threePointLine:true,
+     shotClock:24,
+     playoffTeamsPerConference:8,
+     firstRoundBestOf:7,
+     salaryCap:true
+   }
+ };
+ downloadJsonFile(template,"Basketball_Universe_League_File_Template.json");
+}
+
+function createUniverseFromLeagueFile(file,role,teamId,nameOverride){
+ let year=+file.startYear;
+ let identities=JSON.parse(JSON.stringify(file.identities||[]));
+ state={
+   version:1,
+   name:nameOverride||file.name||"Custom Basketball Universe",
+   startYear:year,
+   currentYear:year,
+   role,
+   controlledTeamId:role==="Commissioner"?null:teamId,
+   teams:JSON.parse(JSON.stringify(file.teams)),
+   players:JSON.parse(JSON.stringify(file.players)),
+   identityLibrary:identities,
+   customIdentities:[],
+   decisions:[],
+   news:[{year,title:"Universe created",text:`Custom league file loaded. History branches beginning in ${year}.`}],
+   settings:{historicalLogos:false,customLogos:true},
+   offseason:null,
+   draftClasses:JSON.parse(JSON.stringify(file.draftClasses||{})),
+   leagueRules:{...file.leagueRules}
+ };
+ ensureLeagueRules();
+ seedDecisions();
+ saveState();showGame();
+}
+
+function renderLeagueFiles(){
+ if(!document.getElementById("leagueFileSummaryBox"))return;
+ renderLeagueFileSummary(pendingLeagueFile||null);
+ let r=document.getElementById("leagueFileRulesBox");
+ if(r)r.innerHTML=`<p><b>League File</b> = starting teams, players, draft classes, identities and rules.</p><p><b>Save Game</b> = standings, trades, injuries, awards, finances, staff changes, relocations and every other event after play begins.</p><p class="small muted">This lets the same Basketball Universe engine run your historical league, fictional public leagues, or community-created universes.</p>`;
+}
 
 // ----- League Rules & Era Evolution v0.32 -----
 function ensureLeagueRules(){

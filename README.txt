@@ -1,24 +1,27 @@
-v0.32 Basketball Universe — League Rules & Era Evolution
+v0.33 Basketball Universe — League Files & Custom Setup
 
-NEW COMMISSIONER SYSTEMS
-- New League Rules tab
-- Three-point-line adoption can branch from history
-- Salary-cap adoption can branch from history
-- Playoff field can expand differently from real life
-- First-round series length can change
-- League style controls for pace, physicality and offense
-- League era identity changes based on the rules actually adopted
-- Rule-change history is permanently preserved
+NEW LEAGUE FILE SYSTEM
+- Import a custom league JSON file from the setup screen.
+- Custom league files can define:
+  * Starting year
+  * Teams and conferences
+  * Players
+  * Draft classes
+  * Identity library
+  * League rules
+- Team/player setup selectors automatically switch to the imported league.
+- Export the current league definition as a reusable league file.
+- Download a starter league-file template.
+- Basic validation catches missing teams, players, IDs, names, positions, and start year.
+- League File tab explains and summarizes imported/exported files.
 
-SIMULATION EFFECTS
-- League environment tracks pace, scoring and physicality
-- Three-point adoption changes offensive environment
-- Roster construction can interact with the league style
-- Physical eras slightly favor bigger rosters
-- Three-point eras slightly favor guard-heavy rosters
-- Playoff field attempts to use the commissioner-selected format
+IMPORTANT SEPARATION
+- League File = starting universe definition.
+- Save Game = everything that happens after the universe begins.
 
-PHILOSOPHY
-Historical dates create proposals, not mandatory outcomes. The Commissioner can approve, delay or reject changes and let the alternate universe evolve differently.
+This is the foundation for using one Basketball Universe engine with:
+- Ryan's historical real-player league file
+- A fictional public/default league
+- Custom community-created leagues
 
 GitHub update: upload index.html and README.txt over the existing files and commit.
