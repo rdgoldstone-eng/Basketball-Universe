@@ -220,7 +220,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.36 · Regular Season Stats</div>
+    <div class="pill">v0.36.1 · Test Pass Fixes</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -502,7 +502,7 @@ pre{white-space:pre-wrap}
     </div>
 
     <div class="card">
-      <h2>Draft Prospect Reports</h2>
+      <h2 id="scoutingDraftClassTitle">Upcoming Draft Class</h2>
       <div id="scoutingProspectBox" class="muted">No draft class available.</div>
     </div>
 
@@ -1715,6 +1715,7 @@ function renderAll(){
  renderLeagueFiles();
  renderScouting();
  renderStatsCenter();
+ enforceOffseasonDraftRouting();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -1811,7 +1812,8 @@ document.getElementById("newUniverseBtn").onclick=()=>{
 
 
 function seasonName(){
- return `${state.currentYear}-${String(state.currentYear+1).slice(-2)}`;
+ let y=Number(state?.currentYear ?? state?.startYear ?? 1976);
+ return `${y}-${String((y+1)%100).padStart(2,"0")}`;
 }
 
 // ----- Offseason / Draft / Free Agency engine v0.4 -----
@@ -1992,7 +1994,9 @@ function runFreeAgencyAI(){
  state.offseason.faResults=moves;
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
-function beginNextSeason(){
+function beginNextSeason(){ 
+ if(state.draftRoom){state.draftRoom={active:false,year:null,pickIndex:0,order:[],available:[],results:[],tradeOffers:[],completed:false};}
+
  state.regularBoxScores=[];
  extendDraftPickHorizon();
  applyAdvancedDevelopment();
@@ -2018,6 +2022,7 @@ function beginNextSeason(){
  if(state.role==="Player"){contractSeasonTick();processTradeRequest();}
 }
 function advanceOffseason(){
+ if(!canAdvancePastDraft())return;
  initOffseason();
  let p=state.offseason.phase;
  if(p==="Awards"){
@@ -2790,6 +2795,8 @@ function renderScouting(){
  document.getElementById("developmentEnvironmentBox").innerHTML=`<p><b>${team.name}</b></p><p class="small muted">Growth now depends on true potential, age, work ethic, development staff, playing time, and controlled randomness. Young players can stall or break out.</p>`;
 
  let cls=draftClassForCurrentYear();
+ let draftTitle=document.getElementById("scoutingDraftClassTitle");
+ if(draftTitle)draftTitle.textContent=`${state.currentYear+1} Draft Class`;
  let reports=(cls||[]).slice().sort((a,b)=>estimateProspectValue(b)-estimateProspectValue(a)).slice(0,30);
  document.getElementById("scoutingProspectBox").innerHTML=reports.length?reports.map(p=>{
    let r=scoutProspectReport(team.id,p);
@@ -3871,6 +3878,39 @@ window.proposeSimpleTrade=proposeSimpleTrade;
 window.signFreeAgent=signFreeAgent;
 window.releasePlayer=releasePlayer;
 
+
+function offseasonDraftRequired(){
+ return state?.offseason?.step==="draft" || state?.offseason?.phase==="draft" || state?.offseason?.current==="draft";
+}
+function draftCompletedForCurrentOffseason(){
+ ensureDraftRoom();
+ return !!state.draftRoom?.completed;
+}
+function forceDraftRoomForOffseason(){
+ ensureDraftRoom();
+ if(!state.draftRoom.active && !state.draftRoom.completed)startDraftRoom();
+ document.querySelector('[data-tab="draftroom"]')?.click();
+}
+function canAdvancePastDraft(){
+ if(!offseasonDraftRequired())return true;
+ if(draftCompletedForCurrentOffseason())return true;
+ forceDraftRoomForOffseason();
+ alert("Complete the draft before continuing the offseason.");
+ return false;
+}
+
+
+function enforceOffseasonDraftRouting(){
+ if(!state)return;
+ if(offseasonDraftRequired()&&!draftCompletedForCurrentOffseason()){
+   ensureDraftRoom();
+   let tab=document.querySelector('[data-tab="draftroom"]');
+   if(tab && !document.getElementById("draftroom")?.classList.contains("active")){
+     tab.click();
+   }
+ }
+}
+
 // ----- Draft Day engine v0.27 -----
 function ensureDraftRoom(){
  if(!state)return;
@@ -3963,7 +4003,13 @@ function makeDraftPick(prospectId){
  state.news.push({year:state.currentYear,title:`Draft Pick #${pick.pick}`,text:`${team.name} selects ${p.name}, ${p.pos}.`});
  dr.pickIndex++;
  dr.tradeOffers=[];
- if(dr.pickIndex>=dr.order.length||!dr.available.length){dr.active=false;dr.completed=true;state.news.push({year:state.currentYear,title:"Draft complete",text:`The ${dr.year} draft is complete.`});}
+ if(dr.pickIndex>=dr.order.length||!dr.available.length){
+   dr.active=false;dr.completed=true;
+   if(state.offseason){
+     state.offseason.draftComplete=true;
+   }
+   state.news.push({year:state.currentYear,title:"Draft complete",text:`The ${dr.year} draft is complete.`});
+ }
  else generateDraftTradeOffers();
  renderAll();saveState();
 }
@@ -4065,6 +4111,33 @@ function chooseAllStars(){
  state.history.allStars.push({year,east,west});
  state.news.push({year,title:"All-Star selections",text:`The ${year} All-Star rosters have been selected.`});
 }
+
+function determineFinalsRunnerUp(){
+ let champ=state.playoffs?.champion||state.season?.champion||null;
+ let p=state.playoffs;
+ if(!p||!champ)return null;
+
+ // Common playoff structures used by the engine.
+ let finalsSeries=null;
+ if(Array.isArray(p.series)){
+   finalsSeries=p.series.slice().reverse().find(s=>{
+     let round=String(s.round||s.name||"").toLowerCase();
+     return round.includes("final") && s.a && s.b;
+   })||p.series[p.series.length-1];
+ }
+ if(!finalsSeries && Array.isArray(p.rounds)){
+   let last=p.rounds[p.rounds.length-1];
+   if(Array.isArray(last?.series))finalsSeries=last.series[0];
+ }
+ if(!finalsSeries && p.finals)finalsSeries=p.finals;
+
+ if(finalsSeries?.a&&finalsSeries?.b){
+   return finalsSeries.a===champ?finalsSeries.b:finalsSeries.a;
+ }
+ if(p.runnerUp)return p.runnerUp;
+ return null;
+}
+
 function recordSeasonHonors(){
  ensureLeagueHistory();
  let year=state.currentYear;
@@ -4075,9 +4148,10 @@ function recordSeasonHonors(){
  let sixth=chooseSeasonAwardWinner(p=>!p.starter);
  let champion=state.playoffs?.champion||state.season?.champion||null;
  let finalsMvp=state.playoffs?.finalsMVP||state.playoffs?.finalsMvp||null;
- let season={year,mvp:mvp?.name||null,rookie:rookie?.name||null,dpoy:dpoy?.name||null,sixth:sixth?.name||null,champion,finalsMvp:finalsMvp?.name||finalsMvp||null};
+ let runnerUp=determineFinalsRunnerUp();
+ let season={year,mvp:mvp?.name||null,rookie:rookie?.name||null,dpoy:dpoy?.name||null,sixth:sixth?.name||null,champion,runnerUp,finalsMvp:finalsMvp?.name||finalsMvp||null};
  state.history.seasons.push(season);
- if(champion)state.history.champions.push({year,team:champion,finalsMvp:season.finalsMvp});
+ if(champion)state.history.champions.push({year,team:champion,runnerUp:season.runnerUp,finalsMvp:season.finalsMvp});
  if(mvp){mvp.awards=mvp.awards||[];mvp.awards.push(`${year} MVP`);}
  if(rookie){rookie.awards=rookie.awards||[];rookie.awards.push(`${year} Rookie of the Year`);}
  state.news.push({year,title:"Season awards",text:`${mvp?.name||"A league star"} wins MVP${champion?`; ${champion} wins the championship`:""}.`});
@@ -4110,7 +4184,7 @@ function renderLeagueHistory(){
  if(!sh)return;
  sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
  ah.innerHTML=state.history.allStars.length?state.history.allStars.slice().reverse().map(a=>`<div class="historyRow"><b>${a.year}</b><div><b>East</b><div class="small muted">${a.east.join(", ")}</div></div><div><b>West</b><div class="small muted">${a.west.join(", ")}</div></div></div>`).join(""):`<span class="muted">No All-Star selections yet.</span>`;
- ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}</b><div><b>${c.team}</b></div><div>${c.finalsMvp?`Finals MVP: ${c.finalsMvp}`:""}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
+ ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}</b><div><b>Champion: ${c.team}</b><br><span class="small muted">Runner-up: ${c.runnerUp||"—"}</span></div><div>${c.finalsMvp?`<b>Finals MVP:</b> ${c.finalsMvp}`:"Finals MVP: —"}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
  rh.innerHTML=state.history.records.length?state.history.records.map(r=>`<div class="historyRow"><b>${r.type}</b><div><b>${r.player}</b></div><div>${r.value.toFixed(1)} · ${r.year}</div></div>`).join(""):`<span class="muted">No records recorded yet.</span>`;
 }
 

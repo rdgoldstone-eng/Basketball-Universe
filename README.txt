@@ -1,17 +1,19 @@
-v0.36 Basketball Universe — Regular Season Stats & League Leaders
+v0.36.1 Basketball Universe — First Playthrough Fixes
 
-NEW STATS SYSTEM
-- Regular-season games now generate individual box-score production.
-- Persistent season totals for games, points, rebounds, assists, steals, blocks and minutes.
-- New Stats tab with league leaders for PPG, RPG, APG, SPG and BPG.
-- Controlled-team statistical leaders.
-- Player statistical table.
-- Recent regular-season box-score summaries.
-- Rotation minutes, rating, position, fatigue and injuries influence production.
-- Player Mode now receives its regular-season game production from the same box scores.
-- Awards have stronger actual season data.
-- Defensive Player of the Year uses defensive production.
+FIXES FROM THE FIRST 1976 COMMISSIONER TEST
+- History > Champions now shows:
+  * Champion
+  * Runner-up
+  * Finals MVP
+- Draft is now treated as a required offseason step.
+- When the offseason reaches Draft, the game routes to the Draft Room.
+- The offseason cannot move past Draft until the draft is completed.
+- Upcoming draft class is clearly displayed in the Scouting tab.
+- Season label now follows currentYear correctly (1976-77 -> 1977-78).
+- New-season rollover resets the Draft Room for the next offseason.
 
-This is the final major systems build before the full 1976 playthrough/testing pass.
+TEST NOTE
+Watch Game still needs to be tested next postseason.
 
-GitHub update: upload index.html and README.txt over the existing files and commit.
+GitHub update:
+Upload index.html and README.txt over the current files and commit.
