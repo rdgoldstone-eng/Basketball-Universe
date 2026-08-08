@@ -1,25 +1,19 @@
-v0.28 Basketball Universe — Trades & Free Agency
+v0.29 Basketball Universe — Coaching & Rotations
 
-NEW FRONT OFFICE TAB
-- GM and Owner can manage roster construction directly.
-- Team payroll and a working salary-cap framework are displayed.
-- Set organizational direction:
-  * Contend Now
-  * Balanced
-  * Build for the Future
-  * Cut Payroll
-- Trade targets change based on team direction.
-- Make simple player-for-player trade offers.
-- AI trade acceptance weighs player value rather than accepting everything.
-- Free-agent market with contract asking prices.
-- Sign free agents to three-year contracts if cap room allows.
-- Release players into free agency.
-- Transaction history is preserved.
+NEW COACHING TAB
+- Coach mode now controls actual rotation minutes.
+- Team minutes normalize to 240.
+- Players receive Starter / Rotation / Bench / Reserve roles.
+- Set pace: Fast, Balanced, Slow.
+- Set offense: Perimeter, Balanced, Inside.
+- Set defense: Pressure, Man-to-Man, Protect Paint.
+- Scheme effectiveness depends on roster personnel rather than one strategy always being best.
+- Aggressive pace/defense and heavy minutes create additional fatigue.
+- Injuries can force rotation changes.
+- Choose a young player as a development focus.
+- Focused development can produce real OVR growth over time.
+- Coaching notes preserve strategic/development events.
 
-OFFSEASON
-- Expiring contracts can move players into the free-agent pool.
-- Drafted rookies and free-agent signings become part of the same roster-building system.
-
-This is the first full front-office loop connecting the draft, trades, contracts, and free agency.
+This connects Coach mode directly to the existing fatigue, injury, player-development and game-strength systems.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.

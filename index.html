@@ -177,6 +177,11 @@ pre{white-space:pre-wrap}
 .tradeTarget{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 .capGood{color:#57c785}.capWarn{color:#f0b44d}.capBad{color:#ef6b73}
 @media(max-width:700px){.rosterRow{grid-template-columns:minmax(135px,1fr) 50px 55px}.rosterHide{display:none}}
+
+.rotationRow{display:grid;grid-template-columns:minmax(160px,1fr) 70px 90px 95px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.minutesInput{width:72px}
+.coachChoice{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+@media(max-width:700px){.rotationRow{grid-template-columns:minmax(135px,1fr) 60px 80px}.coachHide{display:none}}
 </style>
 </head>
 <body>
@@ -191,7 +196,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.28 · Trades & Free Agency</div>
+    <div class="pill">v0.29 · Coaching & Rotations</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -272,6 +277,7 @@ pre{white-space:pre-wrap}
     <button data-tab="career">Career</button>
     <button data-tab="draftroom">Draft Room</button>
     <button data-tab="frontoffice">Front Office</button>
+    <button data-tab="coaching">Coaching</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
     <button data-tab="bids">Expansion Bids</button>
@@ -463,6 +469,36 @@ pre{white-space:pre-wrap}
   </section>
 
 
+
+
+  <section id="coaching" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Team Identity</h2>
+        <div id="coachIdentityBox" class="muted">Coach mode is not active.</div>
+      </div>
+      <div class="card">
+        <h2>Game Plan</h2>
+        <div id="coachGamePlanBox" class="muted">No game plan set.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Rotation</h2>
+      <div id="coachRotationBox" class="muted">No controlled roster.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Development Focus</h2>
+        <div id="coachDevelopmentBox" class="muted">No development focus set.</div>
+      </div>
+      <div class="card">
+        <h2>Coaching Notes</h2>
+        <div id="coachNotesBox" class="muted">No notes yet.</div>
+      </div>
+    </div>
+  </section>
 
   <section id="frontoffice" class="section">
     <div class="grid2">
@@ -1414,6 +1450,7 @@ function renderAll(){
  renderLeagueHistory();
  renderDraftRoom();
  renderFrontOffice();
+ renderCoaching();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -1679,6 +1716,7 @@ function runFreeAgencyAI(){
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
 function beginNextSeason(){
+ applyCoachDevelopment();
  state.currentYear++;
  state.players.forEach(p=>{
    if(p.deferredEntry && p.rightsOnlyUntil && state.currentYear>=p.rightsOnlyUntil){
@@ -2251,6 +2289,171 @@ document.addEventListener("change",e=>{
 
 
 
+
+// ----- Coaching & Rotations v0.29 -----
+function ensureCoaching(){
+ if(!state)return;
+ state.coaching=state.coaching||{
+   teams:{},
+   notes:[]
+ };
+ state.teams.forEach(t=>{
+   if(!state.coaching.teams[t.id]){
+     state.coaching.teams[t.id]={
+       pace:"Balanced",
+       offense:"Balanced",
+       defense:"Man-to-Man",
+       rebounding:"Balanced",
+       rotationSize:9,
+       developmentFocus:null
+     };
+   }
+ });
+}
+function coachSettings(teamId){
+ ensureCoaching();
+ return state.coaching.teams[teamId];
+}
+function initializeRotationForTeam(teamName){
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry)
+   .sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ if(!roster.length)return;
+ roster.forEach((p,i)=>{
+   if(p.rotationMinutes==null){
+     let mins=[36,35,34,32,30,24,20,16,13,0,0,0,0,0,0][i] ?? 0;
+     p.rotationMinutes=mins;
+   }
+   p.starter=(i<5);
+   p.rotationRole=p.rotationMinutes>=30?"Starter":p.rotationMinutes>=18?"Rotation":p.rotationMinutes>0?"Bench":"Reserve";
+ });
+ normalizeRotationMinutes(teamName);
+}
+function normalizeRotationMinutes(teamName){
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ let active=roster.filter(p=>(p.rotationMinutes||0)>0);
+ let total=active.reduce((s,p)=>s+(p.rotationMinutes||0),0);
+ if(!active.length)return;
+ if(total<=0)return;
+ let scale=240/total;
+ active.forEach(p=>p.rotationMinutes=Math.max(1,Math.round(p.rotationMinutes*scale)));
+ // fix rounding to exactly 240
+ let sum=active.reduce((s,p)=>s+p.rotationMinutes,0);
+ let diff=240-sum;
+ active.sort((a,b)=>b.rotationMinutes-a.rotationMinutes);
+ let i=0;
+ while(diff!==0&&active.length){
+   let p=active[i%active.length];
+   if(diff>0){p.rotationMinutes++;diff--;}
+   else if(p.rotationMinutes>1){p.rotationMinutes--;diff++;}
+   i++; if(i>1000)break;
+ }
+ roster.forEach(p=>{
+   p.starter=(p.rotationMinutes||0)>=28;
+   p.rotationRole=(p.rotationMinutes||0)>=28?"Starter":(p.rotationMinutes||0)>=15?"Rotation":(p.rotationMinutes||0)>0?"Bench":"Reserve";
+ });
+}
+function setRotationMinutes(playerId,mins){
+ let p=state.players.find(x=>x.id===playerId);if(!p)return;
+ p.rotationMinutes=Math.max(0,Math.min(48,+mins||0));
+ p.starter=p.rotationMinutes>=28;
+ p.rotationRole=p.rotationMinutes>=28?"Starter":p.rotationMinutes>=15?"Rotation":p.rotationMinutes>0?"Bench":"Reserve";
+ let team=currentControlledTeam();
+ if(team)normalizeRotationMinutes(team.name);
+ renderCoaching();saveState();
+}
+function setCoachSetting(key,val){
+ let team=currentControlledTeam();if(!team)return;
+ let s=coachSettings(team.id);s[key]=val;
+ state.coaching.notes.unshift({year:state.currentYear,text:`${team.name}: ${key} set to ${val}.`});
+ renderCoaching();saveState();
+}
+function setDevelopmentFocus(playerId){
+ let team=currentControlledTeam();if(!team)return;
+ let s=coachSettings(team.id);s.developmentFocus=playerId;
+ let p=state.players.find(x=>x.id===playerId);
+ state.coaching.notes.unshift({year:state.currentYear,text:`Development focus set on ${p?.name||"player"}.`});
+ renderCoaching();saveState();
+}
+function coachingTeamModifier(teamName){
+ ensureCoaching();let team=state.teams.find(t=>t.name===teamName);if(!team)return 0;
+ let s=coachSettings(team.id),mod=0;
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ let guards=roster.filter(p=>p.pos==="PG"||p.pos==="SG").sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,3);
+ let bigs=roster.filter(p=>p.pos==="PF"||p.pos==="C").sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,3);
+ let wings=roster.filter(p=>p.pos==="SF"||p.pos==="SG").sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,3);
+ let avg=a=>a.length?a.reduce((x,p)=>x+(p.ovr||60),0)/a.length:60;
+ if(s.pace==="Fast"&&avg(guards)>=72)mod+=2.5;
+ if(s.pace==="Slow"&&avg(bigs)>=72)mod+=1.5;
+ if(s.offense==="Perimeter"&&avg(guards.concat(wings))>=72)mod+=2;
+ if(s.offense==="Inside"&&avg(bigs)>=72)mod+=2;
+ if(s.offense==="Balanced")mod+=.5;
+ if(s.defense==="Pressure"&&avg(guards)>=70)mod+=1.5;
+ if(s.defense==="Protect Paint"&&avg(bigs)>=70)mod+=1.5;
+ if(s.defense==="Man-to-Man")mod+=.5;
+ let active=roster.filter(p=>(p.rotationMinutes||0)>0&&p.healthStatus!=="Out");
+ if(active.length<7)mod-=3;
+ if(active.length>10)mod-=1;
+ return mod;
+}
+function applyCoachingFatigue(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return;
+ let s=coachSettings(team.id);
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ roster.forEach(p=>{
+   if((p.rotationMinutes||0)<=0)return;
+   let extra=0;
+   if(s.pace==="Fast")extra+=2;
+   if(s.defense==="Pressure")extra+=1;
+   if((p.rotationMinutes||0)>=38)extra+=2;
+   p.fatigue=Math.min(100,(p.fatigue||0)+extra);
+ });
+}
+function applyCoachDevelopment(){
+ ensureCoaching();
+ state.teams.forEach(t=>{
+   let s=coachSettings(t.id);if(!s.developmentFocus)return;
+   let p=state.players.find(x=>x.id===s.developmentFocus&&x.teamName===t.name&&!x.retired);
+   if(!p)return;
+   if(Math.random()<.22){
+     p.ovr=Math.min(99,(p.ovr||60)+1);
+     state.coaching.notes.unshift({year:state.currentYear,text:`${p.name} improved to OVR ${p.ovr} through focused development.`});
+   }
+ });
+}
+function renderCoaching(){
+ let idBox=document.getElementById("coachIdentityBox");if(!idBox)return;
+ ensureCoaching();let team=currentControlledTeam();
+ if(!team||state.role!=="Coach"){
+   idBox.innerHTML=`<span class="muted">Start or load a universe in Coach mode to control rotations and strategy.</span>`;
+   document.getElementById("coachGamePlanBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
+   document.getElementById("coachRotationBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
+   document.getElementById("coachDevelopmentBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
+   return;
+ }
+ initializeRotationForTeam(team.name);
+ let s=coachSettings(team.id);
+ idBox.innerHTML=`<div class="coachChoice"><b>${team.name}</b><div class="small muted">Pace: ${s.pace} · Offense: ${s.offense} · Defense: ${s.defense}</div></div>
+ <div class="choicebar"><button onclick="setCoachSetting('pace','Fast')">Fast Pace</button><button onclick="setCoachSetting('pace','Balanced')">Balanced Pace</button><button onclick="setCoachSetting('pace','Slow')">Slow Pace</button></div>`;
+
+ document.getElementById("coachGamePlanBox").innerHTML=
+ `<b>Offense</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('offense','Perimeter')">Perimeter</button><button onclick="setCoachSetting('offense','Balanced')">Balanced</button><button onclick="setCoachSetting('offense','Inside')">Inside</button></div>
+ <b style="display:block;margin-top:12px">Defense</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('defense','Pressure')">Pressure</button><button onclick="setCoachSetting('defense','Man-to-Man')">Man-to-Man</button><button onclick="setCoachSetting('defense','Protect Paint')">Protect Paint</button></div>
+ <p class="small muted">The best scheme depends on the players actually on your roster.</p>`;
+
+ let roster=state.players.filter(p=>p.teamName===team.name&&!p.retired&&!p.deferredEntry).sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
+ document.getElementById("coachRotationBox").innerHTML=`<p class="small muted">Minutes automatically normalize to 240 total team minutes.</p>`+
+ roster.map(p=>`<div class="rotationRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.healthStatus||"Healthy"}</div></div><div>${p.rotationRole||"Reserve"}</div><div><input class="minutesInput" type="number" min="0" max="48" value="${p.rotationMinutes||0}" onchange="setRotationMinutes('${p.id}',this.value)"></div><div class="coachHide">${p.fatigue||0} fatigue</div></div>`).join("");
+
+ let dev=roster.filter(p=>(p.age||99)<=27).sort((a,b)=>(b.pot||b.ovr||0)-(a.pot||a.ovr||0)).slice(0,10);
+ document.getElementById("coachDevelopmentBox").innerHTML=dev.map(p=>`<div class="coachChoice"><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"} · OVR ${p.ovr} · POT ${p.pot||p.ovr}</div><div style="margin-top:6px"><button onclick="setDevelopmentFocus('${p.id}')">${s.developmentFocus===p.id?"Current Focus":"Focus Development"}</button></div></div>`).join("")||`<span class="muted">No eligible development targets.</span>`;
+
+ let notes=state.coaching.notes||[];
+ document.getElementById("coachNotesBox").innerHTML=notes.length?notes.slice(0,20).map(n=>`<div class="careerTimelineRow"><b>${n.year}</b><div>${n.text}</div></div>`).join(""):`<span class="muted">No notes yet.</span>`;
+}
+window.setRotationMinutes=setRotationMinutes;
+window.setCoachSetting=setCoachSetting;
+window.setDevelopmentFocus=setDevelopmentFocus;
+
 // ----- Front Office: Trades & Free Agency v0.28 -----
 
 function processLeagueContractExpirations(){
@@ -2761,7 +2964,7 @@ function teamPlayerPower(teamName){
  if(!roster.length)return 55;
  let top=roster.slice(0,5).reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/Math.max(1,Math.min(5,roster.length));
  let depth=roster.reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/roster.length;
- return top*.72+depth*.28;
+ return top*.72+depth*.28+coachingTeamModifier(teamName);
 }
 function playerById(id){initPlayersIfNeeded();return state.players.find(p=>p.id===id)}
 function simPlayersForTeam(teamName, teamScore){
@@ -2910,7 +3113,7 @@ function playOneLeagueGame(){
  simPlayersForTeam(a.name,baseA);
  simPlayersForTeam(b.name,baseB);
  state.season.gamesPlayed++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  state.season.recent.unshift({a:a.name,b:b.name,as:baseA,bs:baseB});
  state.season.recent=state.season.recent.slice(0,12);
  state.season.leagueDay=Math.floor((state.season.gamesPlayed/state.season.totalGames)*174);
@@ -3214,7 +3417,7 @@ function playOnePlayoffGame(series){
  let base=88+Math.floor(Math.random()*25),margin=2+Math.floor(Math.random()*15);
  let as=aWin?base+margin:base,bs=aWin?base:base+margin;
  if(aWin)series.aw++;else series.bw++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let need=Math.floor(series.bestOf/2)+1;
  let g={round:series.round,conf:series.conf,game:series.games.length+1,a:a.name,b:b.name,as,bs,seriesId:series.id};
  if(series.aw>=need||series.bw>=need){series.complete=true;series.winnerId=series.aw>series.bw?series.aId:series.bId}
