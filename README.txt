@@ -1,30 +1,34 @@
-v0.39 Basketball Universe — Player Career History
+v0.40 Basketball Universe — All-Time Leaders & Hall of Fame
 
-NEW: UNIVERSE CAREER RECORDS
-Each player now keeps a permanent record of what happened in this simulated universe.
+NEW: ALL-TIME TAB
+Career leaderboards now use the actual simulated universe:
+- Career points
+- Career rebounds
+- Career assists
+- Games played
+- MVP awards
+- Championships
 
-PLAYER PROFILE NOW SHOWS
-- Draft year / draft pick / draft-rights team
-- Current ratings
-- Career games and PPG/RPG/APG
-- Season-by-season team, GP, PPG, RPG, APG and OVR
-- Awards
-- Transaction timeline
-- Starting historical reference profile for players who began in 1976
+Also includes active career scoring leaders and league milestone summaries.
 
-SEASON ARCHIVING
-- At the end of each season, player statistics are archived before the next season resets.
-- The active season is also included in the profile while it is in progress.
-- Career totals are calculated from the simulated universe, not real-life future careers.
+NEW: HALL OF FAME
+- Retired players are evaluated only on their simulated career.
+- Hall score considers career production, MVPs, Finals MVPs, championships, All-Star selections, longevity, and peak production.
+- Players at 70+ Hall Score are automatically inducted.
+- Hall of Fame Watch shows the best retired players who have not cleared the threshold.
 
-TRANSACTIONS NOW TRACKED
-- Draft selections
-- Undrafted entry
-- Free-agent team changes
-- Deferred draft-rights arrivals
+PLAYER PROFILES
+Now also show:
+- MVP count
+- Finals MVP count
+- Championships
+- All-Star selections
+- Hall Score
 
-This is the foundation for future career leaderboards, Hall of Fame logic, jersey retirements, franchise legends and all-time team records.
+IMPORTANT
+No real-life reputation is used for Hall of Fame decisions.
+A real-life legend can miss the Hall in this universe.
+A real-life role player can become a Hall of Famer if this universe gives him that career.
 
 GitHub update:
 Upload index.html and README.txt over the existing files and commit.
-Existing saves continue to work; their future seasons will archive automatically.

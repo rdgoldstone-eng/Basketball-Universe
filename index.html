@@ -216,6 +216,11 @@ pre{white-space:pre-wrap}
 .careerSeasonRow.header{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800}
 .transactionRow{padding:8px 0;border-bottom:1px solid var(--line)}
 @media(max-width:760px){.careerSeasonRow{grid-template-columns:75px minmax(130px,1fr) repeat(3,55px)}.careerHide{display:none}}
+
+.allTimeRow{display:grid;grid-template-columns:42px minmax(170px,1fr) 110px 90px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.hofCard{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:9px}
+.hofScore{font-size:22px;font-weight:900}
+@media(max-width:650px){.allTimeRow{grid-template-columns:34px minmax(135px,1fr) 85px}.allTimeHide{display:none}}
 </style>
 </head>
 <body>
@@ -230,7 +235,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.39 · Player Career History</div>
+    <div class="pill">v0.40 · All-Time Leaders & Hall of Fame</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -322,6 +327,8 @@ pre{white-space:pre-wrap}
     <button data-tab="scouting">Scouting</button>
     <button data-tab="healthcenter">Health</button>
     <button data-tab="history">History</button>
+    <button data-tab="alltime">All-Time</button>
+    <button data-tab="halloffame">Hall of Fame</button>
     <button data-tab="drafthistory">Draft History</button>
     <button data-tab="career">Career</button>
     <button data-tab="draftroom">Draft Room</button>
@@ -552,7 +559,50 @@ pre{white-space:pre-wrap}
 
 
   
-  <section id="drafthistory" class="section">
+  
+  <section id="alltime" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Career Leaders</h2>
+        <label>Category</label>
+        <select id="careerLeaderCategory" onchange="renderAllTime()">
+          <option value="pts">Points</option>
+          <option value="reb">Rebounds</option>
+          <option value="ast">Assists</option>
+          <option value="gp">Games Played</option>
+          <option value="mvp">MVP Awards</option>
+          <option value="championships">Championships</option>
+        </select>
+        <div id="careerLeaderList" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h2>Active Career Leaders</h2>
+        <div id="activeCareerLeaderList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>League Milestones</h2>
+      <div id="leagueMilestonesBox" class="muted">No milestones yet.</div>
+    </div>
+  </section>
+
+  <section id="halloffame" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Hall of Fame</h2>
+        <p class="small muted">Players are evaluated only on what they accomplished in this simulated universe.</p>
+        <div id="hallOfFameList"></div>
+      </div>
+      <div class="card">
+        <h2>Hall of Fame Watch</h2>
+        <p class="small muted">Top retired players who have not yet cleared the Hall threshold.</p>
+        <div id="hallWatchList"></div>
+      </div>
+    </div>
+  </section>
+
+<section id="drafthistory" class="section">
     <div class="card">
       <div class="calendarline">
         <div>
@@ -1802,6 +1852,137 @@ function openCurrentActivity(){
 }
 window.openCurrentActivity=openCurrentActivity;
 
+
+function careerArchiveFor(p){
+ ensurePlayerCareerHistory(p);
+ let seasons=p.careerSeasons.slice();
+ if(p.stats?.gp>0&&!seasons.some(x=>Number(x.year)===Number(p.stats.season))){
+   seasons.push({
+     year:p.stats.season,team:p.teamName,gp:p.stats.gp,min:p.stats.min,pts:p.stats.pts,reb:p.stats.reb,
+     ast:p.stats.ast,stl:p.stats.stl,blk:p.stats.blk,ovr:p.ovr,starter:!!p.starter
+   });
+ }
+ return seasons;
+}
+
+function playerChampionshipCount(p){
+ let years=new Set((state.history?.champions||[]).map(c=>Number(c.year)));
+ let teamsByYear=new Map(careerArchiveFor(p).map(s=>[Number(s.year),s.team]));
+ let count=0;
+ (state.history?.champions||[]).forEach(c=>{
+   if(teamsByYear.get(Number(c.year))===c.team)count++;
+ });
+ return count;
+}
+
+function playerMvpCount(p){
+ return (p.awards||[]).filter(a=>{
+   if(typeof a==="string")return /\bMVP\b/.test(a)&&!/\bFinals MVP\b/.test(a);
+   return a?.type==="MVP";
+ }).length;
+}
+
+function playerFinalsMvpCount(p){
+ return (p.awards||[]).filter(a=>{
+   if(typeof a==="string")return /Finals MVP/.test(a);
+   return a?.type==="Finals MVP";
+ }).length;
+}
+
+function playerAllStarCount(p){
+ let count=0;
+ (state.history?.allStars||[]).forEach(a=>{
+   if((a.east||[]).includes(p.name)||(a.west||[]).includes(p.name))count++;
+ });
+ return count;
+}
+
+function careerStat(p,key){
+ let t=careerTotals(p);
+ return Number(t[key]||0);
+}
+
+function hallOfFameScore(p){
+ let t=careerTotals(p),gp=t.gp||0;
+ if(!gp)return 0;
+ let ppg=t.pts/gp,rpg=t.reb/gp,apg=t.ast/gp;
+ let score=0;
+ score += Math.min(28, t.pts/1000*1.15);
+ score += Math.min(12, t.reb/1000*.8);
+ score += Math.min(12, t.ast/1000*1.0);
+ score += playerMvpCount(p)*18;
+ score += playerFinalsMvpCount(p)*10;
+ score += playerChampionshipCount(p)*7;
+ score += playerAllStarCount(p)*2.5;
+ if(ppg>=20)score+=8;
+ if(ppg>=25)score+=6;
+ if(rpg>=10)score+=4;
+ if(apg>=7)score+=4;
+ if(gp>=700)score+=6;
+ if(gp>=900)score+=5;
+ return Math.round(score*10)/10;
+}
+
+function ensureHallOfFame(){
+ if(!state.hallOfFame)state.hallOfFame=[];
+ let existing=new Set(state.hallOfFame.map(x=>x.playerId));
+ state.players.filter(p=>p.retired).forEach(p=>{
+   let score=hallOfFameScore(p);
+   if(score>=70&&!existing.has(p.id)){
+     state.hallOfFame.push({
+       playerId:p.id,name:p.name,score,inductedYear:state.currentYear,
+       careerPts:careerStat(p,"pts"),careerReb:careerStat(p,"reb"),careerAst:careerStat(p,"ast"),
+       mvps:playerMvpCount(p),titles:playerChampionshipCount(p),allStars:playerAllStarCount(p)
+     });
+     existing.add(p.id);
+     state.news.push({year:state.currentYear,title:"Hall of Fame",text:`${p.name} was inducted based on his accomplishments in this universe.`});
+   }
+ });
+}
+
+function renderAllTime(){
+ let list=document.getElementById("careerLeaderList"),active=document.getElementById("activeCareerLeaderList"),milestones=document.getElementById("leagueMilestonesBox");
+ if(!list||!active||!milestones||!state)return;
+
+ let cat=document.getElementById("careerLeaderCategory")?.value||"pts";
+ let valueFn,labelFn;
+ if(cat==="mvp"){valueFn=p=>playerMvpCount(p);labelFn=v=>`${v} MVP${v===1?"":"s"}`;}
+ else if(cat==="championships"){valueFn=p=>playerChampionshipCount(p);labelFn=v=>`${v} title${v===1?"":"s"}`;}
+ else {valueFn=p=>careerStat(p,cat);labelFn=v=>Math.round(v).toLocaleString();}
+
+ let ranked=state.players.slice().map(p=>({p,v:valueFn(p)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,25);
+ list.innerHTML=ranked.length?ranked.map((x,i)=>`<div class="allTimeRow"><b>${i+1}</b><div><b>${x.p.name}</b><div class="small muted">${x.p.retired?"Retired":x.p.teamName}</div></div><div><b>${labelFn(x.v)}</b></div><div class="allTimeHide">${careerTotals(x.p).gp} GP</div></div>`).join(""):`<span class="muted">No career data yet.</span>`;
+
+ let activeRank=state.players.filter(p=>!p.retired).map(p=>({p,v:careerStat(p,"pts")})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,10);
+ active.innerHTML=activeRank.length?activeRank.map((x,i)=>`<div class="teamrow"><div class="teammeta"><b>${i+1}. ${x.p.name}</b><span class="small muted">${x.p.teamName}</span></div><div><b>${Math.round(x.v).toLocaleString()}</b> pts</div></div>`).join(""):`<span class="muted">No active career totals yet.</span>`;
+
+ let all=state.players.map(p=>({p,t:careerTotals(p)})).filter(x=>x.t.gp>0);
+ let topPts=all.slice().sort((a,b)=>b.t.pts-a.t.pts)[0];
+ let topReb=all.slice().sort((a,b)=>b.t.reb-a.t.reb)[0];
+ let topAst=all.slice().sort((a,b)=>b.t.ast-a.t.ast)[0];
+ milestones.innerHTML=all.length?`
+   <div class="grid4">
+     <div class="careerMetric"><b>${topPts?.p.name||"—"}</b><div class="small muted">${Math.round(topPts?.t.pts||0).toLocaleString()} career points</div></div>
+     <div class="careerMetric"><b>${topReb?.p.name||"—"}</b><div class="small muted">${Math.round(topReb?.t.reb||0).toLocaleString()} career rebounds</div></div>
+     <div class="careerMetric"><b>${topAst?.p.name||"—"}</b><div class="small muted">${Math.round(topAst?.t.ast||0).toLocaleString()} career assists</div></div>
+     <div class="careerMetric"><b>${state.hallOfFame?.length||0}</b><div class="small muted">Hall of Famers</div></div>
+   </div>`:`<span class="muted">No career milestones yet.</span>`;
+}
+window.renderAllTime=renderAllTime;
+
+function renderHallOfFame(){
+ let list=document.getElementById("hallOfFameList"),watch=document.getElementById("hallWatchList");
+ if(!list||!watch||!state)return;
+ ensureHallOfFame();
+
+ let hof=(state.hallOfFame||[]).slice().sort((a,b)=>b.score-a.score||a.inductedYear-b.inductedYear);
+ list.innerHTML=hof.length?hof.map(h=>`<div class="hofCard"><div class="calendarline"><div><b>${h.name}</b><div class="small muted">Inducted ${h.inductedYear}</div></div><div class="hofScore">${h.score}</div></div><div class="small">${Math.round(h.careerPts).toLocaleString()} PTS · ${Math.round(h.careerReb).toLocaleString()} REB · ${Math.round(h.careerAst).toLocaleString()} AST</div><div class="small muted">${h.mvps} MVP · ${h.titles} championships · ${h.allStars} All-Star selections</div></div>`).join(""):`<span class="muted">No players have been inducted yet.</span>`;
+
+ let inducted=new Set(hof.map(h=>h.playerId));
+ let candidates=state.players.filter(p=>p.retired&&!inducted.has(p.id)).map(p=>({p,score:hallOfFameScore(p)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,12);
+ watch.innerHTML=candidates.length?candidates.map(x=>`<div class="teamrow"><div class="teammeta"><b>${x.p.name}</b><span class="small muted">${careerTotals(x.p).gp} GP · ${playerMvpCount(x.p)} MVP · ${playerChampionshipCount(x.p)} titles</span></div><div><b>${x.score}</b></div></div>`).join(""):`<span class="muted">No retired candidates yet.</span>`;
+}
+
 function renderAll(){
  initPlayersIfNeeded();
  renderTeams(); renderDecisions(); renderIdentities(); renderNews(); renderPlayers(); renderOffseason(); renderLeagueOffice(); renderFranchiseHealth(); renderExpansionDraft(); renderExpansionBids();
@@ -1822,6 +2003,8 @@ function renderAll(){
  renderStatsCenter();
  renderDraftHistory();
  renderCurrentActivity();
+ renderAllTime();
+ renderHallOfFame();
  enforceOffseasonDraftRouting();
  refreshUniverseHeader();
 }
@@ -2118,6 +2301,7 @@ function beginNextSeason(){
  const transitionErrors=[];
 
  archiveCompletedPlayerSeason(oldYear);
+ ensureHallOfFame();
 
  function safeTransitionStep(label,fn){
    try{ fn(); }
@@ -4941,6 +5125,7 @@ window.showPlayer=function(id){
 
  <h3 style="margin-top:16px">Awards</h3>
  <div class="small">${playerAwardsText(p)}</div>
+ <div class="small muted" style="margin-top:6px">MVP ${playerMvpCount(p)} · Finals MVP ${playerFinalsMvpCount(p)} · Championships ${playerChampionshipCount(p)} · All-Star ${playerAllStarCount(p)} · Hall Score ${hallOfFameScore(p)}</div>
 
  <h3 style="margin-top:16px">Transactions</h3>
  <div>${p.transactions.length?p.transactions.slice().reverse().map(t=>`<div class="transactionRow"><b>${t.year}</b> · ${t.text}</div>`).join(""):`<span class="small muted">No tracked transactions yet.</span>`}</div>
