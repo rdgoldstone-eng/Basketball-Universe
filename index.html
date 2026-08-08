@@ -225,7 +225,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.5 · Rookie Simulation Fix</div>
+    <div class="pill">v0.37.6 · Finals History Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -4305,29 +4305,18 @@ function chooseAllStars(){
 }
 
 function determineFinalsRunnerUp(){
- let champ=state.playoffs?.champion||state.season?.champion||null;
- let p=state.playoffs;
- if(!p||!champ)return null;
+ let ps=state.season?.playoffState;
+ let champ=state.season?.champion||null;
+ if(!ps||!champ)return null;
 
- // Common playoff structures used by the engine.
- let finalsSeries=null;
- if(Array.isArray(p.series)){
-   finalsSeries=p.series.slice().reverse().find(s=>{
-     let round=String(s.round||s.name||"").toLowerCase();
-     return round.includes("final") && s.a && s.b;
-   })||p.series[p.series.length-1];
- }
- if(!finalsSeries && Array.isArray(p.rounds)){
-   let last=p.rounds[p.rounds.length-1];
-   if(Array.isArray(last?.series))finalsSeries=last.series[0];
- }
- if(!finalsSeries && p.finals)finalsSeries=p.finals;
+ let finals=ps.series?.find(s=>s.round==="NBA Finals");
+ if(!finals)return null;
 
- if(finalsSeries?.a&&finalsSeries?.b){
-   return finalsSeries.a===champ?finalsSeries.b:finalsSeries.a;
- }
- if(p.runnerUp)return p.runnerUp;
- return null;
+ let a=teamById(finals.aId);
+ let b=teamById(finals.bId);
+ if(!a||!b)return null;
+
+ return a.name===champ?b.name:a.name;
 }
 
 function recordSeasonHonors(){
@@ -4339,7 +4328,7 @@ function recordSeasonHonors(){
  let dpoy=qualifiedStatPlayers().slice().sort((a,b)=>((statAvg(b,"stl")+statAvg(b,"blk")*1.5)+(b.ovr||60)*.02)-((statAvg(a,"stl")+statAvg(a,"blk")*1.5)+(a.ovr||60)*.02))[0]||null;
  let sixth=chooseSeasonAwardWinner(p=>!p.starter);
  let champion=state.playoffs?.champion||state.season?.champion||null;
- let finalsMvp=state.playoffs?.finalsMVP||state.playoffs?.finalsMvp||null;
+ let finalsMvp=state.finalsMvp||chooseFinalsMvp()||null;
  let runnerUp=determineFinalsRunnerUp();
  let season={year,mvp:mvp?.name||null,rookie:rookie?.name||null,dpoy:dpoy?.name||null,sixth:sixth?.name||null,champion,runnerUp,finalsMvp:finalsMvp?.name||finalsMvp||null};
  state.history.seasons.push(season);
@@ -4370,8 +4359,35 @@ function updateLeagueRecords(year){
    }
  });
 }
+
+function repairCompletedFinalsHistory(){
+ if(!state?.history||!state?.season)return;
+ if(state.season.phase!=="Season Complete")return;
+
+ let year=state.currentYear;
+ let champion=state.season.champion||null;
+ let runnerUp=determineFinalsRunnerUp();
+ let fm=state.finalsMvp||chooseFinalsMvp()||null;
+ let fmName=fm?.name||fm||null;
+
+ let seasonRow=state.history.seasons?.find(x=>x.year===year);
+ if(seasonRow){
+   if(champion&&!seasonRow.champion)seasonRow.champion=champion;
+   if(runnerUp&&!seasonRow.runnerUp)seasonRow.runnerUp=runnerUp;
+   if(fmName&&!seasonRow.finalsMvp)seasonRow.finalsMvp=fmName;
+ }
+
+ let champRow=state.history.champions?.find(x=>x.year===year);
+ if(champRow){
+   if(runnerUp&&!champRow.runnerUp)champRow.runnerUp=runnerUp;
+   if(fmName&&!champRow.finalsMvp)champRow.finalsMvp=fmName;
+ }else if(champion){
+   state.history.champions.push({year,team:champion,runnerUp,finalsMvp:fmName});
+ }
+}
+
 function renderLeagueHistory(){
- if(!state)return;ensureLeagueHistory();
+ if(!state)return;ensureLeagueHistory();repairCompletedFinalsHistory();
  let sh=document.getElementById("seasonHonorsBox"),ah=document.getElementById("allStarHistoryBox"),ch=document.getElementById("championsHistoryBox"),rh=document.getElementById("recordsHistoryBox");
  if(!sh)return;
  sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
@@ -5032,10 +5048,16 @@ function buildNextPlayoffRound(){
    ps.series.push(playoffSeriesObj(teamById(e.winnerId),teamById(w.winnerId),"NBA Finals","Finals",7));ps.round=4;
  }else if(ps.round===4){
    let f=ps.series.find(s=>s.round==="NBA Finals");
-   ps.championId=f.winnerId;state.season.champion=teamById(f.winnerId).name;state.season.phase="Season Complete";recordSeasonHonors();
+   ps.championId=f.winnerId;
+   state.season.champion=teamById(f.winnerId).name;
+   state.season.phase="Season Complete";
+
+   // Finals must be fully resolved before writing permanent league history.
+   chooseFinalsMvp();
+   recordSeasonHonors();
+
    state.season.postseason=ps.series.filter(s=>s.complete).map(s=>`${s.round}: ${teamById(s.winnerId).name} won ${Math.max(s.aw,s.bw)}-${Math.min(s.aw,s.bw)}`);
    updateFranchiseHealthAfterSeason();maybeCreateRelocationDecision();
-   chooseFinalsMvp();
    state.news.push({year:state.currentYear,title:`${state.season.champion} are champions`,text:`They win the ${seasonName()} championship${state.finalsMvp?`, with ${state.finalsMvp.name} named Finals MVP`:""}.`});
  }
 }

@@ -1,22 +1,16 @@
-v0.37.5 Basketball Universe — Rookie Simulation Fix
+v0.37.6 Basketball Universe — Finals History Fix
 
-FIXED: ADVANCE BUTTON APPEARING TO STOP AFTER OFFSEASON
+FIXED
+- Finals runner-up was being read from an obsolete playoff state object.
+- Finals MVP was being chosen AFTER league history was already saved.
+- Championship history now waits until the Finals are fully resolved, then stores:
+  * Champion
+  * Runner-up
+  * Finals MVP
 
-Root cause:
-- The original 1976 players include historical per-36 stat data.
-- Newly drafted players do not.
-- Once a drafted rookie entered a rotation, the regular-season simulator tried to read missing historical data and the first game crashed silently.
-
-Fix:
-- Added a universal player per-36 profile.
-- Historical players still use their supplied historical context.
-- Drafted, generated, and custom players now derive scoring/rebounding/assists/steals/blocks from their ratings when historical data is unavailable.
-- New players automatically receive initialized season-stat totals before playing.
-- The same fallback is used by regular-season box-score generation.
-
-This is important beyond the bug fix: alternate-history players no longer depend on real-life NBA statistics to function after being drafted.
-
-Your existing save should continue working. You do not need to restart.
+SAVE REPAIR
+- Existing saves with a completed current season will automatically repair missing runner-up / Finals MVP history when the History page renders, when the playoff data is still available.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
+Existing saves should continue working.
