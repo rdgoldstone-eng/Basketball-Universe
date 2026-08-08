@@ -1,15 +1,11 @@
-Basketball Universe v0.2.1 — Decision Hotfix
+v0.21 Basketball Universe — Player Career
 
-Fixes:
-- "Next Decision" now automatically opens the Decision Center when it stops.
-- If an unresolved decision is already waiting, Advance will take you to it instead of simulating past it.
-- Added meaningful role-specific decision checkpoints around:
-  quarter season, half season, trade deadline, and stretch run.
-- "Next Decision" no longer appears to stop silently.
+- Player Mode now lets you choose the exact player you control after choosing a team.
+- New Career tab.
+- Career tracks Development, Energy, Chemistry, Reputation, Loyalty, Ambition and Legacy.
+- Career identity emerges as Franchise Icon, Championship Chaser, Power Move, or Balanced Career.
+- Season-end career direction decisions begin shaping whether you stay loyal, pressure management, or keep options open.
+- Major choices are saved to a career timeline.
+- Existing lifestyle/training decisions remain.
 
-Update your EXISTING Netlify site:
-1. Download and unzip this package.
-2. Open the same Netlify project you already use.
-3. Deploy/upload this new folder.
-4. Reload the same .netlify.app address.
-5. You can load your current v0.2 save, but starting a new universe is safest for testing all decision checkpoints.
+GitHub: upload only index.html over the current index.html and commit.
