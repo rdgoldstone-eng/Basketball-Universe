@@ -1,19 +1,25 @@
-v0.29 Basketball Universe — Coaching & Rotations
+v0.30 Basketball Universe — Ownership, Finances & Arena
 
-NEW COACHING TAB
-- Coach mode now controls actual rotation minutes.
-- Team minutes normalize to 240.
-- Players receive Starter / Rotation / Bench / Reserve roles.
-- Set pace: Fast, Balanced, Slow.
-- Set offense: Perimeter, Balanced, Inside.
-- Set defense: Pressure, Man-to-Man, Protect Paint.
-- Scheme effectiveness depends on roster personnel rather than one strategy always being best.
-- Aggressive pace/defense and heavy minutes create additional fatigue.
-- Injuries can force rotation changes.
-- Choose a young player as a development focus.
-- Focused development can produce real OVR growth over time.
-- Coaching notes preserve strategic/development events.
+NEW OWNER MODE SYSTEMS
+- Franchise cash, revenue, expenses and annual profit
+- Basketball payroll visibility
+- Ticket pricing
+- Fan support
+- Public trust
+- Market strength
+- Owner patience
+- Arena quality, age and seating capacity
+- Arena renovations, premium-area upgrades and capacity expansion
+- Ownership strategies:
+  * Spend to Win
+  * Balanced
+  * Long-Term Build
+  * Maximize Profit
+- Ownership strategy influences front-office direction
+- Annual franchise economics update based on winning, attendance, ticket price, arena quality and payroll
+- Dynamic ownership decisions for cash problems, losing seasons and aging arenas
+- Ownership history tracks major decisions
 
-This connects Coach mode directly to the existing fatigue, injury, player-development and game-strength systems.
+This connects Owner mode to the existing front-office, franchise-health, attendance and relocation concepts.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.

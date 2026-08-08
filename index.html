@@ -182,6 +182,9 @@ pre{white-space:pre-wrap}
 .minutesInput{width:72px}
 .coachChoice{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 @media(max-width:700px){.rotationRow{grid-template-columns:minmax(135px,1fr) 60px 80px}.coachHide{display:none}}
+
+.ownerMetric{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.ownerDecision{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
 </style>
 </head>
 <body>
@@ -196,7 +199,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.29 · Coaching & Rotations</div>
+    <div class="pill">v0.30 · Ownership & Arena</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -278,6 +281,7 @@ pre{white-space:pre-wrap}
     <button data-tab="draftroom">Draft Room</button>
     <button data-tab="frontoffice">Front Office</button>
     <button data-tab="coaching">Coaching</button>
+    <button data-tab="ownership">Ownership</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
     <button data-tab="bids">Expansion Bids</button>
@@ -470,6 +474,41 @@ pre{white-space:pre-wrap}
 
 
 
+
+
+  <section id="ownership" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Franchise Finances</h2>
+        <div id="ownerFinanceBox" class="muted">Owner mode is not active.</div>
+      </div>
+      <div class="card">
+        <h2>Fan & Market Health</h2>
+        <div id="ownerMarketBox" class="muted">No franchise selected.</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Arena</h2>
+        <div id="ownerArenaBox" class="muted">No arena data.</div>
+      </div>
+      <div class="card">
+        <h2>Ownership Strategy</h2>
+        <div id="ownerStrategyBox" class="muted">No ownership strategy set.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Ownership Decisions</h2>
+      <div id="ownerDecisionBox" class="muted">No ownership decision is pending.</div>
+    </div>
+
+    <div class="card">
+      <h2>Ownership History</h2>
+      <div id="ownerHistoryBox" class="muted">No ownership events yet.</div>
+    </div>
+  </section>
 
   <section id="coaching" class="section">
     <div class="grid2">
@@ -1451,6 +1490,7 @@ function renderAll(){
  renderDraftRoom();
  renderFrontOffice();
  renderCoaching();
+ renderOwnership();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -1716,6 +1756,7 @@ function runFreeAgencyAI(){
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
 function beginNextSeason(){
+ updateOwnerEconomics();
  applyCoachDevelopment();
  state.currentYear++;
  state.players.forEach(p=>{
@@ -2290,6 +2331,159 @@ document.addEventListener("change",e=>{
 
 
 
+
+// ----- Ownership, Finances & Arena v0.30 -----
+function ensureOwnership(){
+ if(!state)return;
+ state.ownership=state.ownership||{teams:{},history:[]};
+ state.teams.forEach(t=>{
+   if(!state.ownership.teams[t.id]){
+     state.ownership.teams[t.id]={
+       cash:35,
+       revenue:55,
+       expenses:48,
+       ticketPrice:22,
+       fanSupport:t.fanSupport??60,
+       marketStrength:t.marketStrength??60,
+       arenaQuality:55,
+       arenaAge:12,
+       capacity:17000,
+       strategy:"Balanced",
+       publicTrust:60,
+       ownerPatience:65,
+       lastDecisionYear:null
+     };
+   }
+ });
+}
+function ownerData(teamId){
+ ensureOwnership();return state.ownership.teams[teamId];
+}
+function franchiseWinPct(team){
+ let w=team?.wins??team?.w??0,l=team?.losses??team?.l??0;
+ return (w+l)?w/(w+l):.5;
+}
+function updateOwnerEconomics(){
+ ensureOwnership();
+ state.teams.forEach(t=>{
+   let d=ownerData(t.id),win=franchiseWinPct(t);
+   let attendanceFactor=Math.max(.45,Math.min(1.05,(d.fanSupport*.006)+(win*.45)+(d.arenaQuality*.002)));
+   let priceFactor=Math.max(.65,Math.min(1.18,1-(d.ticketPrice-22)*.012));
+   let attendance=Math.round(d.capacity*attendanceFactor*priceFactor);
+   let revenue=Math.round((attendance*d.ticketPrice*41/1_000_000 + 26 + d.marketStrength*.22)*10)/10;
+   let payroll=typeof teamPayroll==="function"?teamPayroll(t.name):45;
+   let expenses=Math.round((30+payroll*.55+d.arenaQuality*.08)*10)/10;
+   d.revenue=revenue;d.expenses=expenses;
+   d.cash=Math.round((d.cash+(revenue-expenses))*10)/10;
+   d.fanSupport=Math.max(0,Math.min(100,Math.round(d.fanSupport+(win-.5)*10-(d.ticketPrice>32?2:0)+(d.arenaQuality>75?1:0))));
+   d.publicTrust=Math.max(0,Math.min(100,Math.round(d.publicTrust+(revenue>=expenses?1:-1)+(win>=.55?2:win<.35?-2:0))));
+   d.arenaAge++;
+ });
+}
+function setOwnerStrategy(strategy){
+ let team=currentControlledTeam();if(!team)return;
+ let d=ownerData(team.id);d.strategy=strategy;
+ if(strategy==="Spend to Win"){d.ownerPatience=Math.max(0,d.ownerPatience-3);}
+ if(strategy==="Long-Term Build"){d.ownerPatience=Math.min(100,d.ownerPatience+4);}
+ state.ownership.history.unshift({year:state.currentYear,text:`${team.name} ownership strategy set to ${strategy}.`});
+ renderOwnership();saveState();
+}
+function changeTicketPrice(delta){
+ let team=currentControlledTeam();if(!team)return;
+ let d=ownerData(team.id);
+ d.ticketPrice=Math.max(8,Math.min(75,d.ticketPrice+delta));
+ state.ownership.history.unshift({year:state.currentYear,text:`${team.name} ticket price changed to $${d.ticketPrice}.`});
+ renderOwnership();saveState();
+}
+function investArena(kind){
+ let team=currentControlledTeam();if(!team)return;
+ let d=ownerData(team.id);
+ let cost=kind==="renovate"?12:kind==="premium"?8:20;
+ if(d.cash<cost){alert(`The franchise does not have the $${cost}M needed for this project.`);return;}
+ d.cash-=cost;
+ if(kind==="renovate"){d.arenaQuality=Math.min(100,d.arenaQuality+15);d.arenaAge=Math.max(0,d.arenaAge-8);d.fanSupport=Math.min(100,d.fanSupport+4);}
+ if(kind==="premium"){d.arenaQuality=Math.min(100,d.arenaQuality+8);d.revenue+=4;}
+ if(kind==="expand"){d.capacity+=2000;d.arenaQuality=Math.min(100,d.arenaQuality+5);}
+ state.ownership.history.unshift({year:state.currentYear,text:`${team.name} ownership approved an arena ${kind} project for $${cost}M.`});
+ state.news.push({year:state.currentYear,title:"Arena investment",text:`${team.name} ownership approved a major arena project.`});
+ renderOwnership();saveState();
+}
+function ownershipDecision(){
+ if(state.role!=="Owner")return null;
+ let team=currentControlledTeam();if(!team)return null;
+ let d=ownerData(team.id);
+ if(d.lastDecisionYear===state.currentYear)return null;
+ let win=franchiseWinPct(team);
+
+ if(d.cash<5){
+   return {title:"Cash Flow Problem",text:"The franchise is running dangerously low on cash.",options:[
+     {id:"cut",label:"Cut basketball spending",result:"You order immediate cost controls.",cash:6,trust:-4,fan:-3},
+     {id:"borrow",label:"Borrow to stay aggressive",result:"You inject borrowed money to avoid cuts.",cash:12,trust:-1,patience:-4},
+     {id:"raise",label:"Raise ticket prices",result:"You raise prices to increase revenue.",ticket:6,trust:-5,fan:-4}
+   ]};
+ }
+ if(win<.35 && d.ownerPatience<55){
+   return {title:"Losing Season",text:"The team is losing and pressure is building. How do you respond?",options:[
+     {id:"spend",label:"Demand immediate improvement",result:"You authorize a win-now push.",cash:-6,patience:-5,trust:2},
+     {id:"patient",label:"Stay patient with the rebuild",result:"You publicly back the long-term plan.",patience:8,trust:4,fan:-1},
+     {id:"shake",label:"Demand organizational changes",result:"You make it clear jobs are on the line.",patience:-8,trust:-1,fan:2}
+   ]};
+ }
+ if(d.arenaAge>=25 || d.arenaQuality<45){
+   return {title:"Arena Pressure",text:"The arena is becoming a franchise problem.",options:[
+     {id:"renovate",label:"Fund a renovation",result:"You commit money to modernize the building.",cash:-12,arena:15,trust:4,fan:4},
+     {id:"study",label:"Study a replacement arena",result:"You begin exploring a future arena plan.",cash:-2,trust:1},
+     {id:"wait",label:"Delay major spending",result:"You postpone arena investment.",patience:2,trust:-3,fan:-2}
+   ]};
+ }
+ return null;
+}
+function chooseOwnershipDecision(id){
+ let dec=ownershipDecision(),team=currentControlledTeam();if(!dec||!team)return;
+ let o=dec.options.find(x=>x.id===id),d=ownerData(team.id);if(!o)return;
+ d.cash=Math.round((d.cash+(o.cash||0))*10)/10;
+ d.ticketPrice=Math.max(8,Math.min(75,d.ticketPrice+(o.ticket||0)));
+ d.publicTrust=Math.max(0,Math.min(100,d.publicTrust+(o.trust||0)));
+ d.fanSupport=Math.max(0,Math.min(100,d.fanSupport+(o.fan||0)));
+ d.ownerPatience=Math.max(0,Math.min(100,d.ownerPatience+(o.patience||0)));
+ d.arenaQuality=Math.max(0,Math.min(100,d.arenaQuality+(o.arena||0)));
+ d.lastDecisionYear=state.currentYear;
+ state.ownership.history.unshift({year:state.currentYear,text:o.result});
+ state.news.push({year:state.currentYear,title:"Ownership decision",text:`${team.name}: ${o.result}`});
+ renderOwnership();saveState();
+}
+function renderOwnership(){
+ let f=document.getElementById("ownerFinanceBox");if(!f)return;
+ ensureOwnership();let team=currentControlledTeam();
+ if(!team||state.role!=="Owner"){
+   f.innerHTML=`<span class="muted">Start or load a universe in Owner mode to manage franchise finances and arena strategy.</span>`;
+   document.getElementById("ownerMarketBox").innerHTML=`<span class="muted">Owner mode is not active.</span>`;
+   document.getElementById("ownerArenaBox").innerHTML=`<span class="muted">Owner mode is not active.</span>`;
+   document.getElementById("ownerStrategyBox").innerHTML=`<span class="muted">Owner mode is not active.</span>`;
+   document.getElementById("ownerDecisionBox").innerHTML=`<span class="muted">Owner mode is not active.</span>`;
+   return;
+ }
+ let d=ownerData(team.id),payroll=typeof teamPayroll==="function"?teamPayroll(team.name):0;
+ let profit=d.revenue-d.expenses;
+ f.innerHTML=`<div class="grid4"><div class="ownerMetric"><b>$${d.cash.toFixed(1)}M</b><div class="small muted">Cash</div></div><div class="ownerMetric"><b>$${d.revenue.toFixed(1)}M</b><div class="small muted">Revenue</div></div><div class="ownerMetric"><b>$${d.expenses.toFixed(1)}M</b><div class="small muted">Expenses</div></div><div class="ownerMetric"><b>${profit>=0?"+":""}$${profit.toFixed(1)}M</b><div class="small muted">Annual Profit</div></div></div><p class="small muted">Basketball payroll: $${payroll.toFixed(1)}M</p>`;
+
+ document.getElementById("ownerMarketBox").innerHTML=`<div class="grid2"><div class="ownerMetric"><b>${d.fanSupport}</b><div class="small muted">Fan Support</div></div><div class="ownerMetric"><b>${d.publicTrust}</b><div class="small muted">Public Trust</div></div><div class="ownerMetric"><b>${d.marketStrength}</b><div class="small muted">Market Strength</div></div><div class="ownerMetric"><b>${d.ownerPatience}</b><div class="small muted">Owner Patience</div></div></div><p style="margin-top:10px"><b>Ticket price: $${d.ticketPrice}</b></p><div class="choicebar"><button onclick="changeTicketPrice(-2)">Lower $2</button><button onclick="changeTicketPrice(2)">Raise $2</button></div>`;
+
+ document.getElementById("ownerArenaBox").innerHTML=`<p><b>Arena Quality: ${d.arenaQuality}</b><br><span class="small muted">${d.capacity.toLocaleString()} seats · ${d.arenaAge} years old</span></p><div class="choicebar"><button onclick="investArena('renovate')">Renovate · $12M</button><button onclick="investArena('premium')">Premium Areas · $8M</button><button onclick="investArena('expand')">Add 2,000 Seats · $20M</button></div>`;
+
+ document.getElementById("ownerStrategyBox").innerHTML=`<p><b>${d.strategy}</b></p><div class="choicebar"><button onclick="setOwnerStrategy('Spend to Win')">Spend to Win</button><button onclick="setOwnerStrategy('Balanced')">Balanced</button><button onclick="setOwnerStrategy('Long-Term Build')">Long-Term Build</button><button onclick="setOwnerStrategy('Maximize Profit')">Maximize Profit</button></div>`;
+
+ let dec=ownershipDecision();
+ document.getElementById("ownerDecisionBox").innerHTML=dec?`<div class="ownerDecision"><h3>${dec.title}</h3><p class="muted">${dec.text}</p><div class="choicebar">${dec.options.map(o=>`<button onclick="chooseOwnershipDecision('${o.id}')">${o.label}</button>`).join("")}</div></div>`:`<span class="muted">No ownership decision is pending.</span>`;
+
+ let hist=state.ownership.history||[];
+ document.getElementById("ownerHistoryBox").innerHTML=hist.length?hist.slice(0,25).map(x=>`<div class="careerTimelineRow"><b>${x.year}</b><div>${x.text}</div></div>`).join(""):`<span class="muted">No ownership events yet.</span>`;
+}
+window.setOwnerStrategy=setOwnerStrategy;
+window.changeTicketPrice=changeTicketPrice;
+window.investArena=investArena;
+window.chooseOwnershipDecision=chooseOwnershipDecision;
+
 // ----- Coaching & Rotations v0.29 -----
 function ensureCoaching(){
  if(!state)return;
@@ -2506,6 +2700,12 @@ function buildTradeTargets(){
  ensureFrontOffice();let team=currentControlledTeam();
  if(!team||!(state.role==="GM"||state.role==="Owner")){state.frontOffice.tradeTargets=[];return;}
  let dir=state.frontOffice.teamDirections[team.id]||"Balanced";
+ if(state.role==="Owner"&&state.ownership?.teams?.[team.id]){
+   let os=state.ownership.teams[team.id].strategy;
+   if(os==="Spend to Win")dir="Contend Now";
+   if(os==="Long-Term Build")dir="Build for the Future";
+   if(os==="Maximize Profit")dir="Cut Payroll";
+ }
  let pool=state.players.filter(p=>p.teamName!==team.name&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out");
  pool=pool.filter(p=>{
    if(dir==="Contend Now")return (p.ovr||0)>=72;
