@@ -1,34 +1,35 @@
-v0.54 Basketball Universe — 2013–2016 Draft Pipeline
+v0.55 Basketball Universe — 2017–2020 Draft Pipeline
 
-Historical draft classes now extend through 2016.
+Historical draft classes now extend through 2020.
 
-2013
-This was an unusually uncertain draft, so there is no generational top prospect.
-Anthony Bennett, Victor Oladipo, Otto Porter, Cody Zeller, Alex Len, Nerlens Noel and Ben McLemore form the top group.
-Giannis Antetokounmpo has enormous physical upside but extremely high uncertainty.
-Rudy Gobert is not hindsight-promoted.
+2017
+Markelle Fultz is the top prospect.
+Lonzo Ball, Jayson Tatum, Josh Jackson and De'Aaron Fox form the next elite group.
+Donovan Mitchell, Bam Adebayo, OG Anunoby and other later standouts keep their draft-time positioning rather than being hindsight-promoted.
 
-2014
-Andrew Wiggins and Jabari Parker form the elite top tier.
-Joel Embiid has No. 1-level talent but major medical uncertainty.
-Aaron Gordon, Dante Exum and Marcus Smart follow.
-Nikola Jokic remains a second-round international prospect with huge uncertainty and no MVP hindsight boost.
+2018
+Deandre Ayton and Marvin Bagley III remain elite top-of-draft prospects.
+Luka Doncic is also elite, but his international translation uncertainty is preserved.
+Jaren Jackson Jr., Trae Young and Mohamed Bamba remain high-level prospects.
+Shai Gilgeous-Alexander is a strong later-lottery prospect rather than a known MVP-level talent.
+Michael Porter Jr. has huge upside and extreme medical risk.
 
-2015
-Karl-Anthony Towns is the clear top prospect.
-D'Angelo Russell and Jahlil Okafor form the next tier.
-Kristaps Porzingis carries elite upside with international uncertainty.
-Devin Booker remains a mid-first-round-level prospect rather than being rewritten as a future superstar.
+2019
+Zion Williamson is a generational No. 1 prospect.
+Ja Morant is an elite No. 2-level prospect.
+RJ Barrett remains a premium top-three prospect.
+Darius Garland, Jarrett Culver and others retain their draft-night value.
+Jordan Poole and later hits are not hindsight-promoted.
 
-2016
-Ben Simmons and Brandon Ingram are the clear top two.
-Jaylen Brown, Dragan Bender, Kris Dunn, Buddy Hield and Jamal Murray follow.
-Caris LeVert's medical risk is reflected.
-Pascal Siakam, Dejounte Murray, Malcolm Brogdon and Fred VanVleet do not receive hindsight boosts.
+2020
+Anthony Edwards, James Wiseman and LaMelo Ball form the clear top tier.
+Edwards has the highest overall grade, but the class still reflects the real uncertainty around the No. 1 decision.
+Patrick Williams, Isaac Okoro, Onyeka Okongwu, Killian Hayes and Obi Toppin remain strong lottery prospects.
+Tyrese Haliburton, Tyrese Maxey and Desmond Bane stay much closer to where they were viewed at the time.
 
 PIPELINE
-Historical classes available: 1977–2016.
-Next missing class: 2017.
+Historical classes available: 1977–2020.
+Next missing class: 2021.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
