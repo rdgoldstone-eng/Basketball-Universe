@@ -164,6 +164,9 @@ pre{white-space:pre-wrap}
 .healthRow{display:grid;grid-template-columns:minmax(150px,1fr) 90px 90px 100px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 @media(max-width:650px){.healthRow{grid-template-columns:minmax(135px,1fr) 80px 80px}.healthHide{display:none}}
 .statusHealthy{color:#57c785}.statusRisk{color:#f0b44d}.statusOut{color:#ef6b73}
+
+.historyRow{display:grid;grid-template-columns:90px minmax(160px,1fr) minmax(160px,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.honorBadge{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:800}
 </style>
 </head>
 <body>
@@ -178,7 +181,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.25 · Injuries & Fatigue</div>
+    <div class="pill">v0.26 · Awards & League History</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -255,6 +258,7 @@ pre{white-space:pre-wrap}
     <button data-tab="playoffs">Playoffs</button>
     <button data-tab="players">Players</button>
     <button data-tab="healthcenter">Health</button>
+    <button data-tab="history">History</button>
     <button data-tab="career">Career</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
@@ -361,6 +365,28 @@ pre{white-space:pre-wrap}
     <div class="card"><h2>Playoff Game Log</h2><div id="playoffGameLog" class="muted">The playoffs have not started.</div></div>
   </section>
 
+
+
+  <section id="history" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Season Honors</h2>
+        <div id="seasonHonorsBox" class="muted">No completed season honors yet.</div>
+      </div>
+      <div class="card">
+        <h2>All-Star History</h2>
+        <div id="allStarHistoryBox" class="muted">No All-Star selections yet.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Champions</h2>
+      <div id="championsHistoryBox" class="muted">No champions recorded yet.</div>
+    </div>
+    <div class="card">
+      <h2>League Records & Milestones</h2>
+      <div id="recordsHistoryBox" class="muted">No records recorded yet.</div>
+    </div>
+  </section>
 
   <section id="healthcenter" class="section">
     <div class="grid2">
@@ -1307,6 +1333,7 @@ function renderAll(){
  renderPlayerCareer();
  renderCareerPage();
  renderHealthCenter();
+ renderLeagueHistory();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2141,6 +2168,86 @@ document.addEventListener("change",e=>{
 });
 
 
+
+// ----- Awards, All-Star & League History v0.26 -----
+function ensureLeagueHistory(){
+ if(!state)return;
+ state.history=state.history||{seasons:[],champions:[],allStars:[],records:[]};
+}
+function playerSeasonScore(p){
+ let games=p.stats?.gp||p.gp||0;
+ let pts=p.stats?.pts||p.pts||0,reb=p.stats?.reb||p.reb||0,ast=p.stats?.ast||p.ast||0;
+ let ppg=games?pts/games:0,rpg=games?reb/games:0,apg=games?ast/games:0;
+ return (p.ovr||60)*.6+ppg*1.6+rpg*.6+apg*.8;
+}
+function chooseSeasonAwardWinner(filterFn){
+ let pool=state.players.filter(p=>!p.retired&&!p.deferredEntry&&(filterFn?filterFn(p):true));
+ if(!pool.length)return null;
+ return pool.sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0]||null;
+}
+function chooseAllStars(){
+ ensureLeagueHistory();
+ let year=state.currentYear;
+ if(state.history.allStars.some(x=>x.year===year))return;
+ let eastTeams=new Set(state.teams.filter(t=>t.conf==="East").map(t=>t.name));
+ let westTeams=new Set(state.teams.filter(t=>t.conf==="West").map(t=>t.name));
+ function side(pool){
+   return pool.filter(p=>!p.retired&&!p.deferredEntry).sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a)).slice(0,12).map(p=>p.name);
+ }
+ let east=side(state.players.filter(p=>eastTeams.has(p.teamName)));
+ let west=side(state.players.filter(p=>westTeams.has(p.teamName)));
+ state.history.allStars.push({year,east,west});
+ state.news.push({year,title:"All-Star selections",text:`The ${year} All-Star rosters have been selected.`});
+}
+function recordSeasonHonors(){
+ ensureLeagueHistory();
+ let year=state.currentYear;
+ if(state.history.seasons.some(x=>x.year===year))return;
+ let mvp=chooseSeasonAwardWinner();
+ let rookie=chooseSeasonAwardWinner(p=>(p.age||99)<=23);
+ let dpoy=chooseSeasonAwardWinner(p=>(p.pos==="C"||p.pos==="PF"||p.pos==="SF"));
+ let sixth=chooseSeasonAwardWinner(p=>!p.starter);
+ let champion=state.playoffs?.champion||state.season?.champion||null;
+ let finalsMvp=state.playoffs?.finalsMVP||state.playoffs?.finalsMvp||null;
+ let season={year,mvp:mvp?.name||null,rookie:rookie?.name||null,dpoy:dpoy?.name||null,sixth:sixth?.name||null,champion,finalsMvp:finalsMvp?.name||finalsMvp||null};
+ state.history.seasons.push(season);
+ if(champion)state.history.champions.push({year,team:champion,finalsMvp:season.finalsMvp});
+ if(mvp){mvp.awards=mvp.awards||[];mvp.awards.push(`${year} MVP`);}
+ if(rookie){rookie.awards=rookie.awards||[];rookie.awards.push(`${year} Rookie of the Year`);}
+ state.news.push({year,title:"Season awards",text:`${mvp?.name||"A league star"} wins MVP${champion?`; ${champion} wins the championship`:""}.`});
+ updateLeagueRecords(year);
+}
+function updateLeagueRecords(year){
+ ensureLeagueHistory();
+ let candidates=[];
+ state.players.forEach(p=>{
+   let games=p.stats?.gp||p.gp||0;
+   if(!games)return;
+   let pts=p.stats?.pts||p.pts||0,reb=p.stats?.reb||p.reb||0,ast=p.stats?.ast||p.ast||0;
+   candidates.push({type:"PPG",value:pts/games,player:p.name,year});
+   candidates.push({type:"RPG",value:reb/games,player:p.name,year});
+   candidates.push({type:"APG",value:ast/games,player:p.name,year});
+ });
+ ["PPG","RPG","APG"].forEach(type=>{
+   let best=candidates.filter(x=>x.type===type).sort((a,b)=>b.value-a.value)[0];
+   if(!best)return;
+   let old=state.history.records.find(x=>x.type===type);
+   if(!old||best.value>old.value){
+     state.history.records=state.history.records.filter(x=>x.type!==type);
+     state.history.records.push(best);
+   }
+ });
+}
+function renderLeagueHistory(){
+ if(!state)return;ensureLeagueHistory();
+ let sh=document.getElementById("seasonHonorsBox"),ah=document.getElementById("allStarHistoryBox"),ch=document.getElementById("championsHistoryBox"),rh=document.getElementById("recordsHistoryBox");
+ if(!sh)return;
+ sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
+ ah.innerHTML=state.history.allStars.length?state.history.allStars.slice().reverse().map(a=>`<div class="historyRow"><b>${a.year}</b><div><b>East</b><div class="small muted">${a.east.join(", ")}</div></div><div><b>West</b><div class="small muted">${a.west.join(", ")}</div></div></div>`).join(""):`<span class="muted">No All-Star selections yet.</span>`;
+ ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}</b><div><b>${c.team}</b></div><div>${c.finalsMvp?`Finals MVP: ${c.finalsMvp}`:""}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
+ rh.innerHTML=state.history.records.length?state.history.records.map(r=>`<div class="historyRow"><b>${r.type}</b><div><b>${r.player}</b></div><div>${r.value.toFixed(1)} · ${r.year}</div></div>`).join(""):`<span class="muted">No records recorded yet.</span>`;
+}
+
 // ----- Injuries & Fatigue engine v0.25 -----
 function ensureHealthSystem(){
  if(!state)return;
@@ -2748,7 +2855,7 @@ function buildNextPlayoffRound(){
    ps.series.push(playoffSeriesObj(teamById(e.winnerId),teamById(w.winnerId),"NBA Finals","Finals",7));ps.round=4;
  }else if(ps.round===4){
    let f=ps.series.find(s=>s.round==="NBA Finals");
-   ps.championId=f.winnerId;state.season.champion=teamById(f.winnerId).name;state.season.phase="Season Complete";
+   ps.championId=f.winnerId;state.season.champion=teamById(f.winnerId).name;state.season.phase="Season Complete";recordSeasonHonors();
    state.season.postseason=ps.series.filter(s=>s.complete).map(s=>`${s.round}: ${teamById(s.winnerId).name} won ${Math.max(s.aw,s.bw)}-${Math.min(s.aw,s.bw)}`);
    updateFranchiseHealthAfterSeason();maybeCreateRelocationDecision();
    chooseFinalsMvp();

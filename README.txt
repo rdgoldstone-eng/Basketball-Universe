@@ -1,24 +1,18 @@
-v0.25 Basketball Universe — Injuries & Fatigue
+v0.26 Basketball Universe — Awards, All-Star & League History
 
-LEAGUE-WIDE HEALTH SYSTEM
-- Every player now tracks fatigue, health status, injury type and games remaining.
-- High minutes and heavy starter workloads increase fatigue.
-- Fatigue slightly lowers performance and increases injury risk.
-- Injuries range from day-to-day soreness to multi-week absences.
-- Players recover over time and return to availability automatically.
-- Team strength now reacts to injuries/fatigue rather than treating every roster as fully healthy.
-- Playoff games also generate fatigue and injury risk.
+NEW HISTORY SYSTEM
+- New History tab
+- Season MVP
+- Rookie of the Year
+- Defensive Player of the Year
+- Sixth Man of the Year
+- Champions and Finals MVP history
+- All-Star selections by conference
+- Persistent league records for PPG, RPG and APG
+- Award winners receive accomplishments on their player record
+- History persists across seasons so the alternate universe develops its own legacy
 
-ROLE DIFFERENCES
-- Coach can receive injury/rotation decisions.
-- GM can receive depth/trade-response decisions.
-- Owner can receive spend/stay-course decisions.
-- Player Mode keeps its personal play-through/rest/limited-minutes choices.
-- Commissioner can observe league-wide health without controlling a roster.
-
-NEW HEALTH TAB
-- League injury report
-- Fatigue watch
-- Controlled-team roster health
+IMPORTANT PHILOSOPHY
+Awards are based on simulated production and player quality in this universe, not real-life hindsight.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.
