@@ -1,17 +1,24 @@
-v0.42.1 Basketball Universe — Era Dropdown Cleanup
+v0.42.2 Basketball Universe — Start Era Alignment
 
-UI CLEANUP
-- Replaced the always-visible five-era list with a compact Era Guide dropdown.
-- Selecting an era shows only that era's date range and status.
-- Removed the redundant era explanation under the start-year selector.
-- Historical identity and logo framework behavior is unchanged.
+STARTING ERA CLEANUP
+The Starting Era dropdown now matches the official Era Guide exactly:
 
-Era definitions remain:
-- The Founding Era — 1946-47 to 1966-67
-- ABA Rivalry Era — 1967-68 to 1975-76
-- Merger Era — 1976-77 to 1987-88
-- Expansion Era — 1988-89 to 2003-04
-- Realignment Era — 2004-05 onward
+- 1946 — The Founding Era
+- 1967 — ABA Rivalry Era
+- 1976 — Merger Era
+- 1988 — Expansion Era
+- 2004 — Realignment Era
+
+Each selection starts at the first season of that era:
+1946-47, 1967-68, 1976-77, 1988-89, or 2004-05.
+
+ERA GUIDE SYNC
+- Changing the Starting Era automatically changes the Era Guide to the same era.
+- Custom league-file start years also update the Era Guide automatically.
+
+DATA STATUS
+- 1976 Merger Era remains the fully playable historical starting data set.
+- The other era choices are now correctly structured in the UI and ready for their future historical team/player/logo data packs.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
