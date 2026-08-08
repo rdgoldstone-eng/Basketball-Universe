@@ -211,6 +211,11 @@ pre{white-space:pre-wrap}
 .offseasonStepRow .offseasonStep{margin:0}
 
 .nav button:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
+
+.careerSeasonRow{display:grid;grid-template-columns:88px minmax(150px,1fr) repeat(5,64px);gap:7px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.careerSeasonRow.header{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800}
+.transactionRow{padding:8px 0;border-bottom:1px solid var(--line)}
+@media(max-width:760px){.careerSeasonRow{grid-template-columns:75px minmax(130px,1fr) repeat(3,55px)}.careerHide{display:none}}
 </style>
 </head>
 <body>
@@ -225,7 +230,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.38 · Draft History & Activity</div>
+    <div class="pill">v0.39 · Player Career History</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -2063,6 +2068,7 @@ function runDraft(){
    board=board.filter(x=>x.id!==chosen.id);
    let rookie=convertProspectToPlayer(chosen,team.name,i+1);
    state.players.push(rookie);
+   recordPlayerTransaction(rookie,"Draft",null,team.name,draftYear,`Drafted #${i+1} by ${team.name} in the ${draftYear} NBA Draft.`);
    results.push({pick:i+1,team:team.name,player:chosen.name,pos:chosen.pos,deferred:rookie.deferredEntry});
  });
  state.offseason.draftResults=results;
@@ -2096,6 +2102,7 @@ function runFreeAgencyAI(){
    let candidate=teams[seed%Math.min(8,teams.length)];
    if(candidate && candidate.name!==p.teamName){
       let old=p.teamName;p.teamName=candidate.name;
+      recordPlayerTransaction(p,"Free Agency",old,candidate.name,state.currentYear+1,`${p.name} signed with ${candidate.name} after leaving ${old}.`);
       moves.push(`${p.name}: ${old} → ${candidate.name}`);
    }
    p.faStatus=null;
@@ -2109,6 +2116,8 @@ function beginNextSeason(){
  const oldYear=Number(state.currentYear||state.startYear||1976);
  const newYear=oldYear+1;
  const transitionErrors=[];
+
+ archiveCompletedPlayerSeason(oldYear);
 
  function safeTransitionStep(label,fn){
    try{ fn(); }
@@ -2136,6 +2145,7 @@ function beginNextSeason(){
      p.deferredEntry=false;
      p.rotationMinutes=8;
      p.rookieYear=state.currentYear;
+     recordPlayerTransaction(p,"Joined Team",null,p.teamName,state.currentYear,`${p.name} joined ${p.teamName} after his draft-rights waiting period.`);
      state.news.push({year:state.currentYear,title:"Draft rights arrival",text:`${p.name} has joined ${p.teamName} after being drafted earlier.`});
    }
  });
@@ -4318,6 +4328,7 @@ function makeDraftPick(prospectId){
  }
  newPlayer.contract={years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))};
  state.players.push(newPlayer);
+ recordPlayerTransaction(newPlayer,"Draft",null,team.name,draftYear,`Drafted #${pick.pick} by ${team.name} in the ${draftYear} NBA Draft.`);
  dr.results.push({pick:pick.pick,teamId:team.id,teamName:team.name,playerName:newPlayer.name,pos:newPlayer.pos,ovr:newPlayer.ovr||60,pot:newPlayer.pot||newPlayer.truePotential||newPlayer.ovr||60});
  state.news.push({year:state.currentYear,title:`Draft Pick #${pick.pick}`,text:`${team.name} selects ${p.name}, ${p.pos}.`});
  dr.pickIndex++;
@@ -4434,6 +4445,7 @@ function continueAfterDraft(){
      np.rotationMinutes=0;
      np.faEligible=true;
      state.players.push(np);
+     recordPlayerTransaction(np,"Undrafted",null,"Free Agent",dr.year,`${np.name} went undrafted in ${dr.year}.`);
    });
  }
  saveCompletedDraftToHistory();
@@ -4761,6 +4773,7 @@ function initPlayersIfNeeded(){
  }
  ensureRookieSeasons();
  state.players.forEach(p=>{
+   ensurePlayerCareerHistory(p);
    if(!p.sim)p.sim={gp:0,min:0,pts:0,reb:0,ast:0};
    if(p.rotationMinutes==null)p.rotationMinutes=12;
    if(p.starter==null)p.starter=false;
@@ -4887,18 +4900,52 @@ function renderPlayers(){
 }
 window.showPlayer=function(id){
  let p=playerById(id);if(!p)return;
+ ensurePlayerCareerHistory(p);
+ let totals=careerTotals(p),cg=totals.gp||0;
+ let seasons=p.careerSeasons.slice();
+ if(p.stats?.gp>0&&!seasons.some(x=>Number(x.year)===Number(p.stats.season))){
+   seasons.push({year:p.stats.season,team:p.teamName,age:p.age,gp:p.stats.gp,min:p.stats.min,pts:p.stats.pts,reb:p.stats.reb,ast:p.stats.ast,stl:p.stats.stl,blk:p.stats.blk,ovr:p.ovr,starter:!!p.starter,current:true});
+ }
+ seasons.sort((a,b)=>b.year-a.year);
+
+ let draftLine=p.draftYear
+   ? `${p.draftYear} Draft${p.draftPick?` · Pick #${p.draftPick}`:p.undrafted?" · Undrafted":""}${p.draftRightsTeam?` · ${p.draftRightsTeam}`:""}`
+   : "Entered before tracked draft history";
+
+ let historical=p.historical||{};
+ let reference=historical.g
+   ? `<h3 style="margin-top:16px">Starting Reference Profile</h3><div class="small muted">${historical.g} reference GP · ${historical.mpg??"—"} MPG · ${playerPer36Profile(p).pts36.toFixed?.(1)??playerPer36Profile(p).pts36} PTS/36 · ${playerPer36Profile(p).reb36.toFixed?.(1)??playerPer36Profile(p).reb36} REB/36 · ${playerPer36Profile(p).ast36.toFixed?.(1)??playerPer36Profile(p).ast36} AST/36</div>`
+   : "";
+
  document.getElementById("playerProfile").innerHTML=`
- <div class="pill">${p.teamName}</div><h2 style="margin-top:8px">${p.name}</h2>
- <div class="muted">${p.pos} · Age ${p.age??"—"} · ${p.starter?"Starter":"Rotation player"}</div>
+ <div class="pill">${p.retired?"Retired":p.teamName}</div><h2 style="margin-top:8px">${p.name}</h2>
+ <div class="muted">${p.pos} · Age ${p.age??"—"} · ${p.retired?"Retired":p.starter?"Starter":"Rotation player"}</div>
+ <div class="small muted" style="margin-top:5px">${draftLine}</div>
+
  <div class="playerDetailGrid">
-  ${[["OVR",p.ovr],["POT",p.pot],["SCOR",p.scoring],["SHOOT",p.shooting],["PASS",p.passing],["REB",p.rebounding],["DEF",p.defense]]
-    .map(x=>`<div class="kpi"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}
+  ${[["OVR",p.ovr],["POT",p.pot??p.truePotential],["SCOR",p.scoring],["SHOOT",p.shooting],["PASS",p.passing],["REB",p.rebounding],["DEF",p.defense]]
+    .map(x=>`<div class="kpi"><b>${x[1]??"—"}</b><span>${x[0]}</span></div>`).join("")}
  </div>
- <h3 style="margin-top:16px">Simulated Season</h3>
- <div class="small">${p.sim.gp} GP · ${statPerGame(p,"pts").toFixed(1)} PPG · ${statPerGame(p,"reb").toFixed(1)} RPG · ${statPerGame(p,"ast").toFixed(1)} APG</div>
- <h3 style="margin-top:16px">1976-77 Reference Profile</h3>
- <div class="small muted">${p.historical.g} real-season GP · ${p.historical.mpg} MPG · ${playerPer36Profile(p).pts36} PTS/36 · ${playerPer36Profile(p).reb36} REB/36 · ${playerPer36Profile(p).ast36} AST/36 · PER ${p.historical.per}</div>
- <div class="small muted" style="margin-top:10px">Game ratings are derived from historical performance with small-sample shrinkage. Potential is age-based and does not use future career outcomes.</div>`;
+
+ <h3 style="margin-top:16px">Career Totals</h3>
+ <div class="grid4">
+   <div class="careerMetric"><b>${cg}</b><div class="small muted">GP</div></div>
+   <div class="careerMetric"><b>${cg?(totals.pts/cg).toFixed(1):"0.0"}</b><div class="small muted">PPG</div></div>
+   <div class="careerMetric"><b>${cg?(totals.reb/cg).toFixed(1):"0.0"}</b><div class="small muted">RPG</div></div>
+   <div class="careerMetric"><b>${cg?(totals.ast/cg).toFixed(1):"0.0"}</b><div class="small muted">APG</div></div>
+ </div>
+
+ <h3 style="margin-top:16px">Season-by-Season</h3>
+ <div class="careerSeasonRow header"><div>Season</div><div>Team</div><div>GP</div><div>PPG</div><div>RPG</div><div class="careerHide">APG</div><div class="careerHide">OVR</div></div>
+ ${seasons.length?seasons.map(s=>`<div class="careerSeasonRow"><div><b>${s.year}-${String((s.year+1)%100).padStart(2,"0")}</b>${s.current?`<div class="small muted">Current</div>`:""}</div><div>${s.team||"—"}</div><div>${s.gp||0}</div><div>${s.gp?((s.pts||0)/s.gp).toFixed(1):"0.0"}</div><div>${s.gp?((s.reb||0)/s.gp).toFixed(1):"0.0"}</div><div class="careerHide">${s.gp?((s.ast||0)/s.gp).toFixed(1):"0.0"}</div><div class="careerHide">${s.ovr??"—"}</div></div>`).join(""):`<div class="small muted">No simulated seasons recorded yet.</div>`}
+
+ <h3 style="margin-top:16px">Awards</h3>
+ <div class="small">${playerAwardsText(p)}</div>
+
+ <h3 style="margin-top:16px">Transactions</h3>
+ <div>${p.transactions.length?p.transactions.slice().reverse().map(t=>`<div class="transactionRow"><b>${t.year}</b> · ${t.text}</div>`).join(""):`<span class="small muted">No tracked transactions yet.</span>`}</div>
+ ${reference}
+ <div class="small muted" style="margin-top:10px">Career history records what happened in this universe; real-world future accomplishments are not used to fill it in.</div>`;
 }
 window.adjustMinutes=function(id,delta){
  let p=playerById(id);if(!p)return;
@@ -4918,6 +4965,66 @@ const teamPower1976 = {
 "Los Angeles Lakers":74,"New Orleans Jazz":58,"Phoenix Suns":72,"Portland Trail Blazers":76,
 "San Antonio Spurs":73,"Seattle SuperSonics":71
 };
+
+
+function ensurePlayerCareerHistory(p){
+ if(!p)return;
+ if(!Array.isArray(p.careerSeasons))p.careerSeasons=[];
+ if(!Array.isArray(p.transactions))p.transactions=[];
+}
+
+function archiveCompletedPlayerSeason(year){
+ if(!state?.players)return;
+ state.players.forEach(p=>{
+   ensurePlayerCareerHistory(p);
+   let s=p.stats;
+   if(!s||Number(s.season)!==Number(year)||!(s.gp>0))return;
+   if(p.careerSeasons.some(x=>Number(x.year)===Number(year)))return;
+
+   p.careerSeasons.push({
+     year:Number(year),
+     team:p.teamName,
+     age:p.age??null,
+     gp:s.gp||0,
+     min:s.min||0,
+     pts:s.pts||0,
+     reb:s.reb||0,
+     ast:s.ast||0,
+     stl:s.stl||0,
+     blk:s.blk||0,
+     ovr:p.ovr??null,
+     starter:!!p.starter
+   });
+ });
+}
+
+function careerTotals(p){
+ ensurePlayerCareerHistory(p);
+ let seasons=p.careerSeasons.slice();
+ // Include the active season without permanently archiving it yet.
+ if(p.stats?.gp>0 && !seasons.some(x=>Number(x.year)===Number(p.stats.season))){
+   seasons.push({
+     year:p.stats.season,team:p.teamName,age:p.age,gp:p.stats.gp,min:p.stats.min,
+     pts:p.stats.pts,reb:p.stats.reb,ast:p.stats.ast,stl:p.stats.stl,blk:p.stats.blk,ovr:p.ovr,starter:!!p.starter
+   });
+ }
+ return seasons.reduce((a,s)=>{
+   a.gp+=s.gp||0;a.min+=s.min||0;a.pts+=s.pts||0;a.reb+=s.reb||0;a.ast+=s.ast||0;a.stl+=s.stl||0;a.blk+=s.blk||0;
+   return a;
+ },{gp:0,min:0,pts:0,reb:0,ast:0,stl:0,blk:0});
+}
+
+function recordPlayerTransaction(p,type,from,to,year,text){
+ if(!p)return;
+ ensurePlayerCareerHistory(p);
+ p.transactions.push({year:Number(year??state.currentYear),type,from:from||null,to:to||null,text:text||`${type}: ${from||"—"} → ${to||"—"}`});
+}
+
+function playerAwardsText(p){
+ let a=p.awards||[];
+ if(!a.length)return "No awards yet.";
+ return a.map(x=>typeof x==="string"?x:`${x.year} ${x.type}`).join(" · ");
+}
 
 function initSeasonIfNeeded(){
  initPlayersIfNeeded();
