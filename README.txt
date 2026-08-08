@@ -1,24 +1,27 @@
-v0.42.2 Basketball Universe — Start Era Alignment
+v0.43 Basketball Universe — Merger Era Real Logos
 
-STARTING ERA CLEANUP
-The Starting Era dropdown now matches the official Era Guide exactly:
+REAL HISTORICAL LOGOS
+The 1976-77 starting league now resolves to real period primary-logo artwork for all 22 starting franchises:
+Atlanta, Boston, Buffalo, Chicago, Cleveland, Denver, Detroit, Golden State, Houston, Indiana, Kansas City, LA Lakers, Milwaukee, New Orleans, New York Knicks, New York Nets, Philadelphia, Phoenix, Portland, San Antonio, Seattle, and Washington.
 
-- 1946 — The Founding Era
-- 1967 — ABA Rivalry Era
-- 1976 — Merger Era
-- 1988 — Expansion Era
-- 2004 — Realignment Era
+LOGO PRIORITY FIX
+Historical logo assets now take priority over generated placeholders already saved by older game versions.
+Generated logos remain automatic fallbacks if a historical image cannot load.
 
-Each selection starts at the first season of that era:
-1946-47, 1967-68, 1976-77, 1988-89, or 2004-05.
+LOGO BROWSER
+A new Logo Browser tab lets you:
+- review every team logo in one screen
+- choose a Merger Era season year
+- see which identities currently have a real historical asset vs fallback artwork
+- visually audit the pack as more year-specific identities are added
 
-ERA GUIDE SYNC
-- Changing the Starting Era automatically changes the Era Guide to the same era.
-- Custom league-file start years also update the Era Guide automatically.
+THIS IS THE FIRST PACK
+v0.43 establishes the 1976-77 real-logo baseline.
+Next logo work should add each actual identity/logo change that occurs from 1977-78 through 1987-88 rather than forcing the 1976 logo forever.
 
-DATA STATUS
-- 1976 Merger Era remains the fully playable historical starting data set.
-- The other era choices are now correctly structured in the UI and ready for their future historical team/player/logo data packs.
+SOURCE / RIGHTS NOTE
+Historical date research and image delivery in this private build use SportsLogos.Net pages/CDN as a research source.
+Team names, logos, and trademarks remain property of their respective organizations.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
