@@ -267,6 +267,10 @@ pre{white-space:pre-wrap}
 .retiredNumberBadge{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);font-weight:900;font-size:20px}
 .legendTier{font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:900}
 @media(max-width:650px){.franchiseRecordRow{grid-template-columns:minmax(130px,1fr) 100px}.franchiseRecordHide{display:none}}
+
+.crossroadRow{padding:10px 0;border-bottom:1px solid var(--line)}
+.crossroadStatus{display:inline-block;padding:3px 7px;border:1px solid var(--line);border-radius:999px;font-size:10px;font-weight:800;margin-left:6px}
+.crossroadPending{color:#f0b44d}.crossroadChanged{color:#57c785}.crossroadStayed{color:#7eb6ff}.crossroadNA{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -281,7 +285,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.45 · Rookie Simulation & 1988 Draft</div>
+    <div class="pill">v0.46 · Historical Crossroads</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -548,6 +552,11 @@ pre{white-space:pre-wrap}
     <div class="card">
       <h2>League Records & Milestones</h2>
       <div id="recordsHistoryBox" class="muted">No records recorded yet.</div>
+    </div>
+    <div class="card">
+      <h2>Historical Crossroads</h2>
+      <p class="small muted">Real historical pressure points return at the appropriate time, but the simulated universe decides whether history repeats, changes, or never becomes a crisis.</p>
+      <div id="historicalCrossroadsBox" class="muted">No historical crossroads evaluated yet.</div>
     </div>
   </section>
 
@@ -1726,6 +1735,7 @@ function showGame(){
  initPlayersIfNeeded();
  initManagementIfNeeded();
  initFranchiseHealth();
+ ensureHistoricalCrossroads();
  initExpansionBids();
  document.getElementById("setupView").classList.add("hidden");
  document.getElementById("gameView").classList.remove("hidden");
@@ -2268,6 +2278,7 @@ function renderHallOfFame(){
 
 function renderAll(){
  initPlayersIfNeeded();
+ evaluateHistoricalCrossroads();
  renderTeams(); renderDecisions(); renderIdentities(); renderNews(); renderPlayers(); renderOffseason(); renderLeagueOffice(); renderFranchiseHealth(); renderExpansionDraft(); renderExpansionBids();
  document.getElementById("decisionKpi").textContent=(viewerMode()?0:state.decisions.filter(d=>!d.resolved).length);
  saveState();
@@ -2275,6 +2286,7 @@ function renderAll(){
  renderCareerPage();
  renderHealthCenter();
  renderLeagueHistory();
+ renderHistoricalCrossroads();
  renderDraftRoom();
  renderFrontOffice();
  renderCoaching();
@@ -2620,6 +2632,286 @@ function renderNews(){
  document.getElementById("newsBox").innerHTML=state.news.slice().reverse().map(n=>`
  <div class="teamrow"><div class="teammeta"><b>${n.year}: ${n.title}</b><span class="small muted">${n.text}</span></div></div>`).join("");
 }
+
+const historicalCrossroadDefinitions=[
+ {
+   id:"pacers_1977_survival",
+   historicalYear:1977,
+   title:"1977 Pacers Survival Crisis",
+   franchiseNames:["Indiana Pacers"],
+   description:"Indiana reaches the historical moment when the franchise's financial survival was in doubt. The universe now evaluates whether a community rescue is actually needed.",
+   choices:["Launch the community telethon","Seek a private rescue package","Cut costs and ride it out","Explore a sale or relocation"]
+ },
+ {
+   id:"braves_1978_san_diego",
+   historicalYear:1978,
+   title:"1978 Buffalo Braves Relocation Review",
+   franchiseNames:["Buffalo Braves"],
+   description:"Buffalo reaches its historical relocation crossroads. San Diego is available, but the Braves' simulated success, attendance, finances, fan support, and stability determine how serious the move becomes.",
+   choices:["Stay in Buffalo","Apply to move to San Diego","Delay the decision one year"]
+ },
+ {
+   id:"clippers_1984_la_move",
+   historicalYear:1984,
+   title:"1984 Clippers Los Angeles Move",
+   franchiseNames:["San Diego Clippers"],
+   description:"If the Braves-to-Clippers franchise is in San Diego, ownership reaches the historical moment when a move to Los Angeles could be attempted even without normal league approval.",
+   choices:["Remain in San Diego","Seek league approval for Los Angeles","Move to Los Angeles without league approval"]
+ }
+];
+
+function ensureHistoricalCrossroads(){
+ if(!state)return;
+ state.historicalCrossroads=state.historicalCrossroads||[];
+}
+
+function crossroadTeam(def){
+ let names=new Set(def.franchiseNames||[]);
+ let direct=state.teams.find(t=>names.has(t.name));
+ if(direct)return direct;
+ ensureFranchiseHistory();
+ return state.teams.find(t=>{
+   let hist=state.franchiseHistory?.[t.id]?.identityEvents||[];
+   return hist.some(e=>names.has(e.name)||names.has(e.oldName));
+ });
+}
+
+function crossroadMetrics(team){
+ initFranchiseHealth();
+ let h=state.franchiseHealth?.[team.id]||{attendance:70,stability:70,fanSupport:70,relocationPressure:0};
+ let winPct=(team.gp||0)?team.w/team.gp:.5;
+ let cash=25,trust=65,arena=65;
+ try{
+   ensureOwnership();
+   let o=ownerData(team.id);
+   cash=Number(o.cash??25);trust=Number(o.publicTrust??65);arena=Number(o.arenaQuality??65);
+ }catch(e){}
+ return {attendance:Number(h.attendance||70),stability:Number(h.stability||70),fanSupport:Number(h.fanSupport||70),relocationPressure:Number(h.relocationPressure||0),winPct,cash,trust,arena};
+}
+
+function historicalCrossroadScore(def,team){
+ let m=crossroadMetrics(team);
+ if(def.id==="pacers_1977_survival"){
+   return Math.round((70-m.attendance)*.8+(65-m.stability)*.8+(15-m.cash)*1.6+(0.42-m.winPct)*35);
+ }
+ if(def.id==="braves_1978_san_diego"){
+   return Math.round(m.relocationPressure+(70-m.attendance)*.5+(65-m.stability)*.5+(0.40-m.winPct)*20);
+ }
+ if(def.id==="clippers_1984_la_move"){
+   return Math.round(m.relocationPressure+(68-m.attendance)*.6+(60-m.stability)*.4+(18-m.cash)*.8);
+ }
+ return 0;
+}
+
+function crossroadNeedsHumanDecision(def,team,score){
+ if(viewerMode())return false;
+ if(state.role==="Commissioner")return true;
+ if(state.role==="Owner" && state.controlledTeamId===team.id)return true;
+ return false;
+}
+
+function crossroadDecisionText(def,team,score){
+ let m=crossroadMetrics(team);
+ return `${def.description}<br><br><b>Universe check:</b> ${team.name} is ${team.w||0}-${team.l||0}; attendance ${m.attendance}%; fan support ${m.fanSupport}; stability ${m.stability}; relocation pressure ${m.relocationPressure}; franchise cash about $${Math.round(m.cash)}M.<br><br><b>Historical pressure score:</b> ${score}.`;
+}
+
+function queueHistoricalCrossroad(def,team,score){
+ const did="crossroad_"+def.id;
+ if(state.decisions.some(d=>d.id===did))return;
+ state.decisions.push({
+   id:did,kind:"historicalCrossroad",crossroadId:def.id,teamId:team.id,
+   title:def.title,text:crossroadDecisionText(def,team,score),
+   choices:def.choices.slice(),resolved:false
+ });
+}
+
+function historicalIdentityByName(name){
+ return [...(state.identityLibrary||[]),...(state.customIdentities||[])].find(i=>i.name===name)||null;
+}
+
+function crossroadRelocate(team,newIdentityName,historicalYear,note){
+ let identity=historicalIdentityByName(newIdentityName);
+ if(!identity)return false;
+ let old=applyIdentityToTeam(team,identity,historicalYear);
+ ensureFranchiseHistory();
+ state.franchiseHistory[team.id].identityEvents.push({year:historicalYear,type:"Historical Crossroads Relocation",oldName:old,name:identity.name});
+ team.relocationHistory=team.relocationHistory||[];
+ team.relocationHistory.push({year:historicalYear,from:old,to:identity.name,market:identity.market,historicalCrossroad:true});
+ if(state.franchiseHealth?.[team.id]){
+   let h=state.franchiseHealth[team.id];
+   h.attendance=Math.max(72,h.attendance);
+   h.stability=Math.max(70,h.stability);
+   h.fanSupport=Math.max(68,h.fanSupport);
+   h.relocationPressure=0;
+ }
+ state.news.push({year:historicalYear,title:"Historical crossroads changes franchise history",text:note||`${old} became ${identity.name}.`});
+ applyHistoricalIdentityAssets();
+ return true;
+}
+
+function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
+ ensureHistoricalCrossroads();
+ let score=historicalCrossroadScore(def,team);
+ let m=crossroadMetrics(team);
+ let result=choice,cls="crossroadChanged";
+
+ if(def.id==="pacers_1977_survival"){
+   let o=null;try{ensureOwnership();o=ownerData(team.id);}catch(e){}
+   if(choice==="Launch the community telethon"){
+     let response=Math.round((m.fanSupport+m.trust)/2);
+     if(o)o.cash+=response>=70?14:response>=55?8:4;
+     if(state.franchiseHealth?.[team.id]){
+       state.franchiseHealth[team.id].fanSupport=Math.min(100,m.fanSupport+(response>=60?8:3));
+       state.franchiseHealth[team.id].stability=Math.min(100,m.stability+(response>=60?10:4));
+     }
+     result=response>=60?"The telethon succeeds and materially strengthens the Pacers' survival.":"The telethon helps, but the franchise remains financially fragile.";
+   }else if(choice==="Seek a private rescue package"){
+     if(o)o.cash+=10;
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+7);
+     result="Private financing keeps Indiana alive without relying entirely on the public campaign.";
+   }else if(choice==="Cut costs and ride it out"){
+     if(o)o.cash+=5;
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].fanSupport=Math.max(30,m.fanSupport-5);
+     result="Indiana survives the immediate crunch through austerity, at some cost to fan confidence.";
+   }else{
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.min(100,m.relocationPressure+25);
+     result="The Pacers begin exploring a sale or relocation instead of relying on the historical rescue path.";
+   }
+ }else if(def.id==="braves_1978_san_diego"){
+   if(choice==="Apply to move to San Diego"){
+     if(crossroadRelocate(team,"San Diego Clippers",1978,"Buffalo's 1978 review ends with the Braves relocating to San Diego and becoming the Clippers.")){
+       result="The simulated conditions support the move: Buffalo relocates to San Diego and becomes the Clippers.";
+     }else result="San Diego was selected, but the historical identity asset was unavailable.";
+   }else if(choice==="Delay the decision one year"){
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-5);
+     result="Buffalo postpones the relocation question. The franchise remains under observation.";
+     cls="crossroadStayed";
+   }else{
+     if(state.franchiseHealth?.[team.id]){
+       state.franchiseHealth[team.id].stability=Math.min(100,m.stability+6);
+       state.franchiseHealth[team.id].fanSupport=Math.min(100,m.fanSupport+5);
+       state.franchiseHealth[team.id].relocationPressure=Math.max(0,m.relocationPressure-20);
+     }
+     result="The Braves reject the San Diego path and remain in Buffalo.";
+     cls="crossroadStayed";
+   }
+ }else if(def.id==="clippers_1984_la_move"){
+   if(choice==="Move to Los Angeles without league approval"){
+     if(crossroadRelocate(team,"Los Angeles Clippers",1984,"San Diego ownership makes the extraordinary 1984 move to Los Angeles without following the normal approval path.")){
+       result="Ownership makes the bold unauthorized move to Los Angeles. The relocation stands for now, creating a league controversy.";
+     }else result="The unauthorized move was attempted, but the Los Angeles identity was unavailable.";
+   }else if(choice==="Seek league approval for Los Angeles"){
+     if(score>=45){
+       crossroadRelocate(team,"Los Angeles Clippers",1984,"The Clippers seek league approval and ultimately relocate to Los Angeles through the formal process.");
+       result="The league process leads to an approved Los Angeles relocation.";
+     }else{
+       result="The Clippers explore Los Angeles but the case is not strong enough; they remain in San Diego.";
+       cls="crossroadStayed";
+     }
+   }else{
+     result="Ownership chooses to remain in San Diego rather than recreate the historical Los Angeles move.";
+     cls="crossroadStayed";
+   }
+ }
+
+ let entry={
+   id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,
+   teamAtEvaluation:team.name,score,choice,outcome:result,automatic,cssClass:cls
+ };
+ let old=state.historicalCrossroads.findIndex(x=>x.id===def.id);
+ if(old>=0)state.historicalCrossroads[old]=entry; else state.historicalCrossroads.push(entry);
+ state.news.push({year:def.historicalYear,title:def.title,text:result});
+ return entry;
+}
+
+function autoHistoricalCrossroadChoice(def,team,score){
+ let m=crossroadMetrics(team);
+ if(def.id==="pacers_1977_survival"){
+   if(score<5)return "Cut costs and ride it out";
+   if(m.fanSupport>=60)return "Launch the community telethon";
+   if(m.cash<8)return "Seek a private rescue package";
+   return "Cut costs and ride it out";
+ }
+ if(def.id==="braves_1978_san_diego"){
+   if(score>=55)return "Apply to move to San Diego";
+   if(score>=35)return "Delay the decision one year";
+   return "Stay in Buffalo";
+ }
+ if(def.id==="clippers_1984_la_move"){
+   // Bold unauthorized move becomes possible only if the franchise is under meaningful pressure.
+   if(score>=70 && m.stability<65)return "Move to Los Angeles without league approval";
+   if(score>=45)return "Seek league approval for Los Angeles";
+   return "Remain in San Diego";
+ }
+ return def.choices[0];
+}
+
+function evaluateHistoricalCrossroads(){
+ if(!state||!state.offseason)return;
+ ensureHistoricalCrossroads();
+ const eventYear=Number(state.currentYear)+1;
+ historicalCrossroadDefinitions.filter(d=>d.historicalYear===eventYear).forEach(def=>{
+   if(state.historicalCrossroads.some(x=>x.id===def.id))return;
+   let team=crossroadTeam(def);
+   if(!team){
+     state.historicalCrossroads.push({
+       id:def.id,historicalYear:def.historicalYear,title:def.title,status:"Not applicable",
+       outcome:"This franchise identity/path does not exist in this universe at the historical decision point.",
+       automatic:true,cssClass:"crossroadNA"
+     });
+     return;
+   }
+
+   // 1984 controversy is only relevant if the franchise is actually still the San Diego Clippers.
+   if(def.id==="clippers_1984_la_move" && team.name!=="San Diego Clippers"){
+     state.historicalCrossroads.push({
+       id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,status:"Not applicable",
+       outcome:`The franchise is ${team.name} in 1984, so the San Diego-to-Los Angeles controversy does not arise.`,
+       automatic:true,cssClass:"crossroadNA"
+     });
+     return;
+   }
+
+   let score=historicalCrossroadScore(def,team);
+
+   // If Indiana is healthy enough, history is still evaluated but no rescue campaign is forced.
+   if(def.id==="pacers_1977_survival" && score<0){
+     state.historicalCrossroads.push({
+       id:def.id,historicalYear:1977,title:def.title,teamId:team.id,teamAtEvaluation:team.name,
+       score,status:"Crisis avoided",choice:"No emergency action needed",
+       outcome:"Indiana reaches the historical checkpoint in sound enough condition that the real-life survival crisis never fully develops.",
+       automatic:true,cssClass:"crossroadStayed"
+     });
+     return;
+   }
+
+   if(crossroadNeedsHumanDecision(def,team,score))queueHistoricalCrossroad(def,team,score);
+   else applyHistoricalCrossroadOutcome(def,team,autoHistoricalCrossroadChoice(def,team,score),true);
+ });
+}
+
+function resolveHistoricalCrossroadDecision(decision,choice){
+ let def=historicalCrossroadDefinitions.find(x=>x.id===decision.crossroadId);
+ let team=teamById(decision.teamId);
+ if(!def||!team)return;
+ applyHistoricalCrossroadOutcome(def,team,choice,false);
+}
+
+function renderHistoricalCrossroads(){
+ const box=document.getElementById("historicalCrossroadsBox");
+ if(!box||!state)return;
+ ensureHistoricalCrossroads();
+ let rows=state.historicalCrossroads.slice().sort((a,b)=>b.historicalYear-a.historicalYear);
+ let pending=(state.decisions||[]).filter(d=>d.kind==="historicalCrossroad"&&!d.resolved);
+ let pendingRows=pending.map(d=>{
+   let def=historicalCrossroadDefinitions.find(x=>x.id===d.crossroadId);
+   return `<div class="crossroadRow"><b>${def?.historicalYear||state.currentYear}: ${d.title}</b><span class="crossroadStatus crossroadPending">Pending decision</span><div class="small muted" style="margin-top:4px">This historical crossroads is waiting in the Decision Center.</div></div>`;
+ }).join("");
+ let doneRows=rows.map(x=>`<div class="crossroadRow"><b>${x.historicalYear}: ${x.title}</b><span class="crossroadStatus ${x.cssClass||"crossroadChanged"}">${x.status||x.choice||"Evaluated"}</span><div class="small" style="margin-top:5px">${x.outcome}</div>${Number.isFinite(x.score)?`<div class="small muted">Historical pressure score: ${x.score}</div>`:""}</div>`).join("");
+ box.innerHTML=pendingRows+doneRows||`<div class="muted">No historical crossroads have been reached yet.</div>`;
+}
+window.renderHistoricalCrossroads=renderHistoricalCrossroads;
+
 function renderDecisions(){
  const open=state.decisions.filter(d=>!d.resolved);
  document.getElementById("decisionList").innerHTML=open.length?open.map(d=>`
@@ -2631,7 +2923,8 @@ function renderDecisions(){
 window.resolveDecision=(id,choice)=>{
  const d=state.decisions.find(x=>x.id===id); if(!d)return;
  d.resolved=true; d.result=choice;
- state.news.push({year:state.currentYear,title:d.title,text:`Decision: ${choice}`});
+ if(d.kind==="historicalCrossroad")resolveHistoricalCrossroadDecision(d,choice);
+ else state.news.push({year:state.currentYear,title:d.title,text:`Decision: ${choice}`});
  renderAll();
 };
 function renderIdentities(){

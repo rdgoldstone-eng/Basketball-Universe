@@ -1,30 +1,77 @@
-v0.45 Basketball Universe — Rookie Simulation & 1988 Draft
+v0.46 Basketball Universe — Historical Crossroads
 
-SIMULATION INTEGRITY FIX
-Drafted/generated players were created with an empty historical stat object containing zero per-36 values.
-Because zero is technically a valid number, the simulation could mistake those placeholders for real historical production and give a rookie a near-zero statistical profile.
+NEW CORE PHILOSOPHY
+History determines the question. Basketball Universe determines the answer.
 
-v0.45 fixes that.
+Major real historical franchise pressure points now return at their historical time, but the outcome is evaluated from the alternate universe rather than forced to match reality.
 
-A player's historical per-36 profile is now used only when he actually has a historical sample (games or minutes).
-Otherwise, the game derives his scoring, rebounding, assists, steals, and blocks profile from his ratings and position.
+FIRST THREE CROSSROADS
 
-WHY THIS MATTERS
-- elite prospects can actually produce like elite prospects
-- rookies are no longer suppressed by zero historical placeholders
-- Rookie of the Year races become much healthier
-- alternate-history development is less dependent on real-life future stats
-- Jordan/Olajuwon/etc. still are not hardcoded award winners; they simply get to perform from their simulated ratings
+1977 — Indiana Pacers Survival Crisis
+The game evaluates whether Indiana is actually in enough financial trouble to need a rescue.
+Inputs include team performance, attendance, fan support, stability, ownership cash, and public trust.
+Possible paths include:
+- community telethon
+- private rescue financing
+- cost cutting
+- sale/relocation exploration
+If Indiana is healthy in the alternate universe, the historical crisis can be avoided entirely.
 
-1988 DRAFT CLASS
-The historical pipeline now includes 1988, led by:
-Danny Manning, Rik Smits, Charles Smith, Chris Morris, Mitch Richmond, Hersey Hawkins, Rex Chapman, Rony Seikaly, Rod Strickland, Dan Majerle, and others.
+1978 — Buffalo Braves / San Diego Review
+Buffalo's historical relocation question returns.
+The simulation evaluates attendance, performance, franchise stability, fan support, finances, and relocation pressure.
+The Braves can:
+- remain in Buffalo
+- apply to move to San Diego and become the Clippers
+- postpone the decision
+A successful Buffalo franchise is not forced to leave.
 
-Prospect ratings reflect draft-time perception rather than eventual career hindsight.
+1984 — San Diego Clippers / Los Angeles Controversy
+This event exists only if the franchise actually became the San Diego Clippers in this universe.
+Ownership can:
+- remain in San Diego
+- seek formal league approval for Los Angeles
+- make the bold move to Los Angeles without normal league approval
+If Buffalo never became San Diego, the 1984 event is automatically marked not applicable.
 
-DRAFT PIPELINE HEALTH
-Scouting now shows whether the upcoming historical class is installed.
-If the next class is missing, the game explicitly says so rather than silently recycling the prior year's class.
+ROLE BEHAVIOR
+- Commissioner receives league-level Historical Crossroads decisions.
+- Owner receives a decision when the event involves the team they control.
+- Viewer and roles without decision authority let the universe evaluate the outcome automatically.
+
+HISTORY PAGE
+A new Historical Crossroads section records:
+- event year
+- event
+- historical pressure score
+- decision/outcome
+- events that became irrelevant because earlier alternate history changed the path
+
+PERMANENT ROADMAP — HISTORICAL CROSSROADS
+This first version is only the foundation. The roadmap now permanently includes historical evaluation points for every franchise where applicable:
+- relocations and attempted relocations
+- franchise sales and ownership changes
+- arena disputes and arena-financing crises
+- financial emergencies and community rescue efforts
+- league approval disputes
+- mergers and contraction threats
+- rebrands and identity changes
+- ABA instability and merger-related decisions
+- expansion applications and expansion timing
+- conference/division realignment pressure
+- unusual ownership actions and league litigation
+- franchise-saving local political/community efforts
+
+These events should retain their real historical context but never be predetermined. Simulated success, attendance, finances, ownership, arena conditions, fan support, market strength, and league politics determine what happens.
+
+OTHER PERMANENT PROJECT ITEMS
+- PNG-only logo assets
+- white logo backgrounds with consistent sizing/padding
+- era-correct identities/logos
+- full historical draft pipeline
+- franchise records, legends and retired numbers
+- alternate-history career and league records
+- eventual full Founding, ABA Rivalry, Expansion and Realignment Era data packs
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
