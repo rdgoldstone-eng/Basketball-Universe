@@ -167,6 +167,11 @@ pre{white-space:pre-wrap}
 
 .historyRow{display:grid;grid-template-columns:90px minmax(160px,1fr) minmax(160px,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 .honorBadge{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:800}
+
+.draftProspect{display:grid;grid-template-columns:50px minmax(150px,1fr) 70px 70px 90px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.draftPickRow{display:grid;grid-template-columns:60px minmax(150px,1fr) minmax(150px,1fr) 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.draftOffer{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+@media(max-width:700px){.draftProspect{grid-template-columns:42px minmax(130px,1fr) 60px 60px}.draftHide{display:none}.draftPickRow{grid-template-columns:50px minmax(130px,1fr) minmax(120px,1fr)}}
 </style>
 </head>
 <body>
@@ -181,7 +186,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.26 · Awards & League History</div>
+    <div class="pill">v0.27 · Draft Day</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -260,6 +265,7 @@ pre{white-space:pre-wrap}
     <button data-tab="healthcenter">Health</button>
     <button data-tab="history">History</button>
     <button data-tab="career">Career</button>
+    <button data-tab="draftroom">Draft Room</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
     <button data-tab="bids">Expansion Bids</button>
@@ -448,6 +454,42 @@ pre{white-space:pre-wrap}
     <div class="card"><h2>Career Event</h2><div id="careerEventBox" class="muted">No career event is pending.</div></div>
     <div class="card"><h2>Major Career Decision</h2><div id="majorCareerDecision" class="muted">No major decision is pending.</div></div>
     <div class="card"><h2>Career Timeline</h2><div id="careerTimeline" class="muted">No career history yet.</div></div>
+  </section>
+
+
+  <section id="draftroom" class="section">
+    <div class="grid2">
+      <div class="card">
+        <div class="calendarline">
+          <div>
+            <div class="pill">DRAFT NIGHT</div>
+            <h2 id="draftRoomTitle" style="margin:8px 0 0">Draft Room</h2>
+          </div>
+          <div id="draftClockLabel" class="small muted">Draft not active.</div>
+        </div>
+        <div id="draftOnClockBox" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h2>Team Need</h2>
+        <div id="draftTeamNeed" class="muted">No team on the clock.</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Prospect Board</h2>
+        <div id="draftProspectBoard" class="muted">No draft class loaded.</div>
+      </div>
+      <div class="card">
+        <h2>Trade Offers</h2>
+        <div id="draftTradeOffers" class="muted">No active offers.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Draft Results</h2>
+      <div id="draftResultsBox" class="muted">No picks have been made.</div>
+    </div>
   </section>
 
   <section id="offseason" class="section">
@@ -1334,6 +1376,7 @@ function renderAll(){
  renderCareerPage();
  renderHealthCenter();
  renderLeagueHistory();
+ renderDraftRoom();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2168,6 +2211,164 @@ document.addEventListener("change",e=>{
 });
 
 
+
+
+// ----- Draft Day engine v0.27 -----
+function ensureDraftRoom(){
+ if(!state)return;
+ state.draftRoom=state.draftRoom||{
+   active:false,year:null,pickIndex:0,order:[],available:[],results:[],tradeOffers:[],completed:false
+ };
+}
+function draftClassForCurrentYear(){
+ let y=String(state.currentYear+1);
+ return state.draftClasses?.[y]||state.draftClasses?.[String(state.currentYear)]||[];
+}
+function estimateProspectValue(p){
+ let o=p.ovr||p.rating||60, pot=p.pot||p.potential||o;
+ return o*.65+pot*.35;
+}
+function teamNeedProfile(teamName){
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ let pos=["PG","SG","SF","PF","C"];
+ let avg={};
+ pos.forEach(x=>{
+   let arr=roster.filter(p=>p.pos===x).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,2);
+   avg[x]=arr.length?arr.reduce((s,p)=>s+(p.ovr||50),0)/arr.length:45;
+ });
+ return pos.sort((a,b)=>avg[a]-avg[b]);
+}
+function draftFitScore(teamName,p){
+ let needs=teamNeedProfile(teamName);
+ let needBonus=Math.max(0,10-needs.indexOf(p.pos)*2);
+ let ageBonus=Math.max(0,4-((p.age||21)-19));
+ return estimateProspectValue(p)+needBonus+ageBonus+Math.random()*5;
+}
+function buildDraftOrder(){
+ let teams=state.teams.slice();
+ let wins=t=>t.wins??t.w??0;
+ let losses=t=>t.losses??t.l??0;
+ teams.sort((a,b)=>{
+   let ap=(wins(a)+losses(a))?wins(a)/(wins(a)+losses(a)):0;
+   let bp=(wins(b)+losses(b))?wins(b)/(wins(b)+losses(b)):0;
+   return ap-bp;
+ });
+ return teams.map((t,i)=>({pick:i+1,teamId:t.id,teamName:t.name}));
+}
+function startDraftRoom(){
+ ensureDraftRoom();
+ let cls=draftClassForCurrentYear();
+ if(!cls.length){alert("No draft class is loaded for the next draft.");return;}
+ let dr=state.draftRoom;
+ dr.active=true;dr.completed=false;dr.pickIndex=0;dr.order=buildDraftOrder();
+ dr.available=JSON.parse(JSON.stringify(cls)).map((p,i)=>({...p,draftId:p.id||`draft_${state.currentYear}_${i}`}));
+ dr.results=[];dr.tradeOffers=[];dr.year=state.currentYear+1;
+ generateDraftTradeOffers();
+ renderDraftRoom();saveState();
+}
+function currentDraftPick(){
+ ensureDraftRoom();return state.draftRoom.order[state.draftRoom.pickIndex]||null;
+}
+function currentDraftTeam(){
+ let pick=currentDraftPick();return pick?state.teams.find(t=>t.id===pick.teamId):null;
+}
+function isUserDraftPick(){
+ let pick=currentDraftPick();
+ if(!pick||!state.controlledTeamId)return false;
+ return pick.teamId===state.controlledTeamId&&(state.role==="GM"||state.role==="Owner");
+}
+function generateDraftTradeOffers(){
+ ensureDraftRoom();let dr=state.draftRoom;dr.tradeOffers=[];
+ if(!dr.active||!isUserDraftPick())return;
+ let pick=currentDraftPick();let userTeam=currentDraftTeam();if(!pick||!userTeam)return;
+ let candidates=state.teams.filter(t=>t.id!==userTeam.id).sort(()=>Math.random()-.5).slice(0,3);
+ candidates.forEach((t,i)=>{
+   let later=dr.order.find(x=>x.teamId===t.id&&x.pick>pick.pick);
+   let future=1+Math.floor(Math.random()*2);
+   let text=later?`${t.name} offers pick #${later.pick} plus ${future} future 1st-round pick${future===1?"":"s"}.`:`${t.name} offers ${future+1} future 1st-round picks.`;
+   dr.tradeOffers.push({id:`offer_${pick.pick}_${i}`,fromTeamId:t.id,fromTeamName:t.name,laterPick:later?.pick||null,futurePicks:future,text});
+ });
+}
+function aiDraftChoice(teamName){
+ let dr=state.draftRoom;
+ return dr.available.slice().sort((a,b)=>draftFitScore(teamName,b)-draftFitScore(teamName,a))[0]||null;
+}
+function makeDraftPick(prospectId){
+ ensureDraftRoom();let dr=state.draftRoom,pick=currentDraftPick();if(!dr.active||!pick)return;
+ let p=dr.available.find(x=>x.draftId===prospectId||x.id===prospectId);if(!p)return;
+ let team=state.teams.find(t=>t.id===pick.teamId);if(!team)return;
+ dr.results.push({pick:pick.pick,teamId:team.id,teamName:team.name,playerName:p.name,pos:p.pos,ovr:p.ovr||p.rating||60,pot:p.pot||p.potential||p.ovr||60});
+ dr.available=dr.available.filter(x=>x!==p);
+ let newPlayer={...p,id:p.id||p.draftId,teamName:team.name,age:p.age||21,rookie:true,contract:{years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))}};
+ state.players.push(newPlayer);
+ state.news.push({year:state.currentYear,title:`Draft Pick #${pick.pick}`,text:`${team.name} selects ${p.name}, ${p.pos}.`});
+ dr.pickIndex++;
+ dr.tradeOffers=[];
+ if(dr.pickIndex>=dr.order.length||!dr.available.length){dr.active=false;dr.completed=true;state.news.push({year:state.currentYear,title:"Draft complete",text:`The ${dr.year} draft is complete.`});}
+ else generateDraftTradeOffers();
+ renderAll();saveState();
+}
+function simNextDraftPick(){
+ ensureDraftRoom();let dr=state.draftRoom;if(!dr.active)return;
+ let pick=currentDraftPick(),team=currentDraftTeam();if(!pick||!team)return;
+ if(isUserDraftPick()){alert("You are on the clock.");return;}
+ let p=aiDraftChoice(team.name);if(p)makeDraftPick(p.draftId||p.id);
+}
+function simToUserDraftPick(){
+ ensureDraftRoom();let dr=state.draftRoom;
+ while(dr.active&&!isUserDraftPick()){simNextDraftPick();}
+ renderDraftRoom();
+}
+function acceptDraftTradeOffer(id){
+ ensureDraftRoom();let dr=state.draftRoom,offer=dr.tradeOffers.find(x=>x.id===id),pick=currentDraftPick();
+ if(!offer||!pick||!isUserDraftPick())return;
+ let otherIndex=dr.order.findIndex(x=>x.teamId===offer.fromTeamId&&x.pick>pick.pick);
+ if(otherIndex<0){alert("That team no longer has a later pick available.");return;}
+ let tmp=dr.order[dr.pickIndex].teamId;
+ dr.order[dr.pickIndex].teamId=offer.fromTeamId;
+ dr.order[dr.pickIndex].teamName=offer.fromTeamName;
+ dr.order[otherIndex].teamId=tmp;
+ let user=state.teams.find(t=>t.id===tmp);
+ dr.order[otherIndex].teamName=user?.name||"Your Team";
+ state.news.push({year:state.currentYear,title:"Draft-night trade",text:`${user?.name||"Your team"} moves down from pick #${pick.pick} in a trade with ${offer.fromTeamName}.`});
+ dr.tradeOffers=[];renderAll();saveState();
+}
+function draftGrade(result){
+ let value=(result.ovr*.6+result.pot*.4),slot=result.pick;
+ let expected=78-Math.log(slot+1)*5;
+ let delta=value-expected;
+ return delta>8?"A+":delta>4?"A":delta>0?"B+":delta>-4?"B":delta>-8?"C":"D";
+}
+function renderDraftRoom(){
+ let title=document.getElementById("draftRoomTitle");if(!title)return;
+ ensureDraftRoom();let dr=state.draftRoom;
+ let clock=document.getElementById("draftClockLabel"),on=document.getElementById("draftOnClockBox"),need=document.getElementById("draftTeamNeed"),board=document.getElementById("draftProspectBoard"),offers=document.getElementById("draftTradeOffers"),results=document.getElementById("draftResultsBox");
+ title.textContent=dr.year?`${dr.year} Draft Room`:"Draft Room";
+ if(!dr.active&&!dr.completed){
+   clock.textContent="Draft not active.";
+   on.innerHTML=`<button class="primary" onclick="startDraftRoom()">Start Draft</button>`;
+   need.innerHTML=`<span class="muted">No team on the clock.</span>`;
+ }else if(dr.active){
+   let pick=currentDraftPick(),team=currentDraftTeam();
+   clock.textContent=`Pick #${pick.pick} of ${dr.order.length}`;
+   on.innerHTML=`<h3>${team?.name||"Team"} is on the clock</h3>${isUserDraftPick()?`<div class="pill">YOUR PICK</div><p class="small muted">Choose a prospect or consider a trade offer.</p>`:`<button onclick="simNextDraftPick()">Sim This Pick</button> <button onclick="simToUserDraftPick()">Sim to My Pick</button>`}`;
+   let needs=teamNeedProfile(team?.name||"");
+   need.innerHTML=`<b>Biggest needs:</b><div style="margin-top:8px">${needs.slice(0,3).map((x,i)=>`<span class="honorBadge">${i+1}. ${x}</span>`).join(" ")}</div>`;
+ }else{
+   clock.textContent="Draft complete.";
+   on.innerHTML=`<b>The ${dr.year||""} draft is complete.</b>`;
+   need.innerHTML=`<span class="muted">No team on the clock.</span>`;
+ }
+ let sorted=(dr.available||[]).slice().sort((a,b)=>estimateProspectValue(b)-estimateProspectValue(a)).slice(0,40);
+ board.innerHTML=sorted.length?sorted.map((p,i)=>`<div class="draftProspect"><b>${i+1}</b><div><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"}</div></div><div>OVR ${p.ovr||p.rating||"—"}</div><div>POT ${p.pot||p.potential||"—"}</div><div class="draftHide">${dr.active&&isUserDraftPick()?`<button onclick="makeDraftPick('${p.draftId||p.id}')">Draft</button>`:""}</div></div>`).join(""):`<span class="muted">No prospects remaining.</span>`;
+ offers.innerHTML=dr.tradeOffers?.length?dr.tradeOffers.map(o=>`<div class="draftOffer"><b>${o.fromTeamName}</b><p class="small muted">${o.text}</p><button onclick="acceptDraftTradeOffer('${o.id}')">Accept Offer</button></div>`).join(""):`<span class="muted">${dr.active&&isUserDraftPick()?"No offers yet.":"Trade offers appear when your team is on the clock."}</span>`;
+ results.innerHTML=dr.results?.length?dr.results.slice().reverse().map(r=>`<div class="draftPickRow"><b>#${r.pick}</b><div><b>${r.teamName}</b></div><div>${r.playerName} · ${r.pos}</div><div class="draftHide"><span class="honorBadge">${draftGrade(r)}</span></div></div>`).join(""):`<span class="muted">No picks have been made.</span>`;
+}
+window.startDraftRoom=startDraftRoom;
+window.simNextDraftPick=simNextDraftPick;
+window.simToUserDraftPick=simToUserDraftPick;
+window.makeDraftPick=makeDraftPick;
+window.acceptDraftTradeOffer=acceptDraftTradeOffer;
 
 // ----- Awards, All-Star & League History v0.26 -----
 function ensureLeagueHistory(){
