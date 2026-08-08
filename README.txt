@@ -1,26 +1,30 @@
-v0.34 Basketball Universe — Scouting & Player Development
+v0.35 Basketball Universe — Trade Logic & Draft Picks
 
-NEW SCOUTING TAB
-- Every franchise has scouting quality, development staff, patience and scouting focus.
-- Scouting reports show rating ranges instead of perfect prospect ratings.
-- Better scouting produces narrower OVR/POT ranges and higher confidence.
-- Draft Room now uses scouting estimates for the controlled team rather than revealing exact ratings.
+DEEPER TRADE SYSTEM
+- Draft picks are now persistent trade assets.
+- Every franchise begins with future 1st- and 2nd-round picks.
+- Draft-pick ownership follows trades.
+- Traded first-round picks change who actually drafts in that slot.
+- Used draft picks are consumed when the draft selection is made.
+- Future pick inventory automatically extends as seasons advance.
 
-PLAYER DEVELOPMENT OVERHAUL
-- Players now have hidden true potential and work ethic.
-- Growth depends on:
-  * Age
-  * True potential
-  * Work ethic
-  * Playing time / role
-  * Team development staff
-  * Controlled randomness
-- Young players can stall if buried on the bench.
-- High-work-ethic prospects can make larger jumps.
-- Older players can decline.
-- Development changes are logged.
+PLAYER TRADE VALUE NOW CONSIDERS
+- Overall rating
+- True potential/upside
+- Age
+- Contract salary
+- Health/injury status
+- The acquiring team's direction
 
-PHILOSOPHY
-Draft reputation still reflects how players were viewed at the time. Scouting uncertainty and development determine what they actually become in this universe.
+TRADE PACKAGES
+- The game can build offers using:
+  * One player
+  * Player + draft pick
+  * Two players
+  * Player + multiple picks
+- AI acceptance compares package value with the player's actual trade value.
+- Front Office now shows every future pick your team owns.
+
+This replaces the earlier mostly one-for-one trade prototype with a foundation for realistic roster-building and pick movement.
 
 GitHub update: upload index.html and README.txt over the existing files and commit.

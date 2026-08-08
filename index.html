@@ -198,6 +198,9 @@ pre{white-space:pre-wrap}
 .scoutRow{display:grid;grid-template-columns:minmax(160px,1fr) 90px 90px 100px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .scoutRange{font-weight:800}
 @media(max-width:700px){.scoutRow{grid-template-columns:minmax(135px,1fr) 80px 80px}.scoutHide{display:none}}
+
+.pickAsset{padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:7px}
+.tradePackage{padding:10px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -212,7 +215,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.34 · Scouting & Development</div>
+    <div class="pill">v0.35 · Trade Logic & Draft Picks</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -639,9 +642,13 @@ pre{white-space:pre-wrap}
         <div id="tradeCenterBox" class="muted">No trade targets available.</div>
       </div>
       <div class="card">
-        <h2>Free Agency</h2>
-        <div id="freeAgencyMarket" class="muted">No free agents available.</div>
+        <h2>Draft Picks</h2>
+        <div id="draftPickAssetsBox" class="muted">No draft-pick data.</div>
       </div>
+    </div>
+    <div class="card">
+      <h2>Free Agency</h2>
+      <div id="freeAgencyMarket" class="muted">No free agents available.</div>
     </div>
 
     <div class="card">
@@ -1811,8 +1818,21 @@ function prospectBoard(){
  return cls.slice().sort((a,b)=>b.prospect-a.prospect || a.historicalPick-b.historicalPick);
 }
 function buildDraftOrder(){
- // Prototype uses inverse regular-season record with deterministic tie-break by team name.
- state.offseason.draftOrder=state.teams.slice().sort((a,b)=>pct(a)-pct(b)||a.w-b.w||a.name.localeCompare(b.name)).map(t=>t.id);
+ ensureDraftPickAssets();
+ let teams=state.teams.slice();
+ let wins=t=>t.wins??t.w??0;
+ let losses=t=>t.losses??t.l??0;
+ teams.sort((a,b)=>{
+   let ap=(wins(a)+losses(a))?wins(a)/(wins(a)+losses(a)):0;
+   let bp=(wins(b)+losses(b))?wins(b)/(wins(b)+losses(b)):0;
+   return ap-bp;
+ });
+ let draftYear=state.currentYear+1;
+ return teams.map((t,i)=>{
+   let asset=state.draftPicks.find(p=>p.year===draftYear&&p.round===1&&p.originalTeamId===t.id);
+   let owner=asset?state.teams.find(x=>x.id===asset.ownerTeamId):t;
+   return {pick:i+1,teamId:owner?.id||t.id,teamName:owner?.name||t.name,originalTeamId:t.id,pickAssetId:asset?.id||null};
+ });
 }
 function retirePlayers(){
  initPlayersIfNeeded();
@@ -1942,6 +1962,7 @@ function runFreeAgencyAI(){
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
 function beginNextSeason(){
+ extendDraftPickHorizon();
  applyAdvancedDevelopment();
  updateStaffSecurity();maybeAutoFireStaff();
  updateOwnerEconomics();
@@ -3419,6 +3440,133 @@ window.setRotationMinutes=setRotationMinutes;
 window.setCoachSetting=setCoachSetting;
 window.setDevelopmentFocus=setDevelopmentFocus;
 
+
+// ----- Trade Logic & Draft Picks v0.35 -----
+
+function extendDraftPickHorizon(){
+ ensureDraftPickAssets();
+ let maxYear=state.currentYear+5;
+ state.teams.forEach(t=>{
+   [1,2].forEach(round=>{
+     let id=`pick_${t.id}_${maxYear}_${round}`;
+     if(!state.draftPicks.some(p=>p.id===id))state.draftPicks.push({id,year:maxYear,round,originalTeamId:t.id,ownerTeamId:t.id});
+   });
+ });
+}
+
+function ensureDraftPickAssets(){
+ ensureFrontOffice();
+ state.draftPicks=state.draftPicks||[];
+ if(!state.draftPicks.length){
+   let start=state.currentYear+1;
+   for(let y=start;y<start+5;y++){
+     state.teams.forEach(t=>{
+       state.draftPicks.push({id:`pick_${t.id}_${y}_1`,year:y,round:1,originalTeamId:t.id,ownerTeamId:t.id});
+       state.draftPicks.push({id:`pick_${t.id}_${y}_2`,year:y,round:2,originalTeamId:t.id,ownerTeamId:t.id});
+     });
+   }
+ }
+}
+function teamDraftPicks(teamId){
+ ensureDraftPickAssets();
+ return state.draftPicks.filter(p=>p.ownerTeamId===teamId).sort((a,b)=>a.year-b.year||a.round-b.round);
+}
+function draftPickValue(pick){
+ let yearsAway=Math.max(1,pick.year-state.currentYear);
+ let base=pick.round===1?18:6;
+ return Math.max(2,base-(yearsAway-1)*2);
+}
+function advancedPlayerTradeValue(p,teamContext){
+ let age=p.age||26,ovr=p.ovr||60,pot=p.truePotential||p.pot||ovr,salary=playerSalary(p);
+ let ageVal=age<=22?7:age<=25?4:age<=29?1:age<=32?-3:-7;
+ let upside=Math.max(0,pot-ovr)*.45;
+ let salaryPenalty=Math.max(0,salary-8)*.8;
+ let healthPenalty=p.healthStatus==="Out"?7:p.healthStatus==="Injured"?3:0;
+ let base=(ovr-50)*1.45+upside+ageVal-salaryPenalty-healthPenalty;
+ if(teamContext){
+   let dir=state.frontOffice.teamDirections[teamContext.id]||"Balanced";
+   if(dir==="Contend Now"&&ovr>=76)base+=6;
+   if(dir==="Build for the Future"&&age<=24)base+=6;
+   if(dir==="Cut Payroll"&&salary<=4)base+=4;
+ }
+ return Math.max(1,base);
+}
+function teamPackageValue(teamId,playerIds,pickIds,targetTeam){
+ let team=state.teams.find(t=>t.id===teamId);
+ let players=playerIds.map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
+ let picks=pickIds.map(id=>state.draftPicks.find(p=>p.id===id)).filter(Boolean);
+ return players.reduce((s,p)=>s+advancedPlayerTradeValue(p,targetTeam||team),0)+picks.reduce((s,p)=>s+draftPickValue(p),0);
+}
+function buildBestTradePackage(target){
+ let team=currentControlledTeam();if(!team||!target)return null;
+ ensureDraftPickAssets();
+ let targetTeam=state.teams.find(t=>t.name===target.teamName);
+ let need=advancedPlayerTradeValue(target,team);
+ let roster=teamRoster(team.name).filter(p=>p.id!==target.id).sort((a,b)=>advancedPlayerTradeValue(b,targetTeam)-advancedPlayerTradeValue(a,targetTeam));
+ let picks=teamDraftPicks(team.id).filter(p=>p.round===1).sort((a,b)=>draftPickValue(b)-draftPickValue(a));
+ let playerOptions=roster.slice().sort((a,b)=>Math.abs(advancedPlayerTradeValue(a,targetTeam)-need)-Math.abs(advancedPlayerTradeValue(b,targetTeam)-need));
+
+ // 1 player
+ let p1=playerOptions[0];
+ if(p1 && advancedPlayerTradeValue(p1,targetTeam)>=need*.88)return {players:[p1],picks:[]};
+
+ // player + pick
+ if(p1&&picks[0] && advancedPlayerTradeValue(p1,targetTeam)+draftPickValue(picks[0])>=need*.88)
+   return {players:[p1],picks:[picks[0]]};
+
+ // 2 players
+ for(let i=0;i<Math.min(6,playerOptions.length);i++){
+   for(let j=i+1;j<Math.min(8,playerOptions.length);j++){
+     let val=advancedPlayerTradeValue(playerOptions[i],targetTeam)+advancedPlayerTradeValue(playerOptions[j],targetTeam);
+     if(val>=need*.88)return {players:[playerOptions[i],playerOptions[j]],picks:[]};
+   }
+ }
+ // player + two picks
+ if(p1&&picks.length>=2)return {players:[p1],picks:picks.slice(0,2)};
+ return null;
+}
+function proposeAdvancedTrade(targetId){
+ ensureDraftPickAssets();let team=currentControlledTeam(),target=state.players.find(p=>p.id===targetId);
+ if(!team||!target)return;
+ let package=buildBestTradePackage(target);
+ if(!package){alert("You do not currently have a realistic package for this player.");return;}
+ let targetTeam=state.teams.find(t=>t.name===target.teamName);
+ let offerVal=teamPackageValue(team.id,package.players.map(p=>p.id),package.picks.map(p=>p.id),targetTeam);
+ let askVal=advancedPlayerTradeValue(target,team);
+ let relation=staffTeamData?.(team.id)?.gmCoachRelation||60;
+ let threshold=.92-(relation-50)*.001;
+ let accepted=offerVal>=askVal*threshold || Math.random()<.08;
+
+ let packageText=[
+   ...package.players.map(p=>p.name),
+   ...package.picks.map(p=>`${p.year} ${p.round===1?"1st":"2nd"}`)
+ ].join(" + ");
+
+ if(!accepted){
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${targetTeam?.name||target.teamName} rejected ${packageText} for ${target.name}.`});
+   renderFrontOffice();saveState();return;
+ }
+ let oldTeam=target.teamName;
+ package.players.forEach(p=>p.teamName=oldTeam);
+ package.picks.forEach(pk=>pk.ownerTeamId=targetTeam.id);
+ target.teamName=team.name;
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} acquires ${target.name} for ${packageText}.`});
+ state.news.push({year:state.currentYear,title:"Trade",text:`${team.name} acquires ${target.name} from ${oldTeam} for ${packageText}.`});
+ buildTradeTargets();renderAll();saveState();
+}
+function offerPickForPlayer(targetId,pickId){
+ ensureDraftPickAssets();let team=currentControlledTeam(),target=state.players.find(p=>p.id===targetId),pick=state.draftPicks.find(p=>p.id===pickId);
+ if(!team||!target||!pick||pick.ownerTeamId!==team.id)return;
+ let targetTeam=state.teams.find(t=>t.name===target.teamName);
+ let accepted=draftPickValue(pick)>=advancedPlayerTradeValue(target,team)*.8;
+ if(!accepted){alert(`${targetTeam?.name||target.teamName} is not willing to move ${target.name} for that pick alone.`);return;}
+ pick.ownerTeamId=targetTeam.id;target.teamName=team.name;
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} acquires ${target.name} for its ${pick.year} ${pick.round===1?"1st":"2nd"}-round pick.`});
+ renderAll();saveState();
+}
+window.proposeAdvancedTrade=proposeAdvancedTrade;
+window.offerPickForPlayer=offerPickForPlayer;
+
 // ----- Front Office: Trades & Free Agency v0.28 -----
 
 function processLeagueContractExpirations(){
@@ -3568,7 +3716,12 @@ function renderFrontOffice(){
  document.getElementById("frontOfficeDirection").innerHTML=`<p><b>Current direction: ${dir}</b></p><div class="choicebar"><button onclick="setTeamDirection('Contend Now')">Contend Now</button><button onclick="setTeamDirection('Balanced')">Balanced</button><button onclick="setTeamDirection('Build for the Future')">Build for the Future</button><button onclick="setTeamDirection('Cut Payroll')">Cut Payroll</button></div>`;
 
  let targets=state.frontOffice.tradeTargets.map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
- document.getElementById("tradeCenterBox").innerHTML=targets.length?targets.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · $${playerSalary(p)}M</div><div style="margin-top:8px"><button onclick="proposeSimpleTrade('${p.id}')">Make Trade Offer</button></div></div>`).join(""):`<span class="muted">No matching trade targets.</span>`;
+ document.getElementById("tradeCenterBox").innerHTML=targets.length?targets.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · $${playerSalary(p)}M</div><div style="margin-top:8px"><button onclick="proposeAdvancedTrade('${p.id}')">Build Trade Package</button></div></div>`).join(""):`<span class="muted">No matching trade targets.</span>`;
+
+ ensureDraftPickAssets();
+ let picks=teamDraftPicks(team.id);
+ let pb=document.getElementById("draftPickAssetsBox");
+ if(pb)pb.innerHTML=picks.length?picks.slice(0,20).map(pk=>`<div class="pickAsset"><b>${pk.year} ${pk.round===1?"1st":"2nd"} Round</b><div class="small muted">Original: ${state.teams.find(t=>t.id===pk.originalTeamId)?.name||"Unknown"} · Trade Value ${draftPickValue(pk).toFixed(0)}</div></div>`).join(""):`<span class="muted">No draft picks owned.</span>`;
 
  let fa=freeAgentPool().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,20);
  document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Asking about $${Math.round(careerMarketValueForAny(p))}M/year</div><div style="margin-top:8px"><button onclick="signFreeAgent('${p.id}')">Offer 3-Year Deal</button></div></div>`).join(""):`<span class="muted">No free agents are currently available.</span>`;
@@ -3666,6 +3819,7 @@ function makeDraftPick(prospectId){
  let p=dr.available.find(x=>x.draftId===prospectId||x.id===prospectId);if(!p)return;
  let team=state.teams.find(t=>t.id===pick.teamId);if(!team)return;
  dr.results.push({pick:pick.pick,teamId:team.id,teamName:team.name,playerName:p.name,pos:p.pos,ovr:p.ovr||p.rating||60,pot:p.pot||p.potential||p.ovr||60});
+ if(pick.pickAssetId)state.draftPicks=state.draftPicks.filter(x=>x.id!==pick.pickAssetId);
  dr.available=dr.available.filter(x=>x!==p);
  let newPlayer={...p,id:p.id||p.draftId,teamName:team.name,age:p.age||21,rookie:true,contract:{years:3,salary:Math.max(1,Math.round((dr.order.length-pick.pick+1)/dr.order.length*6))}};
  state.players.push(newPlayer);
