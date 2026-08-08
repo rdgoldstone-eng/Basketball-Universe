@@ -1,30 +1,49 @@
-v0.48 Basketball Universe — 1989–1992 Draft Pipeline
+v0.49 Basketball Universe — 1993–1996 Draft Pipeline
 
-The historical draft pipeline now runs through 1992.
+The historical draft pipeline now extends through 1996.
 
-NEW CLASSES
-1989 — Pervis Ellison, Danny Ferry, Sean Elliott, Glen Rice, J.R. Reid, Stacey King, Tim Hardaway, Shawn Kemp, Mookie Blaylock, Vlade Divac and others.
-1990 — Derrick Coleman, Gary Payton, Chris Jackson, Dennis Scott, Kendall Gill, Bo Kimble, Toni Kukoc, Cedric Ceballos and others.
-1991 — Larry Johnson, Kenny Anderson, Billy Owens, Dikembe Mutombo, Steve Smith, Stacey Augmon, Terrell Brandon, Dale Davis and others.
-1992 — Shaquille O'Neal, Alonzo Mourning, Christian Laettner, Jimmy Jackson, LaPhonso Ellis, Tom Gugliotta, Harold Miner, Robert Horry, Doug Christie, Latrell Sprewell and others.
+1993
+Chris Webber, Shawn Bradley and Penny Hardaway enter as the premier group, followed by Jamal Mashburn, Isaiah Rider, Calbert Cheaney, Bobby Hurley, Vin Baker and others.
 
-PHILOSOPHY
-Ratings reflect draft-time perception rather than hindsight. Later stars who were considered uncertain or lower-tier prospects remain uncertain/lower on the initial board, while highly regarded prospects who disappointed in real life still enter as strong prospects.
+1994
+Glenn Robinson, Jason Kidd and Grant Hill form a clear elite top tier. Donyell Marshall, Juwan Howard and the rest follow based on contemporary draft standing.
 
-Examples:
-- Pervis Ellison and Danny Ferry remain elite 1989 prospects.
-- Shawn Kemp has enormous upside but major uncertainty.
-- Derrick Coleman, Gary Payton and Chris Jackson headline 1990.
-- Larry Johnson and Kenny Anderson sit at the top of 1991.
-- Shaquille O'Neal is an exceptional 1992 prospect, with Mourning and Laettner also elite.
-- Latrell Sprewell and P.J. Brown do not receive hindsight-driven top-prospect grades.
+1995
+Joe Smith, Antonio McDyess, Jerry Stackhouse and Rasheed Wallace are the safest top prospects.
+Kevin Garnett is deliberately different: strong prospect value, massive ceiling, and very high uncertainty because he is making the unusual jump directly from high school.
 
-SCOUTING
-The Scouting page now explicitly reminds the user that grades are contemporary evaluations.
+1996
+Allen Iverson leads the class.
+Marcus Camby, Shareef Abdur-Rahim, Stephon Marbury and Ray Allen are also elite draft prospects.
+
+KOBE / NASH / JERMAINE RULE
+The game does not know their future careers.
+
+Kobe Bryant:
+- strong prospect
+- enormous ceiling
+- extremely high uncertainty
+- not automatically ranked first because he became an all-time great
+
+Steve Nash:
+- later first-round-level prospect
+- meaningful upside
+- not given MVP-level draft status through hindsight
+
+Jermaine O'Neal:
+- extremely young
+- high ceiling
+- highly uncertain
+- not treated as an established star prospect
+
+The same rule applies to every player.
+
+DEPTH
+These new classes contain roughly a full Expansion Era first round's worth of prospects so league growth does not immediately exhaust the draft pool.
 
 PIPELINE
-Historical classes available: 1977–1992.
-Next missing class: 1993.
+Historical classes available: 1977–1996.
+Next missing class: 1997.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
