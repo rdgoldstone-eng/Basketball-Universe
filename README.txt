@@ -1,21 +1,15 @@
-v0.36.2 Basketball Universe — Offseason Navigation
+v0.36.3 Basketball Universe — Season Header Fix
 
-OFFSEASON CHECKLIST UPGRADE
-Every offseason step now has its own View/Open button:
-- Awards -> View Awards (opens History)
-- Retirements -> View Retirements
-- Development -> View Development
-- Draft Order -> View Draft Order
-- Draft -> Open Draft Room
-- Free Agency -> View Free Agency / Front Office
-- Roster Cuts -> View Rosters
-- Next Season -> View Season
+FIRST PLAYTHROUGH HOTFIX
+- Fixed the top Season KPI staying on the prior season after offseason rollover.
+- When currentYear moves from 1976 to 1977, the header now immediately changes from 1976-77 to 1977-78.
+- The header now refreshes every time the game UI renders, so future season rollovers stay synchronized.
+- Also refreshes role, controlled team and open-decision header values.
 
-DETAILS
-- Retirement names are saved and displayed.
-- Development changes show each player's OVR before and after.
-- Draft order can be reviewed directly from the checklist.
-- Roster-cut stage shows roster sizes.
-- The Draft remains a required offseason step and cannot be skipped.
+IMPORTANT
+The screenshot showing October 15, 1977 and 0/82 games confirmed the 1977-78 season had actually started. The stale 1976-77 text was a display bug, not a failed offseason rollover.
 
-GitHub update: upload index.html and README.txt over the existing files and commit.
+Includes the v0.36.2 offseason navigation buttons.
+
+GitHub update:
+Upload index.html and README.txt over the current files and commit.

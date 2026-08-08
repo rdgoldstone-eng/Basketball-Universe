@@ -223,7 +223,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.36.2 · Offseason Navigation</div>
+    <div class="pill">v0.36.3 · Season Header Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -1322,6 +1322,19 @@ function seedDecisions(){
 }
 
 function teamById(id){return state.teams.find(t=>t.id===id)}
+
+function refreshUniverseHeader(){
+ if(!state)return;
+ let y=document.getElementById("yearKpi");
+ if(y)y.textContent=seasonName();
+ let role=document.getElementById("roleKpi");
+ if(role)role.textContent=state.role;
+ let team=document.getElementById("teamKpi");
+ if(team)team.textContent=state.controlledTeamId?teamById(state.controlledTeamId)?.name||"Team":"Entire League";
+ let decisions=document.getElementById("decisionKpi");
+ if(decisions)decisions.textContent=(state.decisions||[]).filter(d=>!d.resolved).length;
+}
+
 function showGame(){
  ensureLeagueRules();
  initPlayersIfNeeded();
@@ -1723,6 +1736,7 @@ function renderAll(){
  renderScouting();
  renderStatsCenter();
  enforceOffseasonDraftRouting();
+ refreshUniverseHeader();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2016,6 +2030,7 @@ function beginNextSeason(){
  updateOwnerEconomics();
  applyCoachDevelopment();
  state.currentYear++;
+ refreshUniverseHeader();
  state.players.forEach(p=>{
    if(p.deferredEntry && p.rightsOnlyUntil && state.currentYear>=p.rightsOnlyUntil){
      p.deferredEntry=false;
