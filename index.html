@@ -201,6 +201,11 @@ pre{white-space:pre-wrap}
 
 .pickAsset{padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:7px}
 .tradePackage{padding:10px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+
+.statRow{display:grid;grid-template-columns:minmax(160px,1fr) 55px 60px 60px 60px 60px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.leaderCard{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+.boxMini{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+@media(max-width:760px){.statRow{grid-template-columns:minmax(135px,1fr) 45px 50px 50px}.statHide{display:none}}
 </style>
 </head>
 <body>
@@ -215,7 +220,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.35 · Trade Logic & Draft Picks</div>
+    <div class="pill">v0.36 · Regular Season Stats</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -300,6 +305,7 @@ pre{white-space:pre-wrap}
   <div class="nav">
     <button class="active" data-tab="dashboard">Dashboard</button>
     <button data-tab="season">Season</button>
+    <button data-tab="stats">Stats</button>
     <button data-tab="playoffs">Playoffs</button>
     <button data-tab="players">Players</button>
     <button data-tab="scouting">Scouting</button>
@@ -363,6 +369,30 @@ pre{white-space:pre-wrap}
     </div>
   </section>
 
+
+
+  <section id="stats" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>League Leaders</h2>
+        <div id="leagueLeadersBox" class="muted">No player statistics yet.</div>
+      </div>
+      <div class="card">
+        <h2>Team Leaders</h2>
+        <div id="teamLeadersBox" class="muted">Choose a controlled team to view team leaders.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Player Statistics</h2>
+      <div id="playerStatsTable" class="muted">No statistics yet.</div>
+    </div>
+
+    <div class="card">
+      <h2>Recent Box Scores</h2>
+      <div id="regularBoxScoresBox" class="muted">No regular-season box scores yet.</div>
+    </div>
+  </section>
 
   <section id="season" class="section">
     <div class="grid2">
@@ -1684,6 +1714,7 @@ function renderAll(){
  renderLeagueRules();
  renderLeagueFiles();
  renderScouting();
+ renderStatsCenter();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -1962,6 +1993,7 @@ function runFreeAgencyAI(){
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
 function beginNextSeason(){
+ state.regularBoxScores=[];
  extendDraftPickHorizon();
  applyAdvancedDevelopment();
  updateStaffSecurity();maybeAutoFireStaff();
@@ -2544,6 +2576,111 @@ document.addEventListener("change",e=>{
 
 
 
+
+
+// ----- Regular Season Stats & League Leaders v0.36 -----
+function ensureSeasonStats(){
+ if(!state)return;
+ state.regularBoxScores=state.regularBoxScores||[];
+ state.players.forEach(p=>{
+   if(!p.stats||p.stats.season!==state.currentYear){
+     p.stats={season:state.currentYear,gp:0,pts:0,reb:0,ast:0,stl:0,blk:0,min:0};
+   }
+ });
+}
+function playerUsageWeight(p){
+ let role=(p.rotationMinutes||0)>0?(p.rotationMinutes||0):((p.starter?30:12));
+ let ovr=Math.max(45,p.ovr||60);
+ let posBonus=(p.pos==="PG"||p.pos==="SG")?1.08:p.pos==="SF"?1.02:.95;
+ return Math.max(.1,role*(ovr-40)*posBonus*playerAvailabilityMultiplier(p));
+}
+function generateRegularBox(teamName,totalPoints){
+ ensureSeasonStats();
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out");
+ if(!roster.length)return [];
+ initializeRotationForTeam?.(teamName);
+ let active=roster.filter(p=>(p.rotationMinutes||0)>0).sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)).slice(0,10);
+ if(!active.length)active=roster.sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,9);
+ let weights=active.map(playerUsageWeight),sum=weights.reduce((a,b)=>a+b,0)||1;
+ let remaining=totalPoints,rows=[];
+ active.forEach((p,i)=>{
+   let share=weights[i]/sum;
+   let pts=i===active.length-1?Math.max(0,remaining):Math.max(0,Math.round(totalPoints*share+(Math.random()*8-4)));
+   if(i<active.length-1)remaining-=pts;
+   let min=Math.max(6,Math.min(44,Math.round(((p.rotationMinutes||18)+Math.random()*6-3)*playerAvailabilityMultiplier(p))));
+   let rebBase=(p.pos==="C"?8:p.pos==="PF"?7:p.pos==="SF"?5:3.5);
+   let astBase=(p.pos==="PG"?7:p.pos==="SG"?4.5:p.pos==="SF"?3.5:2);
+   let reb=Math.max(0,Math.round(rebBase*(min/30)*(0.75+Math.random()*.55)));
+   let ast=Math.max(0,Math.round(astBase*(min/30)*(0.7+Math.random()*.65)));
+   let stl=Math.max(0,Math.round((0.4+((p.ovr||60)-55)*.02)*(min/30)+Math.random()*.8));
+   let blk=Math.max(0,Math.round(((p.pos==="C"||p.pos==="PF")?0.8:0.2)*(min/30)+Math.random()*.8));
+   rows.push({id:p.id,name:p.name,pos:p.pos,min,pts,reb,ast,stl,blk});
+ });
+ return rows;
+}
+function accumulateRegularStats(rows){
+ ensureSeasonStats();
+ rows.forEach(r=>{
+   let p=state.players.find(x=>x.id===r.id);if(!p)return;
+   let s=p.stats;
+   s.gp++;s.pts+=r.pts;s.reb+=r.reb;s.ast+=r.ast;s.stl+=r.stl;s.blk+=r.blk;s.min+=r.min;
+ });
+}
+function recordRegularBoxScore(game){
+ if(!game||!game.a||!game.b||game.box)return;
+ ensureSeasonStats();
+ let env=leagueGameEnvironment();
+ let aPts=game.as??game.aScore??game.homeScore??Math.round(98*env.offense);
+ let bPts=game.bs??game.bScore??game.awayScore??Math.round(96*env.offense);
+ let aRows=generateRegularBox(game.a,aPts);
+ let bRows=generateRegularBox(game.b,bPts);
+ game.box={a:aRows,b:bRows};
+ accumulateRegularStats(aRows);accumulateRegularStats(bRows);
+ let entry={id:game.id||`reg_${state.currentYear}_${state.regularBoxScores.length}`,year:state.currentYear,a:game.a,b:game.b,as:aPts,bs:bPts,box:game.box};
+ state.regularBoxScores.unshift(entry);
+ if(state.regularBoxScores.length>40)state.regularBoxScores.length=40;
+ recordControlledPlayerGame?.(entry);
+}
+function statAvg(p,key){
+ let s=p.stats||{},g=s.gp||0;
+ return g?(s[key]||0)/g:0;
+}
+function qualifiedStatPlayers(){
+ ensureSeasonStats();
+ return state.players.filter(p=>!p.retired&&(p.stats?.gp||0)>0);
+}
+function topStat(key,n=5){
+ return qualifiedStatPlayers().slice().sort((a,b)=>statAvg(b,key)-statAvg(a,key)).slice(0,n);
+}
+function renderStatsCenter(){
+ let leaders=document.getElementById("leagueLeadersBox");if(!leaders)return;
+ ensureSeasonStats();
+ let cats=[["pts","PPG"],["reb","RPG"],["ast","APG"],["stl","SPG"],["blk","BPG"]];
+ leaders.innerHTML=cats.map(([k,label])=>{
+   let top=topStat(k,3);
+   return `<div class="leaderCard"><b>${label}</b>${top.length?top.map((p,i)=>`<div class="relationshipRow"><span>${i+1}. ${p.name} <span class="small muted">· ${p.teamName}</span></span><b>${statAvg(p,k).toFixed(1)}</b></div>`).join(""):`<div class="small muted">No data</div>`}</div>`;
+ }).join("");
+
+ let team=currentControlledTeam?.();
+ let tb=document.getElementById("teamLeadersBox");
+ if(team){
+   let roster=state.players.filter(p=>p.teamName===team.name&&(p.stats?.gp||0)>0);
+   let teamCats=[["pts","Scoring"],["reb","Rebounding"],["ast","Assists"]];
+   tb.innerHTML=teamCats.map(([k,label])=>{
+     let p=roster.slice().sort((a,b)=>statAvg(b,k)-statAvg(a,k))[0];
+     return `<div class="leaderCard"><b>${label}</b><div>${p?`${p.name} · ${statAvg(p,k).toFixed(1)}`:"No data"}</div></div>`;
+   }).join("");
+ }else tb.innerHTML=`<span class="muted">No controlled team.</span>`;
+
+ let players=qualifiedStatPlayers().slice().sort((a,b)=>statAvg(b,"pts")-statAvg(a,"pts")).slice(0,80);
+ document.getElementById("playerStatsTable").innerHTML=players.length?players.map(p=>`<div class="statRow"><div><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos}</div></div><div>${p.stats.gp}</div><div>${statAvg(p,"pts").toFixed(1)}</div><div>${statAvg(p,"reb").toFixed(1)}</div><div>${statAvg(p,"ast").toFixed(1)}</div><div class="statHide">${statAvg(p,"stl").toFixed(1)} / ${statAvg(p,"blk").toFixed(1)}</div></div>`).join(""):`<span class="muted">No statistics yet.</span>`;
+
+ let boxes=state.regularBoxScores||[];
+ document.getElementById("regularBoxScoresBox").innerHTML=boxes.length?boxes.slice(0,10).map(g=>{
+   let top=[...(g.box?.a||[]),...(g.box?.b||[])].sort((x,y)=>y.pts-x.pts)[0];
+   return `<div class="boxMini"><b>${g.a} ${g.as} — ${g.b} ${g.bs}</b><div class="small muted">${top?`${top.name}: ${top.pts} PTS, ${top.reb} REB, ${top.ast} AST`:""}</div></div>`;
+ }).join(""):`<span class="muted">No regular-season box scores yet.</span>`;
+}
 
 // ----- Scouting & Player Development v0.34 -----
 function ensureScouting(){
@@ -3934,7 +4071,7 @@ function recordSeasonHonors(){
  if(state.history.seasons.some(x=>x.year===year))return;
  let mvp=chooseSeasonAwardWinner();
  let rookie=chooseSeasonAwardWinner(p=>(p.age||99)<=23);
- let dpoy=chooseSeasonAwardWinner(p=>(p.pos==="C"||p.pos==="PF"||p.pos==="SF"));
+ let dpoy=qualifiedStatPlayers().slice().sort((a,b)=>((statAvg(b,"stl")+statAvg(b,"blk")*1.5)+(b.ovr||60)*.02)-((statAvg(a,"stl")+statAvg(a,"blk")*1.5)+(a.ovr||60)*.02))[0]||null;
  let sixth=chooseSeasonAwardWinner(p=>!p.starter);
  let champion=state.playoffs?.champion||state.season?.champion||null;
  let finalsMvp=state.playoffs?.finalsMVP||state.playoffs?.finalsMvp||null;
@@ -4252,7 +4389,9 @@ function playOneLeagueGame(){
  simPlayersForTeam(b.name,baseB);
  state.season.gamesPlayed++;
  applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
- state.season.recent.unshift({a:a.name,b:b.name,as:baseA,bs:baseB});
+ let regularResult={id:`reg_${state.currentYear}_${state.season.gamesPlayed}`,a:a.name,b:b.name,as:baseA,bs:baseB};
+ recordRegularBoxScore(regularResult);
+ state.season.recent.unshift(regularResult);
  state.season.recent=state.season.recent.slice(0,12);
  state.season.leagueDay=Math.floor((state.season.gamesPlayed/state.season.totalGames)*174);
  return true;
