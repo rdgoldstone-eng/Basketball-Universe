@@ -1,19 +1,21 @@
-v0.36.1 Basketball Universe — First Playthrough Fixes
+v0.36.2 Basketball Universe — Offseason Navigation
 
-FIXES FROM THE FIRST 1976 COMMISSIONER TEST
-- History > Champions now shows:
-  * Champion
-  * Runner-up
-  * Finals MVP
-- Draft is now treated as a required offseason step.
-- When the offseason reaches Draft, the game routes to the Draft Room.
-- The offseason cannot move past Draft until the draft is completed.
-- Upcoming draft class is clearly displayed in the Scouting tab.
-- Season label now follows currentYear correctly (1976-77 -> 1977-78).
-- New-season rollover resets the Draft Room for the next offseason.
+OFFSEASON CHECKLIST UPGRADE
+Every offseason step now has its own View/Open button:
+- Awards -> View Awards (opens History)
+- Retirements -> View Retirements
+- Development -> View Development
+- Draft Order -> View Draft Order
+- Draft -> Open Draft Room
+- Free Agency -> View Free Agency / Front Office
+- Roster Cuts -> View Rosters
+- Next Season -> View Season
 
-TEST NOTE
-Watch Game still needs to be tested next postseason.
+DETAILS
+- Retirement names are saved and displayed.
+- Development changes show each player's OVR before and after.
+- Draft order can be reviewed directly from the checklist.
+- Roster-cut stage shows roster sizes.
+- The Draft remains a required offseason step and cannot be skipped.
 
-GitHub update:
-Upload index.html and README.txt over the current files and commit.
+GitHub update: upload index.html and README.txt over the existing files and commit.

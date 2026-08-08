@@ -206,6 +206,9 @@ pre{white-space:pre-wrap}
 .leaderCard{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 .boxMini{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 @media(max-width:760px){.statRow{grid-template-columns:minmax(135px,1fr) 45px 50px 50px}.statHide{display:none}}
+
+.offseasonStepRow{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.offseasonStepRow .offseasonStep{margin:0}
 </style>
 </head>
 <body>
@@ -220,7 +223,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.36.1 · Test Pass Fixes</div>
+    <div class="pill">v0.36.2 · Offseason Navigation</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -735,6 +738,10 @@ pre{white-space:pre-wrap}
         <p class="small muted">Prospect grades reflect draft-time perception. They do not use future NBA career accomplishments.</p>
         <div id="draftBoard"></div>
       </div>
+    </div>
+    <div class="card">
+      <h2 id="offseasonDetailTitle">Offseason Details</h2>
+      <div id="offseasonDetailBox" class="muted">Use a View button next to any offseason step.</div>
     </div>
     <div class="card">
       <h2>Draft Results</h2>
@@ -1830,7 +1837,7 @@ function initOffseason(){
    state.offseason={
      active:true,phase:"Awards",phaseIndex:0,
      phases:["Awards","Retirements","Development","Draft Order","Draft","Free Agency","Roster Cuts","Next Season"],
-     draftOrder:[],draftResults:[],freeAgents:[],faResults:[]
+     draftOrder:[],draftResults:[],freeAgents:[],faResults:[],retirements:[],developmentResults:[],rosterCuts:[]
    };
  }
 }
@@ -1879,6 +1886,7 @@ function retirePlayers(){
    let h=parseInt(hashlibCompat(p.name+state.currentYear).slice(0,4),16)/65535;
    if(h<chance){p.retired=true;p.rotationMinutes=0;retired.push(p.name);}
  });
+ state.offseason.retirements=retired;
  if(retired.length)state.news.push({year:state.currentYear,title:"Retirements",text:retired.slice(0,8).join(", ")+(retired.length>8?` and ${retired.length-8} more`:"")});
 }
 function hashlibCompat(str){
@@ -1888,6 +1896,7 @@ function hashlibCompat(str){
 }
 function developPlayers(){
  initPlayersIfNeeded();
+ let changes=[];
  state.players.forEach(p=>{
    if(p.retired)return;
    if(p.contract){
@@ -1903,9 +1912,12 @@ function developPlayers(){
    else if(p.age<=30)delta=Math.round(rand*3);
    else if(p.age<=33)delta=Math.round(rand*4-1);
    else delta=Math.round(rand*5-2);
+   let oldOvr=p.ovr;
    p.ovr=Math.max(42,Math.min(97,p.ovr+delta));
+   if(p.ovr!==oldOvr)changes.push({name:p.name,old:oldOvr,new:p.ovr,team:p.teamName});
    ["scoring","shooting","passing","rebounding","defense"].forEach(k=>p[k]=Math.max(35,Math.min(99,p[k]+Math.sign(delta)*(Math.abs(delta)>1?1:0))));
  });
+ state.offseason.developmentResults=changes;
  state.news.push({year:state.currentYear,title:"Player development",text:"Players progressed or declined based on age, opportunity, and universe-specific development variance."});
 }
 function convertProspectToPlayer(pr,teamName,pick){
@@ -2040,6 +2052,45 @@ function advanceOffseason(){
  state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
  renderOffseason();renderAll();saveState();
 }
+
+function offseasonViewLabel(step){
+ return {
+   "Awards":"View Awards",
+   "Retirements":"View Retirements",
+   "Development":"View Development",
+   "Draft Order":"View Draft Order",
+   "Draft":"Open Draft Room",
+   "Free Agency":"View Free Agency",
+   "Roster Cuts":"View Rosters",
+   "Next Season":"View Season"
+ }[step]||"View";
+}
+function viewOffseasonStep(step){
+ let title=document.getElementById("offseasonDetailTitle"),box=document.getElementById("offseasonDetailBox");
+ if(step==="Awards"){switchTab("history");return;}
+ if(step==="Draft"){switchTab("draftroom");return;}
+ if(step==="Free Agency"){switchTab("frontoffice");return;}
+ if(step==="Next Season"){switchTab("dashboard");return;}
+ if(!title||!box)return;
+ title.textContent=step;
+
+ if(step==="Retirements"){
+   let r=state.offseason?.retirements||[];
+   box.innerHTML=r.length?r.map(name=>`<div class="teamrow"><div class="teammeta"><b>${name}</b><span class="small muted">Retired after the ${seasonName()} season</span></div></div>`).join(""):`<span class="muted">${state.offseason?.phaseIndex>0?"No retirements were recorded.":"Retirements have not been processed yet."}</span>`;
+ }else if(step==="Development"){
+   let r=state.offseason?.developmentResults||[];
+   box.innerHTML=r.length?r.slice().sort((a,b)=>(b.new-b.old)-(a.new-a.old)).map(x=>`<div class="teamrow"><div class="teammeta"><b>${x.name}</b><span class="small muted">${x.team}</span></div><div><b>${x.old} → ${x.new}</b></div></div>`).join(""):`<span class="muted">Player development has not been processed yet.</span>`;
+ }else if(step==="Draft Order"){
+   let order=state.offseason?.draftOrder||[];
+   box.innerHTML=order.length?order.map((id,i)=>{let t=teamById(id);return `<div class="teamrow"><div class="teammeta"><b>#${i+1} ${t?.name||id}</b></div></div>`}).join(""):`<span class="muted">Draft order has not been set yet.</span>`;
+ }else if(step==="Roster Cuts"){
+   let rows=state.offseason?.rosterCuts||[];
+   if(!rows.length)rows=state.teams.map(t=>({team:t.name,count:state.players.filter(x=>x.teamName===t.name&&!x.retired).length}));
+   box.innerHTML=rows.map(x=>`<div class="teamrow"><div class="teammeta"><b>${x.team}</b><span class="small muted">${x.count} players on roster</span></div></div>`).join("");
+ }
+}
+window.viewOffseasonStep=viewOffseasonStep;
+
 function renderOffseason(){
  if(!state)return;ensureDraftClasses();
  let status=document.getElementById("offseasonStatus"),steps=document.getElementById("offseasonSteps"),btn=document.getElementById("advanceOffseasonBtn");
@@ -2050,7 +2101,7 @@ function renderOffseason(){
  }else{
    initOffseason();
    status.innerHTML=`<b>${state.offseason.phase}</b><div class="small muted">Advance through the offseason one decision stage at a time.</div>`;
-   steps.innerHTML=state.offseason.phases.map((x,i)=>`<div class="offseasonStep ${i<state.offseason.phaseIndex?"done":""}">${i<state.offseason.phaseIndex?"✓":i===state.offseason.phaseIndex?"→":"○"} ${x}</div>`).join("");
+   steps.innerHTML=state.offseason.phases.map((x,i)=>`<div class="offseasonStepRow"><div class="offseasonStep ${i<state.offseason.phaseIndex?"done":""}">${i<state.offseason.phaseIndex?"✓":i===state.offseason.phaseIndex?"→":"○"} ${x}</div><button onclick="viewOffseasonStep('${x}')">${offseasonViewLabel(x)}</button></div>`).join("");
    btn.classList.remove("hidden");
    btn.textContent=state.offseason.phase==="Next Season"?"Start Next Season":"Advance Offseason";
  }
