@@ -1,38 +1,34 @@
-v0.53 Basketball Universe — 2009–2012 Draft Pipeline
+v0.54 Basketball Universe — 2013–2016 Draft Pipeline
 
-Historical draft classes now extend through 2012.
+Historical draft classes now extend through 2016.
 
-2009
-Blake Griffin is the clear No. 1 prospect.
-Hasheem Thabeet and James Harden remain elite prospects.
-Tyreke Evans and Ricky Rubio follow.
-Stephen Curry is a strong lottery prospect with shooting/scoring appeal but real questions about size and role; he is not hindsight-ranked as the best player in the class.
-Jrue Holiday and other later standouts retain their lower draft-time profiles.
+2013
+This was an unusually uncertain draft, so there is no generational top prospect.
+Anthony Bennett, Victor Oladipo, Otto Porter, Cody Zeller, Alex Len, Nerlens Noel and Ben McLemore form the top group.
+Giannis Antetokounmpo has enormous physical upside but extremely high uncertainty.
+Rudy Gobert is not hindsight-promoted.
 
-2010
-John Wall is the clear franchise-point-guard prospect.
-Evan Turner, Derrick Favors and Wesley Johnson form the next tier.
-DeMarcus Cousins has elite talent but meaningful uncertainty.
-Paul George is treated as a high-upside mid-first-round wing rather than a known future star.
-Hassan Whiteside and Lance Stephenson carry late-draft uncertainty.
+2014
+Andrew Wiggins and Jabari Parker form the elite top tier.
+Joel Embiid has No. 1-level talent but major medical uncertainty.
+Aaron Gordon, Dante Exum and Marcus Smart follow.
+Nikola Jokic remains a second-round international prospect with huge uncertainty and no MVP hindsight boost.
 
-2011
-Kyrie Irving and Derrick Williams form the top tier.
-Enes Kanter, Tristan Thompson, Jonas Valanciunas and the other top-10 prospects remain highly regarded.
-Kawhi Leonard, Klay Thompson and Jimmy Butler are not hindsight-boosted into the elite tier.
-Isaiah Thomas is intentionally a very late, highly uncertain prospect.
+2015
+Karl-Anthony Towns is the clear top prospect.
+D'Angelo Russell and Jahlil Okafor form the next tier.
+Kristaps Porzingis carries elite upside with international uncertainty.
+Devin Booker remains a mid-first-round-level prospect rather than being rewritten as a future superstar.
 
-2012
-Anthony Davis is a generational No. 1 prospect.
-Michael Kidd-Gilchrist and Bradley Beal form the next tier.
-Dion Waiters and Thomas Robinson remain major top-five prospects.
-Damian Lillard is a strong lottery prospect but not rewritten as the obvious second-best player.
-Andre Drummond has huge physical upside and huge uncertainty.
-Draymond Green and Khris Middleton retain their lower draft-time status.
+2016
+Ben Simmons and Brandon Ingram are the clear top two.
+Jaylen Brown, Dragan Bender, Kris Dunn, Buddy Hield and Jamal Murray follow.
+Caris LeVert's medical risk is reflected.
+Pascal Siakam, Dejounte Murray, Malcolm Brogdon and Fred VanVleet do not receive hindsight boosts.
 
 PIPELINE
-Historical classes available: 1977–2012.
-Next missing class: 2013.
+Historical classes available: 1977–2016.
+Next missing class: 2017.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
