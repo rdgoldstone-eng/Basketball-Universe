@@ -185,6 +185,9 @@ pre{white-space:pre-wrap}
 
 .ownerMetric{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
 .ownerDecision{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+
+.staffCard{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+.securitySafe{color:#57c785}.securityWarn{color:#f0b44d}.securityHot{color:#ef6b73}
 </style>
 </head>
 <body>
@@ -199,7 +202,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.30 · Ownership & Arena</div>
+    <div class="pill">v0.31 · Staff & Job Security</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -282,6 +285,7 @@ pre{white-space:pre-wrap}
     <button data-tab="frontoffice">Front Office</button>
     <button data-tab="coaching">Coaching</button>
     <button data-tab="ownership">Ownership</button>
+    <button data-tab="staff">Staff</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
     <button data-tab="bids">Expansion Bids</button>
@@ -475,6 +479,36 @@ pre{white-space:pre-wrap}
 
 
 
+
+
+  <section id="staff" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Leadership Team</h2>
+        <div id="staffLeadershipBox" class="muted">No staff data available.</div>
+      </div>
+      <div class="card">
+        <h2>Job Security</h2>
+        <div id="jobSecurityBox" class="muted">No job-security information.</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Available Staff</h2>
+        <div id="staffMarketBox" class="muted">No candidates available.</div>
+      </div>
+      <div class="card">
+        <h2>Organization Relationships</h2>
+        <div id="orgRelationshipBox" class="muted">No relationship data.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Staff History</h2>
+      <div id="staffHistoryBox" class="muted">No staff changes yet.</div>
+    </div>
+  </section>
 
   <section id="ownership" class="section">
     <div class="grid2">
@@ -1491,6 +1525,7 @@ function renderAll(){
  renderFrontOffice();
  renderCoaching();
  renderOwnership();
+ renderStaff();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -1756,6 +1791,7 @@ function runFreeAgencyAI(){
  state.news.push({year:state.currentYear+1,title:"Free agency",text:moves.length?`${moves.length} veteran players changed teams.`:"No major free-agent moves were completed."});
 }
 function beginNextSeason(){
+ updateStaffSecurity();maybeAutoFireStaff();
  updateOwnerEconomics();
  applyCoachDevelopment();
  state.currentYear++;
@@ -2331,6 +2367,141 @@ document.addEventListener("change",e=>{
 
 
 
+
+
+// ----- Staff, Hiring & Organizational Stability v0.31 -----
+function ensureStaffSystem(){
+ if(!state)return;
+ state.staff=state.staff||{teams:{},market:[],history:[]};
+ const firstNames=["Jack","Bill","Tom","Rick","Paul","Gene","Bob","Larry","Don","Frank","Mike","John","Dave","Al","Pete","Sam"];
+ const lastNames=["Anderson","Bennett","Carter","Davis","Evans","Foster","Grant","Harris","Irwin","Johnson","King","Lewis","Miller","Nelson","Owens","Parker","Reed","Scott","Turner","Walker"];
+ function makePerson(role,seed){
+   let fi=firstNames[seed%firstNames.length],la=lastNames[(seed*3+5)%lastNames.length];
+   let skill=55+(seed*7)%31;
+   return {id:`staff_${role}_${seed}_${fi}_${la}`,name:`${fi} ${la}`,role,skill,age:38+(seed*5)%27,style:role==="Coach"?["Balanced","Fast Pace","Defense First","Inside-Out"][seed%4]:["Aggressive","Patient","Analytical","Scout-Driven"][seed%4]};
+ }
+ state.teams.forEach((t,i)=>{
+   if(!state.staff.teams[t.id]){
+     state.staff.teams[t.id]={
+       gm:makePerson("GM",i+11),
+       coach:makePerson("Coach",i+31),
+       ownerRelation:60,
+       gmCoachRelation:60,
+       stability:65,
+       gmSecurity:70,
+       coachSecurity:70
+     };
+   }
+ });
+ if(!state.staff.market.length){
+   for(let i=0;i<14;i++)state.staff.market.push(makePerson(i%2===0?"Coach":"GM",100+i));
+ }
+}
+function staffTeamData(teamId){
+ ensureStaffSystem();return state.staff.teams[teamId];
+}
+function securityLabel(v){
+ return v>=70?"Safe":v>=45?"Pressure":"Hot Seat";
+}
+function securityClass(v){
+ return v>=70?"securitySafe":v>=45?"securityWarn":"securityHot";
+}
+function updateStaffSecurity(){
+ ensureStaffSystem();
+ state.teams.forEach(t=>{
+   let d=staffTeamData(t.id),win=franchiseWinPct(t);
+   let baseChange=win>=.60?8:win>=.50?3:win>=.40?-3:-9;
+   d.gmSecurity=Math.max(0,Math.min(100,d.gmSecurity+baseChange+(d.ownerRelation-50)*.03));
+   d.coachSecurity=Math.max(0,Math.min(100,d.coachSecurity+baseChange+(d.gmCoachRelation-50)*.04));
+   d.stability=Math.max(0,Math.min(100,Math.round((d.gmSecurity+d.coachSecurity+d.ownerRelation+d.gmCoachRelation)/4)));
+ });
+}
+function fireStaff(role){
+ let team=currentControlledTeam();if(!team)return;
+ ensureStaffSystem();let d=staffTeamData(team.id),key=role==="Coach"?"coach":"gm";
+ let old=d[key];if(!old)return;
+ state.staff.market.push(old);
+ d[key]=null;
+ if(role==="Coach")d.coachSecurity=50;else d.gmSecurity=50;
+ d.stability=Math.max(20,d.stability-12);
+ state.staff.history.unshift({year:state.currentYear,text:`${team.name} fired ${old.name} as ${role}.`});
+ state.news.push({year:state.currentYear,title:`${role} fired`,text:`${team.name} fired ${old.name}.`});
+ renderStaff();saveState();
+}
+function hireStaff(staffId){
+ let team=currentControlledTeam();if(!team)return;
+ ensureStaffSystem();let cand=state.staff.market.find(x=>x.id===staffId);if(!cand)return;
+ let d=staffTeamData(team.id),key=cand.role==="Coach"?"coach":"gm",old=d[key];
+ if(old)state.staff.market.push(old);
+ d[key]=cand;
+ state.staff.market=state.staff.market.filter(x=>x.id!==staffId);
+ if(cand.role==="Coach"){d.coachSecurity=72;d.gmCoachRelation=58;}
+ else {d.gmSecurity=72;d.ownerRelation=58;}
+ d.stability=Math.min(100,d.stability+5);
+ state.staff.history.unshift({year:state.currentYear,text:`${team.name} hired ${cand.name} as ${cand.role}.`});
+ state.news.push({year:state.currentYear,title:"Staff hire",text:`${team.name} hired ${cand.name} as ${cand.role}.`});
+ renderStaff();saveState();
+}
+function improveOrgRelationship(type){
+ let team=currentControlledTeam();if(!team)return;
+ let d=staffTeamData(team.id);
+ if(type==="owner")d.ownerRelation=Math.min(100,d.ownerRelation+6);
+ if(type==="gmcoach")d.gmCoachRelation=Math.min(100,d.gmCoachRelation+6);
+ d.stability=Math.min(100,d.stability+3);
+ state.staff.history.unshift({year:state.currentYear,text:`${team.name} leadership held a meeting to improve organizational alignment.`});
+ renderStaff();saveState();
+}
+function staffPerformanceModifier(teamName){
+ ensureStaffSystem();
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return 0;
+ let d=staffTeamData(team.id),mod=0;
+ if(d.coach)mod+=(d.coach.skill-65)*.05;
+ if(d.gm)mod+=(d.gm.skill-65)*.025;
+ mod+=(d.gmCoachRelation-50)*.02;
+ return mod;
+}
+function maybeAutoFireStaff(){
+ ensureStaffSystem();
+ state.teams.forEach(t=>{
+   let d=staffTeamData(t.id);
+   if(d.coach&&d.coachSecurity<18&&Math.random()<.45){
+     let old=d.coach;state.staff.market.push(old);d.coach=null;d.coachSecurity=45;
+     state.staff.history.unshift({year:state.currentYear,text:`${t.name} fired coach ${old.name} after mounting pressure.`});
+     state.news.push({year:state.currentYear,title:"Coaching change",text:`${t.name} fired ${old.name}.`});
+   }
+   if(d.gm&&d.gmSecurity<15&&Math.random()<.35){
+     let old=d.gm;state.staff.market.push(old);d.gm=null;d.gmSecurity=45;
+     state.staff.history.unshift({year:state.currentYear,text:`${t.name} fired GM ${old.name} after a poor run.`});
+     state.news.push({year:state.currentYear,title:"Front-office change",text:`${t.name} fired ${old.name}.`});
+   }
+ });
+}
+function renderStaff(){
+ let lead=document.getElementById("staffLeadershipBox");if(!lead)return;
+ ensureStaffSystem();let team=currentControlledTeam();
+ if(!team){
+   lead.innerHTML=`<span class="muted">Commissioner mode can observe league staff through team pages later; there is no controlled staff here.</span>`;
+   document.getElementById("jobSecurityBox").innerHTML=`<span class="muted">No controlled organization.</span>`;
+   return;
+ }
+ let d=staffTeamData(team.id);
+ lead.innerHTML=`<div class="staffCard"><b>General Manager: ${d.gm?.name||"Vacant"}</b><div class="small muted">${d.gm?`${d.gm.style} · Skill ${d.gm.skill}`:"Hire a GM from the market."}</div>${state.role==="Owner"&&d.gm?`<div style="margin-top:7px"><button onclick="fireStaff('GM')">Fire GM</button></div>`:""}</div>
+ <div class="staffCard"><b>Head Coach: ${d.coach?.name||"Vacant"}</b><div class="small muted">${d.coach?`${d.coach.style} · Skill ${d.coach.skill}`:"Hire a coach from the market."}</div>${(state.role==="Owner"||state.role==="GM")&&d.coach?`<div style="margin-top:7px"><button onclick="fireStaff('Coach')">Fire Coach</button></div>`:""}</div>`;
+
+ document.getElementById("jobSecurityBox").innerHTML=`<div class="grid2"><div class="ownerMetric"><b class="${securityClass(d.gmSecurity)}">${securityLabel(d.gmSecurity)}</b><div class="small muted">GM Security · ${Math.round(d.gmSecurity)}</div></div><div class="ownerMetric"><b class="${securityClass(d.coachSecurity)}">${securityLabel(d.coachSecurity)}</b><div class="small muted">Coach Security · ${Math.round(d.coachSecurity)}</div></div></div><p style="margin-top:10px"><b>Organization Stability: ${Math.round(d.stability)}</b></p>`;
+
+ let allowed=state.role==="Owner"?["GM","Coach"]:state.role==="GM"?["Coach"]:[];
+ let market=state.staff.market.filter(x=>allowed.includes(x.role)).sort((a,b)=>b.skill-a.skill).slice(0,12);
+ document.getElementById("staffMarketBox").innerHTML=market.length?market.map(c=>`<div class="staffCard"><b>${c.name}</b><div class="small muted">${c.role} · ${c.style} · Skill ${c.skill} · Age ${c.age}</div><div style="margin-top:7px"><button onclick="hireStaff('${c.id}')">Hire ${c.role}</button></div></div>`).join(""):`<span class="muted">${allowed.length?"No candidates available.":"Hiring authority belongs to Owner/GM mode."}</span>`;
+
+ document.getElementById("orgRelationshipBox").innerHTML=`<div class="relationshipRow"><span>Owner ↔ GM</span><b>${Math.round(d.ownerRelation)}</b></div><div class="relationshipRow"><span>GM ↔ Coach</span><b>${Math.round(d.gmCoachRelation)}</b></div><div class="choicebar" style="margin-top:10px">${state.role==="Owner"?`<button onclick="improveOrgRelationship('owner')">Meet with GM</button>`:""}${state.role==="Owner"||state.role==="GM"?`<button onclick="improveOrgRelationship('gmcoach')">Align with Coach</button>`:""}</div>`;
+
+ let hist=state.staff.history||[];
+ document.getElementById("staffHistoryBox").innerHTML=hist.length?hist.slice(0,30).map(x=>`<div class="careerTimelineRow"><b>${x.year}</b><div>${x.text}</div></div>`).join(""):`<span class="muted">No staff changes yet.</span>`;
+}
+window.fireStaff=fireStaff;
+window.hireStaff=hireStaff;
+window.improveOrgRelationship=improveOrgRelationship;
 
 // ----- Ownership, Finances & Arena v0.30 -----
 function ensureOwnership(){
@@ -3164,7 +3335,7 @@ function teamPlayerPower(teamName){
  if(!roster.length)return 55;
  let top=roster.slice(0,5).reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/Math.max(1,Math.min(5,roster.length));
  let depth=roster.reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/roster.length;
- return top*.72+depth*.28+coachingTeamModifier(teamName);
+ return top*.72+depth*.28+coachingTeamModifier(teamName)+staffPerformanceModifier(teamName);
 }
 function playerById(id){initPlayersIfNeeded();return state.players.find(p=>p.id===id)}
 function simPlayersForTeam(teamName, teamScore){
