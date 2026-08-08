@@ -1,27 +1,21 @@
-v0.43 Basketball Universe — Merger Era Real Logos
+v0.43.1 Basketball Universe — Embedded Merger Era Logos
 
-REAL HISTORICAL LOGOS
-The 1976-77 starting league now resolves to real period primary-logo artwork for all 22 starting franchises:
-Atlanta, Boston, Buffalo, Chicago, Cleveland, Denver, Detroit, Golden State, Houston, Indiana, Kansas City, LA Lakers, Milwaukee, New Orleans, New York Knicks, New York Nets, Philadelphia, Phoenix, Portland, San Antonio, Seattle, and Washington.
+FIX
+v0.43 used external historical-logo URLs. Those requests could fail in the browser, causing Basketball Universe to fall back to the generated placeholder logos.
 
-LOGO PRIORITY FIX
-Historical logo assets now take priority over generated placeholders already saved by older game versions.
-Generated logos remain automatic fallbacks if a historical image cannot load.
+v0.43.1 embeds all 22 real 1976-77 team logo images directly inside index.html.
 
-LOGO BROWSER
-A new Logo Browser tab lets you:
-- review every team logo in one screen
-- choose a Merger Era season year
-- see which identities currently have a real historical asset vs fallback artwork
-- visually audit the pack as more year-specific identities are added
+RESULT
+- No external hotlink is required.
+- GitHub Pages serves the logo data as part of the game itself.
+- Old generated logos saved by previous versions are cleared when a real embedded historical logo exists.
+- The Logo Browser labels these as "Real historical · embedded".
+- Generated logos remain only as emergency fallbacks.
 
-THIS IS THE FIRST PACK
-v0.43 establishes the 1976-77 real-logo baseline.
-Next logo work should add each actual identity/logo change that occurs from 1977-78 through 1987-88 rather than forcing the 1976 logo forever.
-
-SOURCE / RIGHTS NOTE
-Historical date research and image delivery in this private build use SportsLogos.Net pages/CDN as a research source.
-Team names, logos, and trademarks remain property of their respective organizations.
+1976-77 EMBEDDED TEAMS
+Atlanta, Boston, Buffalo, Chicago, Cleveland, Denver, Detroit, Golden State, Houston, Indiana, Kansas City, Los Angeles Lakers, Milwaukee, New Orleans, New York Knicks, New York Nets, Philadelphia, Phoenix, Portland, San Antonio, Seattle, and Washington.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
+
+If the browser still displays old artwork immediately after GitHub Pages deploys, reload the page once so it receives the new index.html.
