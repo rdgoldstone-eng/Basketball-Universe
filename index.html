@@ -160,6 +160,10 @@ pre{white-space:pre-wrap}
 
 .eventCard{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
 .injuryTag{display:inline-block;padding:4px 8px;border:1px solid #6d3c3c;border-radius:999px;font-size:11px;font-weight:800}
+
+.healthRow{display:grid;grid-template-columns:minmax(150px,1fr) 90px 90px 100px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+@media(max-width:650px){.healthRow{grid-template-columns:minmax(135px,1fr) 80px 80px}.healthHide{display:none}}
+.statusHealthy{color:#57c785}.statusRisk{color:#f0b44d}.statusOut{color:#ef6b73}
 </style>
 </head>
 <body>
@@ -174,7 +178,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.24 · Player Career Events</div>
+    <div class="pill">v0.25 · Injuries & Fatigue</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -250,6 +254,7 @@ pre{white-space:pre-wrap}
     <button data-tab="season">Season</button>
     <button data-tab="playoffs">Playoffs</button>
     <button data-tab="players">Players</button>
+    <button data-tab="healthcenter">Health</button>
     <button data-tab="career">Career</button>
     <button data-tab="offseason">Offseason</button>
     <button data-tab="leagueoffice">League Office</button>
@@ -354,6 +359,24 @@ pre{white-space:pre-wrap}
       <div class="card"><h2>Finals MVP</h2><div id="finalsMvpBox" class="muted">The Finals have not been completed.</div></div>
     </div>
     <div class="card"><h2>Playoff Game Log</h2><div id="playoffGameLog" class="muted">The playoffs have not started.</div></div>
+  </section>
+
+
+  <section id="healthcenter" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>League Injury Report</h2>
+        <div id="leagueInjuryReport" class="muted">No injuries reported.</div>
+      </div>
+      <div class="card">
+        <h2>Fatigue Watch</h2>
+        <div id="fatigueWatch" class="muted">No fatigue concerns.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Controlled Team Health</h2>
+      <div id="controlledTeamHealth" class="muted">Choose a team-based role to view roster health.</div>
+    </div>
   </section>
 
   <section id="players" class="section">
@@ -1283,6 +1306,7 @@ function renderAll(){
  saveState();
  renderPlayerCareer();
  renderCareerPage();
+ renderHealthCenter();
 }
 function renderTeams(){
  document.getElementById("teamsList").innerHTML=state.teams.map(t=>`
@@ -2116,6 +2140,104 @@ document.addEventListener("change",e=>{
  if(e.target && e.target.id==="commissionerTeamSelect")renderLeagueOffice();
 });
 
+
+// ----- Injuries & Fatigue engine v0.25 -----
+function ensureHealthSystem(){
+ if(!state)return;
+ state.healthSettings=state.healthSettings||{injuries:true,fatigue:true};
+ state.players.forEach(p=>{
+   if(p.fatigue==null)p.fatigue=0;
+   if(p.healthStatus==null)p.healthStatus="Healthy";
+   if(p.injuryGames==null)p.injuryGames=0;
+   if(p.injuryType==null)p.injuryType=null;
+ });
+}
+function injuryChance(p){
+ let fatigue=(p.fatigue||0)/100;
+ let ageFactor=Math.max(0,((p.age||25)-29)*.0025);
+ return .004 + fatigue*.015 + ageFactor;
+}
+function maybeInjurePlayer(p){
+ if(!state.healthSettings?.injuries||p.retired||p.injuryGames>0)return;
+ if(Math.random()<injuryChance(p)){
+   let roll=Math.random();
+   let games=roll<.60?1+Math.floor(Math.random()*3):roll<.90?4+Math.floor(Math.random()*8):12+Math.floor(Math.random()*18);
+   let types=roll<.60?["ankle soreness","back tightness","knee soreness","hamstring strain"]:roll<.90?["sprained ankle","strained hamstring","wrist injury","calf strain"]:["knee injury","foot injury","shoulder injury"];
+   p.injuryGames=games;p.injuryType=types[Math.floor(Math.random()*types.length)];
+   p.healthStatus=games>=12?"Out":games>=4?"Injured":"Day-to-Day";
+   state.news.push({year:state.currentYear,title:"Injury",text:`${p.name} (${p.teamName}) is dealing with ${p.injuryType} and is expected to miss about ${games} game${games===1?"":"s"}.`});
+ }
+}
+function applyGameFatigue(teamName){
+ if(!state.healthSettings?.fatigue)return;
+ let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ roster.forEach(p=>{
+   let min=p.rotationMinutes||0;
+   let gain=min>=36?7:min>=30?5:min>=22?3:1;
+   if(p.starter)gain+=1;
+   p.fatigue=Math.max(0,Math.min(100,(p.fatigue||0)+gain));
+   maybeInjurePlayer(p);
+ });
+}
+function recoverRoster(){
+ ensureHealthSystem();
+ state.players.forEach(p=>{
+   if(p.retired)return;
+   p.fatigue=Math.max(0,(p.fatigue||0)-2);
+   if(p.injuryGames>0){
+     p.injuryGames--;
+     if(p.injuryGames<=0){
+       p.injuryGames=0;p.injuryType=null;p.healthStatus="Healthy";
+       state.news.push({year:state.currentYear,title:"Return from injury",text:`${p.name} has returned to full availability for ${p.teamName}.`});
+     }
+   }
+ });
+}
+function playerAvailabilityMultiplier(p){
+ if(!p)return 1;
+ let m=1-Math.min(.25,(p.fatigue||0)/400);
+ if(p.healthStatus==="Day-to-Day")m*=.88;
+ if(p.healthStatus==="Injured")m*=.70;
+ if(p.healthStatus==="Out")m=0;
+ return Math.max(0,m);
+}
+function healthyRosterFor(teamName){
+ return state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out");
+}
+function healthAdjustedPower(teamName){
+ let roster=healthyRosterFor(teamName).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,8);
+ if(!roster.length)return 45;
+ let val=roster.reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/roster.length;
+ return val;
+}
+function maybeCreateRoleInjuryDecision(){
+ if(!state.controlledTeamId||state.role==="Commissioner"||state.role==="Player")return;
+ let team=teamById(state.controlledTeamId);if(!team)return;
+ let hurt=state.players.filter(p=>p.teamName===team.name&&p.healthStatus!=="Healthy"&&!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0];
+ if(!hurt)return;
+ let title=`${hurt.name} injury decision`;
+ if(state.decisions.some(d=>!d.resolved&&d.title===title))return;
+ if(state.role==="Coach"){
+   addRoleDecision(title,`${hurt.name} is ${hurt.healthStatus.toLowerCase()} with ${hurt.injuryType}. How do you handle his role?`,["Reduce his minutes","Sit him until healthy","Keep normal role"]);
+ }else if(state.role==="GM"){
+   addRoleDecision(title,`${hurt.name} is expected to miss time with ${hurt.injuryType}. How should the front office respond?`,["Trust existing depth","Look for short-term help","Explore a trade"]);
+ }else if(state.role==="Owner"){
+   addRoleDecision(title,`${hurt.name}'s injury could affect the season. What direction do you give basketball operations?`,["Stay the course","Spend for help","Protect the long-term plan"]);
+ }
+}
+function renderHealthCenter(){
+ if(!state)return;ensureHealthSystem();
+ let ir=document.getElementById("leagueInjuryReport"),fw=document.getElementById("fatigueWatch"),ct=document.getElementById("controlledTeamHealth");
+ if(!ir)return;
+ let hurt=state.players.filter(p=>!p.retired&&p.healthStatus!=="Healthy").sort((a,b)=>b.injuryGames-a.injuryGames);
+ ir.innerHTML=hurt.length?hurt.slice(0,30).map(p=>`<div class="healthRow"><div><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos}</div></div><div class="${p.healthStatus==="Out"?"statusOut":"statusRisk"}">${p.healthStatus}</div><div>${p.injuryGames} G</div><div class="healthHide small muted">${p.injuryType}</div></div>`).join(""):`<span class="muted">No injuries reported.</span>`;
+ let tired=state.players.filter(p=>!p.retired&&(p.fatigue||0)>=55).sort((a,b)=>b.fatigue-a.fatigue);
+ fw.innerHTML=tired.length?tired.slice(0,20).map(p=>`<div class="healthRow"><div><b>${p.name}</b><div class="small muted">${p.teamName}</div></div><div>${p.fatigue}</div><div>${p.healthStatus}</div><div class="healthHide small muted">${p.fatigue>=80?"Very high fatigue":p.fatigue>=65?"High fatigue":"Elevated"}</div></div>`).join(""):`<span class="muted">No major fatigue concerns.</span>`;
+ if(!state.controlledTeamId){ct.innerHTML=`<span class="muted">Commissioner mode has no controlled roster.</span>`;return;}
+ let team=teamById(state.controlledTeamId),roster=state.players.filter(p=>p.teamName===team?.name&&!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ ct.innerHTML=roster.map(p=>`<div class="healthRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr}</div></div><div>${p.fatigue}</div><div class="${p.healthStatus==="Healthy"?"statusHealthy":p.healthStatus==="Out"?"statusOut":"statusRisk"}">${p.healthStatus}</div><div class="healthHide small muted">${p.injuryType||"Available"}</div></div>`).join("");
+}
+
 // ----- Player engine v0.3 -----
 function initPlayersIfNeeded(){
  if(!state.players || !state.players.length){
@@ -2132,14 +2254,12 @@ function rosterFor(teamName){
  return state.players.filter(p=>p.teamName===teamName);
 }
 function teamPlayerPower(teamName){
- let r=rosterFor(teamName).slice().sort((a,b)=>b.rotationMinutes-a.rotationMinutes);
- if(!r.length)return 68;
- let used=r.filter(p=>p.rotationMinutes>0);
- let denom=used.reduce((s,p)=>s+p.rotationMinutes,0)||1;
- let avg=used.reduce((s,p)=>s+p.ovr*p.rotationMinutes,0)/denom;
- let star=r.slice().sort((a,b)=>b.ovr-a.ovr)[0]?.ovr||avg;
- // Returns scale similar to the old temporary team powers.
- return 54 + (avg-55)*.60 + (star-70)*.10;
+ initPlayersIfNeeded();ensureHealthSystem();
+ let roster=healthyRosterFor(teamName).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,8);
+ if(!roster.length)return 55;
+ let top=roster.slice(0,5).reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/Math.max(1,Math.min(5,roster.length));
+ let depth=roster.reduce((s,p)=>s+(p.ovr||50)*playerAvailabilityMultiplier(p),0)/roster.length;
+ return top*.72+depth*.28;
 }
 function playerById(id){initPlayersIfNeeded();return state.players.find(p=>p.id===id)}
 function simPlayersForTeam(teamName, teamScore){
@@ -2288,6 +2408,7 @@ function playOneLeagueGame(){
  simPlayersForTeam(a.name,baseA);
  simPlayersForTeam(b.name,baseB);
  state.season.gamesPlayed++;
+ applyGameFatigue(a.name);applyGameFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  state.season.recent.unshift({a:a.name,b:b.name,as:baseA,bs:baseB});
  state.season.recent=state.season.recent.slice(0,12);
  state.season.leagueDay=Math.floor((state.season.gamesPlayed/state.season.totalGames)*174);
@@ -2498,13 +2619,14 @@ function generateTeamBox(teamName,totalPoints,totalReb=42,totalAst=23){
  let sum=weights.reduce((a,b)=>a+b,0);
  let points=[],used=0;
  roster.forEach((p,i)=>{
-   let pts=i===roster.length-1?Math.max(0,totalPoints-used):Math.max(0,Math.round(totalPoints*weights[i]/sum+(Math.random()*8-4)));
+   let pts=i===roster.length-1?Math.max(0,totalPoints-used):Math.max(0,Math.round((totalPoints*weights[i]/sum+(Math.random()*8-4))*playerAvailabilityMultiplier(p)));
    points.push(pts);used+=pts;
  });
  let diff=totalPoints-points.reduce((a,b)=>a+b,0);
  points[0]=Math.max(0,points[0]+diff);
  return roster.map((p,i)=>{
-   let min=Math.max(6,Math.min(42,Math.round((p.starter?30:13)+(p.ovr-60)*.22+Math.random()*8)));
+   let avail=playerAvailabilityMultiplier(p);
+ let min=avail<=0?0:Math.max(4,Math.min(42,Math.round(((p.starter?30:13)+(p.ovr-60)*.22+Math.random()*8)*avail)));
    let reb=Math.max(0,Math.round(((p.rebounding||p.ovr||60)/100)*8+Math.random()*4-1));
    let ast=Math.max(0,Math.round(((p.passing||p.ovr||60)/100)*7+Math.random()*4-1));
    let stl=Math.max(0,Math.round(Math.random()*2));
@@ -2590,6 +2712,7 @@ function playOnePlayoffGame(series){
  let base=88+Math.floor(Math.random()*25),margin=2+Math.floor(Math.random()*15);
  let as=aWin?base+margin:base,bs=aWin?base:base+margin;
  if(aWin)series.aw++;else series.bw++;
+ applyGameFatigue(a.name);applyGameFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let need=Math.floor(series.bestOf/2)+1;
  let g={round:series.round,conf:series.conf,game:series.games.length+1,a:a.name,b:b.name,as,bs,seriesId:series.id};
  if(series.aw>=need||series.bw>=need){series.complete=true;series.winnerId=series.aw>series.bw?series.aId:series.bId}
@@ -2835,6 +2958,7 @@ function finishWatchedGame(){
  let ps=state.season.playoffState,w=ps.watchGame,s=ps.series.find(x=>x.id===w.seriesId);
  let a=teamById(w.aId),b=teamById(w.bId),aWin=w.aScore>w.bScore;
  if(aWin)s.aw++;else s.bw++;
+ applyGameFatigue(a.name);applyGameFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let need=Math.floor(s.bestOf/2)+1;
  let g={round:s.round,conf:s.conf,game:s.games.length+1,a:a.name,b:b.name,as:w.aScore,bs:w.bScore,seriesId:s.id};
  if(s.aw>=need||s.bw>=need){s.complete=true;s.winnerId=s.aw>s.bw?s.aId:s.bId}
