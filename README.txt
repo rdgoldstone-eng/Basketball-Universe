@@ -1,26 +1,38 @@
-v0.43.2 Basketball Universe — PNG Logo Standardization
+v0.44 Basketball Universe — Franchise Records & Retired Numbers
 
-WHAT CHANGED
-All 22 embedded 1976-77 Merger Era historical logos are now standardized as PNG files.
+FRANCHISE RECORDS
+Every franchise history page can now show:
+- all-time career points with the franchise
+- all-time career rebounds
+- all-time career assists
+- most games played
+- best recorded team season
+- worst recorded team season
 
-PNG-ONLY RULE
-- Every embedded historical logo in this build is PNG
-- No GIF logo files remain in the embedded historical pack
-- The Logo Browser now labels these as "Real historical · PNG"
-- Future historical logo packs should follow the same PNG-only rule
+FRANCHISE LEGENDS
+The old simple legends list now uses a franchise-specific legacy score.
+The score considers:
+- games and seasons with the franchise
+- points, rebounds and assists produced for that franchise
+- MVP and Finals MVP impact
+- championships won while playing for the franchise
+- Hall of Fame level career value
 
-CONVERTED TO PNG
-Buffalo Braves, Denver Nuggets, Golden State Warriors, Indiana Pacers, New York Nets, Philadelphia 76ers, Phoenix Suns, Portland Trail Blazers, San Antonio Spurs, Seattle SuperSonics
+Players are labeled:
+Contributor, Notable, Star, Legend, or Icon.
 
-ALREADY PNG
-Atlanta Hawks, Boston Celtics, Chicago Bulls, Cleveland Cavaliers, Detroit Pistons, Houston Rockets, Kansas City Kings, Los Angeles Lakers, Milwaukee Bucks, New Orleans Jazz, New York Knicks, Washington Bullets
+RETIRED NUMBERS
+Retired players with an elite franchise-specific legacy can now have their jersey number retired automatically.
+This is based only on the simulated universe.
 
-RESULT
-- The game no longer mixes PNG and GIF historical logo assets
-- Historical logos remain embedded directly in index.html
-- Generated logos remain only as emergency fallbacks
+IMPORTANT
+A player is not honored because of what he did in real life.
+If a real-life franchise legend has an ordinary alternate-universe career, the team may never retire his number.
+If another player becomes the defining star of that franchise in this universe, he can receive the honor instead.
+
+COMPATIBILITY
+Career-based franchise records depend on archived player seasons.
+Older seasons completed before career archiving was added cannot be fully reconstructed.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
-
-If the browser still shows an older cached version after deploy, hard refresh or reload once after GitHub Pages finishes updating.

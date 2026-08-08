@@ -241,6 +241,12 @@ pre{white-space:pre-wrap}
 .logoStatus{display:inline-block;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid var(--line)}
 .logoReal{color:#57c785}
 .logoFallback{color:#f0b44d}
+
+.franchiseRecordRow{display:grid;grid-template-columns:minmax(160px,1fr) minmax(150px,1fr) 110px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.retiredNumberCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+.retiredNumberBadge{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);font-weight:900;font-size:20px}
+.legendTier{font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:900}
+@media(max-width:650px){.franchiseRecordRow{grid-template-columns:minmax(130px,1fr) 100px}.franchiseRecordHide{display:none}}
 </style>
 </head>
 <body>
@@ -255,7 +261,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.43.2 · PNG Logo Standardization</div>
+    <div class="pill">v0.44 · Franchise Records & Retired Numbers</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -2236,6 +2242,7 @@ function renderAll(){
  renderCurrentActivity();
  renderAllTime();
  renderHallOfFame();
+ ensureRetiredNumbers();
  renderFranchiseHistory();
  renderLogoBrowser();
  enforceOffseasonDraftRouting();
@@ -2340,6 +2347,126 @@ function franchiseLegends(t){
  }).slice(0,8);
 }
 
+
+function franchisePlayerTotals(t){
+ let names=new Set(franchiseIdentityNames(t));
+ let map=new Map();
+ state.players.forEach(p=>{
+   let rows=careerArchiveFor(p).filter(s=>names.has(s.team));
+   if(!rows.length)return;
+   let x={p,gp:0,pts:0,reb:0,ast:0,seasons:rows.length};
+   rows.forEach(s=>{x.gp+=Number(s.gp||0);x.pts+=Number(s.pts||0);x.reb+=Number(s.reb||0);x.ast+=Number(s.ast||0);});
+   map.set(p.id,x);
+ });
+ return [...map.values()];
+}
+
+function franchiseAwardCount(p,t,type){
+ let names=new Set(franchiseIdentityNames(t));
+ let count=0;
+ (p.awards||[]).forEach(a=>{
+   let text=typeof a==="string"?a:(a?.type||"");
+   if(type==="MVP" && /\bMVP\b/.test(text) && !/Finals MVP/.test(text))count++;
+   if(type==="Finals MVP" && /Finals MVP/.test(text))count++;
+ });
+ // Awards are player-level, so only count if the player has meaningful franchise service.
+ let hasService=franchisePlayerTotals(t).some(x=>x.p.id===p.id&&x.gp>0);
+ return hasService?count:0;
+}
+
+function franchiseRecords(t){
+ let totals=franchisePlayerTotals(t);
+ const best=(key)=>totals.slice().sort((a,b)=>b[key]-a[key])[0]||null;
+ let seasons=state.franchiseHistory?.[t.id]?.seasons||[];
+ let bestSeason=seasons.slice().sort((a,b)=>b.w-a.w||a.l-b.l)[0]||null;
+ let worstSeason=seasons.slice().sort((a,b)=>a.w-b.w||b.l-a.l)[0]||null;
+ return {
+   points:best("pts"),rebounds:best("reb"),assists:best("ast"),games:best("gp"),
+   bestSeason,worstSeason
+ };
+}
+
+function renderFranchiseRecordsHTML(t){
+ let r=franchiseRecords(t);
+ let rows=[];
+ if(r.points)rows.push(["Career Points",r.points.p.name,Math.round(r.points.pts).toLocaleString()]);
+ if(r.rebounds)rows.push(["Career Rebounds",r.rebounds.p.name,Math.round(r.rebounds.reb).toLocaleString()]);
+ if(r.assists)rows.push(["Career Assists",r.assists.p.name,Math.round(r.assists.ast).toLocaleString()]);
+ if(r.games)rows.push(["Games Played",r.games.p.name,Math.round(r.games.gp).toLocaleString()]);
+ if(r.bestSeason)rows.push(["Best Season",`${r.bestSeason.year}-${String((r.bestSeason.year+1)%100).padStart(2,"0")}`,`${r.bestSeason.w}-${r.bestSeason.l}`]);
+ if(r.worstSeason)rows.push(["Worst Season",`${r.worstSeason.year}-${String((r.worstSeason.year+1)%100).padStart(2,"0")}`,`${r.worstSeason.w}-${r.worstSeason.l}`]);
+ if(!rows.length)return `<div class="small muted">Franchise records will populate as career and team-season archives grow.</div>`;
+ return rows.map(x=>`<div class="franchiseRecordRow"><div><b>${x[0]}</b></div><div>${x[1]}</div><div>${x[2]}</div></div>`).join("");
+}
+
+function franchiseLegendScore(p,t){
+ let row=franchisePlayerTotals(t).find(x=>x.p.id===p.id);
+ if(!row)return 0;
+ let score=0;
+ score+=row.gp/82*5;
+ score+=row.pts/1000*2.2;
+ score+=row.reb/1000*1.0;
+ score+=row.ast/1000*1.3;
+ score+=franchiseAwardCount(p,t,"MVP")*18;
+ score+=franchiseAwardCount(p,t,"Finals MVP")*12;
+ let titleYears=new Set(franchiseChampionships(t).map(c=>Number(c.year)));
+ careerArchiveFor(p).forEach(s=>{if(titleYears.has(Number(s.year)) && franchiseIdentityNames(t).includes(s.team))score+=8;});
+ if(p.retired && hallOfFameScore(p)>=70)score+=10;
+ return Math.round(score*10)/10;
+}
+
+function franchiseLegendTier(score){
+ if(score>=95)return "Icon";
+ if(score>=70)return "Legend";
+ if(score>=45)return "Star";
+ if(score>=25)return "Notable";
+ return "Contributor";
+}
+
+function jerseyNumberForPlayer(p){
+ return p.jerseyNumber||p.number||p.uniformNumber||null;
+}
+
+function ensureRetiredNumbers(){
+ if(!state)return;
+ state.retiredNumbers=state.retiredNumbers||{};
+ state.teams.forEach(t=>{
+   state.retiredNumbers[t.id]=state.retiredNumbers[t.id]||[];
+   let existing=new Set(state.retiredNumbers[t.id].map(x=>String(x.number)));
+   state.players.filter(p=>p.retired).forEach(p=>{
+     let num=jerseyNumberForPlayer(p);
+     if(num==null)return;
+     let score=franchiseLegendScore(p,t);
+     if(score<80)return;
+     if(existing.has(String(num)))return;
+     state.retiredNumbers[t.id].push({
+       number:String(num),playerId:p.id,player:p.name,score,
+       year:state.currentYear,reason:franchiseLegendTier(score)
+     });
+     existing.add(String(num));
+     state.news.push({year:state.currentYear,title:"Number retired",text:`${t.name} retired #${num} in honor of ${p.name}.`});
+   });
+ });
+}
+
+function renderRetiredNumbersHTML(t){
+ ensureRetiredNumbers();
+ let arr=state.retiredNumbers?.[t.id]||[];
+ if(!arr.length)return `<div class="small muted">No numbers have been retired in this universe.</div>`;
+ return arr.slice().sort((a,b)=>Number(a.number)-Number(b.number)).map(x=>`
+   <div class="retiredNumberCard">
+     <div class="retiredNumberBadge">#${x.number}</div>
+     <div style="flex:1"><b>${x.player}</b><div class="small muted">${x.reason} · Hall/Franchise score ${x.score}</div></div>
+     <div class="small muted">Retired ${x.year}</div>
+   </div>`).join("");
+}
+
+function enhancedFranchiseLegends(t){
+ return franchisePlayerTotals(t).map(x=>({
+   ...x,score:franchiseLegendScore(x.p,t)
+ })).sort((a,b)=>b.score-a.score).slice(0,10);
+}
+
 function renderFranchiseHistory(){
  let sel=document.getElementById("franchiseHistorySelect");
  let box=document.getElementById("franchiseHistoryProfile");
@@ -2381,10 +2508,16 @@ function renderFranchiseHistory(){
    ${titles.length?titles.slice().reverse().map(c=>`<div class="franchiseEvent"><b>${c.year}-${String((c.year+1)%100).padStart(2,"0")}</b> · ${c.team} — NBA Champion${c.finalsMvp?` · Finals MVP ${c.finalsMvp}`:""}</div>`).join(""):`<div class="small muted">No championships in this universe.</div>`}
 
    <h3 style="margin-top:16px">Franchise Legends</h3>
-   ${legends.length?legends.map((x,i)=>`<div class="teamrow"><div class="teammeta"><b>${i+1}. ${x.p.name}</b><span class="small muted">${x.seasons} season${x.seasons===1?"":"s"} · ${x.gp} GP</span></div><div><b>${Math.round(x.pts).toLocaleString()}</b> pts</div></div>`).join(""):`<div class="small muted">Career archives have not produced franchise leaders yet.</div>`}
+   ${enhancedFranchiseLegends(t).length?enhancedFranchiseLegends(t).map((x,i)=>`<div class="teamrow"><div class="teammeta"><b>${i+1}. ${x.p.name}</b><span class="small muted">${x.seasons} season${x.seasons===1?"":"s"} · ${x.gp} GP · ${Math.round(x.pts).toLocaleString()} pts</span><span class="legendTier">${franchiseLegendTier(x.score)}</span></div><div><b>${x.score}</b></div></div>`).join(""):`<div class="small muted">Career archives have not produced franchise leaders yet.</div>`}
 
    <h3 style="margin-top:16px">Recent Draft Picks</h3>
    ${picks.length?picks.slice(0,12).map(r=>`<div class="franchiseEvent"><b>${r.year} #${r.pick}</b> · ${r.playerName} (${r.pos||"—"})</div>`).join(""):`<div class="small muted">No recorded draft selections yet.</div>`}
+
+   <h3 style="margin-top:16px">Franchise Records</h3>
+   ${renderFranchiseRecordsHTML(t)}
+
+   <h3 style="margin-top:16px">Retired Numbers</h3>
+   ${renderRetiredNumbersHTML(t)}
 
    <h3 style="margin-top:16px">Identity Timeline</h3>
    ${(fh.identityEvents||[]).slice().reverse().map(e=>`<div class="franchiseEvent"><b>${e.year}</b> · ${e.type||"Identity"}: ${e.oldName?`${e.oldName} → `:""}${e.name}</div>`).join("")}
@@ -2724,6 +2857,7 @@ function beginNextSeason(){
  archiveCompletedPlayerSeason(oldYear);
  archiveCompletedFranchiseSeason(oldYear);
  ensureHallOfFame();
+ ensureRetiredNumbers();
 
  function safeTransitionStep(label,fn){
    try{ fn(); }
