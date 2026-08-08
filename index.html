@@ -225,7 +225,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.37.6 · Finals History Fix</div>
+    <div class="pill">v0.37.7 · Finals MVP Stat Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -4374,13 +4374,13 @@ function repairCompletedFinalsHistory(){
  if(seasonRow){
    if(champion&&!seasonRow.champion)seasonRow.champion=champion;
    if(runnerUp&&!seasonRow.runnerUp)seasonRow.runnerUp=runnerUp;
-   if(fmName&&!seasonRow.finalsMvp)seasonRow.finalsMvp=fmName;
+   if(fmName)seasonRow.finalsMvp=fmName;
  }
 
  let champRow=state.history.champions?.find(x=>x.year===year);
  if(champRow){
    if(runnerUp&&!champRow.runnerUp)champRow.runnerUp=runnerUp;
-   if(fmName&&!champRow.finalsMvp)champRow.finalsMvp=fmName;
+   if(fmName)champRow.finalsMvp=fmName;
  }else if(champion){
    state.history.champions.push({year,team:champion,runnerUp,finalsMvp:fmName});
  }
@@ -5017,6 +5017,8 @@ function playOnePlayoffGame(series){
  let g={round:series.round,conf:series.conf,game:series.games.length+1,a:a.name,b:b.name,as,bs,seriesId:series.id};
  if(series.aw>=need||series.bw>=need){series.complete=true;series.winnerId=series.aw>series.bw?series.aId:series.bId}
  g.box=generateFullBox(g);
+ addBoxToPlayoffStats(g);
+ recordControlledPlayerGame(g);
  g.story=createGameBoxStory(g,series);
  if(g.story?.heroId){
    let hp=state.players.find(p=>p.id===g.story.heroId);
@@ -5322,20 +5324,74 @@ window.startWatchGame=startWatchGame;window.advanceWatchQuarter=advanceWatchQuar
 
 function chooseFinalsMvp(){
  if(state.finalsMvp)return state.finalsMvp;
+
  let finals=state.season?.playoffState?.series.find(s=>s.round==="NBA Finals");
  if(!finals?.complete)return null;
- let winner=teamById(finals.winnerId);if(!winner)return null;
+
+ let winner=teamById(finals.winnerId);
+ if(!winner)return null;
+
+ // Preferred path: accumulated playoff / Finals statistics.
  let candidates=activePlayersForTeam(winner.name).filter(p=>state.playoffPlayerStats?.[p.id]?.finalsGp>0);
  candidates.sort((a,b)=>{
    let av=finalsStat(a.id,"finalsPts")+finalsStat(a.id,"finalsReb")*.55+finalsStat(a.id,"finalsAst")*.75;
    let bv=finalsStat(b.id,"finalsPts")+finalsStat(b.id,"finalsReb")*.55+finalsStat(b.id,"finalsAst")*.75;
    return bv-av;
  });
- if(candidates[0]){
-   state.finalsMvp={playerId:candidates[0].id,name:candidates[0].name,team:winner.name,
-     ppg:finalsStat(candidates[0].id,"finalsPts"),rpg:finalsStat(candidates[0].id,"finalsReb"),apg:finalsStat(candidates[0].id,"finalsAst"),year:state.currentYear};
-   let p=candidates[0];p.awards=p.awards||[];p.awards.push({year:state.currentYear,type:"Finals MVP"});
+
+ let winnerPlayer=candidates[0]||null;
+ let ppg=0,rpg=0,apg=0;
+
+ if(winnerPlayer){
+   ppg=finalsStat(winnerPlayer.id,"finalsPts");
+   rpg=finalsStat(winnerPlayer.id,"finalsReb");
+   apg=finalsStat(winnerPlayer.id,"finalsAst");
+ }else{
+   // Repair/fallback for saves created before v0.37.7:
+   // reconstruct Finals production directly from the stored Finals box scores.
+   let totals={};
+   (finals.games||[]).forEach(g=>{
+     let side=g.a===winner.name?"a":g.b===winner.name?"b":null;
+     if(!side)return;
+     (g.box?.[side]||[]).forEach(row=>{
+       if(!totals[row.id])totals[row.id]={id:row.id,name:row.name,gp:0,pts:0,reb:0,ast:0};
+       let t=totals[row.id];
+       t.gp++;t.pts+=row.pts||0;t.reb+=row.reb||0;t.ast+=row.ast||0;
+     });
+   });
+
+   let rebuilt=Object.values(totals).sort((a,b)=>{
+     let av=(a.pts/a.gp)+(a.reb/a.gp)*.55+(a.ast/a.gp)*.75;
+     let bv=(b.pts/b.gp)+(b.reb/b.gp)*.55+(b.ast/b.gp)*.75;
+     return bv-av;
+   })[0];
+
+   if(rebuilt){
+     winnerPlayer=state.players.find(p=>p.id===rebuilt.id)||{id:rebuilt.id,name:rebuilt.name};
+     ppg=rebuilt.pts/rebuilt.gp;
+     rpg=rebuilt.reb/rebuilt.gp;
+     apg=rebuilt.ast/rebuilt.gp;
+   }
  }
+
+ if(winnerPlayer){
+   state.finalsMvp={
+     playerId:winnerPlayer.id,
+     name:winnerPlayer.name,
+     team:winner.name,
+     ppg,rpg,apg,
+     year:state.currentYear
+   };
+
+   let p=state.players.find(x=>x.id===winnerPlayer.id);
+   if(p){
+     p.awards=p.awards||[];
+     if(!p.awards.some(a=>(typeof a==="object"&&a.year===state.currentYear&&a.type==="Finals MVP")||a===`${state.currentYear} Finals MVP`)){
+       p.awards.push({year:state.currentYear,type:"Finals MVP"});
+     }
+   }
+ }
+
  return state.finalsMvp;
 }
 function renderPlayoffLeaders(){
