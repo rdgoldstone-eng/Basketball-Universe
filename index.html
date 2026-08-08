@@ -34,8 +34,28 @@ button:hover{filter:brightness(1.08);cursor:pointer}
 .role.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 .role b{display:block;margin-bottom:4px}
 .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--panel2);color:var(--muted);font-size:12px}
-.logo{width:64px;height:64px;border-radius:14px;background:#0f131b;border:1px solid var(--line);display:grid;place-items:center;font-weight:900;font-size:18px;overflow:hidden}
-.logo img{width:100%;height:100%;object-fit:contain}
+
+.logo{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ffffff;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:4px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+.logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
 .teamrow{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .teamrow:last-child{border-bottom:0}
 .teammeta{flex:1}.teammeta b{display:block}
@@ -236,7 +256,7 @@ pre{white-space:pre-wrap}
 
 .logoBrowserGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
 .logoBrowserCard{border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:12px;text-align:center}
-.logoBrowserCard .logo{width:100px;height:100px;margin:0 auto 10px}
+.logoBrowserCard .logo{width:100px;height:100px;margin:0 auto 10px;background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:8px}
 .logoBrowserCard .logo img{width:100%;height:100%;object-fit:contain}
 .logoStatus{display:inline-block;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid var(--line)}
 .logoReal{color:#57c785}
@@ -261,7 +281,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.44 · Franchise Records & Retired Numbers</div>
+    <div class="pill">v0.44.1 · White Logo Backgrounds</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
