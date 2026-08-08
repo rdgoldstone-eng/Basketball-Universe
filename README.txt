@@ -1,41 +1,35 @@
-v0.51 Basketball Universe — 2001–2004 Draft Pipeline
+v0.52 Basketball Universe — 2005–2008 Draft Pipeline
 
-Historical draft classes now extend through 2004.
+Historical draft classes now extend through 2008.
 
-2001
-Kwame Brown, Tyson Chandler, Pau Gasol and Eddy Curry form the top group, reflecting the actual draft-time appetite for young/high-school big men.
-Jason Richardson, Shane Battier and Eddie Griffin remain highly regarded.
-Tony Parker, Gilbert Arenas and other later standouts do not receive hindsight boosts.
+2005
+Andrew Bogut, Marvin Williams, Deron Williams and Chris Paul form the elite top group in their actual draft-time neighborhood.
+Andrew Bynum, Gerald Green and other young players carry high ceilings with major uncertainty.
+Danny Granger's medical concern is represented through uncertainty.
+David Lee, Monta Ellis and Lou Williams are not hindsight-boosted.
 
-2002
-Yao Ming and Jay Williams form the elite top tier.
-Mike Dunleavy Jr., Drew Gooden, Nikoloz Tskitishvili and Dajuan Wagner retain strong prospect grades because that was their real draft standing.
-Amare Stoudemire has enormous upside but major high-school uncertainty.
-Carlos Boozer remains a lower-tier prospect instead of being retroactively promoted.
+2006
+Andrea Bargnani, LaMarcus Aldridge, Adam Morrison and Tyrus Thomas form the top group.
+Brandon Roy is a strong prospect but not rewritten into an obvious No. 1 based on his early NBA success.
+Rajon Rondo, Kyle Lowry and Paul Millsap retain the lower draft-time profiles they actually carried.
 
-2003
-LeBron James is a generational No. 1 prospect.
-Darko Milicic is intentionally rated as a legitimate elite/top-two prospect because that is how he was viewed at the time.
-Carmelo Anthony, Chris Bosh and Dwyane Wade form the next elite group.
-Later success does not rewrite the original board for David West, Josh Howard, Mo Williams, Kyle Korver and others.
+2007
+Greg Oden and Kevin Durant form an extraordinary two-player top tier.
+Oden is a legitimate franchise-center No. 1 prospect; the game does not know his future injury history.
+Durant is nearly as strong with enormous scoring upside.
+Al Horford and Mike Conley lead the next group.
+Marc Gasol remains a second-round-level international prospect rather than receiving hindsight treatment.
 
-2004
-Dwight Howard and Emeka Okafor are the clear top-two choices, with different risk profiles:
-- Howard: younger, enormous upside, more uncertainty
-- Okafor: accomplished, polished and lower-risk
+2008
+Derrick Rose and Michael Beasley form the elite top tier.
+O.J. Mayo follows as another premium prospect.
+Russell Westbrook and Kevin Love are strong lottery prospects but are not ranked using their eventual careers.
+Anthony Randolph carries major upside uncertainty.
+DeAndre Jordan and Goran Dragic remain lower-tier prospects with wide ceilings.
 
-Ben Gordon, Shaun Livingston and Devin Harris headline the next tier.
-Andre Iguodala, Josh Smith, Al Jefferson, J.R. Smith and Kevin Martin are not upgraded based on eventual career success.
-
-ERA CHECKPOINT
-The historical pipeline now covers every draft from 1977 through 2004.
-
-This carries Basketball Universe:
-- through the entire Merger Era
-- through the entire Expansion Era
-- into the first Realignment Era offseason
-
-Next missing historical class: 2005.
+PIPELINE
+Historical classes available: 1977–2008.
+Next missing class: 2009.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
