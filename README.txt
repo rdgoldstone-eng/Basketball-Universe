@@ -1,22 +1,30 @@
-v0.44.1 Basketball Universe — White Logo Backgrounds
+v0.45 Basketball Universe — Rookie Simulation & 1988 Draft
 
-UI UPDATE
-All team logos now sit on a white background throughout the game UI.
+SIMULATION INTEGRITY FIX
+Drafted/generated players were created with an empty historical stat object containing zero per-36 values.
+Because zero is technically a valid number, the simulation could mistake those placeholders for real historical production and give a rookie a near-zero statistical profile.
 
-This applies to:
-- standings / team rows
-- franchise pages
-- dashboard/team headers
-- logo browser
-- any other standard logo container using the shared logo component
+v0.45 fixes that.
 
-DETAILS
-- logo containers now use a white background
-- logos keep their PNG transparency but display against white
-- each logo also has a subtle border and rounded corners for consistency
+A player's historical per-36 profile is now used only when he actually has a historical sample (games or minutes).
+Otherwise, the game derives his scoring, rebounding, assists, steals, and blocks profile from his ratings and position.
 
-This does not change the historical logo files themselves.
-It standardizes how they are displayed in Basketball Universe.
+WHY THIS MATTERS
+- elite prospects can actually produce like elite prospects
+- rookies are no longer suppressed by zero historical placeholders
+- Rookie of the Year races become much healthier
+- alternate-history development is less dependent on real-life future stats
+- Jordan/Olajuwon/etc. still are not hardcoded award winners; they simply get to perform from their simulated ratings
+
+1988 DRAFT CLASS
+The historical pipeline now includes 1988, led by:
+Danny Manning, Rik Smits, Charles Smith, Chris Morris, Mitch Richmond, Hersey Hawkins, Rex Chapman, Rony Seikaly, Rod Strickland, Dan Majerle, and others.
+
+Prospect ratings reflect draft-time perception rather than eventual career hindsight.
+
+DRAFT PIPELINE HEALTH
+Scouting now shows whether the upcoming historical class is installed.
+If the next class is missing, the game explicitly says so rather than silently recycling the prior year's class.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
