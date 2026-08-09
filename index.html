@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.79 · GM Transaction Rules & Waivers</div>
+    <div class="pill">v0.80 · GM Offseason Checklist & AI Competition</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -11406,7 +11406,7 @@ setTimeout(()=>{
 },0);
 
 
-/* === v0.79 Career Jobs & Employment === */
+/* === v0.80 Career Jobs & Employment === */
 function ensureCareerState(){
   state.career = state.career || {};
   state.career.characterId = state.career.characterId || ("char_"+Date.now().toString(36));
@@ -11556,7 +11556,7 @@ if(_careerOldRenderApp){
 
 
 
-/* === v0.79 Performance, Contracts, Vacancies & Job Market === */
+/* === v0.80 Performance, Contracts, Vacancies & Job Market === */
 function ensureCareerEmploymentV078(){
   ensureCareerState();
   state.career.contract = state.career.contract || {
@@ -11838,7 +11838,7 @@ setTimeout(()=>{try{if(state){ensureCareerEmploymentV078();setCareerSeasonExpect
 
 
 
-/* === v0.79 GM Transaction Rules & Waivers === */
+/* === v0.80 GM Transaction Rules & Waivers === */
 function ensureTransactionRulesV079(){
   ensureFrontOffice();
   state.frontOffice.waivers = Array.isArray(state.frontOffice.waivers) ? state.frontOffice.waivers : [];
@@ -12056,6 +12056,211 @@ renderFrontOffice=function(){
     else section.appendChild(waiver);
   }
   waiver.innerHTML=renderWaiverMarketV079();
+};
+window.renderFrontOffice=renderFrontOffice;
+
+
+
+/* === v0.80 GM Offseason Checklist & AI Competition === */
+function ensureGMWorkflowV080(){
+  ensureFrontOffice();
+  state.gmWorkflow = state.gmWorkflow || {};
+  state.gmWorkflow.year = state.currentYear;
+  state.gmWorkflow.completed = state.gmWorkflow.completed || {};
+  state.gmWorkflow.notes = Array.isArray(state.gmWorkflow.notes) ? state.gmWorkflow.notes : [];
+  state.gmWorkflow.lastStage = state.gmWorkflow.lastStage || null;
+  state.gmWorkflow.freeAgencyDay = Number.isFinite(state.gmWorkflow.freeAgencyDay) ? state.gmWorkflow.freeAgencyDay : 0;
+}
+function controlledGMTeamV080(){
+  if(state.role!=="GM" && state.career?.role!=="GM") return null;
+  return currentControlledTeam();
+}
+function offseasonStageNameV080(){
+  if(!state.offseason)return "Regular Season";
+  const raw=(state.offseason.stage||state.offseason.phase||"").toString().toLowerCase();
+  if(raw.includes("draft"))return "Draft";
+  if(raw.includes("re-sign")||raw.includes("resign"))return "Re-signings";
+  if(raw.includes("free"))return "Free Agency";
+  if(raw.includes("camp"))return "Training Camp";
+  if(raw.includes("cut")||raw.includes("roster"))return "Roster Cuts";
+  return state.offseason.stage || state.offseason.phase || "Offseason";
+}
+function gmChecklistV080(){
+  ensureGMWorkflowV080();
+  const team=controlledGMTeamV080();
+  if(!team)return [];
+  const roster=teamRoster(team.name);
+  const limits=rosterLimits();
+  const expiring=roster.filter(p=>Number(p.contract?.years||0)<=0 || p.contractStatus==="Expiring");
+  const unsignedRookies=(state.players||[]).filter(p=>p.teamName===team.name && p.isRookie && (!p.contract || Number(p.contract.years||0)<=0));
+  const stage=offseasonStageNameV080();
+  return [
+    {key:"draft",label:"Draft",required:stage==="Draft",done:!!state.gmWorkflow.completed.draft,detail:stage==="Draft"?"Make or confirm your draft selections.":"Draft stage complete or not active."},
+    {key:"rookieContracts",label:"Rookie Contracts",required:stage!=="Draft" && unsignedRookies.length>0,done:unsignedRookies.length===0,detail:unsignedRookies.length?`${unsignedRookies.length} drafted player(s) still need contracts.`:"All drafted players are under contract."},
+    {key:"resignings",label:"Re-signings",required:stage==="Re-signings" && expiring.length>0,done:expiring.length===0 || !!state.gmWorkflow.completed.resignings,detail:expiring.length?`${expiring.length} expiring player(s) need a decision.`:"No unresolved expiring contracts."},
+    {key:"freeAgency",label:"Free Agency",required:stage==="Free Agency",done:!!state.gmWorkflow.completed.freeAgency,detail:stage==="Free Agency"?"Improve the roster or explicitly finish free agency.":"Free agency is not the current stage."},
+    {key:"roster",label:"Roster Legality",required:true,done:roster.length<=limits.offseasonMax,detail:`${roster.length}/${limits.offseasonMax} offseason roster spots used.`},
+    {key:"campRoster",label:"Opening-Night Roster",required:stage==="Training Camp"||stage==="Roster Cuts",done:roster.length<=limits.activeMax,detail:`${roster.length}/${limits.activeMax} regular-season roster spots.`}
+  ];
+}
+function gmBlockingItemsV080(){
+  return gmChecklistV080().filter(x=>x.required && !x.done);
+}
+function gmCanAdvanceOffseasonV080(){
+  const team=controlledGMTeamV080();
+  if(!team)return {ok:true};
+  const blockers=gmBlockingItemsV080();
+  if(!blockers.length)return {ok:true};
+  return {ok:false,blockers};
+}
+function finishCurrentGMStageV080(){
+  ensureGMWorkflowV080();
+  const stage=offseasonStageNameV080();
+  if(stage==="Free Agency")state.gmWorkflow.completed.freeAgency=true;
+  if(stage==="Re-signings")state.gmWorkflow.completed.resignings=true;
+  if(stage==="Draft")state.gmWorkflow.completed.draft=true;
+  state.gmWorkflow.notes.unshift({year:state.currentYear,text:`GM marked ${stage} complete.`});
+  renderAll();saveState();
+}
+function renderGMChecklistV080(){
+  const team=controlledGMTeamV080();
+  if(!team)return "";
+  const items=gmChecklistV080();
+  const blockers=items.filter(x=>x.required&&!x.done);
+  return `<div class="card">
+    <h2>GM Offseason Checklist</h2>
+    <div class="small muted">You control your team's decisions. Required business must be resolved before the offseason can advance.</div>
+    ${items.map(x=>`<div class="staffCard"><b>${x.done?"✓":"○"} ${x.label}</b>${x.required?` <span class="pill">Required</span>`:""}<div class="small muted">${x.detail}</div></div>`).join("")}
+    ${blockers.length?`<div class="notice"><b>${blockers.length} required item${blockers.length===1?"":"s"} remaining.</b></div>`:`<div class="notice"><b>Current GM requirements are complete.</b></div>`}
+    ${state.offseason?`<button onclick="finishCurrentGMStageV080()">Mark Current Stage Complete</button>`:""}
+  </div>`;
+}
+function aiFreeAgentScoreV080(team,p){
+  const prof=teamRosterProfile(team);
+  const group=positionGroup(p.pos);
+  const need=group===prof.weakestGroup?12:0;
+  const age=Number(p.age||27);
+  const youth=team.direction==="Rebuilding"?Math.max(0,29-age)*1.7:0;
+  const contend=team.direction==="Contending"?Math.max(0,(p.ovr||50)-65)*1.4:0;
+  const fit=(p.ovr||50)+(p.pot||p.ovr||50)*0.35+need+youth+contend;
+  const asking=Math.max(1,Number(p.askingSalary||p.contract?.salary||Math.max(1,(p.ovr||50)-55)));
+  return fit-asking*1.25+Math.random()*8;
+}
+function runCompetitiveAIFreeAgencyDayV080(){
+  ensureGMWorkflowV080();
+  if(!state.offseason || offseasonStageNameV080()!=="Free Agency")return;
+  state.gmWorkflow.freeAgencyDay++;
+  const controlled=controlledGMTeamV080();
+  const freeAgents=(state.players||[]).filter(p=>p.teamName==="Free Agent" || (state.freeAgents||[]).includes(p.id));
+  const aiTeams=(state.teams||[]).filter(t=>!t.defunct && (!controlled || t.id!==controlled.id));
+  freeAgents
+    .slice()
+    .sort((a,b)=>(b.ovr||0)-(a.ovr||0))
+    .slice(0,Math.max(8,Math.min(30,freeAgents.length)))
+    .forEach(p=>{
+      const market=aiTeams.map(t=>({team:t,score:aiFreeAgentScoreV080(t,p)}))
+        .filter(x=>canAddPlayerToRoster(x.team).ok)
+        .sort((a,b)=>b.score-a.score);
+      if(!market.length)return;
+      const best=market[0], second=market[1];
+      const asking=Math.max(1,Number(p.askingSalary||p.contract?.salary||Math.max(1,(p.ovr||50)-55)));
+      const urgency=Math.max(0,Math.min(.85,.20+(best.score-50)/60));
+      if(best.score<52 || Math.random()>urgency)return;
+      const premium=second ? Math.max(0,(second.score-best.score+8)/20) : 0;
+      const years=(p.age||27)<=25?Math.min(5,3+Math.floor(Math.random()*3)):((p.age||27)>=32?1+Math.floor(Math.random()*2):2+Math.floor(Math.random()*3));
+      const salary=Math.round((asking*(1.00+premium*0.15+Math.random()*0.10))*10)/10;
+      const cap=Number(state.frontOffice.cap||100);
+      if(state.leagueRules?.salaryCap && teamPayroll(best.team.name)+salary>cap*1.12)return;
+      p.teamName=best.team.name;
+      p.contract={years,salary};
+      state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+      state.frontOffice.transactions.unshift({year:state.currentYear,text:`${best.team.name} signs ${p.name} for ${years} year(s), $${salary.toFixed(1)}M annually.`});
+      state.news.push({year:state.currentYear,title:"Free Agent Signing",text:`${best.team.name} signs ${p.name}.`});
+    });
+}
+function aiRosterCorrectionV080(){
+  const controlled=controlledGMTeamV080();
+  (state.teams||[]).filter(t=>!t.defunct && (!controlled||t.id!==controlled.id)).forEach(team=>{
+    const limits=rosterLimits();
+    let roster=teamRoster(team.name);
+    while(roster.length>limits.offseasonMax){
+      roster=roster.sort((a,b)=>((a.ovr||0)+(a.pot||0)*.2)-((b.ovr||0)+(b.pot||0)*.2));
+      const cut=roster.shift();
+      if(!cut)break;
+      cut.teamName="Free Agent";
+      cut.contract={years:0,salary:0};
+      if(!state.freeAgents.includes(cut.id))state.freeAgents.push(cut.id);
+      state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} releases ${cut.name} to reach the offseason roster limit.`});
+    }
+  });
+}
+function advanceAIOffseasonCompetitionV080(){
+  if(!state.offseason)return;
+  const stage=offseasonStageNameV080();
+  if(stage==="Free Agency"){
+    runCompetitiveAIFreeAgencyDayV080();
+    if(Math.random()<.45)runCompetitiveAIFreeAgencyDayV080();
+  }
+  if(stage==="Training Camp"||stage==="Roster Cuts")aiRosterCorrectionV080();
+}
+const _v080AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  ensureGMWorkflowV080();
+  const gate=gmCanAdvanceOffseasonV080();
+  if(!gate.ok){
+    alert("You still have required GM business:\n\n"+gate.blockers.map(x=>"• "+x.label+": "+x.detail).join("\n"));
+    renderAll();
+    return;
+  }
+  advanceAIOffseasonCompetitionV080();
+  const before=offseasonStageNameV080();
+  const r=_v080AdvanceOffseason.apply(this,arguments);
+  const after=offseasonStageNameV080();
+  if(before!==after)state.gmWorkflow.lastStage=after;
+  // Reset stage-specific completion only as new stages begin.
+  if(after==="Free Agency")state.gmWorkflow.completed.freeAgency=false;
+  if(after==="Re-signings")state.gmWorkflow.completed.resignings=false;
+  if(after==="Draft")state.gmWorkflow.completed.draft=false;
+  saveState();
+  return r;
+};
+window.advanceOffseason=advanceOffseason;
+window.finishCurrentGMStageV080=finishCurrentGMStageV080;
+
+const _v080BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const team=controlledGMTeamV080();
+  if(team){
+    const limits=rosterLimits();
+    const roster=teamRoster(team.name);
+    if(roster.length>limits.activeMax){
+      alert(`${team.name} has ${roster.length} players. You must cut to ${limits.activeMax} before beginning the regular season.`);
+      return;
+    }
+  }
+  const r=_v080BeginNextSeason.apply(this,arguments);
+  state.gmWorkflow={year:state.currentYear,completed:{},notes:[],lastStage:null,freeAgencyDay:0};
+  saveState();
+  return r;
+};
+window.beginNextSeason=beginNextSeason;
+
+const _v080RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  _v080RenderFrontOffice();
+  const team=controlledGMTeamV080();
+  if(!team)return;
+  const section=document.getElementById("frontoffice");
+  if(!section)return;
+  let el=document.getElementById("gmOffseasonChecklistV080");
+  if(!el){
+    el=document.createElement("div");
+    el.id="gmOffseasonChecklistV080";
+    const first=section.querySelector(".card");
+    if(first)first.parentNode.insertBefore(el,first);
+    else section.appendChild(el);
+  }
+  el.innerHTML=renderGMChecklistV080();
 };
 window.renderFrontOffice=renderFrontOffice;
 

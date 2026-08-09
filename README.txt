@@ -1,23 +1,20 @@
 Basketball Universe
-v0.79 · GM Transaction Rules & Waivers
+v0.80 · GM Offseason Checklist & AI Competition
 
 WHAT CHANGED
-- Added a real transaction window and trade-deadline lock.
-- Trades are blocked after the deadline and during the postseason.
-- Offseason trading remains available.
-- Releasing a player now places him on waivers instead of instantly making him a free agent.
-- Added a Waiver Wire to Front Office.
-- User-controlled teams can submit waiver claims.
-- Waiver priority is based on worst record to best record.
-- AI teams can also submit claims based on roster need, player quality, and contract value.
-- Claimed players keep their existing contracts.
-- Unclaimed players clear waivers and enter free agency.
-- Added simplified guaranteed-money/dead-money consequences for waived contracts.
-- Payroll display now includes dead money.
-- Front Office shows whether the trade window is open or closed.
+- Added a dedicated GM Offseason Checklist.
+- Required GM business now blocks offseason advancement until resolved.
+- Checklist covers draft decisions, rookie contracts, re-signings, free agency, offseason roster legality, and opening-night roster limits.
+- GM can explicitly mark a stage complete when no further action is desired.
+- User-controlled teams are protected from AI free-agency and roster-cut automation.
+- AI teams now compete for free agents based on talent, age, roster need, team direction, asking price, and cap space.
+- Stronger markets can create bidding pressure and higher offers.
+- AI teams correct oversized offseason rosters before the season.
+- Beginning the regular season is blocked if the GM-controlled roster is above the active limit.
+- GM workflow resets cleanly at the start of each new season.
 
 STATUS
-GM mode is still under construction. Viewer remains the primary development/testing role until GM's complete season/offseason loop is ready.
+GM mode is approaching a full role loop, but it is still under construction. Viewer remains the primary development/testing role until GM has passed a dedicated role-readiness audit.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.
