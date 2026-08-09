@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.77 · Career Jobs & Employment</div>
+    <div class="pill">v0.78 · Performance & Job Market</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -11406,7 +11406,7 @@ setTimeout(()=>{
 },0);
 
 
-/* === v0.77 Career Jobs & Employment === */
+/* === v0.78 Career Jobs & Employment === */
 function ensureCareerState(){
   state.career = state.career || {};
   state.career.characterId = state.career.characterId || ("char_"+Date.now().toString(36));
@@ -11553,6 +11553,288 @@ if(_careerOldRenderApp){
     return result;
   }
 }
+
+
+
+/* === v0.78 Performance, Contracts, Vacancies & Job Market === */
+function ensureCareerEmploymentV078(){
+  ensureCareerState();
+  state.career.contract = state.career.contract || {
+    yearsRemaining: state.career.status==="Employed" ? 3 : 0,
+    startedYear: state.currentYear,
+    salaryTier: "Standard"
+  };
+  state.career.expectations = state.career.expectations || null;
+  state.career.seasonReviews = Array.isArray(state.career.seasonReviews) ? state.career.seasonReviews : [];
+  state.career.pendingApproaches = Array.isArray(state.career.pendingApproaches) ? state.career.pendingApproaches : [];
+  state.career.lastEmploymentReviewYear = state.career.lastEmploymentReviewYear || null;
+  state.career.lastApproachYear = state.career.lastApproachYear || null;
+}
+
+function teamSeasonPctV078(team){
+  if(!team)return .5;
+  const w=Number(team.w ?? team.wins ?? 0), l=Number(team.l ?? team.losses ?? 0);
+  return (w+l)>0 ? w/(w+l) : franchiseWinPct(team);
+}
+function careerExpectationForTeamV078(team,role){
+  const pct=teamSeasonPctV078(team);
+  const dir=(team.direction||"Balanced").toLowerCase();
+  let target=.48, label="Stay competitive";
+  if(dir.includes("contend")){target=.58;label="Contend for a deep playoff run";}
+  else if(dir.includes("rebuild")){target=.34;label="Show development and organizational progress";}
+  else if(dir.includes("payroll")){target=.40;label="Remain respectable while controlling payroll";}
+  else if(pct>=.58){target=.55;label="Return to the playoffs";}
+  if(role==="Coach" && target>.52)label="Reach the playoffs and perform to roster expectations";
+  if(role==="GM" && dir.includes("rebuild"))label="Improve the young core without sacrificing the future";
+  return {targetPct:target,label};
+}
+function setCareerSeasonExpectationV078(){
+  ensureCareerEmploymentV078();
+  if(state.career.status!=="Employed" || !["Coach","GM"].includes(state.career.role))return;
+  const team=teamByAnyId(state.career.currentTeamId);
+  if(!team)return;
+  state.career.expectations={
+    year:state.currentYear,
+    teamId:team.id,
+    ...careerExpectationForTeamV078(team,state.career.role)
+  };
+}
+function careerSecurityValueV078(team,role){
+  ensureStaffSystem();
+  const d=staffTeamData(team.id);
+  return role==="Coach" ? Number(d.coachSecurity||50) : Number(d.gmSecurity||50);
+}
+function careerPerformanceGradeV078(team,role){
+  ensureCareerEmploymentV078();
+  const pct=teamSeasonPctV078(team);
+  const exp=state.career.expectations?.year===state.currentYear
+    ? state.career.expectations
+    : careerExpectationForTeamV078(team,role);
+  const diff=pct-exp.targetPct;
+  let grade="Met Expectations", rep=2, security=3;
+  if(diff>=.12){grade="Exceeded Expectations";rep=8;security=12;}
+  else if(diff>=.05){grade="Above Expectations";rep=5;security=7;}
+  else if(diff>=-.05){grade="Met Expectations";rep=2;security=2;}
+  else if(diff>=-.12){grade="Below Expectations";rep=-5;security=-8;}
+  else {grade="Failed Expectations";rep=-10;security=-15;}
+  return {pct,target:exp.targetPct,diff,grade,rep,security,expectation:exp.label};
+}
+function setRoleSecurityV078(team,role,value){
+  const d=staffTeamData(team.id);
+  if(role==="Coach")d.coachSecurity=Math.max(0,Math.min(100,value));
+  else if(role==="GM")d.gmSecurity=Math.max(0,Math.min(100,value));
+}
+function markCareerUnemployedV078(team,reason){
+  ensureCareerEmploymentV078();
+  const role=state.career.role;
+  recordCareerEvent("Job Ended",{teamId:team?.id||null,teamName:team?.name||careerTeamName(state.career.currentTeamId),reason});
+  state.career.status="Unemployed";
+  state.career.currentTeamId=null;
+  state.controlledTeamId=null;
+  state.career.contract={yearsRemaining:0,startedYear:state.currentYear,salaryTier:"None"};
+  state.career.jobOffers=[];
+  state.career.expectations=null;
+  state.news.push({year:state.currentYear,title:`${role} career change`,text:`Your tenure with ${team?.name||"the franchise"} ended: ${reason}. Your career continues.`});
+}
+function reviewControlledCareerV078(){
+  ensureCareerEmploymentV078();
+  const role=state.career.role;
+  if(state.career.status!=="Employed" || !["Coach","GM"].includes(role))return;
+  if(state.career.lastEmploymentReviewYear===state.currentYear)return;
+  const team=teamByAnyId(state.career.currentTeamId);
+  if(!team)return;
+  const perf=careerPerformanceGradeV078(team,role);
+  let sec=careerSecurityValueV078(team,role);
+  sec=Math.max(0,Math.min(100,sec+perf.security));
+  setRoleSecurityV078(team,role,sec);
+  state.career.reputation=Math.max(0,Math.min(100,(state.career.reputation||50)+perf.rep));
+  state.career.contract.yearsRemaining=Math.max(0,Number(state.career.contract.yearsRemaining||0)-1);
+  state.career.seasonReviews.unshift({
+    year:state.currentYear,teamId:team.id,teamName:team.name,role,
+    record:`${Number(team.w??team.wins??0)}-${Number(team.l??team.losses??0)}`,
+    grade:perf.grade,expectation:perf.expectation,security:Math.round(sec)
+  });
+  state.career.lastEmploymentReviewYear=state.currentYear;
+
+  let separation=null;
+  if(sec<=14) separation="Fired after the season";
+  else if(sec<=24 && perf.diff<-.08 && Math.random()<.65) separation="Fired after missing organizational expectations";
+  else if(state.career.contract.yearsRemaining<=0){
+    if(sec<42 || perf.diff<-.08) separation="Contract not renewed";
+    else{
+      const extension=sec>=72?3:2;
+      state.career.contract={yearsRemaining:extension,startedYear:state.currentYear+1,salaryTier:sec>=82?"Premium":"Standard"};
+      recordCareerEvent("Contract Extended",{teamId:team.id,teamName:team.name,reason:`${extension}-year extension`});
+      state.news.push({year:state.currentYear,title:`${role} extension`,text:`${team.name} extended your contract for ${extension} seasons.`});
+    }
+  }
+  if(separation){
+    // Vacate the matching staff position so this becomes a genuine league opening.
+    const d=staffTeamData(team.id);
+    if(role==="Coach" && d.coach){state.staff.market.push(d.coach);d.coach=null;d.coachSecurity=45;}
+    if(role==="GM" && d.gm){state.staff.market.push(d.gm);d.gm=null;d.gmSecurity=45;}
+    markCareerUnemployedV078(team,separation);
+  }
+}
+function roleVacancyV078(team,role){
+  ensureStaffSystem();
+  const d=staffTeamData(team.id);
+  if(role==="Coach")return !d.coach;
+  if(role==="GM")return !d.gm;
+  return false;
+}
+function makeVacanciesFromPressureV078(){
+  ensureStaffSystem();
+  (state.teams||[]).forEach(team=>{
+    const d=staffTeamData(team.id);
+    if(state.career?.currentTeamId===team.id && state.career?.status==="Employed")return;
+    if(d.coach && d.coachSecurity<18 && Math.random()<.40){
+      const old=d.coach; state.staff.market.push(old); d.coach=null; d.coachSecurity=45;
+      state.staff.history.unshift({year:state.currentYear,text:`${team.name} dismissed coach ${old.name}.`});
+      state.news.push({year:state.currentYear,title:"Coaching vacancy",text:`${team.name} is searching for a new head coach.`});
+    }
+    if(d.gm && d.gmSecurity<15 && Math.random()<.30){
+      const old=d.gm; state.staff.market.push(old); d.gm=null; d.gmSecurity=45;
+      state.staff.history.unshift({year:state.currentYear,text:`${team.name} dismissed GM ${old.name}.`});
+      state.news.push({year:state.currentYear,title:"Front-office vacancy",text:`${team.name} is searching for a new general manager.`});
+    }
+  });
+}
+function generateCareerJobOffersV078(force=false){
+  ensureCareerEmploymentV078();
+  const role=state.career.role;
+  if(!["Coach","GM"].includes(role))return generateCareerJobOffers(force);
+  if(!force && state.career.lastJobMarketYear===state.currentYear && (state.career.jobOffers||[]).some(o=>o.status==="Open"))return state.career.jobOffers;
+  const vacancies=(state.teams||[]).filter(t=>!t.defunct && roleVacancyV078(t,role) && t.id!==state.career.currentTeamId);
+  const rep=Number(state.career.reputation||50);
+  state.career.jobOffers=vacancies
+    .map(t=>({team:t,score:estimateCareerFit(t,role)}))
+    .filter(x=>x.score>=Math.max(20,rep-35))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,Math.max(1,Math.min(5,1+Math.floor(rep/22))))
+    .map((x,i)=>({
+      id:`vacancy_${state.currentYear}_${x.team.id}_${i}`,
+      teamId:x.team.id,teamName:x.team.name,role,
+      score:Math.round(x.score),status:"Open",source:"Vacancy"
+    }));
+  state.career.lastJobMarketYear=state.currentYear;
+  return state.career.jobOffers;
+}
+function maybeCareerApproachV078(){
+  ensureCareerEmploymentV078();
+  if(state.career.status!=="Employed" || !["Coach","GM"].includes(state.career.role))return;
+  if((state.career.reputation||50)<72 || state.career.lastApproachYear===state.currentYear)return;
+  const role=state.career.role,current=teamByAnyId(state.career.currentTeamId);
+  const openings=(state.teams||[]).filter(t=>!t.defunct && t.id!==current?.id && roleVacancyV078(t,role));
+  if(!openings.length)return;
+  const ranked=openings.map(t=>({team:t,score:estimateCareerFit(t,role)})).sort((a,b)=>b.score-a.score);
+  if(ranked[0].score<65 || Math.random()>.55)return;
+  const t=ranked[0].team;
+  const offer={id:`approach_${state.currentYear}_${t.id}`,teamId:t.id,teamName:t.name,role,score:Math.round(ranked[0].score),status:"Open",source:"Approach"};
+  state.career.jobOffers=(state.career.jobOffers||[]).filter(o=>o.status==="Open");
+  state.career.jobOffers.unshift(offer);
+  state.career.lastApproachYear=state.currentYear;
+  state.news.push({year:state.currentYear,title:"Job approach",text:`${t.name} contacted you about its ${role} opening.`});
+}
+function acceptCareerJobV078(offerId){
+  ensureCareerEmploymentV078();
+  const offer=(state.career.jobOffers||[]).find(o=>o.id===offerId&&o.status==="Open");
+  if(!offer)return false;
+  const prior=teamByAnyId(state.career.currentTeamId);
+  if(prior && state.career.status==="Employed")recordCareerEvent("Job Ended",{teamId:prior.id,teamName:prior.name,reason:"Left for another job"});
+  const team=teamByAnyId(offer.teamId);
+  if(!team)return false;
+  ensureStaffSystem();
+  const d=staffTeamData(team.id);
+  const person={id:`user_${state.career.characterId}_${offer.role}`,name:"User Character",role:offer.role,skill:Math.max(55,Math.min(90,55+Math.round((state.career.reputation||50)*.35))),age:40,style:"User Controlled"};
+  if(offer.role==="Coach"){if(d.coach)state.staff.market.push(d.coach);d.coach=person;d.coachSecurity=72;}
+  if(offer.role==="GM"){if(d.gm)state.staff.market.push(d.gm);d.gm=person;d.gmSecurity=72;}
+  state.career.currentTeamId=team.id;
+  state.controlledTeamId=team.id;
+  state.career.status="Employed";
+  state.career.contract={yearsRemaining:(state.career.reputation||50)>=75?4:3,startedYear:state.currentYear,salaryTier:(state.career.reputation||50)>=80?"Premium":"Standard"};
+  state.career.jobOffers.forEach(o=>o.status=o.id===offerId?"Accepted":"Declined");
+  recordCareerEvent("Job Started",{teamId:team.id,teamName:team.name,reason:`Accepted ${offer.role} job`});
+  setCareerSeasonExpectationV078();
+  saveState(); renderAll();
+  return true;
+}
+function resignCareerV078(){
+  ensureCareerEmploymentV078();
+  if(state.career.status!=="Employed")return;
+  const team=teamByAnyId(state.career.currentTeamId);
+  if(!confirm(`Resign from ${team?.name||"your current team"}? Your career will continue as unemployed.`))return;
+  const role=state.career.role;
+  const d=team?staffTeamData(team.id):null;
+  if(d && role==="Coach"){if(d.coach)state.staff.market.push(d.coach);d.coach=null;d.coachSecurity=45;}
+  if(d && role==="GM"){if(d.gm)state.staff.market.push(d.gm);d.gm=null;d.gmSecurity=45;}
+  markCareerUnemployedV078(team,"Resigned");
+  generateCareerJobOffersV078(true);
+  saveState();renderAll();
+}
+function renderCareerEmploymentPanelV078(){
+  ensureCareerEmploymentV078();
+  const c=state.career, offers=(c.jobOffers||[]).filter(o=>o.status==="Open");
+  const exp=c.expectations;
+  return `<div class="card">
+    <h3>Career & Employment</h3>
+    <div class="grid2">
+      <div class="ownerMetric"><b>${c.status}</b><div class="small muted">Employment</div></div>
+      <div class="ownerMetric"><b>${Math.round(c.reputation||50)}/100</b><div class="small muted">Reputation</div></div>
+      <div class="ownerMetric"><b>${c.status==="Employed"?(c.contract?.yearsRemaining??0):"—"}</b><div class="small muted">Contract Years</div></div>
+      <div class="ownerMetric"><b>${careerTeamName(c.currentTeamId)}</b><div class="small muted">Current Team</div></div>
+    </div>
+    ${exp&&c.status==="Employed"?`<div class="notice"><b>${exp.year} Expectation:</b> ${exp.label}</div>`:""}
+    <div class="choicebar">
+      ${c.status==="Unemployed"?`<button onclick="generateCareerJobOffersV078(true);renderAll()">Check Openings</button>`:""}
+      ${c.status==="Employed"&&["Coach","GM"].includes(c.role)?`<button onclick="resignCareerV078()">Resign Position</button>`:""}
+    </div>
+    ${offers.length?`<h4>Job Offers</h4>${offers.map(o=>`<div class="staffCard"><b>${o.teamName}</b> — ${o.role}<div class="small muted">${o.source==="Approach"?"They approached you":"Open vacancy"} · Fit ${o.score}</div><button onclick="acceptCareerJobV078('${o.id}')">Accept Job</button> <button onclick="declineCareerJob('${o.id}');renderAll()">Decline</button></div>`).join("")}`:(c.status==="Unemployed"?`<p class="muted">No suitable openings are currently available. The league can continue while you wait for another opportunity.</p>`:"")}
+    <details><summary>Season Reviews</summary>${(c.seasonReviews||[]).map(r=>`<div class="careerTimelineRow"><b>${r.year}</b><div><b>${r.teamName}: ${r.grade}</b><br>${r.record} · ${r.expectation} · Security ${r.security}</div></div>`).join("")||"No completed employment reviews yet."}</details>
+    <details><summary>Career History</summary>${(c.history||[]).map(h=>`<div class="careerTimelineRow"><b>${h.year}</b><div><b>${h.type}</b> — ${h.teamName}${h.reason?`<br>${h.reason}`:""}</div></div>`).join("")||"No career events yet."}</details>
+  </div>`;
+}
+window.generateCareerJobOffersV078=generateCareerJobOffersV078;
+window.acceptCareerJobV078=acceptCareerJobV078;
+window.resignCareerV078=resignCareerV078;
+
+// Tie employment review into the existing old-season security pass.
+const _v078UpdateStaffSecurity=updateStaffSecurity;
+updateStaffSecurity=function(){
+  _v078UpdateStaffSecurity();
+  reviewControlledCareerV078();
+};
+// Create genuine league vacancies without firing the user's character twice.
+const _v078MaybeAutoFireStaff=maybeAutoFireStaff;
+maybeAutoFireStaff=function(){
+  _v078MaybeAutoFireStaff();
+  makeVacanciesFromPressureV078();
+  maybeCareerApproachV078();
+};
+// New seasons receive a fresh expectation after the old-season review has completed.
+const _v078BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  _v078BeginNextSeason();
+  ensureCareerEmploymentV078();
+  setCareerSeasonExpectationV078();
+  if(state.career.status==="Unemployed")generateCareerJobOffersV078(true);
+  saveState();
+};
+// Add the employment card to Front Office using the stable renderAll path.
+const _v078RenderAll=renderAll;
+renderAll=function(){
+  ensureCareerEmploymentV078();
+  _v078RenderAll();
+  try{
+    const host=document.getElementById("frontoffice") || document.querySelector(".front-office") || document.querySelector("[data-page='frontoffice']");
+    if(host){
+      let wrap=document.getElementById("careerEmploymentPanelV078");
+      if(!wrap){wrap=document.createElement("div");wrap.id="careerEmploymentPanelV078";host.appendChild(wrap);}
+      wrap.innerHTML=renderCareerEmploymentPanelV078();
+    }
+  }catch(e){console.warn("Career panel render skipped",e);}
+};
+setTimeout(()=>{try{if(state){ensureCareerEmploymentV078();setCareerSeasonExpectationV078();}}catch(e){}},0);
 
 </script>
 </body>
