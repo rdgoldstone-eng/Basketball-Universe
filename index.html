@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.80 · GM Offseason Checklist & AI Competition</div>
+    <div class="pill">v0.81 · GM Role Readiness Audit</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -11406,7 +11406,7 @@ setTimeout(()=>{
 },0);
 
 
-/* === v0.80 Career Jobs & Employment === */
+/* === v0.81 Career Jobs & Employment === */
 function ensureCareerState(){
   state.career = state.career || {};
   state.career.characterId = state.career.characterId || ("char_"+Date.now().toString(36));
@@ -11556,7 +11556,7 @@ if(_careerOldRenderApp){
 
 
 
-/* === v0.80 Performance, Contracts, Vacancies & Job Market === */
+/* === v0.81 Performance, Contracts, Vacancies & Job Market === */
 function ensureCareerEmploymentV078(){
   ensureCareerState();
   state.career.contract = state.career.contract || {
@@ -11838,7 +11838,7 @@ setTimeout(()=>{try{if(state){ensureCareerEmploymentV078();setCareerSeasonExpect
 
 
 
-/* === v0.80 GM Transaction Rules & Waivers === */
+/* === v0.81 GM Transaction Rules & Waivers === */
 function ensureTransactionRulesV079(){
   ensureFrontOffice();
   state.frontOffice.waivers = Array.isArray(state.frontOffice.waivers) ? state.frontOffice.waivers : [];
@@ -12061,7 +12061,7 @@ window.renderFrontOffice=renderFrontOffice;
 
 
 
-/* === v0.80 GM Offseason Checklist & AI Competition === */
+/* === v0.81 GM Offseason Checklist & AI Competition === */
 function ensureGMWorkflowV080(){
   ensureFrontOffice();
   state.gmWorkflow = state.gmWorkflow || {};
@@ -12263,6 +12263,219 @@ renderFrontOffice=function(){
   el.innerHTML=renderGMChecklistV080();
 };
 window.renderFrontOffice=renderFrontOffice;
+
+
+
+/* === v0.81 GM Role Readiness Audit & Gap Closures === */
+function ensureGMAuditV081(){
+  ensureGMWorkflowV080();
+  state.gmAudit = state.gmAudit || {};
+  state.gmAudit.year = state.gmAudit.year || state.currentYear;
+  state.gmAudit.completed = state.gmAudit.completed || {};
+  state.gmAudit.flags = state.gmAudit.flags || {};
+}
+function gmSeasonPhaseV081(){
+  if(state.offseason)return offseasonStageNameV080();
+  return state.season?.phase || "Regular Season";
+}
+function gmAuditItemsV081(){
+  ensureGMAuditV081();
+  const team=controlledGMTeamV080();
+  if(!team)return [];
+  const roster=teamRoster(team.name);
+  const limits=rosterLimits();
+  const payroll=teamPayroll(team.name);
+  const cap=Number(state.frontOffice?.cap||100);
+  const expiring=roster.filter(p=>Number(p.contract?.years||0)<=1);
+  const injured=roster.filter(p=>Number(p.injuryGames||0)>0);
+  const openRoster=Math.max(0,limits.activeMax-roster.length);
+  const hasPicks=(state.draftPicks||[]).some(pk=>pk.ownerTeamId===team.id || pk.teamId===team.id || pk.owner===team.name);
+  const stage=gmSeasonPhaseV081();
+  return [
+    {key:"roster",label:"Roster Management",ok:roster.length>=8 && roster.length<=limits.offseasonMax,detail:`${roster.length} players · ${openRoster} regular-season spot(s) open.`},
+    {key:"depth",label:"Depth Chart / Rotation",ok:!!team.depthChart || roster.length<8,detail:team.depthChart?"Depth chart exists.":"No team depth chart has been generated yet."},
+    {key:"contracts",label:"Contracts & Extensions",ok:true,detail:`${expiring.length} player(s) have one year or less remaining.`},
+    {key:"trades",label:"Trade Machine",ok:typeof proposeTradeMachine==="function",detail:tradeDeadlinePassedV079()&&!state.offseason?"Trade window currently closed.":"Trade system available."},
+    {key:"fa",label:"Free Agency",ok:typeof renderFreeAgents==="function" || !!document.getElementById("freeagents"),detail:stage==="Free Agency"?"Free agency is the active offseason stage.":"Free-agent market is available when appropriate."},
+    {key:"waivers",label:"Waivers & Cuts",ok:typeof waivePlayerV079==="function",detail:"Players can be waived and claimed."},
+    {key:"draft",label:"Draft & Picks",ok:typeof renderDraft==="function" || hasPicks,detail:hasPicks?"Team owns tracked draft assets.":"Draft system available; no owned pick detected in this snapshot."},
+    {key:"staff",label:"Staff Decisions",ok:typeof ensureStaffSystem==="function",detail:"GM can operate within the staff/job-security framework."},
+    {key:"cap",label:"Payroll / Cap",ok:Number.isFinite(payroll),detail:`Payroll $${Number(payroll||0).toFixed(1)}M${state.leagueRules?.salaryCap?` · Cap $${cap.toFixed(1)}M`:" · No active cap in this era"}.`},
+    {key:"injuries",label:"Injury Decisions",ok:true,detail:`${injured.length} injured player(s) currently on roster.`},
+    {key:"career",label:"Career / Employment",ok:!!state.career,detail:"GM career can continue across franchises."},
+    {key:"offseason",label:"Full Offseason Gate",ok:typeof gmCanAdvanceOffseasonV080==="function",detail:"Draft → re-signings → free agency → cuts → camp progression is gated."}
+  ];
+}
+function gmAuditPassedV081(){
+  const items=gmAuditItemsV081();
+  return items.length>0 && items.every(x=>x.ok);
+}
+function renderGMAuditV081(){
+  const team=controlledGMTeamV080();
+  if(!team)return "";
+  const items=gmAuditItemsV081();
+  const missing=items.filter(x=>!x.ok);
+  return `<div class="card">
+    <h2>GM Role Readiness</h2>
+    <div class="notice"><b>${missing.length?"Under Construction":"Core Systems Present"}</b><br><span class="small">${missing.length?`${missing.length} audited area(s) still missing or unavailable in this universe.`:"The core GM feature set is present. This does not replace a dedicated playtest."}</span></div>
+    ${items.map(x=>`<div class="staffCard"><b>${x.ok?"✓":"✕"} ${x.label}</b><div class="small muted">${x.detail}</div></div>`).join("")}
+  </div>`;
+}
+
+/* --- Rookie contract gap closure --- */
+function signRookieContractV081(playerId){
+  const team=controlledGMTeamV080(),p=state.players.find(x=>x.id===playerId);
+  if(!team||!p||p.teamName!==team.name)return;
+  const pick=Number(p.draftPick||p.pick||30);
+  let yrs=3, salary=1.2;
+  if(pick<=5){yrs=4;salary=4.5;}
+  else if(pick<=14){yrs=4;salary=3.0;}
+  else if(pick<=30){yrs=3;salary=1.8;}
+  p.contract={years:yrs,salary};
+  p.contractStatus="Under Contract";
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs rookie ${p.name} to a ${yrs}-year contract.`});
+  state.news.push({year:state.currentYear,title:"Rookie Contract",text:`${team.name} signed ${p.name} to his rookie contract.`});
+  renderAll();saveState();
+}
+function renderUnsignedRookiesV081(){
+  const team=controlledGMTeamV080();
+  if(!team)return "";
+  const rookies=teamRoster(team.name).filter(p=>p.isRookie && (!p.contract || Number(p.contract.years||0)<=0));
+  if(!rookies.length)return "";
+  return `<div class="card"><h2>Unsigned Rookies</h2>${rookies.map(p=>`<div class="staffCard"><b>${p.name}</b><div class="small muted">${p.pos||""} · OVR ${p.ovr||"—"} · Pick ${p.draftPick||p.pick||"—"}</div><button onclick="signRookieContractV081('${p.id}')">Sign Rookie Contract</button></div>`).join("")}</div>`;
+}
+window.signRookieContractV081=signRookieContractV081;
+
+/* --- Explicit player extension / contract decisions from GM screen --- */
+function gmExtensionEligibleV081(p){
+  return Number(p.contract?.years||0)===1 && p.teamName===currentControlledTeam()?.name;
+}
+function gmOfferExtensionV081(playerId,years,salary){
+  const team=controlledGMTeamV080(),p=state.players.find(x=>x.id===playerId);
+  if(!team||!p||!gmExtensionEligibleV081(p))return;
+  years=Math.max(1,Math.min(5,Number(years||2)));
+  salary=Math.max(1,Number(salary||p.contract?.salary||1));
+  const market=Math.max(1,playerMarketValue(p));
+  const age=Number(p.age||27);
+  const teamPct=teamWinPctNow(team);
+  let accept=(salary/market)*65 + years*5 + teamPct*18;
+  if(age>=31)accept+=years*4;
+  if(age<=25)accept-=Math.max(0,4-years)*2;
+  if(Math.random()*100<=accept){
+    p.contract={years:years+1,salary}; // current season plus extension term
+    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} extends ${p.name}: ${years} additional year(s) at $${salary.toFixed(1)}M annually.`});
+    state.news.push({year:state.currentYear,title:"Contract Extension",text:`${p.name} agreed to an extension with ${team.name}.`});
+  }else{
+    state.news.push({year:state.currentYear,title:"Extension Rejected",text:`${p.name} rejected ${team.name}'s extension offer.`});
+    alert(`${p.name} rejected the extension offer.`);
+  }
+  renderAll();saveState();
+}
+window.gmOfferExtensionV081=gmOfferExtensionV081;
+
+/* --- GM controlled-team protection audit --- */
+function isUserControlledGMTeamV081(team){
+  const c=controlledGMTeamV080();
+  return !!(c && team && c.id===team.id);
+}
+const _v081RunAIReSignings = typeof runAIReSignings==="function" ? runAIReSignings : null;
+if(_v081RunAIReSignings){
+  runAIReSignings=function(){
+    const controlled=controlledGMTeamV080();
+    const snapshot=controlled?teamRoster(controlled.name).map(p=>({id:p.id,teamName:p.teamName,contract:p.contract?{...p.contract}:null})):[];
+    const r=_v081RunAIReSignings.apply(this,arguments);
+    if(controlled){
+      snapshot.forEach(s=>{
+        const p=state.players.find(x=>x.id===s.id);
+        if(p && p.teamName!==controlled.name && !state.freeAgents?.includes(p.id)){p.teamName=controlled.name;}
+      });
+    }
+    return r;
+  }
+}
+const _v081AiTrainingCampCuts = typeof aiTrainingCampCuts==="function" ? aiTrainingCampCuts : null;
+if(_v081AiTrainingCampCuts){
+  aiTrainingCampCuts=function(){
+    const controlled=controlledGMTeamV080();
+    const before=controlled?new Set(teamRoster(controlled.name).map(p=>p.id)):null;
+    const r=_v081AiTrainingCampCuts.apply(this,arguments);
+    if(controlled && before){
+      before.forEach(id=>{
+        const p=state.players.find(x=>x.id===id);
+        if(p && p.teamName!=="Retired" && p.teamName!==controlled.name && p.waivedByTeamId!==controlled.id){
+          p.teamName=controlled.name;
+          state.freeAgents=(state.freeAgents||[]).filter(x=>x!==p.id);
+        }
+      });
+    }
+    return r;
+  }
+}
+
+/* --- Transaction Center UI: quick GM actions in one place --- */
+function renderGMTransactionCenterV081(){
+  const team=controlledGMTeamV080();
+  if(!team)return "";
+  const roster=teamRoster(team.name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  const extensionRows=roster.filter(gmExtensionEligibleV081).slice(0,10);
+  return `<div class="card"><h2>GM Transaction Center</h2>
+    <div class="small muted">Quick access to the most common roster decisions for ${team.name}.</div>
+    <div class="grid2">
+      <button onclick="showPage?.('trades')">Open Trade Machine</button>
+      <button onclick="showPage?.('freeagents')">Open Free Agency</button>
+      <button onclick="renderFrontOffice()">Refresh Front Office</button>
+      <button onclick="generateCareerJobOffersV078?.(true);renderAll()">Check Career Market</button>
+    </div>
+    ${extensionRows.length?`<h4>Extension Eligible</h4>${extensionRows.map(p=>`<div class="staffCard"><b>${p.name}</b><div class="small muted">${p.pos||""} · OVR ${p.ovr||"—"} · Current $${Number(p.contract?.salary||0).toFixed(1)}M</div>
+      <button onclick="(()=>{const y=prompt('Extension years (1-5)','3');if(y===null)return;const s=prompt('Annual salary in millions','${Math.max(1,Number(p.contract?.salary||1)).toFixed(1)}');if(s===null)return;gmOfferExtensionV081('${p.id}',y,s)})()">Offer Extension</button></div>`).join("")}`:""}
+    <h4>Roster</h4>
+    ${roster.map(p=>`<div class="staffCard"><b>${p.name}</b><div class="small muted">${p.pos||""} · OVR ${p.ovr||"—"} · ${p.contract?.years||0} yr · $${Number(p.contract?.salary||0).toFixed(1)}M</div>${roster.length>8?`<button onclick="waivePlayerV079('${p.id}')">Waive</button>`:""}</div>`).join("")}
+  </div>`;
+}
+
+const _v081RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  _v081RenderFrontOffice();
+  const team=controlledGMTeamV080();
+  if(!team)return;
+  const section=document.getElementById("frontoffice");
+  if(!section)return;
+  let audit=document.getElementById("gmReadinessAuditV081");
+  if(!audit){
+    audit=document.createElement("div");audit.id="gmReadinessAuditV081";
+    section.appendChild(audit);
+  }
+  audit.innerHTML=renderGMAuditV081();
+  let rookie=document.getElementById("unsignedRookiesV081");
+  if(!rookie){
+    rookie=document.createElement("div");rookie.id="unsignedRookiesV081";
+    section.appendChild(rookie);
+  }
+  rookie.innerHTML=renderUnsignedRookiesV081();
+  let txc=document.getElementById("gmTransactionCenterV081");
+  if(!txc){
+    txc=document.createElement("div");txc.id="gmTransactionCenterV081";
+    section.appendChild(txc);
+  }
+  txc.innerHTML=renderGMTransactionCenterV081();
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* --- Career review ties more directly to GM season outcome --- */
+const _v081CareerPerf=careerPerformanceGradeV078;
+careerPerformanceGradeV078=function(team,role){
+  const base=_v081CareerPerf(team,role);
+  if(role==="GM"){
+    const prof=teamRosterProfile(team);
+    const avgAge=Number(prof.avgAge||27);
+    const payroll=teamPayroll(team.name);
+    const cap=Number(state.frontOffice?.cap||100);
+    if(team.direction==="Rebuilding" && avgAge<26.5){base.rep+=2;base.security+=2;}
+    if(team.direction==="Contending" && teamSeasonPctV078(team)>=.60){base.rep+=3;base.security+=3;}
+    if(state.leagueRules?.salaryCap && payroll>cap*1.20 && teamSeasonPctV078(team)<.50){base.rep-=3;base.security-=4;}
+  }
+  return base;
+};
 
 </script>
 </body>

@@ -1,20 +1,17 @@
 Basketball Universe
-v0.80 · GM Offseason Checklist & AI Competition
+v0.81 · GM Role Readiness Audit
 
 WHAT CHANGED
-- Added a dedicated GM Offseason Checklist.
-- Required GM business now blocks offseason advancement until resolved.
-- Checklist covers draft decisions, rookie contracts, re-signings, free agency, offseason roster legality, and opening-night roster limits.
-- GM can explicitly mark a stage complete when no further action is desired.
-- User-controlled teams are protected from AI free-agency and roster-cut automation.
-- AI teams now compete for free agents based on talent, age, roster need, team direction, asking price, and cap space.
-- Stronger markets can create bidding pressure and higher offers.
-- AI teams correct oversized offseason rosters before the season.
-- Beginning the regular season is blocked if the GM-controlled roster is above the active limit.
-- GM workflow resets cleanly at the start of each new season.
+- Added an in-game GM Role Readiness audit covering the full job loop.
+- Added explicit rookie-contract signing for drafted players still unsigned.
+- Added a GM Transaction Center for quick access to trades, free agency, waivers, extensions, and roster decisions.
+- Added custom in-season extension offers for players entering the final year of their contracts.
+- Strengthened protection against AI re-signing/cut automation taking over the user-controlled GM roster.
+- GM employment reviews now consider roster age, contender performance, and expensive underperformance in addition to record.
+- Front Office now shows whether each major GM system exists and is available in the current universe.
 
-STATUS
-GM mode is approaching a full role loop, but it is still under construction. Viewer remains the primary development/testing role until GM has passed a dedicated role-readiness audit.
+ROLE STATUS
+This is an audit/closure build, not the declaration that GM is ready. The next milestone is a dedicated GM playtest only after the audit and first-pass integration are stable.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.
