@@ -61,6 +61,19 @@ button:hover{filter:brightness(1.08);cursor:pointer}
 .teammeta{flex:1}.teammeta b{display:block}
 .nav{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
 .nav button.active{background:var(--gold);color:#111}
+.nav button.sim-location{
+  outline:2px solid #ffd84d;
+  outline-offset:2px;
+  box-shadow:0 0 0 1px rgba(255,216,77,.25),0 0 12px rgba(255,216,77,.18);
+}
+.nav button.sim-location.active{
+  outline:3px solid #ffd84d;
+}
+.historyChampionMain{display:flex;align-items:center;gap:10px;min-width:0}
+.historyChampionLogo{width:46px;height:46px;flex:0 0 46px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.historyChampionLogo img{width:100%;height:100%;object-fit:contain}
+.playoffSeed{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:999px;background:#252d3a;border:1px solid var(--line);font-size:11px;font-weight:900;margin-right:6px;color:#fff}
+
 .section{display:none}.section.active{display:block}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media(max-width:700px){.kpis{grid-template-columns:1fr 1fr}}
@@ -285,7 +298,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.58.1 · Mobile Create Fix</div>
+    <div class="pill">v0.59 · Navigation, Seeds & Autosave</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -2737,7 +2750,10 @@ function saveState(){
     const compact=compactStateForStorage();
     localStorage.setItem("basketball_universe_v1",JSON.stringify(compact));
     const status=document.getElementById("saveStatus");
-    if(status)status.textContent=`Saved · ${state.name}`;
+    if(status){
+      const now=new Date();
+      status.textContent=`Autosaved · ${state.name} · ${now.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
+    }
     return true;
   }catch(err){
     console.error("Basketball Universe save failed:",err);
@@ -2903,6 +2919,28 @@ function refreshUniverseHeader(){
  if(decisions)decisions.textContent=(state.decisions||[]).filter(d=>!d.resolved).length;
 }
 
+
+function simulationLocationTab(){
+ if(!state)return null;
+ let phase=state.season?.phase;
+ if(phase==="Playoffs"||phase==="Regular Season Complete")return "playoffs";
+ if(phase==="Season Complete"){
+   if(state.offseason?.phase==="Draft")return "draftroom";
+   return "offseason";
+ }
+ return "season";
+}
+
+function updateSimulationLocationNav(){
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("sim-location"));
+ let tab=simulationLocationTab();
+ if(!tab)return;
+ let btn=document.querySelector(`.nav button[data-tab="${tab}"]`);
+ if(btn){
+   btn.classList.add("sim-location");
+   btn.title=`Current simulation stage: ${tab==="draftroom"?"Draft":tab==="offseason"?"Offseason":tab==="playoffs"?"Playoffs":"Regular Season"}`;
+ }
+}
 function showGame(){
  ensureLeagueRules();
  renderEraArchitecture();
@@ -2928,6 +2966,7 @@ function showGame(){
     : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`);
  document.getElementById("permissionsText").innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("")+"</ul>";
  updateDraftRoomNav();
+ updateSimulationLocationNav();
  renderAll();
 }
 
@@ -7249,7 +7288,10 @@ function recordSeasonHonors(){
  let runnerUp=determineFinalsRunnerUp();
  let season={year,mvp:mvp?.name||null,rookie:rookie?.name||null,dpoy:dpoy?.name||null,sixth:sixth?.name||null,champion,runnerUp,finalsMvp:finalsMvp?.name||finalsMvp||null};
  state.history.seasons.push(season);
- if(champion)state.history.champions.push({year,team:champion,runnerUp:season.runnerUp,finalsMvp:season.finalsMvp});
+ if(champion){
+   let champTeam=state.teams.find(t=>t.name===champion);
+   state.history.champions.push({year,team:champion,teamId:champTeam?.id||null,runnerUp:season.runnerUp,finalsMvp:season.finalsMvp});
+ }
  if(mvp){
    mvp.awards=mvp.awards||[];
    if(!mvp.awards.includes(`${year} MVP`))mvp.awards.push(`${year} MVP`);
@@ -7305,7 +7347,8 @@ function repairCompletedFinalsHistory(){
    if(runnerUp&&!champRow.runnerUp)champRow.runnerUp=runnerUp;
    if(fmName)champRow.finalsMvp=fmName;
  }else if(champion){
-   state.history.champions.push({year,team:champion,runnerUp,finalsMvp:fmName});
+   let champTeam=state.teams.find(t=>t.name===champion);
+   state.history.champions.push({year,team:champion,teamId:champTeam?.id||null,runnerUp,finalsMvp:fmName});
  }
 }
 
@@ -7336,13 +7379,24 @@ function repairRookieAwardHistory(){
  });
 }
 
+
+function historicalChampionLogoHTML(champ){
+ if(!champ?.team)return "";
+ let year=Number(champ.year||state.currentYear);
+ let team=(champ.teamId?state.teams.find(t=>t.id===champ.teamId):null) || state.teams.find(t=>t.name===champ.team) || state.teams.find(t=>(t.identityHistory||[]).some(h=>h.name===champ.team));
+ let obj=team||{id:`history_${champ.team}`,name:champ.team,logo:null,identityHistory:[{from:year,name:champ.team}]};
+ let src=resolvedLogoSrc(obj,year);
+ let fallback=generatedTeamLogos[champ.team]||generatedIdentityLogos[obj.id]||"";
+ let fb=fallback?String(fallback).replace(/'/g,"&#39;"):"";
+ return `<div class="historyChampionLogo">${src?`<img src="${src}" alt="${champ.team} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`this.parentElement.textContent='${initials(champ.team)}'`}">`:initials(champ.team)}</div>`;
+}
 function renderLeagueHistory(){
  if(!state)return;ensureLeagueHistory();repairCompletedFinalsHistory();repairCurrentRookieAward();repairRookieAwardHistory();
  let sh=document.getElementById("seasonHonorsBox"),ah=document.getElementById("allStarHistoryBox"),ch=document.getElementById("championsHistoryBox"),rh=document.getElementById("recordsHistoryBox");
  if(!sh)return;
  sh.innerHTML=state.history.seasons.length?state.history.seasons.slice().reverse().map(s=>`<div class="historyRow"><b>${s.year}-${String((s.year+1)%100).padStart(2,"0")}</b><div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div><div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div></div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
  ah.innerHTML=state.history.allStars.length?state.history.allStars.slice().reverse().map(a=>`<div class="historyRow"><b>${a.year}</b><div><b>East</b><div class="small muted">${a.east.join(", ")}</div></div><div><b>West</b><div class="small muted">${a.west.join(", ")}</div></div></div>`).join(""):`<span class="muted">No All-Star selections yet.</span>`;
- ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}-${String((c.year+1)%100).padStart(2,"0")}</b><div><b>Champion: ${c.team}</b><br><span class="small muted">Runner-up: ${c.runnerUp||"—"}</span></div><div>${c.finalsMvp?`<b>Finals MVP:</b> ${c.finalsMvp}`:"Finals MVP: —"}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
+ ch.innerHTML=state.history.champions.length?state.history.champions.slice().reverse().map(c=>`<div class="historyRow"><b>${c.year}-${String((c.year+1)%100).padStart(2,"0")}</b><div class="historyChampionMain">${historicalChampionLogoHTML(c)}<div><b>${c.team}</b><br><span class="small muted">Runner-up: ${c.runnerUp||"—"}</span></div></div><div>${c.finalsMvp?`<b>Finals MVP:</b> ${c.finalsMvp}`:"Finals MVP: —"}</div></div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
  rh.innerHTML=state.history.records.length?state.history.records.map(r=>`<div class="historyRow"><b>${r.type}</b><div><b>${r.player}</b></div><div>${r.value.toFixed(1)} · ${r.year}</div></div>`).join(""):`<span class="muted">No records recorded yet.</span>`;
 }
 
@@ -7907,6 +7961,29 @@ function simulateUntil(target){
  }
 }
 
+
+function ensurePlayoffSeedMap(){
+ let ps=state.season?.playoffState;
+ if(!ps)return {};
+ ps.seedByTeam=ps.seedByTeam||{};
+ ["East","West"].forEach(conf=>{
+   ordered(conf).forEach((t,i)=>{
+     if(ps.seedByTeam[t.id]==null)ps.seedByTeam[t.id]=i+1;
+   });
+ });
+ return ps.seedByTeam;
+}
+function playoffSeedFor(teamOrId){
+ let id=typeof teamOrId==="string"?teamOrId:teamOrId?.id;
+ if(!id)return null;
+ let map=ensurePlayoffSeedMap();
+ return map[id]??null;
+}
+function seededTeamName(team){
+ if(!team)return "TBD";
+ let seed=playoffSeedFor(team.id);
+ return `${seed?`<span class="playoffSeed">${seed}</span>`:""}${team.name}`;
+}
 function playoffSeriesObj(a,b,round,conf,bestOf=7){
  return {id:"ps_"+Math.random().toString(36).slice(2),aId:a.id,bId:b.id,aw:0,bw:0,round,conf,bestOf,complete:false,winnerId:null,games:[]};
 }
@@ -7914,7 +7991,8 @@ function initPostseasonExperience(){
  if(state.season.phase!=="Regular Season Complete" && state.season.phase!=="Playoffs")return;
  if(state.season.playoffState)return;
  const east=ordered("East").slice(0,6),west=ordered("West").slice(0,6);
- state.season.playoffState={round:1,gameNo:1,series:[],gameLog:[],championId:null,slateCursor:0};
+ state.season.playoffState={round:1,gameNo:1,series:[],gameLog:[],championId:null,slateCursor:0,seedByTeam:{}};
+ ["East","West"].forEach(conf=>ordered(conf).slice(0,6).forEach((t,i)=>state.season.playoffState.seedByTeam[t.id]=i+1));
  state.playoffPlayerStats={};state.finalsMvp=null;
  [["East",east],["West",west]].forEach(([conf,s])=>{
    if(s.length>=6){
@@ -8196,7 +8274,7 @@ function seriesCard(s){
  let label=s.complete?`<div class="clinched">${teamById(s.winnerId).name} wins series</div>`:
    ((s.aw===need-1||s.bw===need-1)?`<div class="elim">ELIMINATION GAME POSSIBLE</div>`:`<div class="small muted">Best of ${s.bestOf}</div>`);
  return `<div class="seriesCard"><div class="small muted">${s.round}</div><div class="seriesTeams">
- <div><div class="seriesTeam">${logoHTML(a)}<b>${a.name}</b></div><div class="seriesTeam">${logoHTML(b)}<b>${b.name}</b></div></div>
+ <div><div class="seriesTeam">${logoHTML(a)}<b>${seededTeamName(a)}</b></div><div class="seriesTeam">${logoHTML(b)}<b>${seededTeamName(b)}</b></div></div>
  <div><div class="seriesScore">${s.aw}</div><div class="seriesScore">${s.bw}</div></div></div>${label}</div>`;
 }
 
@@ -8208,7 +8286,8 @@ function nextPlayoffGameLabel(){
  let idx=ps.slateCursor||0;
  if(idx>=active.length)idx=0;
  let s=active[idx],a=teamById(s.aId),b=teamById(s.bId);
- return `Next: ${a?.name||"TBD"} vs ${b?.name||"TBD"} · Game ${s.games.length+1}`;
+ let as=playoffSeedFor(a?.id),bs=playoffSeedFor(b?.id);
+ return `Next: ${as?`#${as} `:""}${a?.name||"TBD"} vs ${bs?`#${bs} `:""}${b?.name||"TBD"} · Game ${s.games.length+1}`;
 }
 
 
@@ -8492,7 +8571,11 @@ function renderPlayoffs(){
  document.getElementById("eastBracket").innerHTML=ps.series.filter(s=>s.conf==="East").map(seriesCard).join("");
  document.getElementById("westBracket").innerHTML=ps.series.filter(s=>s.conf==="West").map(seriesCard).join("");
  let finals=ps.series.filter(s=>s.conf==="Finals");document.getElementById("finalsBracket").innerHTML=finals.length?finals.map(seriesCard).join(""):"The Finals matchup has not been determined.";
- document.getElementById("playoffGameLog").innerHTML=ps.gameLog.length?ps.gameLog.map(g=>`<div class="playoffLogGame"><b>${g.round} · Game ${g.game}</b><div>${g.a} ${g.as} — ${g.b} ${g.bs}</div>${g.story?`<div class="small muted">${g.story.headline}</div>`:""}</div>`).join(""):"No playoff games played yet.";
+ document.getElementById("playoffGameLog").innerHTML=ps.gameLog.length?ps.gameLog.map(g=>{
+   let ta=state.teams.find(t=>t.name===g.a),tb=state.teams.find(t=>t.name===g.b);
+   let sa=playoffSeedFor(ta?.id),sb=playoffSeedFor(tb?.id);
+   return `<div class="playoffLogGame"><b>${g.round} · Game ${g.game}</b><div>${sa?`#${sa} `:""}${g.a} ${g.as} — ${sb?`#${sb} `:""}${g.b} ${g.bs}</div>${g.story?`<div class="small muted">${g.story.headline}</div>`:""}</div>`;
+ }).join(""):"No playoff games played yet.";
  renderLatestPlayoffResult();
  renderWatchGame();
  renderPlayoffLeaders();
@@ -8538,7 +8621,40 @@ document.getElementById("advanceBtn").onclick=()=>simulateUntil(document.getElem
 const originalShowGame=showGame;
 showGame=function(){originalShowGame();initSeasonIfNeeded();renderSeason();saveState();}
 const originalRenderAll=renderAll;
-renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();}
+renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateSimulationLocationNav();}
+
+// ----- Persistent mobile/browser autosave v0.59 -----
+let basketballUniverseAutosaveTimer=null;
+function autosaveUniverse(){
+ if(!state)return;
+ saveState();
+}
+function startUniverseAutosave(){
+ if(basketballUniverseAutosaveTimer)return;
+ basketballUniverseAutosaveTimer=setInterval(()=>{
+   if(state && !document.hidden)autosaveUniverse();
+ },15000);
+}
+window.addEventListener("pagehide",()=>autosaveUniverse());
+window.addEventListener("beforeunload",()=>autosaveUniverse());
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden)autosaveUniverse();
+});
+startUniverseAutosave();
+
+// Resume the most recent browser universe automatically on return.
+setTimeout(()=>{
+ if(state)return;
+ const saved=loadState();
+ if(saved){
+   state=saved;
+   try{applyHistoricalIdentityAssets();showGame();}
+   catch(err){
+     console.error("Automatic universe resume failed:",err);
+     state=null;
+   }
+ }
+},0);
 
 </script>
 </body>
