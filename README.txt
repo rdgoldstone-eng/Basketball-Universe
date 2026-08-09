@@ -1,58 +1,35 @@
-v0.58 Basketball Universe — Historical Expansion Drafts
+v0.58.1 Basketball Universe — Mobile Create Fix
 
-MAJOR STRUCTURAL FIX
-Historical expansion teams now enter the league with actual expansion-draft rosters.
+FIXED: CREATE UNIVERSE ON IPHONE / MOBILE SAFARI
 
-WHY THIS MATTERS
-The Historical Crossroads system could already approve:
-- Dallas
-- Charlotte
-- Miami
-- Orlando
-- Minnesota
+LIKELY CAUSE
+Basketball Universe contains a large embedded logo library.
+Previous builds copied built-in logo data URIs into the saved universe.
+Mobile Safari can have a much tighter localStorage quota than desktop browsers.
 
-But those franchises were previously added without a proper roster-building process.
+If localStorage rejected the save, JavaScript stopped before showGame(), making the Create Universe button appear to do nothing.
 
-NEW HISTORICAL EXPANSION DRAFT ENGINE
-When a historical expansion team joins:
-- existing franchises protect their top 8 players
-- the new team selects 12 players
-- one expansion team cannot repeatedly raid the same source club
-- when two teams enter together, selections alternate between the expansion clubs
-- an existing club can lose at most one player to each expansion club
-- expansion selections consider talent, potential, age, position need, and small deterministic variance
-- opening rotations and starter roles are created automatically
-- expansion selections are recorded in player transaction history
-- the completed expansion draft is stored in league history
+CHANGES
+- Built-in logo image data is no longer duplicated inside browser saves.
+- Historical/team logos are reconstructed from the artwork already embedded in index.html.
+- User-uploaded custom logo artwork is preserved.
+- Older saves that omit built-in artwork are rehydrated automatically.
+- saveState() now catches browser-storage errors instead of crashing the game.
+- Create Universe now opens the game even if persistence fails.
+- A visible warning is shown if the browser cannot save locally.
 
-HISTORICAL WAVES
-1980 Dallas:
-If approved at the historical crossroads, Dallas now immediately receives an expansion-draft roster.
+NO VISUAL LOSS
+This does not remove logos from the game.
+It only removes redundant copies of built-in artwork from localStorage.
 
-1988 Charlotte + Miami:
-If both are approved, they are added together and draft from one shared protected/unprotected player pool.
-
-1989 Orlando + Minnesota:
-Same multi-team system.
-
-If the alternate universe approves only Charlotte and Miami in 1987, only those two expansion drafts occur.
-
-DELAYED EXPANSION
-If Dallas is delayed to 1981, the roster draft happens when Dallas actually enters.
-
-LEAGUE OFFICE UI
-The Expansion Draft panel now displays the most recent completed historical expansion draft when no manual expansion draft is pending.
-
-MANUAL EXPANSION
-The existing Commissioner manual expansion system remains available and unchanged.
-
-NEXT TEST TARGET
-A fresh Viewer run from 1976 through 1990 is now especially valuable:
-- see which historical crossroads fire
-- verify Dallas roster if approved
-- verify Charlotte/Miami simultaneous entry
-- verify Orlando/Minnesota entry
-- inspect expansion rosters and league stability
+TEST
+On iPhone:
+1. Refresh/reopen Basketball Universe after GitHub Pages updates.
+2. Choose Viewer.
+3. Leave the start year at 1976.
+4. Tap Create Universe.
+5. The Dashboard should open immediately.
+6. Refresh the page once afterward and use Load Existing Universe to confirm the save persisted.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.

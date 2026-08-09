@@ -285,7 +285,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.58 · Historical Expansion Drafts</div>
+    <div class="pill">v0.58.1 · Mobile Create Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -364,6 +364,7 @@ pre{white-space:pre-wrap}
 
   <div class="card">
     <button class="primary" id="createBtn">Create Universe</button>
+    <div class="small muted" style="margin-top:8px">Mobile-safe saves: built-in logo artwork is stored in the game, not duplicated inside your browser save.</div>
     <button id="loadBtn">Load Existing Universe</button>
   </div>
 </section>
@@ -2685,16 +2686,73 @@ function ensureIdentityLogos(){
  });
 }
 
+function compactStateForStorage(){
+  if(!state)return null;
+  // Built-in and historical logos already live inside index.html. Duplicating their
+  // data URIs in localStorage can exceed Safari/iPhone storage quotas.
+  let copy=JSON.parse(JSON.stringify(state));
+  const customLogoMap=new Map((copy.customIdentities||[]).filter(i=>i?.logo).map(i=>[i.name,i.logo]));
+
+  if(copy.identityLibrary){
+    copy.identityLibrary.forEach(i=>{
+      // Built-in artwork is reconstructed from the game's embedded asset library.
+      if(i && i.logo)delete i.logo;
+    });
+  }
+
+  if(copy.teams){
+    copy.teams.forEach(t=>{
+      if(!t)return;
+      const customLogo=customLogoMap.get(t.name);
+      if(customLogo && t.logo===customLogo)return; // Preserve user-uploaded custom art.
+      if(t.logo && String(t.logo).startsWith("data:image"))t.logo=null;
+      if(Array.isArray(t.identityHistory)){
+        t.identityHistory.forEach(h=>{
+          if(!h)return;
+          const histCustom=customLogoMap.get(h.name);
+          if(histCustom && h.logo===histCustom)return;
+          if(h.logo && String(h.logo).startsWith("data:image"))h.logo=null;
+        });
+      }
+    });
+  }
+  return copy;
+}
+
+function rehydrateLoadedState(s){
+  if(!s)return s;
+  // Older compact/mobile saves may omit built-in logo data. Restore it from the app.
+  if(!Array.isArray(s.identityLibrary) || !s.identityLibrary.length){
+    s.identityLibrary=JSON.parse(JSON.stringify(builtInIdentities));
+  }
+  s.identityLibrary.forEach(i=>{
+    if(i && !i.logo && generatedIdentityLogos[i.id])i.logo=generatedIdentityLogos[i.id];
+  });
+  return s;
+}
+
 function saveState(){
-  if(!state)return;
-  ensureIdentityLogos();
-  localStorage.setItem("basketball_universe_v1",JSON.stringify(state));
-  document.getElementById("saveStatus").textContent=`Saved · ${state.name}`;
+  if(!state)return false;
+  try{
+    const compact=compactStateForStorage();
+    localStorage.setItem("basketball_universe_v1",JSON.stringify(compact));
+    const status=document.getElementById("saveStatus");
+    if(status)status.textContent=`Saved · ${state.name}`;
+    return true;
+  }catch(err){
+    console.error("Basketball Universe save failed:",err);
+    const status=document.getElementById("saveStatus");
+    if(status)status.textContent="Running · browser save unavailable";
+    // Do not throw. The universe should remain playable even if browser storage is full.
+    return false;
+  }
 }
 function loadState(){
-  const raw=localStorage.getItem("basketball_universe_v1");
+  let raw=null;
+  try{raw=localStorage.getItem("basketball_universe_v1");}
+  catch(e){return null;}
   if(!raw)return null;
-  try{return JSON.parse(raw)}catch(e){return null}
+  try{return rehydrateLoadedState(JSON.parse(raw));}catch(e){return null}
 }
 function fillTeams(){
   const sel=document.getElementById("teamChoice");
@@ -2763,7 +2821,11 @@ document.getElementById("createBtn").onclick=()=>{
  };
  applyHistoricalIdentityAssets();
  seedDecisions();
- saveState(); showGame();
+ const savedOK=saveState();
+ showGame();
+ if(!savedOK){
+   setTimeout(()=>alert("Universe created successfully, but this browser could not save it locally. Basketball Universe will keep running in this tab. The mobile-save system has been reduced to avoid this on future saves."),50);
+ }
 };
 
 
@@ -5886,7 +5948,11 @@ function createUniverseFromLeagueFile(file,role,teamId,nameOverride){
  };
  ensureLeagueRules();
  seedDecisions();
- saveState();showGame();
+ const savedOK=saveState();
+ showGame();
+ if(!savedOK){
+   setTimeout(()=>alert("Universe created successfully, but this browser could not save it locally. The universe will remain playable in this tab."),50);
+ }
 }
 
 function renderLeagueFiles(){
