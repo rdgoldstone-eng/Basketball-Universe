@@ -1,24 +1,23 @@
 Basketball Universe
-v0.78 · Performance & Job Market
+v0.79 · GM Transaction Rules & Waivers
 
 WHAT CHANGED
-- Coach and GM careers now receive season expectations.
-- End-of-season performance creates a real employment review.
-- Job security and reputation respond to performance versus expectations.
-- Coaches and GMs can be fired after poor seasons.
-- Expiring contracts can be extended or not renewed.
-- Firings and non-renewals create genuine league vacancies.
-- The user's career continues while unemployed.
-- Job searches now target actual open Coach/GM positions instead of arbitrary teams.
-- Strong successful characters can be approached by other franchises with openings.
-- Accepting a new job transfers the same career to the new franchise.
-- Added contract years, season reviews, resigning, and job-offer history to the Career & Employment panel.
-
-CORE RULE
-The user controls the character, not the franchise.
+- Added a real transaction window and trade-deadline lock.
+- Trades are blocked after the deadline and during the postseason.
+- Offseason trading remains available.
+- Releasing a player now places him on waivers instead of instantly making him a free agent.
+- Added a Waiver Wire to Front Office.
+- User-controlled teams can submit waiver claims.
+- Waiver priority is based on worst record to best record.
+- AI teams can also submit claims based on roster need, player quality, and contract value.
+- Claimed players keep their existing contracts.
+- Unclaimed players clear waivers and enter free agency.
+- Added simplified guaranteed-money/dead-money consequences for waived contracts.
+- Payroll display now includes dead money.
+- Front Office shows whether the trade window is open or closed.
 
 STATUS
-Viewer remains the normal development/testing mode. Coach and GM are still under construction and are not yet marked ready for dedicated role playtests.
+GM mode is still under construction. Viewer remains the primary development/testing role until GM's complete season/offseason loop is ready.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.

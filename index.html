@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.78 · Performance & Job Market</div>
+    <div class="pill">v0.79 · GM Transaction Rules & Waivers</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -11406,7 +11406,7 @@ setTimeout(()=>{
 },0);
 
 
-/* === v0.78 Career Jobs & Employment === */
+/* === v0.79 Career Jobs & Employment === */
 function ensureCareerState(){
   state.career = state.career || {};
   state.career.characterId = state.career.characterId || ("char_"+Date.now().toString(36));
@@ -11556,7 +11556,7 @@ if(_careerOldRenderApp){
 
 
 
-/* === v0.78 Performance, Contracts, Vacancies & Job Market === */
+/* === v0.79 Performance, Contracts, Vacancies & Job Market === */
 function ensureCareerEmploymentV078(){
   ensureCareerState();
   state.career.contract = state.career.contract || {
@@ -11835,6 +11835,229 @@ renderAll=function(){
   }catch(e){console.warn("Career panel render skipped",e);}
 };
 setTimeout(()=>{try{if(state){ensureCareerEmploymentV078();setCareerSeasonExpectationV078();}}catch(e){}},0);
+
+
+
+/* === v0.79 GM Transaction Rules & Waivers === */
+function ensureTransactionRulesV079(){
+  ensureFrontOffice();
+  state.frontOffice.waivers = Array.isArray(state.frontOffice.waivers) ? state.frontOffice.waivers : [];
+  state.frontOffice.waiverClaims = Array.isArray(state.frontOffice.waiverClaims) ? state.frontOffice.waiverClaims : [];
+  state.frontOffice.deadMoney = state.frontOffice.deadMoney || {};
+}
+function tradeDeadlinePassedV079(){
+  if(state.offseason)return false;
+  if(!state.season)return false;
+  if(state.season.phase!=="Regular Season")return true;
+  return Number(state.season.leagueDay||0) >= 123;
+}
+function transactionWindowLabelV079(){
+  if(state.offseason)return "Offseason transactions open";
+  if(!state.season)return "Transactions available";
+  if(state.season.phase==="Regular Season"){
+    return tradeDeadlinePassedV079() ? "Trade deadline passed" : `Trade window open · Day ${state.season.leagueDay||0}`;
+  }
+  return "Trades closed during postseason";
+}
+function deadMoneyKeyV079(teamId){ return `${state.currentYear}|${teamId}`; }
+function teamDeadMoneyV079(team){
+  ensureTransactionRulesV079();
+  return Number(state.frontOffice.deadMoney[deadMoneyKeyV079(team.id)]||0);
+}
+const _v079TeamPayroll = teamPayroll;
+teamPayroll = function(teamName){
+  const base=_v079TeamPayroll(teamName);
+  const t=(state.teams||[]).find(x=>x.name===teamName);
+  return base+(t?teamDeadMoneyV079(t):0);
+};
+function waiverPriorityTeamsV079(){
+  return (state.teams||[]).filter(t=>!t.defunct).slice().sort((a,b)=>{
+    const ap=teamWinPctNow(a),bp=teamWinPctNow(b);
+    if(ap!==bp)return ap-bp;
+    return String(a.name).localeCompare(String(b.name));
+  });
+}
+function waivePlayerV079(playerId){
+  ensureTransactionRulesV079();
+  const team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);
+  if(!team||!p||p.teamName!==team.name)return;
+  if(teamRoster(team.name).length<=8){alert("You need to keep at least 8 players on the roster.");return;}
+  const remaining=Math.max(0,Number(p.contract?.years||0));
+  const salary=Math.max(0,Number(p.contract?.salary||0));
+  const guaranteed=Math.round(salary*Math.max(0,remaining)*0.45*10)/10;
+  p.teamName="Waivers";
+  p.waivedByTeamId=team.id;
+  p.waivedYear=state.currentYear;
+  p.waiverSalary=salary;
+  p.waiverYears=remaining;
+  p.contract={years:remaining,salary};
+  state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+  state.frontOffice.waivers=state.frontOffice.waivers.filter(w=>w.playerId!==p.id);
+  state.frontOffice.waivers.push({
+    id:`waiver_${p.id}_${state.currentYear}_${Date.now()}`,
+    playerId:p.id,playerName:p.name,formerTeamId:team.id,
+    salary,years:remaining,guaranteed,status:"Open",createdDay:Number(state.season?.leagueDay||0)
+  });
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} places ${p.name} on waivers.`});
+  state.news.push({year:state.currentYear,title:"Waivers",text:`${team.name} waived ${p.name}.`});
+  renderAll();saveState();
+}
+function claimWaivedPlayerV079(playerId){
+  ensureTransactionRulesV079();
+  const team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);
+  const w=state.frontOffice.waivers.find(x=>x.playerId===playerId&&x.status==="Open");
+  if(!team||!p||!w)return;
+  if(team.id===w.formerTeamId){alert("A team cannot claim the player it just waived.");return;}
+  const rs=canAddPlayerToRoster(team);
+  if(!rs.ok){alert(`${team.name} is at its roster limit.`);return;}
+  const cap=Number(state.frontOffice.cap||100);
+  if(state.leagueRules?.salaryCap && teamPayroll(team.name)+Number(w.salary||0)>cap*1.15){
+    alert(`${team.name} cannot absorb this contract under the current cap rules.`);return;
+  }
+  state.frontOffice.waiverClaims.push({year:state.currentYear,playerId,teamId:team.id,status:"Pending"});
+  alert(`${team.name} submitted a waiver claim for ${p.name}. Priority will decide the claim when waivers process.`);
+  renderFrontOffice();saveState();
+}
+function finalizeWaiverClaimV079(w,team){
+  const p=state.players.find(x=>x.id===w.playerId);if(!p||!team)return;
+  p.teamName=team.name;
+  p.contract={years:Math.max(1,Number(w.years||1)),salary:Number(w.salary||0)};
+  delete p.waivedByTeamId; delete p.waivedYear;
+  w.status="Claimed";w.claimedByTeamId=team.id;
+  state.frontOffice.waiverClaims.filter(c=>c.playerId===p.id).forEach(c=>c.status=c.teamId===team.id?"Won":"Lost");
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} claims ${p.name} on waivers.`});
+  state.news.push({year:state.currentYear,title:"Waiver claim",text:`${team.name} claimed ${p.name} and his existing contract.`});
+}
+function clearWaiverToFreeAgencyV079(w){
+  const p=state.players.find(x=>x.id===w.playerId);if(!p)return;
+  const former=state.teams.find(t=>t.id===w.formerTeamId);
+  if(former && Number(w.guaranteed||0)>0){
+    const key=deadMoneyKeyV079(former.id);
+    state.frontOffice.deadMoney[key]=Number(state.frontOffice.deadMoney[key]||0)+Number(w.guaranteed||0);
+  }
+  p.teamName="Free Agent";
+  p.contract={years:0,salary:0};
+  delete p.waivedByTeamId; delete p.waivedYear;
+  if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+  w.status="Cleared";
+  state.frontOffice.waiverClaims.filter(c=>c.playerId===p.id&&c.status==="Pending").forEach(c=>c.status="Lost");
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} clears waivers and becomes a free agent${former&&w.guaranteed?`; ${former.name} carries $${Number(w.guaranteed).toFixed(1)}M in dead money`:""}.`});
+}
+function processWaiversV079(){
+  ensureTransactionRulesV079();
+  const open=state.frontOffice.waivers.filter(w=>w.status==="Open");
+  if(!open.length)return;
+  const priority=waiverPriorityTeamsV079();
+  open.forEach(w=>{
+    const p=state.players.find(x=>x.id===w.playerId);if(!p){w.status="Invalid";return;}
+    let claims=state.frontOffice.waiverClaims.filter(c=>c.playerId===p.id&&c.status==="Pending");
+    // AI can claim useful affordable players.
+    priority.forEach(team=>{
+      if(team.id===w.formerTeamId)return;
+      if(state.career?.status==="Employed"&&state.career.currentTeamId===team.id)return;
+      if(claims.some(c=>c.teamId===team.id))return;
+      if(!canAddPlayerToRoster(team).ok)return;
+      const need=teamRosterProfile(team).weakestGroup;
+      const fit=positionGroup(p.pos)===need?8:0;
+      const value=(p.ovr||0)+fit-(w.salary||0)*1.2;
+      if(value>=60 && Math.random()<Math.min(.70,.15+(value-58)/35)){
+        claims.push({year:state.currentYear,playerId:p.id,teamId:team.id,status:"Pending",ai:true});
+        state.frontOffice.waiverClaims.push(claims[claims.length-1]);
+      }
+    });
+    if(claims.length){
+      const winner=priority.find(t=>claims.some(c=>c.teamId===t.id));
+      if(winner)finalizeWaiverClaimV079(w,winner);
+      else clearWaiverToFreeAgencyV079(w);
+    }else{
+      clearWaiverToFreeAgencyV079(w);
+    }
+  });
+}
+function renderWaiverMarketV079(){
+  ensureTransactionRulesV079();
+  const team=currentControlledTeam();
+  const open=state.frontOffice.waivers.filter(w=>w.status==="Open");
+  const claimed=state.frontOffice.waivers.filter(w=>w.status!=="Open").slice(-8).reverse();
+  return `<div class="card"><h2>Waiver Wire</h2>
+    <div class="small muted" style="margin-bottom:8px">Waiver priority runs from the league's worst record to best. A successful claim assumes the player's existing contract.</div>
+    ${open.length?open.map(w=>{
+      const p=state.players.find(x=>x.id===w.playerId);
+      const former=state.teams.find(t=>t.id===w.formerTeamId);
+      const already=team&&state.frontOffice.waiverClaims.some(c=>c.playerId===w.playerId&&c.teamId===team.id&&c.status==="Pending");
+      return `<div class="tradeTarget"><b>${w.playerName}</b><div class="small muted">${p?.pos||""} · OVR ${p?.ovr||"—"} · $${w.salary}M · ${w.years||0} year(s) remaining · Waived by ${former?.name||"Unknown"}</div>${team&&team.id!==w.formerTeamId?`<button ${already?"disabled":""} onclick="claimWaivedPlayerV079('${w.playerId}')">${already?"Claim Submitted":"Submit Claim"}</button>`:""}</div>`;
+    }).join(""):`<span class="muted">No players are currently on waivers.</span>`}
+    ${claimed.length?`<details><summary>Recent waiver results</summary>${claimed.map(w=>`<div class="small">${w.playerName} — ${w.status}${w.claimedByTeamId?` by ${state.teams.find(t=>t.id===w.claimedByTeamId)?.name||"Unknown"}`:""}</div>`).join("")}</details>`:""}
+  </div>`;
+}
+function renderGMTransactionStatusV079(){
+  ensureTransactionRulesV079();
+  const team=currentControlledTeam();
+  if(!team)return "";
+  const dead=teamDeadMoneyV079(team);
+  return `<div class="notice"><b>${transactionWindowLabelV079()}</b>${dead?`<br><span class="small">Dead money this season: $${dead.toFixed(1)}M</span>`:""}</div>`;
+}
+const _v079ProposeTradeMachine=proposeTradeMachine;
+proposeTradeMachine=function(){
+  if(tradeDeadlinePassedV079()){alert(state.offseason?"":"Trades are closed after the trade deadline and throughout the postseason.");return;}
+  return _v079ProposeTradeMachine();
+};
+const _v079ProposeSimpleTrade=proposeSimpleTrade;
+proposeSimpleTrade=function(targetId){
+  if(tradeDeadlinePassedV079()){alert("Trades are closed after the trade deadline and throughout the postseason.");return;}
+  return _v079ProposeSimpleTrade(targetId);
+};
+const _v079RunAIDeadlineTrades=runAIDeadlineTrades;
+runAIDeadlineTrades=function(){
+  if(tradeDeadlinePassedV079())return;
+  return _v079RunAIDeadlineTrades();
+};
+const _v079ReleasePlayer=releasePlayer;
+releasePlayer=function(playerId){ return waivePlayerV079(playerId); };
+window.releasePlayer=releasePlayer;
+window.waivePlayerV079=waivePlayerV079;
+window.claimWaivedPlayerV079=claimWaivedPlayerV079;
+window.processWaiversV079=processWaiversV079;
+
+const _v079SimulateUntil=simulateUntil;
+simulateUntil=function(target){
+  const r=_v079SimulateUntil(target);
+  processWaiversV079();
+  saveState();
+  renderAll();
+  return r;
+};
+
+const _v079AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  processWaiversV079();
+  return _v079AdvanceOffseason.apply(this,arguments);
+};
+
+const _v079RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  ensureTransactionRulesV079();
+  _v079RenderFrontOffice();
+  const section=document.getElementById("frontoffice");
+  if(!section)return;
+  let status=document.getElementById("gmTransactionStatusV079");
+  if(!status){
+    status=document.createElement("div");
+    status.id="gmTransactionStatusV079";
+    section.insertBefore(status,section.firstChild);
+  }
+  status.innerHTML=renderGMTransactionStatusV079();
+  let waiver=document.getElementById("waiverMarketV079");
+  if(!waiver){
+    waiver=document.createElement("div");
+    waiver.id="waiverMarketV079";
+    const tx=document.getElementById("transactionLogBox")?.closest(".card");
+    if(tx)tx.parentNode.insertBefore(waiver,tx);
+    else section.appendChild(waiver);
+  }
+  waiver.innerHTML=renderWaiverMarketV079();
+};
+window.renderFrontOffice=renderFrontOffice;
 
 </script>
 </body>
