@@ -333,7 +333,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.66 · Play-In Era 2019–Present</div>
+    <div class="pill">v0.66.1 · Modern Start Points</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -365,6 +365,7 @@ pre{white-space:pre-wrap}
           <option value="1988">1988 — Expansion Era</option>
           <option value="2003">2003 — Realignment Era</option>
           <option value="2019">2019 — Play-In Era</option>
+          <option value="2026">2026 — Current Day</option>
         </select>
       </div>
       <div>
@@ -2692,6 +2693,13 @@ function syncEraGuideToStart(){
 }
 window.syncEraGuideToStart=syncEraGuideToStart;
 
+
+function modernStartPointNote(){
+ const y=Number(document.getElementById("startYear")?.value||1976);
+ if(y===2019)return "Starts at the beginning of the Play-In Era (2019–20).";
+ if(y===2026)return "Starts in the current 2026 offseason, leading into the 2026–27 season.";
+ return "";
+}
 function renderEraArchitecture(){
  const box=document.getElementById("eraArchitectureBox");
  if(!box)return;
@@ -2742,7 +2750,8 @@ function applyHistoricalIdentityAssets(){
 
 function currentEraSummary(year){
  const e=eraInfoForYear(year);
- return `${e.name} · ${e.description}`;
+ let extra=Number(year)===2026?" · Current-day offseason / 2026–27 setup":"";
+ return `${e.name} · ${e.description}${extra}`;
 }
 
 function logoHTML(obj){
@@ -2806,6 +2815,7 @@ function compactStateForStorage(){
 
 function rehydrateLoadedState(s){
   if(!s)return s;
+  if(s.historicalStartYear==null)s.historicalStartYear=Number(s.startYear??1976);
   // Older compact/mobile saves may omit built-in logo data. Restore it from the app.
   if(!Array.isArray(s.identityLibrary) || !s.identityLibrary.length){
     s.identityLibrary=JSON.parse(JSON.stringify(builtInIdentities));
@@ -3062,6 +3072,18 @@ document.getElementById("createBtn").onclick=()=>{
      Object.fromEntries(Object.entries(historicalDraftPipeline).map(([y,c])=>[y,JSON.parse(JSON.stringify(c))])))
  };
  applyHistoricalIdentityAssets();
+ if(year>=2019){
+   state.leagueRules=state.leagueRules||{};
+   state.leagueRules.playInEnabledFrom=2019;
+ }
+ if(year>=2020){
+   state.leagueRules.standardPlayInFrom=2020;
+ }
+ if(year>=2022){
+   state.leagueRules.playInPermanent=true;
+ }
+ // A universe that starts later should not recreate historical crossroads from years before its start.
+ state.historicalStartYear=year;
  seedDecisions();
  const savedOK=saveState();
  showGame();
@@ -5354,7 +5376,9 @@ function evaluateHistoricalCrossroads(){
  if(!state||!state.offseason)return;
  ensureHistoricalCrossroads();
  const eventYear=Number(state.currentYear)+1;
- historicalCrossroadDefinitions.filter(d=>d.historicalYear===eventYear).forEach(def=>{
+ historicalCrossroadDefinitions
+   .filter(d=>d.historicalYear===eventYear && Number(d.historicalYear)>=Number(state.historicalStartYear??state.startYear??1976))
+   .forEach(def=>{
    if(state.historicalCrossroads.some(x=>x.id===def.id))return;
    let team=crossroadTeam(def);
 

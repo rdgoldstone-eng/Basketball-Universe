@@ -1,46 +1,35 @@
-v0.66 Basketball Universe — Play-In Era 2019–Present
+v0.66.1 Basketball Universe — Modern Start Points
 
-PLAY-IN ERA
-The era structure remains:
-Realignment Era — 2003–2018
-Play-In Era — 2019–present
+NEW STARTING OPTIONS
 
-PLAY-IN MECHANICS
-2019–20:
-- Conditional 8 vs 9 play-in format.
-- It is triggered only when the No. 9 team finishes within four games of No. 8.
-- No. 8 needs one win; No. 9 must win twice.
+2019 — Play-In Era
+- Starts with the 2019–20 season.
+- Play-In Era rules are initialized for a modern universe.
+- Earlier historical crossroads are not replayed.
 
-2020–21 onward:
-- Seeds 7 vs 8 play for the No. 7 seed.
-- Seeds 9 vs 10 play an elimination game.
-- Loser of 7/8 hosts winner of 9/10 for the No. 8 seed.
-- The resulting No. 7 and No. 8 teams enter the normal 16-team playoff bracket.
+2026 — Current Day
+- Starts in the current 2026 offseason.
+- Leads directly into the 2026–27 season.
+- Modern 7–10 Play-In rules are already established.
+- The Play-In is treated as a permanent league rule.
+- Historical crossroads from 1976–2025 are not replayed.
+- 2026 and later crossroads remain available, including the modern Seattle / Las Vegas expansion exploration.
 
-The games are simulated and recorded in a Play-In Tournament card on the Season page.
+OLDER START POINTS REMAIN
+1946 — The Founding Era
+1967 — ABA Rivalry Era
+1976 — Merger Era
+1988 — Expansion Era
+2003 — Realignment Era
 
-PLAY-IN HISTORICAL CROSSROADS
-2019 — conditional 8/9 experiment
-2020 — 7–10 format
-2022 — permanent Play-In vote
+ERA GUIDE
+Realignment Era remains 2003–2018.
+Play-In Era remains 2019–present.
 
-These are league decisions. Commissioner mode can choose differently; Viewer mode follows the historical tendency unless the universe has diverged.
+SAVE COMPATIBILITY
+Existing universes keep their original starting year and historical path.
+This update only changes new-universe setup options and modern-start initialization.
 
-MODERN FRANCHISE CROSSROADS
-2023 — Phoenix Suns controlling ownership transition
-2023 — Dallas Mavericks controlling ownership transition
-2024 — Clippers new Inglewood arena
-2026 — Seattle / Las Vegas expansion exploration
+All v0.66 Play-In mechanics and historical crossroads remain intact.
 
-2026 EXPANSION
-This is exploration only.
-It does NOT automatically add Seattle or Las Vegas teams.
-The league can explore both, one, or neither. A later version can turn an approved exploration process into actual bids, fees, conference changes and an expansion draft.
-
-SEASON CHRONICLE
-Play-In participation is now reflected in the season's league-structure summary.
-
-REALIGNMENT ERA CONTENT RETAINED
-All 2003–2018 crossroads from v0.65 remain.
-All prior historical chains remain.
-All prior draft, playoff, newspaper, logo, automatic realignment, multi-save and relocation-success systems remain.
+Modern start points also record their historical start year so crossroads from earlier eras cannot be replayed into a newly created modern universe.
