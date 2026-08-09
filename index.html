@@ -252,6 +252,15 @@ pre{white-space:pre-wrap}
 @media(max-width:700px){.rosterRow{grid-template-columns:minmax(135px,1fr) 50px 55px}.rosterHide{display:none}}
 
 .rotationRow{display:grid;grid-template-columns:minmax(160px,1fr) 70px 90px 95px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.depthGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.depthSlot{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px;min-width:0}
+.depthSlot h4{margin:0 0 7px;font-size:12px;color:var(--muted);letter-spacing:.4px}
+.depthPlayer{padding:6px 0;border-top:1px solid var(--line);font-size:12px}
+.depthPlayer:first-of-type{border-top:0}
+.depthPlayer b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.depthStarter{color:var(--gold)}
+.rotationSummary{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+@media(max-width:700px){.depthGrid{grid-template-columns:1fr 1fr}.depthSlot:last-child{grid-column:1/-1}}
 .minutesInput{width:72px}
 .coachChoice{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
 @media(max-width:700px){.rotationRow{grid-template-columns:minmax(135px,1fr) 60px 80px}.coachHide{display:none}}
@@ -352,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.73 · AI Roster Intelligence</div>
+    <div class="pill">v0.74 · Depth Charts & Rotation Engine</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -6704,7 +6713,8 @@ function advanceOffseason(){
  else if(p==="Free Agency")runFreeAgencyAI();
  else if(p==="Roster Cuts"){
    runRosterCutsAI();
-   state.news.push({year:state.currentYear+1,title:"Training camp",text:"Teams trimmed rosters and set preliminary rotations."});
+   refreshAllAIRotations();
+   state.news.push({year:state.currentYear+1,title:"Training camp",text:"Teams trimmed rosters and set preliminary depth charts and rotations."});
  }else if(p==="Next Season"){
    if(state.role==='GM'){
      const controlled=currentControlledTeam();
@@ -7304,6 +7314,7 @@ function generateTradeActivity(){
  initManagementIfNeeded();ensureFrontOffice();
  if(state.season)state.season.aiDeadlineTradesRun=false;
  const moves=runAIDeadlineTrades();
+ refreshAllAIRotations();
  renderAll();saveState();
  alert(moves.length?moves.join("\n\n"):"Teams discussed trades, but no deal met both clubs' roster and value requirements.");
 }
@@ -8222,52 +8233,149 @@ function coachSettings(teamId){
  ensureCoaching();
  return state.coaching.teams[teamId];
 }
-function initializeRotationForTeam(teamName){
- let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry)
-   .sort((a,b)=>(b.ovr||0)-(a.ovr||0));
- if(!roster.length)return;
- roster.forEach((p,i)=>{
-   if(p.rotationMinutes==null){
-     let mins=[36,35,34,32,30,24,20,16,13,0,0,0,0,0,0][i] ?? 0;
-     p.rotationMinutes=mins;
-   }
-   p.starter=(i<5);
-   p.rotationRole=p.rotationMinutes>=30?"Starter":p.rotationMinutes>=18?"Rotation":p.rotationMinutes>0?"Bench":"Reserve";
- });
- normalizeRotationMinutes(teamName);
+function positionGroup(pos){
+ if(pos==="PG")return "PG";
+ if(pos==="SG")return "SG";
+ if(pos==="SF")return "SF";
+ if(pos==="PF")return "PF";
+ return "C";
 }
-function normalizeRotationMinutes(teamName){
+function playerCanFillSlot(p,slot){
+ const pos=p.pos||"SF";
+ const map={
+   PG:["PG","SG"],SG:["SG","PG","SF"],SF:["SF","SG","PF"],PF:["PF","SF","C"],C:["C","PF"]
+ };
+ return (map[slot]||[slot]).includes(pos);
+}
+function depthFitScore(p,slot){
+ let score=(p.ovr||50)*1.5+(p.pot||p.ovr||50)*.12;
+ if(p.pos===slot)score+=14;
+ else if(playerCanFillSlot(p,slot))score+=5;
+ else score-=18;
+ if(p.healthStatus==="Out")score-=80;
+ else if(p.healthStatus && p.healthStatus!=="Healthy")score-=10;
+ if((p.age||25)<=24)score+=1;
+ return score;
+}
+function buildDepthChartForTeam(teamName){
+ const roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ const slots=["PG","SG","SF","PF","C"];
+ const chart={PG:[],SG:[],SF:[],PF:[],C:[]};
+ roster.forEach(p=>{
+   let ranked=slots.map(s=>({slot:s,score:depthFitScore(p,s)})).sort((a,b)=>b.score-a.score);
+   let slot=ranked[0].slot;
+   chart[slot].push(p);
+ });
+ slots.forEach(slot=>chart[slot].sort((a,b)=>depthFitScore(b,slot)-depthFitScore(a,slot)));
+ return chart;
+}
+function chooseStartingFive(teamName){
+ const roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out");
+ const slots=["PG","SG","SF","PF","C"],used=new Set(),starters=[];
+ slots.forEach(slot=>{
+   const candidates=roster.filter(p=>!used.has(p.id)).sort((a,b)=>depthFitScore(b,slot)-depthFitScore(a,slot));
+   const pick=candidates[0];
+   if(pick){used.add(pick.id);starters.push(pick);}
+ });
+ if(starters.length<5){
+   roster.filter(p=>!used.has(p.id)).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,5-starters.length).forEach(p=>starters.push(p));
+ }
+ return starters;
+}
+function autoSetRotationForTeam(teamName,force=false){
+ const roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ if(!roster.length)return;
+ const team=state.teams.find(t=>t.name===teamName);
+ const settings=team?coachSettings(team.id):{rotationSize:9};
+ const healthy=roster.filter(p=>p.healthStatus!=="Out");
+ const starters=chooseStartingFive(teamName);
+ const starterIds=new Set(starters.map(p=>p.id));
+ const ranked=healthy.slice().sort((a,b)=>{
+   const aStart=starterIds.has(a.id)?1:0,bStart=starterIds.has(b.id)?1:0;
+   return bStart-aStart || (b.ovr||0)-(a.ovr||0) || (b.pot||0)-(a.pot||0);
+ });
+ const size=Math.max(7,Math.min(11,Number(settings.rotationSize||9),ranked.length));
+ const active=ranked.slice(0,size);
+ const minsByRank=[34,33,32,31,30,25,22,18,15,12,8];
+ roster.forEach(p=>{
+   if(p.healthStatus==="Out"){
+     p.rotationMinutes=0;p.starter=false;p.rotationRole="Out";return;
+   }
+   const idx=active.findIndex(x=>x.id===p.id);
+   if(idx<0){p.rotationMinutes=0;p.starter=false;p.rotationRole="Reserve";return;}
+   if(force || p.rotationMinutes==null || !Number.isFinite(Number(p.rotationMinutes)))p.rotationMinutes=minsByRank[idx]??8;
+   p.starter=starterIds.has(p.id);
+   p.rotationRole=p.starter?"Starter":idx<8?"Rotation":"Bench";
+ });
+ normalizeRotationMinutes(teamName,true);
+}
+function initializeRotationForTeam(teamName){
+ const roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ if(!roster.length)return;
+ const needsInit=roster.every(p=>p.rotationMinutes==null) || roster.filter(p=>p.starter).length!==5;
+ if(needsInit)autoSetRotationForTeam(teamName,true);
+ else normalizeRotationMinutes(teamName,true);
+}
+function normalizeRotationMinutes(teamName,preserveStarters=false){
  let roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
- let active=roster.filter(p=>(p.rotationMinutes||0)>0);
- let total=active.reduce((s,p)=>s+(p.rotationMinutes||0),0);
- if(!active.length)return;
- if(total<=0)return;
+ let active=roster.filter(p=>(p.rotationMinutes||0)>0&&p.healthStatus!=="Out");
+ if(!active.length){autoSetRotationForTeam(teamName,true);return;}
+ let total=active.reduce((s,p)=>s+(Number(p.rotationMinutes)||0),0);
+ if(total<=0){autoSetRotationForTeam(teamName,true);return;}
  let scale=240/total;
- active.forEach(p=>p.rotationMinutes=Math.max(1,Math.round(p.rotationMinutes*scale)));
- // fix rounding to exactly 240
- let sum=active.reduce((s,p)=>s+p.rotationMinutes,0);
- let diff=240-sum;
- active.sort((a,b)=>b.rotationMinutes-a.rotationMinutes);
- let i=0;
- while(diff!==0&&active.length){
+ active.forEach(p=>p.rotationMinutes=Math.max(1,Math.round((Number(p.rotationMinutes)||0)*scale)));
+ let sum=active.reduce((s,p)=>s+p.rotationMinutes,0),diff=240-sum,i=0;
+ active.sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0));
+ while(diff!==0&&active.length&&i<2000){
    let p=active[i%active.length];
    if(diff>0){p.rotationMinutes++;diff--;}
    else if(p.rotationMinutes>1){p.rotationMinutes--;diff++;}
-   i++; if(i>1000)break;
+   i++;
  }
  roster.forEach(p=>{
-   p.starter=(p.rotationMinutes||0)>=28;
-   p.rotationRole=(p.rotationMinutes||0)>=28?"Starter":(p.rotationMinutes||0)>=15?"Rotation":(p.rotationMinutes||0)>0?"Bench":"Reserve";
+   if(p.healthStatus==="Out"){p.rotationMinutes=0;p.starter=false;p.rotationRole="Out";return;}
+   if(!preserveStarters)p.starter=(p.rotationMinutes||0)>=28;
+   p.rotationRole=p.starter?"Starter":(p.rotationMinutes||0)>=15?"Rotation":(p.rotationMinutes||0)>0?"Bench":"Reserve";
+ });
+ if(roster.filter(p=>p.starter&&p.healthStatus!=="Out").length!==5){
+   const starters=chooseStartingFive(teamName),ids=new Set(starters.map(p=>p.id));
+   roster.forEach(p=>{p.starter=ids.has(p.id);p.rotationRole=p.starter?"Starter":(p.rotationMinutes||0)>=15?"Rotation":(p.rotationMinutes||0)>0?"Bench":"Reserve";});
+ }
+}
+function refreshTeamRotation(teamName,reason="Roster change"){
+ if(!teamName)return;
+ autoSetRotationForTeam(teamName,true);
+ if(state?.coaching?.notes)state.coaching.notes.unshift({year:state.currentYear,text:`${teamName}: rotation refreshed after ${reason.toLowerCase()}.`});
+}
+function refreshAllAIRotations(){
+ if(!state?.teams)return;
+ state.teams.forEach(t=>{
+   const controlled=state.controlledTeamId===t.id && ["Coach","GM","Owner"].includes(state.role);
+   if(!controlled)autoSetRotationForTeam(t.name,true);
+   else initializeRotationForTeam(t.name);
  });
 }
 function setRotationMinutes(playerId,mins){
  let p=state.players.find(x=>x.id===playerId);if(!p)return;
  p.rotationMinutes=Math.max(0,Math.min(48,+mins||0));
- p.starter=p.rotationMinutes>=28;
- p.rotationRole=p.rotationMinutes>=28?"Starter":p.rotationMinutes>=15?"Rotation":p.rotationMinutes>0?"Bench":"Reserve";
- let team=currentControlledTeam();
- if(team)normalizeRotationMinutes(team.name);
- renderCoaching();saveState();
+ let team=state.teams.find(t=>t.name===p.teamName);
+ if(team && state.role==="Coach" && state.controlledTeamId===team.id){
+   normalizeRotationMinutes(team.name,true);
+ }
+ renderCoaching();renderPlayers();saveState();
+}
+function setRotationSize(size){
+ let team=currentControlledTeam();if(!team)return;
+ let s=coachSettings(team.id);s.rotationSize=Math.max(7,Math.min(11,Number(size)||9));
+ autoSetRotationForTeam(team.name,true);
+ state.coaching.notes.unshift({year:state.currentYear,text:`${team.name}: rotation size set to ${s.rotationSize}.`});
+ renderCoaching();renderPlayers();saveState();
+}
+function autoCoachRotation(){
+ let team=currentControlledTeam();if(!team)return;
+ autoSetRotationForTeam(team.name,true);
+ state.coaching.notes.unshift({year:state.currentYear,text:`${team.name}: coaching staff rebuilt the depth chart and rotation.`});
+ renderCoaching();renderPlayers();saveState();
 }
 function setCoachSetting(key,val){
  let team=currentControlledTeam();if(!team)return;
@@ -8328,6 +8436,17 @@ function applyCoachDevelopment(){
    }
  });
 }
+function depthChartHTML(teamName){
+ const chart=buildDepthChartForTeam(teamName),slots=["PG","SG","SF","PF","C"];
+ return `<div class="depthGrid">${slots.map(slot=>`<div class="depthSlot"><h4>${slot}</h4>${chart[slot].slice(0,4).map((p,i)=>`<div class="depthPlayer ${p.starter?'depthStarter':''}"><b>${p.starter?'★ ':''}${p.name}</b><span>${p.rotationRole||'Reserve'} · ${Math.round(p.rotationMinutes||0)} min · OVR ${p.ovr}</span></div>`).join('')||'<div class="small muted">No depth</div>'}</div>`).join('')}</div>`;
+}
+function rotationHealthSummary(teamName){
+ const roster=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry);
+ const active=roster.filter(p=>(p.rotationMinutes||0)>0&&p.healthStatus!=="Out");
+ const starters=roster.filter(p=>p.starter&&p.healthStatus!=="Out");
+ const total=active.reduce((s,p)=>s+(p.rotationMinutes||0),0);
+ return `<div class="rotationSummary"><span class="pill">${starters.length}/5 starters</span><span class="pill">${active.length} in rotation</span><span class="pill">${Math.round(total)} minutes</span></div>`;
+}
 function renderCoaching(){
  let idBox=document.getElementById("coachIdentityBox");if(!idBox)return;
  ensureCoaching();let team=currentControlledTeam();
@@ -8346,11 +8465,12 @@ function renderCoaching(){
  document.getElementById("coachGamePlanBox").innerHTML=
  `<b>Offense</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('offense','Perimeter')">Perimeter</button><button onclick="setCoachSetting('offense','Balanced')">Balanced</button><button onclick="setCoachSetting('offense','Inside')">Inside</button></div>
  <b style="display:block;margin-top:12px">Defense</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('defense','Pressure')">Pressure</button><button onclick="setCoachSetting('defense','Man-to-Man')">Man-to-Man</button><button onclick="setCoachSetting('defense','Protect Paint')">Protect Paint</button></div>
- <p class="small muted">The best scheme depends on the players actually on your roster.</p>`;
+ <p class="small muted">The best scheme depends on the players actually on your roster.</p>
+ <b style="display:block;margin-top:12px">Rotation Size</b><div class="choicebar" style="margin-top:6px"><button onclick="setRotationSize(8)">8-Man</button><button onclick="setRotationSize(9)">9-Man</button><button onclick="setRotationSize(10)">10-Man</button><button onclick="autoCoachRotation()">Auto Depth Chart</button></div>`;
 
  let roster=state.players.filter(p=>p.teamName===team.name&&!p.retired&&!p.deferredEntry).sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
- document.getElementById("coachRotationBox").innerHTML=`<p class="small muted">Minutes automatically normalize to 240 total team minutes.</p>`+
- roster.map(p=>`<div class="rotationRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.healthStatus||"Healthy"}</div></div><div>${p.rotationRole||"Reserve"}</div><div><input class="minutesInput" type="number" min="0" max="48" value="${p.rotationMinutes||0}" onchange="setRotationMinutes('${p.id}',this.value)"></div><div class="coachHide">${p.fatigue||0} fatigue</div></div>`).join("");
+ document.getElementById("coachRotationBox").innerHTML=`<p class="small muted">Depth chart positions, starter status and minutes now drive game usage. Minutes normalize to 240 total.</p>${rotationHealthSummary(team.name)}${depthChartHTML(team.name)}`+
+ `<div style="margin-top:12px">`+roster.map(p=>`<div class="rotationRow"><div><b>${p.starter?'★ ':''}${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.healthStatus||"Healthy"}</div></div><div>${p.rotationRole||"Reserve"}</div><div><input class="minutesInput" type="number" min="0" max="48" value="${p.rotationMinutes||0}" onchange="setRotationMinutes('${p.id}',this.value)"></div><div class="coachHide">${p.fatigue||0} fatigue</div></div>`).join("")+`</div>`;
 
  let dev=roster.filter(p=>(p.age||99)<=27).sort((a,b)=>(b.pot||b.ovr||0)-(a.pot||a.ovr||0)).slice(0,10);
  document.getElementById("coachDevelopmentBox").innerHTML=dev.map(p=>`<div class="coachChoice"><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"} · OVR ${p.ovr} · POT ${p.pot||p.ovr}</div><div style="margin-top:6px"><button onclick="setDevelopmentFocus('${p.id}')">${s.developmentFocus===p.id?"Current Focus":"Focus Development"}</button></div></div>`).join("")||`<span class="muted">No eligible development targets.</span>`;
@@ -8361,6 +8481,8 @@ function renderCoaching(){
 window.setRotationMinutes=setRotationMinutes;
 window.setCoachSetting=setCoachSetting;
 window.setDevelopmentFocus=setDevelopmentFocus;
+window.setRotationSize=setRotationSize;
+window.autoCoachRotation=autoCoachRotation;
 
 
 // ----- Trade Logic & Draft Picks v0.35 -----
@@ -9843,9 +9965,9 @@ function renderPlayers(){
  let canEdit=state.role==="Coach" && state.controlledTeamId && teamById(state.controlledTeamId).name===team;
  document.getElementById("rotationHelp").textContent=canEdit
    ?"You are the coach. Adjust each player's minutes; the game will normalize the team to 240 minutes."
-   :"Rotation is view-only unless you are coaching this team.";
- document.getElementById("rotationBox").innerHTML=roster.map(p=>`
- <div class="rotationRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr}</div></div>
+   :"Depth chart and rotation are view-only unless you are coaching this team.";
+ document.getElementById("rotationBox").innerHTML=rotationHealthSummary(team)+depthChartHTML(team)+`<div style="margin-top:12px">`+roster.map(p=>`
+ <div class="rotationRow"><div><b>${p.starter?'★ ':''}${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.rotationRole||'Reserve'}</div></div>
  <div>${p.rotationMinutes.toFixed(0)} min</div>
  <div>${canEdit?`<button onclick="adjustMinutes('${p.id}',-2)">−</button> <button onclick="adjustMinutes('${p.id}',2)">+</button>`:""}</div></div>`).join("");
 
