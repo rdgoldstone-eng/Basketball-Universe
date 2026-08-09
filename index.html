@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Basketball Universe</title>
+<title>Basketball Universe v0.68</title>
 <style>
 :root{
   --bg:#0b0d12;--panel:#151922;--panel2:#1d2330;--line:#2a3242;
@@ -55,6 +55,15 @@ button:hover{filter:brightness(1.08);cursor:pointer}
   object-fit:contain;
   display:block;
 }
+
+.logoSetRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.logoSetMini{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}
+.logoSetMini .logo{width:58px;height:58px;min-width:58px;margin:0 auto 6px}
+.logoSetMini b{display:block;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+.logoSetMini span{display:block;font-size:10px;color:var(--muted)}
+.logoSetMini.activeEra{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.logoLibraryNote{margin-top:8px;font-size:11px;color:var(--muted)}
+.logoBrowserCard .logoSetRow{margin-top:12px}
 
 .teamrow{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .teamrow:last-child{border-bottom:0}
@@ -1099,8 +1108,8 @@ pre{white-space:pre-wrap}
     <div class="grid2">
       <div class="card">
         <h2>Built-in Franchise Identities</h2>
-        <p class="muted small">These are candidate identities for future expansion or relocation. Actual logo artwork can be attached later without changing the save format.</p>
-        <div class="notice"><b>Complete visual coverage</b><br><span class="small">Every built-in identity now ships with an original generated logo asset. Historical identities can later be overridden with exact period artwork without changing the save.</span></div>
+        <p class="muted small">These are candidate identities for future expansion or relocation. Every identity now carries a three-logo library: Early NBA, Growing NBA, and Modern.</p>
+        <div class="notice"><b>Complete visual coverage</b><br><span class="small">Every built-in identity now ships with a three-era logo framework. Real/historical artwork can still override the active in-season logo when available.</span></div>
         <div id="identityList"></div>
       </div>
       <div class="card">
@@ -1123,8 +1132,8 @@ pre{white-space:pre-wrap}
     <div class="card">
       <div class="calendarline">
         <div>
-          <h2 style="margin-bottom:4px">Historical Logo Browser</h2>
-          <div class="small muted">Review the logo asset that Basketball Universe will use for each historical identity.</div>
+          <h2 style="margin-bottom:4px">Logo Browser</h2>
+          <div class="small muted">Review the active logo for a selected year and the three-logo library for each identity.</div>
         </div>
         <div>
           <label>Season year</label>
@@ -1146,7 +1155,7 @@ pre{white-space:pre-wrap}
       </div>
       <div class="notice" style="margin-top:12px">
         <b>Merger Era logo rollout</b><br>
-        The 1976-77 starting league now uses real period primary-logo assets embedded directly inside index.html as PNG files, so the game does not depend on external image hosting.
+        Every identity now has an Early / Growing / Modern library. Historical period artwork still overrides the active in-season logo when exact assets are available.
       </div>
     </div>
     <div class="card">
@@ -2653,6 +2662,61 @@ let state=null;
 function initials(name){
   return name.split(" ").filter(x=>!["of","the"].includes(x.toLowerCase())).slice(-2).map(x=>x[0]).join("").toUpperCase();
 }
+function logoLibraryBucketForYear(year){
+ const y=Number(year||1976);
+ if(y<=1966)return "early";
+ if(y<=2003)return "growing";
+ return "modern";
+}
+function escapeXml(s){
+ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+}
+function svgDataUri(svg){
+ return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg).replace(/%0A/g,'').replace(/%20/g,' ');
+}
+function cleanColors(colors){
+ let arr=(colors||[]).filter(Boolean);
+ if(!arr.length)arr=["#1D4ED8","#111827"];
+ if(arr.length===1)arr.push("#D97706");
+ return arr.slice(0,2);
+}
+function simpleWordmark(name){
+ const parts=String(name||'Team').split(' ');
+ return parts.slice(-1)[0].toUpperCase();
+}
+function generatedEraLogo(name, variant, colors){
+ const [primary,secondary]=cleanColors(colors);
+ const badge=initials(name)||"TM";
+ const word=simpleWordmark(name);
+ const strip=variant==="early"?"#C8A15A":variant==="growing"?secondary:primary;
+ const accent=variant==="early"?primary:variant==="growing"?primary:secondary;
+ const subtitle=variant==="early"?"EARLY NBA":variant==="growing"?"GROWING NBA":"MODERN";
+ const centerShape=variant==="early"
+   ? `<circle cx="128" cy="110" r="58" fill="#ffffff" stroke="${primary}" stroke-width="10"/><circle cx="128" cy="110" r="44" fill="${secondary}" opacity="0.12"/>`
+   : variant==="growing"
+     ? `<rect x="70" y="52" width="116" height="116" rx="20" fill="#ffffff" stroke="${primary}" stroke-width="10"/><path d="M92 132h72M92 112h72M92 92h72" stroke="${secondary}" stroke-width="8" stroke-linecap="round" opacity=".6"/>`
+     : `<path d="M128 44l64 26v46c0 36-25 66-64 82-39-16-64-46-64-82V70z" fill="#ffffff" stroke="${primary}" stroke-width="10"/><circle cx="128" cy="108" r="34" fill="${secondary}" opacity="0.12"/>`;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="28" fill="#ffffff"/>
+  <rect x="8" y="8" width="240" height="240" rx="22" fill="none" stroke="${strip}" stroke-width="8"/>
+  <rect x="18" y="18" width="220" height="28" rx="14" fill="${strip}" opacity="0.95"/>
+  <text x="128" y="37" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" fill="#ffffff" letter-spacing="1">${escapeXml(subtitle)}</text>
+  ${centerShape}
+  <text x="128" y="122" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="44" font-weight="900" fill="${primary}">${escapeXml(badge)}</text>
+  <text x="128" y="194" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="800" fill="${accent}" letter-spacing="1">${escapeXml(word)}</text>
+ </svg>`;
+ return svgDataUri(svg);
+}
+function createThreeLogoLibrary(base,name,colors){
+ const early=generatedEraLogo(name,'early',colors);
+ const growing=generatedEraLogo(name,'growing',colors);
+ const modern=base||generatedEraLogo(name,'modern',colors);
+ return {early,growing,modern};
+}
+function logoLibraryPreviewHTML(lib,activeKey){
+ const labels={early:'Early NBA',growing:'Growing NBA',modern:'Modern'};
+ return `<div class="logoSetRow">${['early','growing','modern'].map(key=>`<div class="logoSetMini ${activeKey===key?'activeEra':''}"><div class="logo"><img src="${lib[key]}" alt="${labels[key]} logo"></div><b>${labels[key]}</b><span>${activeKey===key?'Active for this year':'Library'}</span></div>`).join('')}</div>`;
+}
 
 const eraDefinitions = [
  {id:"founding",name:"The Founding Era",start:1946,end:1966,description:"1946-47 to 1966-67"},
@@ -2760,17 +2824,46 @@ function resolveIdentityForObject(obj, year){
  return {name,market:"",assetSource:"team",assetKey:name,era:eraInfoForYear(y).name,colors:[]};
 }
 
+function baseLogoForObject(obj, year){
+ const y=Number(year||((state&&state.currentYear)||1976));
+ const rec=resolveIdentityForObject(obj,y);
+ const built=(state?.identityLibrary||[]).find(x=>x.id===rec.assetKey||x.name===rec.name) || (state?.customIdentities||[]).find(x=>x.id===rec.assetKey||x.name===rec.name) || (builtInIdentities||[]).find(x=>x.id===rec.assetKey||x.name===rec.name);
+ if(obj?.logo && !String(obj.logo).includes('data:image/svg+xml;base64'))return obj.logo;
+ if(built?.logo && !String(built.logo).includes('data:image/svg+xml;base64'))return built.logo;
+ return generatedIdentityLogos[rec.assetKey] || generatedIdentityLogos[obj?.id] || generatedTeamLogos[rec.assetKey] || generatedTeamLogos[rec.name] || generatedTeamLogos[obj?.name] || currentNbaRemoteLogos[rec.name] || currentNbaRemoteLogos[obj?.name] || obj?.logo || built?.logo || null;
+}
+function ensureOneLogoLibrary(entry, year){
+ if(!entry)return null;
+ const y=Number(year||((state&&state.currentYear)||1976));
+ const rec=resolveIdentityForObject(entry,y);
+ const sourceBase=baseLogoForObject(entry,y);
+ if(!entry.logoLibrary || !entry.logoLibrary.early || !entry.logoLibrary.growing || !entry.logoLibrary.modern){
+   entry.logoLibrary=createThreeLogoLibrary(sourceBase, rec.name||entry.name||'Team', rec.colors||entry.colors||[]);
+ }
+ return entry.logoLibrary;
+}
+function resolveLogoLibrary(obj, year){
+ const y=Number(year||((state&&state.currentYear)||1976));
+ const rec=resolveIdentityForObject(obj,y);
+ const collections=[...(state?.teams||[]),...(state?.identityLibrary||[]),...(state?.customIdentities||[]),...(builtInIdentities||[])];
+ const match=collections.find(x=>(obj?.id&&x.id===obj.id)||(x.name===rec.name)||(obj?.name&&x.name===obj.name));
+ return ensureOneLogoLibrary(match||obj,y);
+}
+function ensureLogoLibraries(){
+ if(!state)return;
+ [...(state.identityLibrary||[]),...(state.customIdentities||[]),...(state.teams||[])].forEach(entry=>ensureOneLogoLibrary(entry,state.currentYear));
+}
+
 function resolvedLogoSrc(obj, year){
  const y=Number(year||((state&&state.currentYear)||1976));
  const rec=resolveIdentityForObject(obj,y);
  const historical=(state?.settings?.historicalLogos!==false)?historicalLogoFor(rec.name,y):null;
  if(historical)return historical;
- if(obj?.logo && !String(obj.logo).includes("data:image/svg+xml;base64"))return obj.logo;
+ const library=resolveLogoLibrary(obj,y);
+ const bucket=logoLibraryBucketForYear(y);
+ if(library?.[bucket])return library[bucket];
  const currentFallback=currentNbaRemoteLogos[rec.name]||currentNbaRemoteLogos[obj?.name]||null;
- if(rec.assetSource==="identity"){
-   return generatedIdentityLogos[rec.assetKey] || generatedIdentityLogos[obj?.id] || generatedTeamLogos[rec.name] || generatedTeamLogos[obj?.name] || currentFallback || obj?.logo || null;
- }
- return generatedTeamLogos[rec.assetKey] || generatedTeamLogos[rec.name] || generatedIdentityLogos[rec.assetKey] || generatedIdentityLogos[obj?.id] || currentFallback || obj?.logo || null;
+ return baseLogoForObject(obj,y) || currentFallback || null;
 }
 
 function applyHistoricalIdentityAssets(){
@@ -2798,20 +2891,21 @@ function logoHTML(obj){
 
 function ensureIdentityLogos(){
  if(!state)return;
+ ensureLogoLibraries();
  if(state.identityLibrary)state.identityLibrary.forEach(i=>{
    if(!i.logo && generatedIdentityLogos[i.id])i.logo=generatedIdentityLogos[i.id];
+   if(!i.logo && i.logoLibrary?.modern)i.logo=i.logoLibrary.modern;
+ });
+ if(state.customIdentities)state.customIdentities.forEach(i=>{
+   if(!i.logo && i.logoLibrary?.modern)i.logo=i.logoLibrary.modern;
  });
  if(state.teams)state.teams.forEach(t=>{
    const hist=historicalLogoFor(t.name,state.currentYear);
    if(hist && state.settings?.historicalLogos!==false){
      if(expansionHistoricalRemoteLogos[t.name])t.logo=null;
-     // Historical artwork is resolved from the embedded manifest each render.
-     // Clear only the old generated placeholder saved in older versions.
      if(t.logo && generatedTeamLogos[t.name]===t.logo)t.logo=null;
-   }else if(!t.logo){
-     t.logo=generatedTeamLogos[t.name]||currentNbaRemoteLogos[t.name]||null;
-   }else if(!generatedTeamLogos[t.name] && currentNbaRemoteLogos[t.name] && String(t.logo).includes('data:image/svg+xml;base64')){
-     t.logo=currentNbaRemoteLogos[t.name];
+   }else{
+     t.logo=resolvedLogoSrc(t,state.currentYear)||t.logo||null;
    }
  });
 }
@@ -2827,6 +2921,12 @@ function compactStateForStorage(){
     copy.identityLibrary.forEach(i=>{
       // Built-in artwork is reconstructed from the game's embedded asset library.
       if(i && i.logo)delete i.logo;
+      if(i && i.logoLibrary)delete i.logoLibrary;
+    });
+  }
+  if(copy.customIdentities){
+    copy.customIdentities.forEach(i=>{
+      if(i && i.logoLibrary)delete i.logoLibrary;
     });
   }
 
@@ -2836,12 +2936,14 @@ function compactStateForStorage(){
       const customLogo=customLogoMap.get(t.name);
       if(customLogo && t.logo===customLogo)return; // Preserve user-uploaded custom art.
       if(t.logo && String(t.logo).startsWith("data:image"))t.logo=null;
+      if(t.logoLibrary)delete t.logoLibrary;
       if(Array.isArray(t.identityHistory)){
         t.identityHistory.forEach(h=>{
           if(!h)return;
           const histCustom=customLogoMap.get(h.name);
           if(histCustom && h.logo===histCustom)return;
           if(h.logo && String(h.logo).startsWith("data:image"))h.logo=null;
+          if(h.logoLibrary)delete h.logoLibrary;
         });
       }
     });
@@ -2858,6 +2960,24 @@ function rehydrateLoadedState(s){
   }
   s.identityLibrary.forEach(i=>{
     if(i && !i.logo && generatedIdentityLogos[i.id])i.logo=generatedIdentityLogos[i.id];
+    if(i && (!i.logoLibrary || !i.logoLibrary.early || !i.logoLibrary.growing || !i.logoLibrary.modern)){
+      i.logoLibrary=createThreeLogoLibrary(i.logo||generatedIdentityLogos[i.id]||null,i.name,[]);
+    }
+  });
+  (s.customIdentities||[]).forEach(i=>{
+    if(i && (!i.logoLibrary || !i.logoLibrary.early || !i.logoLibrary.growing || !i.logoLibrary.modern)){
+      i.logoLibrary=createThreeLogoLibrary(i.logo||null,i.name,[]);
+    }
+  });
+  (s.teams||[]).forEach(t=>{
+    if(t && (!t.logoLibrary || !t.logoLibrary.early || !t.logoLibrary.growing || !t.logoLibrary.modern)){
+      t.logoLibrary=createThreeLogoLibrary(t.logo||generatedTeamLogos[t.name]||currentNbaRemoteLogos[t.name]||null,t.name,[]);
+    }
+    (t.identityHistory||[]).forEach(h=>{
+      if(h && (!h.logoLibrary || !h.logoLibrary.early || !h.logoLibrary.growing || !h.logoLibrary.modern)){
+        h.logoLibrary=createThreeLogoLibrary(h.logo||generatedTeamLogos[h.name]||currentNbaRemoteLogos[h.name]||null,h.name,[]);
+      }
+    });
   });
   return s;
 }
@@ -3115,7 +3235,7 @@ document.getElementById("createBtn").onclick=()=>{
    version:1,saveId:makeSaveId(),name,startYear:year,currentYear:year,role:selectedRole,controlledTeamId:teamId,careerPlayerId,
    teams:JSON.parse(JSON.stringify(year===2026?modern2026Teams:historical1976)),
    players:JSON.parse(JSON.stringify(year===2026?modern2026Players:historicalPlayers1976)),
-   identityLibrary:JSON.parse(JSON.stringify(builtInIdentities)).map(i=>({...i,logo:i.logo||generatedIdentityLogos[i.id]||null})),
+   identityLibrary:JSON.parse(JSON.stringify(builtInIdentities)).map(i=>({...i,logo:i.logo||generatedIdentityLogos[i.id]||null,logoLibrary:createThreeLogoLibrary(i.logo||generatedIdentityLogos[i.id]||null,i.name,[])})),
    customIdentities:[],
    decisions:[],
    news:[{year,title:"Universe created",text:`History branches beginning in ${year}.`}],
@@ -4185,21 +4305,27 @@ window.renderFranchiseHistory=renderFranchiseHistory;
 
 function logoAssetStatus(name,year){
  const real=historicalLogoFor(name,year);
- return real?{label:"Real historical · PNG",cls:"logoReal"}:{label:"Fallback",cls:"logoFallback"};
+ const lib=resolveLogoLibrary({name},year)||{};
+ const count=['early','growing','modern'].filter(k=>!!lib[k]).length;
+ return real?{label:`Historical active · ${count}/3 library`,cls:"logoReal"}:{label:`Library active · ${count}/3 logos`,cls:"logoFallback"};
 }
 function renderLogoBrowser(){
  const grid=document.getElementById("logoBrowserGrid");
  if(!grid||!state)return;
+ ensureIdentityLogos();
  const year=Number(document.getElementById("logoBrowserYear")?.value||state.currentYear||1976);
  const teams=state.teams.slice().sort((a,b)=>a.name.localeCompare(b.name));
+ const activeKey=logoLibraryBucketForYear(year);
  grid.innerHTML=teams.map(t=>{
    const rec=resolveIdentityForObject(t,year);
    const status=logoAssetStatus(rec.name,year);
+   const lib=resolveLogoLibrary(t,year);
    return `<div class="logoBrowserCard">
      ${logoHTMLForYear(t,year)}
      <b>${t.name}</b>
-     <div class="small muted">${rec.name}${rec.market?` · ${rec.market}`:""}</div>
+     <div class="small muted">Active year: ${seasonLabelFromYear(year)} · ${rec.name}${rec.market?` · ${rec.market}`:""}</div>
      <div style="margin-top:8px"><span class="logoStatus ${status.cls}">${status.label}</span></div>
+     ${lib?logoLibraryPreviewHTML(lib,activeKey):""}
    </div>`;
  }).join("");
 }
@@ -5626,12 +5752,17 @@ window.resolveDecision=(id,choice)=>{
  renderAll();
 };
 function renderIdentities(){
+ ensureIdentityLogos();
  const all=[...state.identityLibrary,...state.customIdentities];
- document.getElementById("identityList").innerHTML=all.map(i=>`
- <div class="teamrow">
-  ${logoHTML(i)}
-  <div class="teammeta"><b>${i.name}</b><span class="small muted">${i.market||"Custom market"} · ${i.status||"Custom identity"}</span></div>
- </div>`).join("");
+ document.getElementById("identityList").innerHTML=all.map(i=>{
+  const activeKey=logoLibraryBucketForYear(state.currentYear||1976);
+  const lib=resolveLogoLibrary(i,state.currentYear||1976);
+  return `<div class="teamrow" style="display:block">
+   <div style="display:flex;gap:12px;align-items:center">${logoHTML(i)}<div class="teammeta"><b>${i.name}</b><span class="small muted">${i.market||"Custom market"} · ${i.status||i.kind||"Custom identity"}</span></div></div>
+   ${lib?logoLibraryPreviewHTML(lib,activeKey):""}
+   <div class="logoLibraryNote">Active era slot: <b>${activeKey==='early'?'Early NBA':activeKey==='growing'?'Growing NBA':'Modern'}</b></div>
+  </div>`;
+ }).join("");
 }
 
 let pendingLogo=null;
@@ -5649,7 +5780,8 @@ document.getElementById("saveIdentityBtn").onclick=()=>{
  const name=document.getElementById("customName").value.trim();
  if(!city||!name){alert("Enter a city/market and team name.");return;}
  state.customIdentities.push({
-   id:"custom-"+Date.now(),market:city,name:`${city} ${name}`,status:"Custom identity",logo:pendingLogo
+   id:"custom-"+Date.now(),market:city,name:`${city} ${name}`,status:"Custom identity",logo:pendingLogo,
+   logoLibrary:createThreeLogoLibrary(pendingLogo,`${city} ${name}`,[])
  });
  document.getElementById("customCity").value="";
  document.getElementById("customName").value="";
@@ -6365,10 +6497,17 @@ function awardBid(bidId){
  let conf=chooseConferenceForMarket(bid.market);
  if(state.teams.some(t=>t.name===identity.name)){alert("That identity is already in use.");return;}
  const id="exp_"+Date.now();
- const team={id,name:identity.name,conference:conf,logo:identity.logo||null,market:identity.market,
-  identityHistory:[{from:state.currentYear,name:identity.name,market:identity.market,logo:identity.logo||null}],
+ const team={
+  id,
+  name:identity.name,
+  conference:conf,
+  logo:identity.logo||null,
+  market:identity.market,
+  logoLibrary:identity.logoLibrary||createThreeLogoLibrary(identity.logo||generatedIdentityLogos[identity.id]||null,identity.name,[]),
+  identityHistory:[{from:state.currentYear,name:identity.name,market:identity.market,logo:identity.logo||null,logoLibrary:identity.logoLibrary||createThreeLogoLibrary(identity.logo||generatedIdentityLogos[identity.id]||null,identity.name,[])}],
   relocationHistory:[],expansionYear:state.currentYear,w:0,l:0,gp:0,power:54,
-  owner:bid.owner};
+  owner:bid.owner
+ };
  state.teams.push(team);
  state.teamDirections[id]="Rebuild";
  state.franchiseHealth=state.franchiseHealth||{};
@@ -6626,10 +6765,11 @@ function applyIdentityToTeam(team,identity,fromYear){
  const oldName=team.name;
  team.name=identity.name;
  team.market=identity.market||team.market||"";
+ team.logoLibrary=JSON.parse(JSON.stringify(identity.logoLibrary||createThreeLogoLibrary(identity.logo||generatedIdentityLogos[identity.id]||generatedTeamLogos[identity.name]||null,identity.name,[])));
  const histLogo=historicalLogoFor(team.name,fromYear);
- team.logo=histLogo||identity.logo||generatedIdentityLogos[identity.id]||generatedTeamLogos[team.name]||null;
+ team.logo=histLogo||team.logoLibrary?.[logoLibraryBucketForYear(fromYear)]||identity.logo||generatedIdentityLogos[identity.id]||generatedTeamLogos[team.name]||null;
  if(!team.identityHistory)team.identityHistory=[];
- team.identityHistory.push({from:fromYear,name:team.name,market:team.market,logo:team.logo||null});
+ team.identityHistory.push({from:fromYear,name:team.name,market:team.market,logo:team.logo||null,logoLibrary:team.logoLibrary||null});
  state.players.forEach(p=>{if(p.teamName===oldName)p.teamName=team.name;});
  return oldName;
 }
@@ -6664,8 +6804,13 @@ function awardExpansionTeam(){
 
  const id="exp_"+Date.now();
  const team={
-   id,name:identity.name,conference:conf,logo:identity.logo||null,market:identity.market,
-   identityHistory:[{from:state.currentYear,name:identity.name,market:identity.market,logo:identity.logo||null}],
+   id,
+   name:identity.name,
+   conference:conf,
+   logo:identity.logo||null,
+   market:identity.market,
+   logoLibrary:identity.logoLibrary||createThreeLogoLibrary(identity.logo||generatedIdentityLogos[identity.id]||null,identity.name,[]),
+   identityHistory:[{from:state.currentYear,name:identity.name,market:identity.market,logo:identity.logo||null,logoLibrary:identity.logoLibrary||createThreeLogoLibrary(identity.logo||generatedIdentityLogos[identity.id]||null,identity.name,[])}],
    relocationHistory:[],expansionYear:state.currentYear,w:0,l:0,gp:0,power:54
  };
  state.teams.push(team);

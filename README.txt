@@ -1,17 +1,23 @@
-v0.67.1 Basketball Universe — Logo Coverage Fix
+v0.68 Basketball Universe — Three Logo Framework
 
-This is a quick logo-coverage repair build for the 2026 Current Day universe.
+This build upgrades the identity system so every franchise identity can support a three-logo library:
+- Early NBA
+- Growing NBA
+- Modern
 
-FIXES
-- Added missing current-team logo coverage for all 30 active NBA franchises.
-- Specifically repairs the Clippers, Kings and Wizards in the current-day snapshot.
-- Added a broader current-team fallback library so Charlotte, Miami, Orlando, Minnesota, Toronto and other modern teams no longer drop to default initials when their older embedded logo coverage is missing.
-- Updated the logo browser so these count as covered assets instead of generic fallbacks.
+What changed
+- Every built-in identity now initializes with a three-logo library.
+- Every custom identity now gets a three-logo library automatically.
+- Teams now carry logo-library data, so relocations and expansions bring their era logo set with them.
+- The active logo now follows year buckets:
+  * Early NBA: 1946-1966
+  * Growing NBA: 1967-2003
+  * Modern: 2004-present
+- Real / historical artwork still overrides the active in-season logo when an exact historical asset exists.
+- Identities screen now previews all three logo slots for each identity.
+- Logo Browser now shows both the active selected-year logo and the full three-logo library.
 
-HOW IT WORKS
-- Historical embedded logos still load first when available.
-- If a modern current-team logo is missing from the older embedded asset set, the game now falls back to an official current-team remote logo source.
-- The white logo-card background is preserved for visual consistency.
-
-NOTE
-This is a coverage fix, not the final full historical PNG pass. If this works well, the next logo pass can replace more of these modern fallbacks with fully embedded white-background PNG assets.
+Notes
+- This is the framework pass. For many fake/original identities, Early and Growing variants are generated in-house so every franchise has complete coverage immediately.
+- Modern slots preserve existing real/current artwork when available.
+- This gives every team, including fake teams, at least three library logos.
