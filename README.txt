@@ -1,25 +1,56 @@
-v0.60 Basketball Universe — Clean Navigation
+v0.60.1 Basketball Universe — Five-Section Navigation
 
-The crowded top navigation is now organized into six main areas:
+NAVIGATION UPDATED TO THE REQUESTED STRUCTURE
 
-Home: Dashboard, Season, Stats
-Playoffs: Playoffs
-Team: Players, Health, Coaching, Staff, Career
-Front Office: Scouting, Draft Room, Front Office, Ownership
-League: League Office, League Rules, Expansion Bids, Franchise Health, Franchises, Identities, Logo Browser, League Files, Save
-History: History, All-Time, Hall of Fame, Draft History, Decisions
+DASHBOARD
+- Dashboard
+- Season
+- Playoffs
+- Offseason
 
-Offseason appears as a top-level button only when the universe actually reaches the offseason.
+TEAM
+- Players
+- Stats
+- Health
+- Coaching
+- Staff
+- Career
 
-On mobile, the main navigation is one horizontal scrolling row. After choosing an area, a smaller second row appears with only the pages inside that area.
+LEAGUE
+- League Office
+- Rules
+- Expansion Bids
+- Franchise Health
+- Teams
+- Identities
 
-The yellow outline still means WHERE THE SIMULATION CURRENTLY IS.
-The filled gold button means WHAT YOU ARE CURRENTLY VIEWING.
+FRONT OFFICE
+- Scouting
+- Draft Room
+- Front Office
+- Ownership
 
-Example:
-If you are in the playoffs and open History, History is filled gold while Playoffs keeps the yellow outline.
+HISTORY
+- History
+- All-Time
+- Hall of Fame
+- Draft History
 
-No simulation logic was intentionally changed in this build.
+The previous standalone Playoffs and Offseason top-level buttons are gone.
+There are now exactly five main navigation sections.
+
+CURRENT SIM LOCATION
+The yellow outline still tells you where the simulation currently is.
+
+Examples:
+- During the regular season, Dashboard has the yellow outline and Season is outlined in its submenu.
+- During the playoffs, Dashboard remains the yellow-outlined main section and Playoffs is outlined in the submenu.
+- During the offseason, Dashboard remains outlined and Offseason is outlined below it.
+- During the Draft stage, Front Office is outlined and Draft Room is outlined below it.
+
+The filled gold selection still indicates the page you are currently viewing.
+
+No simulation logic was changed.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.

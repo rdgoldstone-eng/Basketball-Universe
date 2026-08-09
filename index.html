@@ -308,7 +308,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.60 · Clean Navigation</div>
+    <div class="pill">v0.60.1 · Five-Section Navigation</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -406,13 +406,11 @@ pre{white-space:pre-wrap}
   </div>
 
   <div class="nav mainNav" id="mainNav">
-    <button class="active" data-group="home" data-tab="dashboard">Home</button>
-    <button data-group="playoffs" data-tab="playoffs">Playoffs</button>
+    <button class="active" data-group="dashboard" data-tab="dashboard">Dashboard</button>
     <button data-group="team" data-tab="players">Team</button>
-    <button data-group="frontoffice" data-tab="scouting">Front Office</button>
     <button data-group="league" data-tab="leagueoffice">League</button>
+    <button data-group="frontoffice" data-tab="scouting">Front Office</button>
     <button data-group="history" data-tab="history">History</button>
-    <button data-group="offseason" data-tab="offseason" id="offseasonMainNav">Offseason</button>
   </div>
   <div class="subNavWrap">
     <div class="subNav" id="subNav"></div>
@@ -2912,14 +2910,6 @@ function refreshUniverseHeader(){
 }
 
 
-function updateOffseasonNavVisibility(){
- const btn=document.getElementById("offseasonMainNav");
- if(!btn||!state)return;
- const phase=state.season?.phase;
- const show=phase==="Season Complete" || !!state.offseason?.active;
- btn.classList.toggle("hidden",!show);
-}
-
 function simulationLocationTab(){
  if(!state)return null;
  let phase=state.season?.phase;
@@ -2970,7 +2960,7 @@ function showGame(){
     : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`);
  document.getElementById("permissionsText").innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("")+"</ul>";
  updateDraftRoomNav();
- updateOffseasonNavVisibility();
+
  updateNavigationForTab(document.querySelector(".section.active")?.id||"dashboard");
  updateSimulationLocationNav();
  renderAll();
@@ -4545,20 +4535,47 @@ document.getElementById("saveIdentityBtn").onclick=()=>{
 };
 
 const navigationGroups={
- home:[["dashboard","Dashboard"],["season","Season"],["stats","Stats"]],
- playoffs:[["playoffs","Playoffs"]],
- team:[["players","Players"],["healthcenter","Health"],["coaching","Coaching"],["staff","Staff"],["career","Career"]],
- frontoffice:[["scouting","Scouting"],["draftroom","Draft Room"],["frontoffice","Front Office"],["ownership","Ownership"]],
- league:[["leagueoffice","League Office"],["leaguerules","League Rules"],["bids","Expansion Bids"],["health","Franchise Health"],["teams","Franchises"],["identities","Identities"],["logobrowser","Logo Browser"],["leaguefiles","League Files"],["save","Save"]],
- history:[["history","History"],["alltime","All-Time"],["halloffame","Hall of Fame"],["drafthistory","Draft History"],["decisions","Decisions"]],
- offseason:[["offseason","Offseason"]]
+ dashboard:[
+  ["dashboard","Dashboard"],
+  ["season","Season"],
+  ["playoffs","Playoffs"],
+  ["offseason","Offseason"]
+ ],
+ team:[
+  ["players","Players"],
+  ["stats","Stats"],
+  ["healthcenter","Health"],
+  ["coaching","Coaching"],
+  ["staff","Staff"],
+  ["career","Career"]
+ ],
+ league:[
+  ["leagueoffice","League Office"],
+  ["leaguerules","Rules"],
+  ["bids","Expansion Bids"],
+  ["health","Franchise Health"],
+  ["teams","Teams"],
+  ["identities","Identities"]
+ ],
+ frontoffice:[
+  ["scouting","Scouting"],
+  ["draftroom","Draft Room"],
+  ["frontoffice","Front Office"],
+  ["ownership","Ownership"]
+ ],
+ history:[
+  ["history","History"],
+  ["alltime","All-Time"],
+  ["halloffame","Hall of Fame"],
+  ["drafthistory","Draft History"]
+ ]
 };
 
 function navigationGroupForTab(tab){
  for(const [group,items] of Object.entries(navigationGroups)){
    if(items.some(x=>x[0]===tab))return group;
  }
- return "home";
+ return "dashboard";
 }
 
 function renderSubNavigation(group,activeTab){
@@ -8659,7 +8676,7 @@ document.getElementById("advanceBtn").onclick=()=>simulateUntil(document.getElem
 const originalShowGame=showGame;
 showGame=function(){originalShowGame();initSeasonIfNeeded();renderSeason();saveState();}
 const originalRenderAll=renderAll;
-renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateOffseasonNavVisibility();updateSimulationLocationNav();}
+renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateSimulationLocationNav();}
 
 // ----- Persistent mobile/browser autosave v0.59 -----
 let basketballUniverseAutosaveTimer=null;
