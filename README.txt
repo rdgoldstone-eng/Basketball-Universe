@@ -1,21 +1,21 @@
-v0.69 Basketball Universe — GM Transactions Foundation
+v0.70 Basketball Universe — GM Contracts & Offseason
 
-Development focus: build the GM role toward a complete playable loop while Viewer remains the main testing mode.
+GM role remains UNDER CONSTRUCTION. Viewer remains the baseline development mode.
 
 NEW
-- Manual Trade Machine for GM mode.
-- Choose a trade partner and build both sides of a deal.
-- Add multiple players and draft picks from either team.
-- Live trade-value comparison.
-- AI acceptance considers player value, age, potential, draft picks, team direction and star premium.
-- Salary-cap legality check when the league has an active cap.
-- Rejected offers remain rejected instead of silently forcing a deal.
-- Free agency now supports custom contract offers from 1–5 years and user-entered annual salary.
-- Free agents evaluate market value, contract security and contender context.
-- Free-agent offer history is stored in the front-office state.
+- Contract Center in Front Office.
+- Extension/re-signing offers with years and salary controls.
+- Player acceptance depends on market value, security, age, team quality, and familiarity.
+- Added a Re-signings stage to the offseason before open free agency.
+- AI teams now decide which expiring players to retain based on quality, age, direction, and cap room.
+- Open free agency now uses actual expiring contracts instead of manufacturing extra free agents.
+- AI free agency now considers cap room, position need, team direction, team quality, age/potential, and contract market value.
+- Training-camp roster cuts now actually trim AI rosters to an era-based roster limit.
+- Controlled GM teams are not automatically managed by AI during re-signings, free agency, or roster cuts.
 
-NOT YET DECLARED PLAYABLE
-GM mode is still under construction. Remaining GM work includes contract extensions/re-signing, deeper AI free agency, roster-rule enforcement, trade exceptions/era-specific trade rules, improved AI roster logic, and a complete offseason pass.
-
-TESTING POLICY
-Use Viewer Mode for normal development testing. A dedicated GM playtest will happen only after the GM role is declared ready.
+NEXT GM WORK
+- Controlled-team roster cut workflow and roster legality warnings.
+- Better cap exceptions / bird-rights style logic.
+- Sign-and-trade / restricted free agency where appropriate.
+- More trade negotiation and AI counteroffers.
+- Full GM offseason gate before role playtesting.
