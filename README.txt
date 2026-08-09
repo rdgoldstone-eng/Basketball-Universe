@@ -1,28 +1,21 @@
-v0.71 Basketball Universe — GM Roster Rules & Restricted Free Agency
+v0.72 Basketball Universe — Draft Rights & Undrafted Pathways
 
-GM remains UNDER CONSTRUCTION. Viewer remains the normal development/test mode.
+Viewer remains the main development/testing mode. GM is still under construction.
 
-ADDED
-- Restricted free agency framework for qualifying young players.
-- Original team retains matching rights on qualifying RFAs.
-- GM offer sheets can be matched by the rights-holding team.
-- AI free agency also respects RFA matching rights.
-- Active and offseason roster limits are now enforced.
-- Controlled GM teams cannot start the next season above the active roster limit.
-- Free-agent signings are blocked when the offseason/active roster is already full.
-- Simplified cap exception framework when the salary cap is active.
-- Trade Machine now produces an actual AI counter request after some rejected trades.
-- One-tap Apply Counter adds the requested asset to the existing proposal.
-- Front Office now displays roster-limit and cap-exception status.
-- Free Agency market labels restricted free agents and shows which team can match.
+CORE FIXES
+- Draft-and-stash / deferred players no longer occupy an active NBA roster before they arrive.
+- Drafted deferred players are stored as Draft Rights, with the drafting franchise retaining their rights.
+- Deferred players cannot accidentally enter normal free agency before their eligibility year.
+- Deferred rookies do not receive an NBA contract until they actually join the team.
+- When the eligibility year arrives, drafted-rights players join the franchise that owns their rights, even if the team has since changed its displayed identity.
+- If an undrafted prospect has a future arrival/eligibility year, he remains an Unsigned Prospect outside the NBA rather than incorrectly becoming a free agent immediately.
+- When that undrafted prospect becomes eligible, he enters the free-agent pool.
+- Ordinary undrafted players still become free agents immediately after the draft.
+- Old saves with deferred players are repaired on load so they no longer count against active rosters.
 
-SIMPLIFIED RULES
-- Early leagues use the existing 12-player roster framework; later leagues use 15.
-- Offseason rosters can temporarily carry three additional players before final cuts.
-- The cap exception is currently a simplified single-use exception rather than a full historical CBA recreation.
+GM / FRONT OFFICE
+- Added a Draft Rights panel showing deferred prospects owned by the controlled franchise.
+- The panel shows draft year, pick, position and expected NBA eligibility year.
 
-NEXT GM WORK
-- Bird/deferred draft rights and undrafted free-agent handling.
-- Better waiver/release consequences.
-- Contract options and qualifying-offer details.
-- Deeper AI roster construction and transaction timing.
+WHY THIS MATTERS
+This fixes the Larry Bird / David Robinson / Toni Kukoc / Manu Ginobili type pathway and prevents historical or alternate draft-rights players from being treated like ordinary NBA free agents while they are still unavailable.

@@ -352,7 +352,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.71 · GM Roster Rules & Restricted Free Agency</div>
+    <div class="pill">v0.72 · Draft Rights & Undrafted Pathways</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -894,11 +894,16 @@ pre{white-space:pre-wrap}
         <div id="draftPickAssetsBox" class="muted">No draft-pick data.</div>
       </div>
     </div>
-    <div class="card">
-      <h2>Contract Center</h2>
-      <div id="contractCenterBox" class="muted">Contract controls are available in GM mode.</div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Draft Rights</h2>
+        <div id="draftRightsBox" class="muted">No draft-rights players.</div>
+      </div>
+      <div class="card">
+        <h2>Contract Center</h2>
+        <div id="contractCenterBox" class="muted">Contract controls are available in GM mode.</div>
+      </div>
     </div>
-
     <div class="card">
       <h2>Free Agency</h2>
       <div id="freeAgencyMarket" class="muted">No free agents available.</div>
@@ -2984,6 +2989,12 @@ function rehydrateLoadedState(s){
     if(i && (!i.logoLibrary || !i.logoLibrary.early || !i.logoLibrary.growing || !i.logoLibrary.modern)){
       i.logoLibrary=createThreeLogoLibrary(i.logo||null,i.name,[]);
     }
+  });
+  (s.players||[]).forEach(p=>{
+    if(!p||!p.deferredEntry)return;
+    if(p.draftRightsTeam && !p.draftRightsTeamId)p.draftRightsTeamId=(s.teams||[]).find(t=>t.name===p.draftRightsTeam)?.id||null;
+    if(p.draftRightsTeamId){p.teamName="Draft Rights";p.preEntryStatus="Draft Rights";p.faEligible=false;p.contract=null;}
+    else {p.teamName="Unsigned Prospect";p.preEntryStatus="Unsigned Prospect";p.faEligible=false;p.contract={years:0,salary:0};}
   });
   (s.teams||[]).forEach(t=>{
     if(t && (!t.logoLibrary || !t.logoLibrary.early || !t.logoLibrary.growing || !t.logoLibrary.modern)){
@@ -6087,24 +6098,30 @@ function developPlayers(){
  state.offseason.developmentResults=changes;
  state.news.push({year:state.currentYear,title:"Player development",text:"Players progressed or declined based on age, opportunity, and universe-specific development variance."});
 }
-function convertProspectToPlayer(pr,teamName,pick){
+function convertProspectToPlayer(pr,teamName,pick,teamId=null){
  const draftYear=currentDraftYear();
  const seed=parseInt(hashlibCompat(pr.name+"rookie"+draftYear).slice(0,4),16);
  const variance=(seed%7)-3;
  const ovr=Math.max(48,Math.min(86,pr.prospect+variance));
  const realizedCeiling=pr.ceilingLow+(seed%(pr.ceilingHigh-pr.ceilingLow+1));
- const deferred=pr.rightsOnlyUntil && draftYear<pr.rightsOnlyUntil;
+ const eligibleYear=Number(pr.rightsOnlyUntil||draftYear);
+ const deferred=eligibleYear>draftYear && teamName!=="Free Agent";
  return {
-   id:"rook_"+draftYear+"_"+pick,name:pr.name,teamName,pos:pr.pos,age:pr.age||22,
+   id:"rook_"+draftYear+"_"+pick,name:pr.name,
+   teamName:deferred?"Draft Rights":teamName,pos:pr.pos,age:pr.age||22,
    ovr,pot:realizedCeiling,developmentCeiling:realizedCeiling,
    scoring:Math.max(40,ovr+(seed%9)-4),shooting:Math.max(40,ovr+((seed>>3)%9)-4),
    passing:Math.max(35,ovr+(pr.pos==="PG"?5:-4)),rebounding:Math.max(35,ovr+(["C","PF"].includes(pr.pos)?5:-5)),
    defense:Math.max(40,ovr+((seed>>5)%7)-3),
    historical:{g:0,mp:0,mpg:0,pts:0,reb:0,ast:0,pts36:0,reb36:0,ast36:0,per:0,ts:0},
    rotationMinutes:deferred?0:8,starter:false,sim:{gp:0,min:0,pts:0,reb:0,ast:0},
-   rookieYear:deferred?pr.rightsOnlyUntil:draftYear,
-   draftYear,draftPick:pick,draftRightsTeam:teamName,
-   deferredEntry:deferred,rightsOnlyUntil:pr.rightsOnlyUntil||null
+   rookieYear:deferred?eligibleYear:draftYear,
+   draftYear,draftPick:pick,
+   draftRightsTeam:deferred?teamName:null,
+   draftRightsTeamId:deferred?(teamId||state.teams.find(t=>t.name===teamName)?.id||null):null,
+   deferredEntry:deferred,rightsOnlyUntil:pr.rightsOnlyUntil||null,
+   preEntryStatus:deferred?"Draft Rights":null,
+   faEligible:false
  };
 }
 function runDraft(){
@@ -6134,7 +6151,7 @@ function runDraft(){
    let chosen=scored[0].p;
    chosen.draftedBy=team.name;chosen.draftPick=i+1;
    board=board.filter(x=>x.id!==chosen.id);
-   let rookie=convertProspectToPlayer(chosen,team.name,i+1);
+   let rookie=convertProspectToPlayer(chosen,team.name,i+1,team.id);
    state.players.push(rookie);
    recordPlayerTransaction(rookie,"Draft",null,team.name,draftYear,`Drafted #${i+1} by ${team.name} in the ${draftYear} NBA Draft.`);
    results.push({pick:i+1,team:team.name,player:chosen.name,pos:chosen.pos,deferred:rookie.deferredEntry});
@@ -6442,8 +6459,24 @@ function beginNextSeason(){
      p.deferredEntry=false;
      p.rotationMinutes=8;
      p.rookieYear=state.currentYear;
-     recordPlayerTransaction(p,"Joined Team",null,p.teamName,state.currentYear,`${p.name} joined ${p.teamName} after his draft-rights waiting period.`);
-     state.news.push({year:state.currentYear,title:"Draft rights arrival",text:`${p.name} has joined ${p.teamName} after being drafted earlier.`});
+     const rightsTeam=p.draftRightsTeamId?state.teams.find(t=>t.id===p.draftRightsTeamId):state.teams.find(t=>t.name===p.draftRightsTeam);
+     if(rightsTeam){
+       p.teamName=rightsTeam.name;
+       p.draftRightsTeam=rightsTeam.name;
+       p.preEntryStatus=null;
+       p.faEligible=false;
+       if(!p.contract||Number(p.contract.years||0)<=0)p.contract={years:3,salary:Math.max(1,Math.round(((p.ovr||60)-50)*.22))};
+       recordPlayerTransaction(p,"Joined Team","Draft Rights",rightsTeam.name,state.currentYear,`${p.name} joined ${rightsTeam.name} after his draft-rights waiting period.`);
+       state.news.push({year:state.currentYear,title:"Draft rights arrival",text:`${p.name} has joined ${rightsTeam.name} after being drafted earlier.`});
+     }else{
+       p.teamName="Free Agent";
+       p.preEntryStatus=null;
+       p.faEligible=true;
+       p.contract={years:0,salary:0};
+       if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+       recordPlayerTransaction(p,"NBA Entry","Unsigned Prospect","Free Agent",state.currentYear,`${p.name} became NBA-eligible as an undrafted free agent.`);
+       state.news.push({year:state.currentYear,title:"Prospect enters NBA",text:`${p.name} is now eligible to sign as an undrafted free agent.`});
+     }
    }
  });
 
@@ -8541,12 +8574,12 @@ function proposeSimpleTrade(targetId){
 function populateFreeAgency(){
  ensureFrontOffice();
  if(state.freeAgents.length)return;
- let released=state.players.filter(p=>!p.retired&&(p.teamName==="Free Agent"||p.contract?.years===0));
+ let released=state.players.filter(p=>!p.retired&&!p.deferredEntry&&p.teamName!=="Unsigned Prospect"&&p.teamName!=="Draft Rights"&&(p.teamName==="Free Agent"||p.faEligible||(p.contract?.years===0&&p.teamName==="Free Agent")));
  state.freeAgents=released.map(p=>p.id);
 }
 function freeAgentPool(){
  ensureFrontOffice();populateFreeAgency();
- return state.freeAgents.map(id=>state.players.find(p=>p.id===id)).filter(Boolean).filter(p=>p.teamName==="Free Agent"||p.contract?.years===0);
+ return state.freeAgents.map(id=>state.players.find(p=>p.id===id)).filter(Boolean).filter(p=>!p.deferredEntry&&p.teamName==="Free Agent");
 }
 function signFreeAgent(playerId){
  ensureFrontOffice();let team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);
@@ -8619,6 +8652,16 @@ function releasePlayer(playerId){
  state.news.push({year:state.currentYear,title:"Roster move",text:`${team.name} releases ${p.name}.`});
  buildTradeTargets();renderAll();saveState();
 }
+function draftRightsPlayersForTeam(team){
+ if(!team)return [];
+ return state.players.filter(p=>!p.retired&&p.deferredEntry&&p.draftRightsTeamId===team.id).sort((a,b)=>Number(a.rightsOnlyUntil||9999)-Number(b.rightsOnlyUntil||9999)||(b.ovr||0)-(a.ovr||0));
+}
+function renderDraftRightsForTeam(team){
+ const box=document.getElementById("draftRightsBox");if(!box)return;
+ if(!team){box.innerHTML=`<span class="muted">Draft-rights information is available with a controlled team.</span>`;return;}
+ const rights=draftRightsPlayersForTeam(team);
+ box.innerHTML=rights.length?rights.map(p=>`<div class="pickAsset"><b>${p.name}</b><div class="small muted">${p.pos} · Drafted ${p.draftYear}${p.draftPick?` #${p.draftPick}`:""} · Expected NBA eligibility ${p.rightsOnlyUntil||"—"}</div><div class="small">Rights held by ${team.name}; not on the active roster and not eligible for free agency.</div></div>`).join(""):`<span class="muted">${team.name} currently holds no deferred player rights.</span>`;
+}
 function renderFrontOffice(){
  let rosterBox=document.getElementById("frontOfficeRoster");if(!rosterBox)return;
  ensureFrontOffice();let team=currentControlledTeam();
@@ -8629,6 +8672,7 @@ function renderFrontOffice(){
    const tm=document.getElementById("tradeMachineBox");if(tm)tm.innerHTML="";
    document.getElementById("freeAgencyMarket").innerHTML=`<span class="muted">Free-agent controls are available in GM and Owner mode.</span>`;
    const cb=document.getElementById("contractCenterBox");if(cb)cb.innerHTML=`<span class="muted">Contract controls are available in GM mode.</span>`;
+   const rb=document.getElementById("draftRightsBox");if(rb)rb.innerHTML=`<span class="muted">Draft-rights information is available with a controlled team.</span>`;
    return;
  }
  buildTradeTargets();
@@ -8655,6 +8699,7 @@ function renderFrontOffice(){
  let picks=teamDraftPicks(team.id);
  let pb=document.getElementById("draftPickAssetsBox");
  if(pb)pb.innerHTML=picks.length?picks.slice(0,20).map(pk=>`<div class="pickAsset"><b>${pk.year} ${pk.round===1?"1st":"2nd"} Round</b><div class="small muted">Original: ${state.teams.find(t=>t.id===pk.originalTeamId)?.name||"Unknown"} · Trade Value ${draftPickValue(pk).toFixed(0)}</div></div>`).join(""):`<span class="muted">No draft picks owned.</span>`;
+ renderDraftRightsForTeam(team);
 
  let fa=freeAgentPool().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,20);
  document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>{let ask=contractMarketAnnual(p),rights=rfaRightsTeam(p);return `<div class="tradeTarget"><b>${p.name}${rights?' · RFA':''}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Market about $${ask}M/year${rights?` · ${rights.name} can match`:''}</div><div class="faOfferControls"><div><label>Years</label><select id="faYears_${p.id}"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div><div><label>Salary / year</label><input id="faSalary_${p.id}" type="number" min="1" step="1" value="${ask}"></div><button class="primary" onclick="makeFreeAgentOffer('${p.id}')">Make Offer</button></div></div>`}).join(""):`<span class="muted">No free agents are currently available.</span>`;
@@ -8996,7 +9041,7 @@ function makeDraftPick(prospectId){
  let draftYear=dr.year||state.currentYear+1;
  let newPlayer;
  if(typeof convertProspectToPlayer==="function"){
-   newPlayer=convertProspectToPlayer(p,team.name,pick.pick);
+   newPlayer=convertProspectToPlayer(p,team.name,pick.pick,team.id);
    newPlayer.id=p.id||p.draftId||newPlayer.id;
    newPlayer.name=validBasketballName(p.name)?p.name:(validBasketballName(newPlayer.name)?newPlayer.name:generatedDraftName(draftYear,p.id||p.draftId||pick.pick));
    newPlayer.rookie=true;
@@ -9014,11 +9059,15 @@ function makeDraftPick(prospectId){
      defense:Math.max(40,ovr+((seed>>6)%9)-4),rotationMinutes:8,starter:false,
      rookie:true,rookieYear:draftYear,draftYear,sim:{gp:0,min:0,pts:0,reb:0,ast:0}};
  }
- newPlayer.contract={years:pick.round===1?3:2,salary:pick.round===1?Math.max(1,Math.round((state.teams.length-pick.pickInRound+1)/Math.max(1,state.teams.length)*6)):1};
+ if(newPlayer.deferredEntry){
+   newPlayer.contract=null;
+ }else{
+   newPlayer.contract={years:pick.round===1?3:2,salary:pick.round===1?Math.max(1,Math.round((state.teams.length-pick.pickInRound+1)/Math.max(1,state.teams.length)*6)):1};
+ }
  state.players.push(newPlayer);
  recordPlayerTransaction(newPlayer,"Draft",null,team.name,draftYear,`Drafted Round ${pick.round}, Pick ${pick.pickInRound} (#${pick.pick} overall) by ${team.name} in the ${draftYear} NBA Draft.`);
  newPlayer.draftRound=pick.round;newPlayer.draftPickInRound=pick.pickInRound;
- dr.results.push({pick:pick.pick,round:pick.round,pickInRound:pick.pickInRound,teamId:team.id,teamName:team.name,playerName:newPlayer.name,pos:newPlayer.pos,ovr:newPlayer.ovr||60,pot:newPlayer.pot||newPlayer.truePotential||newPlayer.ovr||60});
+ dr.results.push({pick:pick.pick,round:pick.round,pickInRound:pick.pickInRound,teamId:team.id,teamName:team.name,playerName:newPlayer.name,pos:newPlayer.pos,ovr:newPlayer.ovr||60,pot:newPlayer.pot||newPlayer.truePotential||newPlayer.ovr||60,deferred:!!newPlayer.deferredEntry,rightsOnlyUntil:newPlayer.rightsOnlyUntil||null});
  state.news.push({year:state.currentYear,title:`Draft Pick #${pick.pick}`,text:`${team.name} selects ${p.name}, ${p.pos}.`});
  dr.pickIndex++;
  dr.tradeOffers=[];
@@ -9118,23 +9167,34 @@ function renderDraftRoom(){
 function continueAfterDraft(){
  if(!draftCompletedForCurrentOffseason())return;
 
- // Remaining prospects are officially undrafted and enter the free-agent pool.
+ // Remaining prospects are officially undrafted. Players who are immediately
+ // eligible enter free agency; college/international players with a future
+ // eligibility date stay outside the league until that year and own no NBA rights.
  let dr=state.draftRoom;
  if(dr?.available?.length){
    dr.available.forEach((p,i)=>{
      if(state.players.some(x=>x.name===p.name&&Number(x.draftYear)===Number(dr.year)))return;
-     let np=convertProspectToPlayer(p,"Free Agent",dr.order.length+i+1);
+     const delayed=Number(p.rightsOnlyUntil||dr.year)<=Number(dr.year)?false:true;
+     let np=convertProspectToPlayer(p,"Free Agent",dr.order.length+i+1,null);
      np.id=p.id||p.draftId||np.id;
-     np.teamName="Free Agent";
      np.rookie=true;
-     np.rookieYear=dr.year;
+     np.rookieYear=delayed?Number(p.rightsOnlyUntil):dr.year;
      np.draftYear=dr.year;
      np.draftPick=null;
+     np.draftRound=null;
      np.undrafted=true;
      np.rotationMinutes=0;
-     np.faEligible=true;
+     np.draftRightsTeam=null;
+     np.draftRightsTeamId=null;
+     np.rightsOnlyUntil=p.rightsOnlyUntil||null;
+     np.deferredEntry=delayed;
+     np.preEntryStatus=delayed?"Unsigned Prospect":null;
+     np.teamName=delayed?"Unsigned Prospect":"Free Agent";
+     np.faEligible=!delayed;
+     np.contract={years:0,salary:0};
      state.players.push(np);
-     recordPlayerTransaction(np,"Undrafted",null,"Free Agent",dr.year,`${np.name} went undrafted in ${dr.year}.`);
+     if(!delayed && !state.freeAgents.includes(np.id))state.freeAgents.push(np.id);
+     recordPlayerTransaction(np,"Undrafted",null,delayed?"Unsigned Prospect":"Free Agent",dr.year,delayed?`${np.name} went undrafted in ${dr.year} and remains outside the NBA until eligible in ${np.rightsOnlyUntil}.`:`${np.name} went undrafted in ${dr.year}.`);
    });
  }
  saveCompletedDraftToHistory();
