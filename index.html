@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.7 · Offseason Finish Flow</div>
+    <div class="pill">v0.82.8 · Newspaper Auto-Open</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -13939,6 +13939,61 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.82.7 load repair",e);}
 },0);
+
+
+
+/* === v0.82.8 Newspaper Auto-Open === */
+function showLatestSeasonNewspaperV0828(){
+  try{
+    const paper=state.latestSeasonNewspaper||(state.seasonNewspapers||[]).slice().sort((a,b)=>b.year-a.year)[0];
+    if(!paper)return;
+
+    switchTab("season");
+    renderSeasonNewspaper();
+
+    const card=document.getElementById("seasonNewspaperCard");
+    const season=document.getElementById("season");
+    if(card && season){
+      // Put the Chronicle at the very top of the Season page for the new-season handoff.
+      const firstCard=season.querySelector(".card");
+      if(firstCard && firstCard!==card)season.insertBefore(card,firstCard);
+      card.style.display="";
+      card.classList.add("current");
+      setTimeout(()=>{
+        card.scrollIntoView({behavior:"smooth",block:"start"});
+      },60);
+    }
+
+    state.unreadSeasonNewspaperYear=paper.year;
+    saveState();
+  }catch(e){
+    console.error("Newspaper auto-open failed",e);
+  }
+}
+window.showLatestSeasonNewspaperV0828=showLatestSeasonNewspaperV0828;
+
+const _v0828BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const oldYear=Number(state.currentYear||state.startYear||1976);
+  const r=_v0828BeginNextSeason.apply(this,arguments);
+
+  // The completed-season newspaper is created inside beginNextSeason().
+  // Immediately surface it after the new season is initialized.
+  setTimeout(()=>{
+    try{
+      if(!state.latestSeasonNewspaper || Number(state.latestSeasonNewspaper.year)!==oldYear){
+        createSeasonNewspaper(oldYear);
+      }
+      renderAll();
+      showLatestSeasonNewspaperV0828();
+    }catch(e){
+      console.error("Post-transition newspaper handoff failed",e);
+    }
+  },0);
+
+  return r;
+};
+window.beginNextSeason=beginNextSeason;
 
 </script>
 </body>
