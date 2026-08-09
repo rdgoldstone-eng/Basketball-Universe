@@ -347,6 +347,15 @@ pre{white-space:pre-wrap}
 .newspaperChampion .logo{width:64px;height:64px}
 @media(max-width:700px){.newspaperGrid{grid-template-columns:1fr}}
 .divisionLabel td{font-weight:800;text-transform:uppercase;letter-spacing:.08em;background:rgba(255,255,255,.04)}
+
+/* v0.82.2 offseason workflow */
+.offseasonStep.current{border:2px solid var(--accent);box-shadow:0 0 0 2px rgba(255,255,255,.04);font-weight:800}
+.offseasonStepRow.current{background:rgba(127,127,127,.08);border-radius:12px;padding:8px}
+.offseasonStepRow.current button{font-weight:800}
+.offseasonStepRow.future{opacity:.72}
+.offseasonMechanism{padding:12px;border:1px solid var(--line);border-radius:12px;margin:10px 0;background:var(--panel2)}
+.offseasonResultRow{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+
 </style>
 </head>
 <body>
@@ -361,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.1 · Draft Room Launch Fix</div>
+    <div class="pill">v0.82.2 · Offseason Workflow Repair</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -12713,6 +12722,315 @@ function forceOpenDraftRoomV0821(){
   openScheduledDraftRoom();
 }
 window.forceOpenDraftRoomV0821=forceOpenDraftRoomV0821;
+
+
+
+/* === v0.82.2 Offseason Workflow Repair === */
+function ensureOffseasonWorkflowV0822(){
+  initOffseason();
+  state.offseason.processed=state.offseason.processed||{};
+  state.offseason.awardResults=state.offseason.awardResults||null;
+  state.offseason.draftOrderEvent=state.offseason.draftOrderEvent||null;
+}
+
+/* Repair names such as "John undefined", not just a name whose entire value is undefined. */
+function malformedBasketballNameV0822(v){
+  if(typeof v!=="string" || !v.trim())return true;
+  const s=v.trim();
+  return /(^|\s)(undefined|null|defined)(\s|$)/i.test(s) || /\bundefined\b/i.test(s);
+}
+function repairAllMalformedNamesV0822(){
+  if(!state)return;
+  let changed=0;
+  const repair=(p,year,key)=>{
+    if(p && malformedBasketballNameV0822(p.name)){
+      p.name=generatedDraftName(year||state.currentYear,key||p.id||changed);
+      changed++;
+    }
+  };
+  (state.players||[]).forEach((p,i)=>repair(p,p.draftYear||p.rookieYear||state.currentYear,p.id||i));
+  Object.entries(state.draftClasses||{}).forEach(([year,cls])=>(cls||[]).forEach((p,i)=>repair(p,Number(year),p.id||i)));
+  if(state.draftRoom){
+    (state.draftRoom.available||[]).forEach((p,i)=>repair(p,state.draftRoom.year||state.currentYear+1,p.id||p.draftId||i));
+    (state.draftRoom.results||[]).forEach((r,i)=>{
+      if(malformedBasketballNameV0822(r.playerName)){
+        r.playerName=generatedDraftName(state.draftRoom.year||state.currentYear+1,`result_${i}`);
+        changed++;
+      }
+    });
+  }
+  return changed;
+}
+
+/* The old Draft Order builder returned an order but did not store it in offseason state. */
+const _v0822BuildDraftOrder=buildDraftOrder;
+buildDraftOrder=function(){
+  ensureOffseasonWorkflowV0822();
+  repairAllMalformedNamesV0822();
+  const order=_v0822BuildDraftOrder();
+  state.offseason.draftOrder=Array.isArray(order)?order:[];
+  const year=state.currentYear+1;
+  const firstRound=state.offseason.draftOrder.filter(x=>(x.round||1)===1);
+  const playoffIds=playoffFieldTeamIds();
+  const nonPlayoff=state.teams.filter(t=>!playoffIds.has(t.id));
+  const inverse=nonPlayoff.slice().sort((a,b)=>draftRecordPct(a)-draftRecordPct(b)||a.name.localeCompare(b.name));
+
+  if(year<=1984){
+    const east=inverse.find(t=>(t.conference||t.conf)==="East");
+    const west=inverse.find(t=>(t.conference||t.conf)==="West");
+    state.offseason.draftOrderEvent={
+      year,type:"Coin Flip",
+      description:east&&west
+        ? `${east.name} and ${west.name}, the worst teams from each conference, entered the coin flip for the #1 pick.`
+        : "The pre-lottery draft order was set from the league's reverse standings.",
+      contestants:[east?.name,west?.name].filter(Boolean),
+      winner:firstRound[0]?.teamName||null,
+      runnerUp:firstRound[1]?.teamName||null
+    };
+  }else{
+    state.offseason.draftOrderEvent={
+      year,type:"Draft Lottery",
+      description:`The ${year} draft lottery set the top of the first-round order before the remaining teams were placed by record.`,
+      contestants:inverse.map(t=>t.name),
+      winner:firstRound[0]?.teamName||null,
+      runnerUp:firstRound[1]?.teamName||null
+    };
+  }
+  state.offseason.processed["Draft Order"]=true;
+  return state.offseason.draftOrder;
+};
+window.buildDraftOrder=buildDraftOrder;
+
+/* Make the historical coin-flip logic understand both old and new team conference fields. */
+const _v0822LotteryOrderForDraft=lotteryOrderForDraft;
+lotteryOrderForDraft=function(year,nonPlayoff){
+  if(Number(year)<=1984){
+    const inverse=nonPlayoff.slice().sort((a,b)=>draftRecordPct(a)-draftRecordPct(b)||a.name.localeCompare(b.name));
+    if(!inverse.length)return [];
+    const east=inverse.find(t=>(t.conference||t.conf)==="East");
+    const west=inverse.find(t=>(t.conference||t.conf)==="West");
+    if(east&&west){
+      const rand=seededDraftRandom(`${state.saveId||state.name}_${year}_lottery`);
+      const flip=rand()<.5?[east,west]:[west,east];
+      return [...flip,...inverse.filter(t=>!flip.includes(t))];
+    }
+    return inverse;
+  }
+  return _v0822LotteryOrderForDraft(year,nonPlayoff);
+};
+window.lotteryOrderForDraft=lotteryOrderForDraft;
+
+function prepareAwardsV0822(){
+  ensureLeagueHistory();
+  recordSeasonHonors();
+  const s=(state.history?.seasons||[]).find(x=>Number(x.year)===Number(state.currentYear));
+  state.offseason.awardResults=s?{
+    MVP:s.mvp||"—",
+    "Rookie of the Year":s.rookie||"—",
+    "Defensive Player":s.dpoy||"—",
+    "Sixth Man":s.sixth||"—",
+    "Finals MVP":s.finalsMvp||"—",
+    Champion:s.champion||"—"
+  }:null;
+  state.offseason.processed["Awards"]=true;
+}
+function prepareCurrentOffseasonStageV0822(){
+  ensureOffseasonWorkflowV0822();
+  repairAllMalformedNamesV0822();
+  const p=state.offseason.phase;
+  if(state.offseason.processed[p])return;
+  if(p==="Awards")prepareAwardsV0822();
+  else if(p==="Retirements"){
+    retirePlayers();
+    state.offseason.processed[p]=true;
+  }else if(p==="Development"){
+    developPlayers();
+    state.offseason.processed[p]=true;
+  }else if(p==="Draft Order"){
+    buildDraftOrder();
+  }
+}
+window.prepareCurrentOffseasonStageV0822=prepareCurrentOffseasonStageV0822;
+
+function offseasonStepReachedV0822(step){
+  ensureOffseasonWorkflowV0822();
+  const idx=state.offseason.phases.indexOf(step);
+  return idx<=state.offseason.phaseIndex;
+}
+function offseasonStageDetailV0822(step){
+  ensureOffseasonWorkflowV0822();
+  repairAllMalformedNamesV0822();
+  const idx=state.offseason.phases.indexOf(step);
+  const current=idx===state.offseason.phaseIndex;
+  const reached=idx<=state.offseason.phaseIndex;
+  if(!reached){
+    return `<div class="notice"><b>${step} has not been reached yet.</b><br><span class="small">Complete the highlighted offseason task first.</span></div>`;
+  }
+
+  if(step==="Awards"){
+    const a=state.offseason.awardResults||{};
+    return Object.keys(a).length
+      ? Object.entries(a).map(([k,v])=>`<div class="offseasonResultRow"><b>${k}</b><div>${v}</div></div>`).join("")+
+        `<div style="margin-top:10px"><button onclick="switchTab('history')">Open Full Awards History</button></div>`
+      : `<span class="muted">No award results were recorded.</span>`;
+  }
+  if(step==="Retirements"){
+    const r=state.offseason.retirements||[];
+    return r.length
+      ? r.map(name=>`<div class="teamrow"><div class="teammeta"><b>${name}</b><span class="small muted">Retired after the ${seasonName()} season</span></div></div>`).join("")
+      : `<div class="notice"><b>No retirements this offseason.</b><br><span class="small">The retirement stage was processed; nobody retired.</span></div>`;
+  }
+  if(step==="Development"){
+    const r=state.offseason.developmentResults||[];
+    if(!r.length)return `<div class="notice"><b>Development processed.</b><br><span class="small">No player's overall rating changed this offseason.</span></div>`;
+    const up=r.filter(x=>x.new>x.old).length,down=r.filter(x=>x.new<x.old).length;
+    return `<div class="offseasonMechanism"><b>What Development means</b><br><span class="small">Players age one year and can improve or decline based on age, potential/development systems, and universe variance. This is where those offseason rating changes are applied.</span><br><br><b>${up}</b> improved · <b>${down}</b> declined</div>`+
+      r.slice().sort((a,b)=>Math.abs(b.new-b.old)-Math.abs(a.new-a.old)).map(x=>`<div class="teamrow"><div class="teammeta"><b>${x.name}</b><span class="small muted">${x.team||"—"}</span></div><div><b>${x.old} → ${x.new}</b></div></div>`).join("");
+  }
+  if(step==="Draft Order"){
+    const e=state.offseason.draftOrderEvent;
+    const order=(state.offseason.draftOrder||[]).filter(x=>(x.round||1)===1);
+    return `${e?`<div class="offseasonMechanism"><b>${e.type}</b><br><span class="small">${e.description}</span>${e.winner?`<br><br><b>#1: ${e.winner}</b>${e.runnerUp?`<br>#2: ${e.runnerUp}`:""}`:""}</div>`:""}
+      ${order.length?order.map((entry,i)=>`<div class="teamrow"><div class="teammeta"><b>#${entry.pickInRound||i+1} ${entry.teamName||teamById(entry.teamId)?.name||"Team"}</b>${entry.originalTeamId&&entry.originalTeamId!==entry.teamId?`<span class="small muted">Pick originally belonged to ${teamById(entry.originalTeamId)?.name||"another team"}</span>`:""}</div></div>`).join(""):`<span class="muted">Draft order has not been generated.</span>`}`;
+  }
+  if(step==="Draft"){
+    const done=draftCompletedForCurrentOffseason();
+    return `<div class="offseasonMechanism"><b>${done?"Draft complete":"Draft Room"}</b><br><span class="small">${done?"All selections are complete. Continue to re-signings when ready.":"Run the draft in the Draft Room. In Viewer mode, use “Sim Rest of Draft” to finish it immediately instead of advancing one pick at a time."}</span></div><button class="primary" onclick="openScheduledDraftRoom()">Open Draft Room</button>`;
+  }
+  if(step==="Re-signings"){
+    return `<div class="notice"><b>Contract decisions</b><br><span class="small">Teams decide which expiring players to retain. GM-controlled teams make their own decisions in Front Office.</span></div><button onclick="switchTab('frontoffice')">Open Contracts</button>`;
+  }
+  if(step==="Free Agency"){
+    return `<div class="notice"><b>Free-agent market</b><br><span class="small">Unsigned players can sign with teams once this stage is reached.</span></div><button onclick="switchTab('frontoffice')">Open Free Agency</button>`;
+  }
+  if(step==="Roster Cuts"){
+    const rows=state.offseason.rosterCuts?.length?state.offseason.rosterCuts:state.teams.map(t=>({team:t.name,count:teamRoster(t.name).length}));
+    return rows.map(x=>`<div class="teamrow"><div class="teammeta"><b>${x.team}</b><span class="small muted">${x.count} players on roster</span></div></div>`).join("");
+  }
+  if(step==="Next Season"){
+    return `<div class="notice"><b>Offseason complete.</b><br><span class="small">Start the next season when roster requirements are satisfied.</span></div>`;
+  }
+  return `<span class="muted">No details available.</span>`;
+}
+
+viewOffseasonStep=function(step){
+  if(!state?.offseason)return;
+  ensureOffseasonWorkflowV0822();
+  if(step===state.offseason.phase)prepareCurrentOffseasonStageV0822();
+  const title=document.getElementById("offseasonDetailTitle");
+  const box=document.getElementById("offseasonDetailBox");
+  if(title)title.textContent=step;
+  if(box)box.innerHTML=offseasonStageDetailV0822(step);
+};
+window.viewOffseasonStep=viewOffseasonStep;
+
+/* Advance preprocessed informational stages exactly once, instead of processing them again. */
+const _v0822AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(!state?.offseason)initOffseason();
+  ensureOffseasonWorkflowV0822();
+  const p=state.offseason.phase;
+
+  if(["Awards","Retirements","Development","Draft Order"].includes(p)){
+    prepareCurrentOffseasonStageV0822();
+    state.offseason.phaseIndex++;
+    state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+    saveState();
+    renderAll();
+    if(state.offseason.phase==="Draft"){
+      switchTab("offseason");
+      viewOffseasonStep("Draft");
+    }else{
+      switchTab("offseason");
+      viewOffseasonStep(state.offseason.phase);
+    }
+    return;
+  }
+  return _v0822AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Replace the offseason renderer so the CURRENT TASK is visually unmistakable and every button gives useful output. */
+renderOffseason=function(){
+  if(!state)return;
+  ensureDraftClasses();
+  repairAllMalformedNamesV0822();
+  const status=document.getElementById("offseasonStatus");
+  const steps=document.getElementById("offseasonSteps");
+  const btn=document.getElementById("advanceOffseasonBtn");
+  if(!status||!steps||!btn)return;
+
+  if(!state.season || state.season.phase!=="Season Complete"){
+    status.textContent="Finish the regular season and playoffs to begin.";
+    steps.innerHTML="";
+    btn.classList.add("hidden");
+    return;
+  }
+
+  ensureOffseasonWorkflowV0822();
+  prepareCurrentOffseasonStageV0822();
+
+  const phase=state.offseason.phase;
+  status.innerHTML=`<b>Current task: ${phase}</b><div class="small muted">The highlighted row is the task you are on now. Completed steps stay available to review.</div>`;
+
+  steps.innerHTML=state.offseason.phases.map((x,i)=>{
+    const done=i<state.offseason.phaseIndex;
+    const current=i===state.offseason.phaseIndex;
+    const future=i>state.offseason.phaseIndex;
+    const buttonText=current ? (x==="Draft"?"Open Draft Room":`Open ${x}`) : (done?`Review ${x}`:`Preview ${x}`);
+    return `<div class="offseasonStepRow ${current?"current":future?"future":""}">
+      <div class="offseasonStep ${done?"done":""} ${current?"current":""}">${done?"✓":current?"→":"○"} ${x}</div>
+      <button class="${current?"primary":""}" onclick="viewOffseasonStep('${x}')">${buttonText}</button>
+    </div>`;
+  }).join("");
+
+  if(phase==="Draft"){
+    btn.classList.add("hidden");
+  }else{
+    btn.classList.remove("hidden");
+    btn.disabled=false;
+    const next=state.offseason.phases[state.offseason.phaseIndex+1];
+    btn.textContent=phase==="Next Season"?"Start Next Season":`Complete ${phase}${next?` → ${next}`:""}`;
+  }
+
+  // Always show the current task automatically.
+  const title=document.getElementById("offseasonDetailTitle");
+  const box=document.getElementById("offseasonDetailBox");
+  if(title)title.textContent=phase;
+  if(box)box.innerHTML=offseasonStageDetailV0822(phase);
+
+  const dr=state.offseason?.draftResults||[];
+  const draftBox=document.getElementById("draftResults");
+  if(draftBox)draftBox.innerHTML=dr.length?dr.map(r=>`<div class="teamrow"><div class="teammeta"><b>#${r.pick} ${r.player}</b><span class="small muted">${r.team} · ${r.pos}</span></div></div>`).join(""):"The draft has not started.";
+
+  const fa=state.offseason?.freeAgents||[];
+  const far=state.offseason?.faResults||[];
+  const faBox=document.getElementById("freeAgencyBox");
+  if(faBox){
+    if(far.length)faBox.innerHTML=far.map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join("");
+    else if(fa.length)faBox.innerHTML=fa.map(id=>{let p=playerById(id);return p?`<div class="teamrow"><div class="teammeta"><b>${p.name}</b><span class="small muted">${p.teamName} · ${p.faStatus||"Free Agent"}</span></div></div>`:""}).join("");
+    else faBox.textContent="Free agency opens after the draft.";
+  }
+};
+window.renderOffseason=renderOffseason;
+
+/* Keep the actual button bound to the latest advance function. */
+const _offseasonAdvanceBtnV0822=document.getElementById("advanceOffseasonBtn");
+if(_offseasonAdvanceBtnV0822)_offseasonAdvanceBtnV0822.onclick=()=>advanceOffseason();
+
+/* Repair existing saves immediately. */
+setTimeout(()=>{
+  try{
+    if(state){
+      const repaired=repairAllMalformedNamesV0822();
+      if(state.offseason && state.season?.phase==="Season Complete"){
+        ensureOffseasonWorkflowV0822();
+        renderOffseason();
+      }
+      if(repaired)saveState();
+    }
+  }catch(e){console.error("v0.82.2 offseason repair:",e);}
+},0);
 
 </script>
 </body>
