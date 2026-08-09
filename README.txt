@@ -1,35 +1,52 @@
-v0.66.1 Basketball Universe — Modern Start Points
+v0.67 Basketball Universe — Current Day 2026–27
 
-NEW STARTING OPTIONS
+CURRENT DAY IS NOW A REAL SNAPSHOT
+The 2026 Current Day start is no longer the 1976 league with the calendar changed.
 
-2019 — Play-In Era
-- Starts with the 2019–20 season.
-- Play-In Era rules are initialized for a modern universe.
-- Earlier historical crossroads are not replayed.
+It now loads:
+- all 30 current NBA franchises
+- the real Eastern and Western Conference alignment
+- all six current divisions
+- a dedicated 2026–27 core-roster snapshot for every team
+- current major 2026 offseason moves
+- the 2026 rookie class already assigned to teams
+- the completed 2026 Draft in Draft History
+- 2027 as the next draft
+- permanent modern 7–10 Play-In rules
+- modern salary-cap / three-point / playoff settings
+- modern scoring and pace environment
 
-2026 — Current Day
-- Starts in the current 2026 offseason.
-- Leads directly into the 2026–27 season.
-- Modern 7–10 Play-In rules are already established.
-- The Play-In is treated as a permanent league rule.
-- Historical crossroads from 1976–2025 are not replayed.
-- 2026 and later crossroads remain available, including the modern Seattle / Las Vegas expansion exploration.
+CURRENT-DAY DATE
+Snapshot target: August 9, 2026.
+This is an offseason/preseason starting point leading into the 2026–27 season.
 
-OLDER START POINTS REMAIN
-1946 — The Founding Era
-1967 — ABA Rivalry Era
-1976 — Merger Era
-1988 — Expansion Era
-2003 — Realignment Era
+IMPORTANT CURRENT MOVES REFLECTED
+Examples include Giannis Antetokounmpo in Miami, LeBron James and Jaylen Brown in Philadelphia,
+LaMelo Ball in Minnesota, Ja Morant in Portland, Paul George in Boston, Trae Young and Anthony Davis
+in Washington, and the finalized 2026 Draft class.
 
-ERA GUIDE
-Realignment Era remains 2003–2018.
-Play-In Era remains 2019–present.
+2026 DRAFT
+The actual completed 60-pick 2026 NBA Draft is seeded into Draft History.
+The current-day universe does not draft the 2026 class again. Its next draft is 2027.
 
-SAVE COMPATIBILITY
-Existing universes keep their original starting year and historical path.
-This update only changes new-universe setup options and modern-start initialization.
+ALIGNMENT
+Current-day universes preserve the NBA's six real divisions.
+The game's automatic geographic realignment will not overwrite a current-day snapshot.
+Commissioner mode can still change league structure manually later.
 
-All v0.66 Play-In mechanics and historical crossroads remain intact.
+2026 EXPANSION CHECKPOINT
+Because Current Day begins after the point at which a generic year-transition event would normally fire,
+the Seattle / Las Vegas expansion-exploration checkpoint is seeded immediately:
+- Viewer/non-Commissioner: evaluated automatically
+- Commissioner: presented as a league decision
 
-Modern start points also record their historical start year so crossroads from earlier eras cannot be replayed into a newly created modern universe.
+PLAYER MODE
+Choosing 2026 Current Day refreshes the setup roster so Player Mode can begin with a current player,
+rather than a 1976 player.
+
+NOTE ON ROSTER DEPTH
+v0.67 seeds a strong core rotation for all 30 clubs rather than all training-camp / two-way / Exhibit 10 players.
+This keeps the first current-day snapshot playable and compact while avoiding uncertain fringe roster statuses
+during the active offseason. We can expand it to full roster depth in the next current-data pass.
+
+Existing historical universes and the user's 2002–03 save remain compatible.
