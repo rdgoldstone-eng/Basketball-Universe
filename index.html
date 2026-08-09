@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.75 · Coach Game Plans & Player Roles</div>
+    <div class="pill">v0.76 · Coach Crunch Time & Playoff Adjustments</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -5789,7 +5789,10 @@ window.resolveDecision=(id,choice)=>{
  const d=state.decisions.find(x=>x.id===id); if(!d)return;
  d.resolved=true; d.result=choice;
  if(d.kind==="historicalCrossroad")resolveHistoricalCrossroadDecision(d,choice);
- else state.news.push({year:state.currentYear,title:d.title,text:`Decision: ${choice}`});
+ else {
+   if(d.decisionType==="coachRoleConflict" || state.role==="Coach")applyCoachDecisionEffect(d,choice);
+   state.news.push({year:state.currentYear,title:d.title,text:`Decision: ${choice}`});
+ }
  renderAll();
  const activeTab=document.querySelector(".section.active")?.id||"season";
  updateNavigationForTab(activeTab);
@@ -8231,10 +8234,18 @@ function ensureCoaching(){
        rotationSize:9,
        developmentFocus:null,
        crunchStyle:"Best Five",
+       playoffPlan:"Stay Course",
+       seriesPlans:{},
        playerRoles:{}
      };
    }
+   const cs=state.coaching.teams[t.id];
+   if(!cs.crunchStyle)cs.crunchStyle="Best Five";
+   if(!cs.playoffPlan)cs.playoffPlan="Stay Course";
+   if(!cs.seriesPlans)cs.seriesPlans={};
+   if(!cs.playerRoles)cs.playerRoles={};
  });
+ state.coaching.conflictKeys=state.coaching.conflictKeys||{};
 }
 function coachSettings(teamId){
  ensureCoaching();
@@ -8443,6 +8454,174 @@ function coachRoleUsageMultiplier(p){
  if(role==="Prospect")return .96;
  return 1;
 }
+
+function currentSeriesForTeam(teamId){
+ const ps=state.season?.playoffState;
+ if(!ps)return null;
+ return ps.series.find(s=>!s.complete&&(s.aId===teamId||s.bId===teamId))||null;
+}
+function seriesOpponentName(teamId){
+ const s=currentSeriesForTeam(teamId);if(!s)return null;
+ return teamById(s.aId===teamId?s.bId:s.aId)?.name||null;
+}
+function setPlayoffAdjustment(plan){
+ let team=currentControlledTeam();if(!team||state.role!=="Coach")return;
+ let s=coachSettings(team.id),series=currentSeriesForTeam(team.id);
+ if(series)s.seriesPlans[series.id]=plan;
+ else s.playoffPlan=plan;
+ state.coaching.notes.unshift({year:state.currentYear,text:`${team.name}: playoff adjustment set to ${plan}${series?` for the current ${series.round} series`:""}.`});
+ renderCoaching();saveState();
+}
+function activePlayoffAdjustment(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return "Stay Course";
+ let s=coachSettings(team.id),series=currentSeriesForTeam(team.id);
+ return (series&&s.seriesPlans?.[series.id])||s.playoffPlan||"Stay Course";
+}
+function rotationTopStrength(teamName,n=7){
+ let r=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out")
+  .sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,n);
+ return r.length?r.reduce((z,p)=>z+(p.ovr||60),0)/r.length:60;
+}
+function groupStrength(teamName,group,key="ovr"){
+ let r=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out"&&group.includes(p.pos))
+  .sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,3);
+ return r.length?r.reduce((z,p)=>z+(p[key]||p.ovr||60),0)/r.length:60;
+}
+function playoffPlanImpact(teamName,oppName){
+ if(state.season?.phase!=="Playoffs")return 0;
+ const plan=activePlayoffAdjustment(teamName);
+ let impact=0;
+ if(plan==="Shorten Rotation"){
+   let top=rotationTopStrength(teamName,7),depth=rotationTopStrength(teamName,10);
+   impact+=(top-depth>=2.5?1.4:.6);
+ }
+ if(plan==="Attack Guards"){
+   let mine=groupStrength(teamName,["PG","SG"],"passing"),theirD=groupStrength(oppName,["PG","SG"],"defense");
+   impact+=(mine-theirD>=4?1.4:mine>=theirD ? .4 : -.5);
+ }
+ if(plan==="Attack Paint"){
+   let mine=groupStrength(teamName,["PF","C"],"rebounding"),theirD=groupStrength(oppName,["PF","C"],"defense");
+   impact+=(mine-theirD>=4?1.4:mine>=theirD ? .4 : -.5);
+ }
+ if(plan==="Slow Tempo"){
+   let mine=rotationTopStrength(teamName,8),opp=rotationTopStrength(oppName,8);
+   impact+=mine<opp ? .8 : .2;
+ }
+ if(plan==="Pressure Ball"){
+   let oppGuards=groupStrength(oppName,["PG","SG"],"passing");
+   impact+=oppGuards<70?1.5:oppGuards<75 ? .7 : -.4;
+ }
+ return impact;
+}
+function playoffAdjustmentModifier(aName,bName){
+ return playoffPlanImpact(aName,bName)-playoffPlanImpact(bName,aName);
+}
+function crunchPlayerScore(p,style){
+ let score=(p.ovr||60)*1.25+(p.rotationMinutes||0)*.18;
+ const shooting=p.shooting||p.threePoint||p.scoring||p.ovr||60;
+ const defense=p.defense||p.ovr||60;
+ const reb=p.rebounding||p.ovr||60;
+ const pass=p.passing||p.ovr||60;
+ if(style==="Defense")score+=defense*.34;
+ else if(style==="Shooting")score+=shooting*.34+pass*.08;
+ else if(style==="Size")score+=reb*.25+(["PF","C"].includes(p.pos)?10:p.pos==="SF"?3:-3);
+ else score+=(shooting+defense+pass)*.08;
+ let team=state.teams.find(t=>t.name===p.teamName);
+ let role=team?coachPlayerRole(team.id,p.id):"Standard";
+ if(role==="Primary Option")score+=7;
+ if(role==="Secondary Option")score+=4;
+ if(role==="Defensive Stopper"&&style==="Defense")score+=7;
+ if(role==="Sixth Man"&&!p.starter)score+=2;
+ if((p.roleSatisfaction??70)<40)score-=3;
+ return score;
+}
+function crunchLineup(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return [];
+ let style=coachSettings(team.id).crunchStyle||"Best Five";
+ return state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&p.healthStatus!=="Out"&&(p.rotationMinutes||0)>0)
+  .sort((a,b)=>crunchPlayerScore(b,style)-crunchPlayerScore(a,style)).slice(0,5);
+}
+function crunchLineupStrength(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return 60;
+ let style=coachSettings(team.id).crunchStyle||"Best Five";
+ let lineup=crunchLineup(teamName);if(!lineup.length)return 60;
+ return lineup.reduce((s,p)=>s+crunchPlayerScore(p,style),0)/lineup.length;
+}
+function crunchChance(a,b){
+ let base=winChance(a,b);
+ let edge=(crunchLineupStrength(a.name)-crunchLineupStrength(b.name))/120;
+ return Math.max(.18,Math.min(.82,base+edge));
+}
+function closingFiveText(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return "";
+ let s=coachSettings(team.id),lineup=crunchLineup(teamName);
+ return `${s.crunchStyle}: ${lineup.map(p=>p.name).join(", ")||"No healthy closing five"}`;
+}
+function maybeCreateCoachRoleConflict(teamName){
+ if(state.role!=="Coach")return;
+ let team=currentControlledTeam();if(!team||team.name!==teamName)return;
+ ensureCoaching();
+ let unhappy=state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry&&(p.roleSatisfaction??100)<=35)
+   .sort((a,b)=>(a.roleSatisfaction??100)-(b.roleSatisfaction??100))[0];
+ if(!unhappy)return;
+ const key=`${state.currentYear}_${unhappy.id}_role`;
+ if(state.coaching.conflictKeys[key])return;
+ state.coaching.conflictKeys[key]=true;
+ addRoleDecision(`${unhappy.name} wants a larger role`,
+   `${unhappy.name} is unhappy with the ${coachPlayerRole(team.id,unhappy.id)} role and ${Math.round(unhappy.rotationMinutes||0)} minutes per game. How do you handle it?`,
+   ["Promise more minutes","Redefine his role","Hold the line"],
+   {decisionType:"coachRoleConflict",playerId:unhappy.id,decisionKey:key});
+}
+function applyCoachDecisionEffect(d,choice){
+ if(state.role!=="Coach")return;
+ let team=currentControlledTeam();if(!team)return;
+ let s=coachSettings(team.id);
+ if(d.decisionType==="coachRoleConflict"){
+   let p=state.players.find(x=>x.id===d.playerId);if(!p)return;
+   if(choice==="Promise more minutes"){
+     p.rotationMinutes=Math.min(42,(p.rotationMinutes||0)+5);
+     normalizeRotationMinutes(team.name,true);
+     p.roleSatisfaction=Math.min(100,(p.roleSatisfaction||50)+15);
+     p.morale=Math.min(100,(p.morale??65)+6);
+     state.coaching.notes.unshift({year:state.currentYear,text:`You promised ${p.name} more minutes to settle a role dispute.`});
+   }else if(choice==="Redefine his role"){
+     s.playerRoles[p.id]="Standard";p.coachRole="Standard";
+     p.roleSatisfaction=Math.max(65,coachRoleSatisfaction(p,"Standard"));
+     p.morale=Math.min(100,(p.morale??65)+3);
+     state.coaching.notes.unshift({year:state.currentYear,text:`${p.name}'s role was reset after a one-on-one meeting.`});
+   }else{
+     p.morale=Math.max(20,(p.morale??65)-7);
+     let sd=staffTeamData(team.id);sd.gmCoachRelation=Math.max(0,sd.gmCoachRelation-3);
+     state.coaching.notes.unshift({year:state.currentYear,text:`You held firm with ${p.name}; the issue remains a source of tension.`});
+   }
+ }
+ if(d.title==="Rotation review"){
+   if(choice==="Shorten rotation")setRotationSize(8);
+   else if(choice==="Expand bench minutes")setRotationSize(10);
+ }
+ if(d.title==="Midseason tactical review"){
+   if(choice==="Increase pace")s.pace="Fast";
+   else if(choice==="Emphasize defense")s.defense="Pressure";
+   else {s.pace="Balanced";s.offense="Balanced";}
+ }
+ if(d.title==="Post-deadline rotation"){
+   if(choice==="Tight playoff rotation")setRotationSize(8);
+   else if(choice==="Develop young players")setRotationSize(10);
+ }
+ if(d.title==="Stretch-run coaching plan"){
+   if(choice==="Chase best seed"){s.rotationSize=8;s.crunchStyle="Best Five";}
+   else if(choice==="Manage veteran minutes")s.rotationSize=10;
+   else if(choice==="Expand development minutes")s.rotationSize=10;
+   autoSetRotationForTeam(team.name,true);
+ }
+ if(d.title==="Playoff rotation plan"){
+   if(choice==="Shorten to eight")s.rotationSize=8;
+   else if(choice==="Lean on the bench")s.rotationSize=10;
+   else s.rotationSize=9;
+   autoSetRotationForTeam(team.name,true);
+   state.coaching.notes.unshift({year:state.currentYear,text:`Playoff rotation set to ${s.rotationSize} players.`});
+ }
+}
 function coachingMatchupModifier(aName,bName){
  let a=state.teams.find(t=>t.name===aName),b=state.teams.find(t=>t.name===bName);if(!a||!b)return 0;
  let sa=coachSettings(a.id),sb=coachSettings(b.id),mod=0;
@@ -8543,6 +8722,8 @@ function renderCoaching(){
  <p class="small muted">The best scheme depends on the players actually on your roster. Matchups now matter too — pressure can bother weak ball-handling teams, paint protection counters inside attacks, and pace works best with strong guard play.</p>
  <div class="notice" style="margin-top:10px"><b>Plan Grade: ${coachingPlanGrade(team.name).grade}</b><br><span class="small">${coachingPlanGrade(team.name).text}</span></div>
  <b style="display:block;margin-top:12px">Crunch-Time Preference</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('crunchStyle','Best Five')">Best Five</button><button onclick="setCoachSetting('crunchStyle','Defense')">Defense</button><button onclick="setCoachSetting('crunchStyle','Shooting')">Shooting</button><button onclick="setCoachSetting('crunchStyle','Size')">Size</button></div>
+ <div class="small muted" style="margin-top:7px"><b>Closing five:</b> ${closingFiveText(team.name)}</div>
+ ${state.season?.phase==="Playoffs"?`<b style="display:block;margin-top:12px">Series Adjustment${seriesOpponentName(team.id)?` vs ${seriesOpponentName(team.id)}`:""}</b><div class="choicebar" style="margin-top:6px"><button onclick="setPlayoffAdjustment('Stay Course')">Stay Course</button><button onclick="setPlayoffAdjustment('Shorten Rotation')">Shorten Rotation</button><button onclick="setPlayoffAdjustment('Attack Guards')">Attack Guards</button><button onclick="setPlayoffAdjustment('Attack Paint')">Attack Paint</button><button onclick="setPlayoffAdjustment('Slow Tempo')">Slow Tempo</button><button onclick="setPlayoffAdjustment('Pressure Ball')">Pressure Ball</button></div><div class="small muted" style="margin-top:7px">Current series plan: <b>${activePlayoffAdjustment(team.name)}</b>. Opponent-specific adjustments now affect playoff game odds.</div>`:""}
  <b style="display:block;margin-top:12px">Rotation Size</b><div class="choicebar" style="margin-top:6px"><button onclick="setRotationSize(8)">8-Man</button><button onclick="setRotationSize(9)">9-Man</button><button onclick="setRotationSize(10)">10-Man</button><button onclick="autoCoachRotation()">Auto Depth Chart</button></div>`;
 
  let roster=state.players.filter(p=>p.teamName===team.name&&!p.retired&&!p.deferredEntry).sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
@@ -8569,6 +8750,7 @@ window.setDevelopmentFocus=setDevelopmentFocus;
 window.setRotationSize=setRotationSize;
 window.autoCoachRotation=autoCoachRotation;
 window.setCoachPlayerRole=setCoachPlayerRole;
+window.setPlayoffAdjustment=setPlayoffAdjustment;
 
 
 // ----- Trade Logic & Draft Picks v0.35 -----
@@ -10230,7 +10412,7 @@ function standingsTable(conf){
 }
 function winChance(a,b){
  a.power=teamPlayerPower(a.name);b.power=teamPlayerPower(b.name);
- let diff=(a.power-b.power)+coachingMatchupModifier(a.name,b.name);
+ let diff=(a.power-b.power)+coachingMatchupModifier(a.name,b.name)+playoffAdjustmentModifier(a.name,b.name);
  return 1/(1+Math.pow(10,-diff/18));
 }
 function playOneLeagueGame(){
@@ -10252,7 +10434,7 @@ function playOneLeagueGame(){
  simPlayersForTeam(a.name,baseA);
  simPlayersForTeam(b.name,baseB);
  state.season.gamesPlayed++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);maybeCreateCoachRoleConflict(a.name);maybeCreateCoachRoleConflict(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let regularResult={id:`reg_${state.currentYear}_${state.season.gamesPlayed}`,a:a.name,b:b.name,as:baseA,bs:baseB};
  recordRegularBoxScore(regularResult);
  state.season.recent.unshift(regularResult);
@@ -10560,6 +10742,13 @@ function initPostseasonExperience(){
    }
  });
  state.season.phase="Playoffs";
+ if(state.role==="Coach"){
+   let ct=currentControlledTeam();
+   if(ct&&state.season.playoffState.seedByTeam[ct.id]&&!state.season.coachPlayoffDecision){
+     state.season.coachPlayoffDecision=true;
+     addRoleDecision("Playoff rotation plan","The postseason is beginning. Your staff wants a clear rotation philosophy before Game 1.",["Shorten to eight","Trust the regular rotation","Lean on the bench"]);
+   }
+ }
  state.news.push({year:state.currentYear,title:"NBA Playoffs begin",text:`The ${fmt.teamsPerConference*2}-team postseason field is set${piFmt.type!=="none"?" after the Play-In Tournament":""}. First round: best-of-${fmt.firstRoundBestOf}.`});
  saveState();
 }
@@ -10718,7 +10907,7 @@ function playOnePlayoffGame(series){
  let base=88+Math.floor(Math.random()*25),margin=2+Math.floor(Math.random()*15);
  let as=aWin?base+margin:base,bs=aWin?base:base+margin;
  if(aWin)series.aw++;else series.bw++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);maybeCreateCoachRoleConflict(a.name);maybeCreateCoachRoleConflict(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let need=Math.floor(series.bestOf/2)+1;
  let g={round:series.round,conf:series.conf,game:series.games.length+1,a:a.name,b:b.name,as,bs,seriesId:series.id};
  if(series.aw>=need||series.bw>=need){series.complete=true;series.winnerId=series.aw>series.bw?series.aId:series.bId}
@@ -10880,7 +11069,9 @@ function watchLeader(teamName){
  return p?`${p.name} is setting the tone for ${teamName}.`:`${teamName} is getting balanced production.`;
 }
 function keyMoment(teamName,oppName,scoreDiff,stage){
- let hero=weightedStar(teamName,stage+1),def=weightedStar(oppName,stage+4);
+ let late=crunchLineup(teamName),lateDef=crunchLineup(oppName);
+ let hero=late.length?late[(stage+Math.abs(scoreDiff))%late.length]:weightedStar(teamName,stage+1);
+ let def=lateDef.length?lateDef[(stage+1)%lateDef.length]:weightedStar(oppName,stage+4);
  let type=(stage+Math.abs(scoreDiff))%5;
  let text,impact={playerId:hero?.id||null,pts:0,ast:0,reb:0,stl:0};
  if(type===0){text=`${hero?.name||teamName} attacks the lane and finishes through contact.`;impact.pts=2;}
@@ -10911,6 +11102,7 @@ function advanceWatchQuarter(){
  if(w.quarter===3 && Math.abs(w.aScore-w.bScore)<=12){
    w.crunch=true;
    w.crunchStage=0;
+   w.moments.unshift(`Closing lineups: ${a.name} — ${closingFiveText(a.name)}. ${b.name} — ${closingFiveText(b.name)}.`);
    w.moments.unshift(`Fourth quarter setup: ${lead}. This one is close enough to enter Crunch Time.`);
    renderWatchGame();saveState();return;
  }
@@ -10941,7 +11133,7 @@ function advanceCrunchTime(){
  // Simulate a small number of late possessions, with stars more likely to influence the moment.
  let aPts=0,bPts=0;
  for(let i=0;i<st.poss;i++){
-   if(Math.random()<winChance(a,b)){
+   if(Math.random()<crunchChance(a,b)){
      aPts += Math.random()<.28?3:2;
    }else{
      bPts += Math.random()<.28?3:2;
@@ -10977,7 +11169,7 @@ function finishWatchedGame(){
  let ps=state.season.playoffState,w=ps.watchGame,s=ps.series.find(x=>x.id===w.seriesId);
  let a=teamById(w.aId),b=teamById(w.bId),aWin=w.aScore>w.bScore;
  if(aWin)s.aw++;else s.bw++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);maybeCreateCoachRoleConflict(a.name);maybeCreateCoachRoleConflict(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let need=Math.floor(s.bestOf/2)+1;
  let g={round:s.round,conf:s.conf,game:s.games.length+1,a:a.name,b:b.name,as:w.aScore,bs:w.bScore,seriesId:s.id};
  if(s.aw>=need||s.bw>=need){s.complete=true;s.winnerId=s.aw>s.bw?s.aId:s.bId}

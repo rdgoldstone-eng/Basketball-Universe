@@ -1,16 +1,22 @@
-v0.75 Basketball Universe — Coach Game Plans & Player Roles
+Basketball Universe
+v0.76 · Coach Crunch Time & Playoff Adjustments
 
-Viewer remains the recommended development/test role. Coach Mode is still under construction.
-
-ADDED
-- Coach player-role assignments: Standard, Primary Option, Secondary Option, Sixth Man, Defensive Stopper, Prospect, Bench Leader.
-- Player buy-in / role satisfaction based on role, minutes, starter status, age and ability.
-- Poor role fit can gradually hurt morale and appear in Coaching Notes.
-- Primary/secondary options and sixth men now influence offensive usage in simulated box scores.
-- Game plans now have a roster-fit grade.
-- Matchup-aware coaching effects: pressure defense, paint protection, inside attacks and pace interact with opponent strengths/styles.
-- Crunch-time preference setting foundation: Best Five, Defense, Shooting, Size.
-- Coaching role data persists in the universe.
+WHAT CHANGED
+- Crunch-time preference now selects an actual closing five.
+- Best Five, Defense, Shooting, and Size emphasize different players late in games.
+- Watched playoff games show the closing lineups when Crunch Time begins.
+- Closing-lineup strength now affects late-possession results.
+- Coach playoff series adjustments are now available:
+  Stay Course, Shorten Rotation, Attack Guards, Attack Paint, Slow Tempo, Pressure Ball.
+- Opponent-specific playoff plans affect postseason game odds.
+- Coach role/buy-in problems can now create a one-time player conflict decision.
+- Conflict choices can change minutes, role satisfaction, morale, and GM/coach relationship.
+- Existing Coach milestone decisions now have real tactical/rotation effects.
+- Coaches reaching the playoffs receive a playoff rotation decision before Game 1.
+- Watched playoff games now apply coaching fatigue and role/buy-in effects consistently.
 
 STATUS
-Coach Mode is not yet considered ready for its dedicated role playtest. Remaining work includes stronger crunch-time lineup execution, substitution logic, playoff adjustments, role conversations/conflicts, and coach career/job consequences.
+Coach mode is still under construction. This build strengthens the actual coaching loop, but the role is not yet marked ready for a dedicated role playtest.
+
+INSTALL
+Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.
