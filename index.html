@@ -342,7 +342,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.68.1 · Mobile + Version Label Fix</div>
+    <div class="pill">v0.68.2 · Decisions Tab Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -5750,6 +5750,8 @@ window.resolveDecision=(id,choice)=>{
  if(d.kind==="historicalCrossroad")resolveHistoricalCrossroadDecision(d,choice);
  else state.news.push({year:state.currentYear,title:d.title,text:`Decision: ${choice}`});
  renderAll();
+ const activeTab=document.querySelector(".section.active")?.id||"season";
+ updateNavigationForTab(activeTab);
 };
 function renderIdentities(){
  ensureIdentityLogos();
@@ -5795,6 +5797,7 @@ document.getElementById("saveIdentityBtn").onclick=()=>{
 const navigationGroups={
  season:[
   ["season","Season"],
+  ["decisions","Decisions"],
   ["playoffs","Playoffs"],
   ["offseason","Offseason"]
  ],
@@ -5849,7 +5852,10 @@ function renderSubNavigation(group,activeTab){
    return;
  }
  if(wrap)wrap.classList.remove("hidden");
- sub.innerHTML=items.map(([tab,label])=>`<button data-subtab="${tab}" class="${tab===activeTab?"active":""}">${label}</button>`).join("");
+ sub.innerHTML=items.map(([tab,label])=>{
+   const displayLabel=(tab==="decisions" && state && !viewerMode())?`${label} (${(state.decisions||[]).filter(d=>!d.resolved).length})`:label;
+   return `<button data-subtab="${tab}" class="${tab===activeTab?"active":""}">${displayLabel}</button>`;
+ }).join("");
  sub.querySelectorAll("button").forEach(btn=>{btn.onclick=()=>switchTab(btn.dataset.subtab);});
 }
 

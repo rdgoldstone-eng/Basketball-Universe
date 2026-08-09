@@ -1,10 +1,13 @@
-v0.68.1 Basketball Universe — Mobile + Version Label Fix
+v0.68.2 Basketball Universe — Decisions Tab Fix
 
-This build keeps the v0.68 three-logo framework and fixes the visible version banner above “Create a Basketball Universe.”
+FIX
+- Restored the Decisions tab to the Season navigation.
+- The Season submenu is now: Season · Decisions · Playoffs · Offseason.
+- Decisions shows the number of unresolved role decisions in parentheses.
+- Resolving a decision immediately refreshes the count.
 
-Visible banner should now read:
-v0.68.1 · Mobile + Version Label Fix
+WHY
+The five-section navigation cleanup accidentally removed the only route to the Decision Center. GM/Owner/Coach/Player/Commissioner universes could therefore be blocked by an opening decision with no way to answer it.
 
-Use this as the test build so we can immediately confirm the updated file is actually live on GitHub Pages.
-
-Upload both index.html and README.txt over the existing files in the repository, then refresh the GitHub Pages site. If Safari still shows the older banner, close the tab and reopen the site or use a private tab to bypass cache.
+TEST
+Start a 1976 GM universe. Open Season > Decisions, answer the opening GM decision, then continue normally.
