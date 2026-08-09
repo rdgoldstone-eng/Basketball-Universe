@@ -342,7 +342,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.68.2 · Decisions Tab Fix</div>
+    <div class="pill">v0.68.3 · Decision Loop Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -9022,6 +9022,7 @@ function ensureHealthSystem(){
    if(p.healthStatus==null)p.healthStatus="Healthy";
    if(p.injuryGames==null)p.injuryGames=0;
    if(p.injuryType==null)p.injuryType=null;
+   if(p.injuryEventId===undefined)p.injuryEventId=null;
  });
 }
 function injuryChance(p){
@@ -9036,6 +9037,7 @@ function maybeInjurePlayer(p){
    let games=roll<.60?1+Math.floor(Math.random()*3):roll<.90?4+Math.floor(Math.random()*8):12+Math.floor(Math.random()*18);
    let types=roll<.60?["ankle soreness","back tightness","knee soreness","hamstring strain"]:roll<.90?["sprained ankle","strained hamstring","wrist injury","calf strain"]:["knee injury","foot injury","shoulder injury"];
    p.injuryGames=games;p.injuryType=types[Math.floor(Math.random()*types.length)];
+   p.injuryEventId=`inj_${p.id||p.name}_${state.currentYear}_${state.season?.leagueDay||0}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
    p.healthStatus=games>=12?"Out":games>=4?"Injured":"Day-to-Day";
    state.news.push({year:state.currentYear,title:"Injury",text:`${p.name} (${p.teamName}) is dealing with ${p.injuryType} and is expected to miss about ${games} game${games===1?"":"s"}.`});
  }
@@ -9059,7 +9061,7 @@ function recoverRoster(){
    if(p.injuryGames>0){
      p.injuryGames--;
      if(p.injuryGames<=0){
-       p.injuryGames=0;p.injuryType=null;p.healthStatus="Healthy";
+       p.injuryGames=0;p.injuryType=null;p.healthStatus="Healthy";p.injuryEventId=null;
        state.news.push({year:state.currentYear,title:"Return from injury",text:`${p.name} has returned to full availability for ${p.teamName}.`});
      }
    }
@@ -9087,15 +9089,24 @@ function maybeCreateRoleInjuryDecision(){
  let team=teamById(state.controlledTeamId);if(!team)return;
  let hurt=state.players.filter(p=>p.teamName===team.name&&p.healthStatus!=="Healthy"&&!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0];
  if(!hurt)return;
+ // Older saves may contain an injury that predates injuryEventId. Give that existing
+ // injury one stable episode id so resolving its decision cannot recreate it next game.
+ if(!hurt.injuryEventId)hurt.injuryEventId=`legacyinj_${hurt.id||hurt.name}_${state.currentYear}_${hurt.injuryType||'injury'}_${hurt.injuryGames||0}`;
+ const injuryKey=hurt.injuryEventId;
+ if(state.decisions.some(d=>d.injuryEventId===injuryKey))return;
  let title=`${hurt.name} injury decision`;
- if(state.decisions.some(d=>!d.resolved&&d.title===title))return;
+ let text="",choices=[];
  if(state.role==="Coach"){
-   addRoleDecision(title,`${hurt.name} is ${hurt.healthStatus.toLowerCase()} with ${hurt.injuryType}. How do you handle his role?`,["Reduce his minutes","Sit him until healthy","Keep normal role"]);
+   text=`${hurt.name} is ${hurt.healthStatus.toLowerCase()} with ${hurt.injuryType}. How do you handle his role?`;
+   choices=["Reduce his minutes","Sit him until healthy","Keep normal role"];
  }else if(state.role==="GM"){
-   addRoleDecision(title,`${hurt.name} is expected to miss time with ${hurt.injuryType}. How should the front office respond?`,["Trust existing depth","Look for short-term help","Explore a trade"]);
+   text=`${hurt.name} is expected to miss time with ${hurt.injuryType}. How should the front office respond?`;
+   choices=["Trust existing depth","Look for short-term help","Explore a trade"];
  }else if(state.role==="Owner"){
-   addRoleDecision(title,`${hurt.name}'s injury could affect the season. What direction do you give basketball operations?`,["Stay the course","Spend for help","Protect the long-term plan"]);
+   text=`${hurt.name}'s injury could affect the season. What direction do you give basketball operations?`;
+   choices=["Stay the course","Spend for help","Protect the long-term plan"];
  }
+ if(choices.length)addRoleDecision(title,text,choices,{injuryEventId,playerId:hurt.id||null,decisionType:"injury"});
 }
 function renderHealthCenter(){
  if(!state)return;ensureHealthSystem();
@@ -9471,9 +9482,9 @@ function dateText(){
  const opts={month:"long",day:"numeric",year:"numeric",timeZone:"UTC"};
  return start.toLocaleDateString("en-US",opts);
 }
-function addRoleDecision(title,text,choices){
+function addRoleDecision(title,text,choices,meta={}){
  if(state.decisions.some(d=>!d.resolved && d.title===title))return;
- state.decisions.push({id:"d"+Date.now()+Math.random(),title,text,choices,resolved:false});
+ state.decisions.push({id:"d"+Date.now()+Math.random(),title,text,choices,resolved:false,...meta});
  state.news.push({year:state.currentYear,title,text});
 }
 function maybeTriggerMilestones(){
