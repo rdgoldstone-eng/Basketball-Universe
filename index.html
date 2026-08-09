@@ -238,6 +238,16 @@ pre{white-space:pre-wrap}
 
 .rosterRow{display:grid;grid-template-columns:minmax(150px,1fr) 55px 60px 85px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .tradeTarget{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:8px}
+.tradeMachineGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.tradeMachineSide{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2)}
+.tradeAssetLine{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
+.tradeAssetLine:last-child{border-bottom:0}.tradeAssetLine input{width:auto}
+.tradeValueBar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.tradeValueBox{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;background:var(--panel2)}
+.tradeValueBox b{font-size:20px;display:block}
+.faOfferControls{display:grid;grid-template-columns:90px 110px auto;gap:8px;align-items:end;margin-top:8px}
+.faOfferControls input,.faOfferControls select{width:100%}
+@media(max-width:700px){.tradeMachineGrid{grid-template-columns:1fr}.faOfferControls{grid-template-columns:1fr 1fr}.faOfferControls button{grid-column:1/-1}}
 .capGood{color:#57c785}.capWarn{color:#f0b44d}.capBad{color:#ef6b73}
 @media(max-width:700px){.rosterRow{grid-template-columns:minmax(135px,1fr) 50px 55px}.rosterHide{display:none}}
 
@@ -342,7 +352,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.68.3 · Decision Loop Fix</div>
+    <div class="pill">v0.69 · GM Transactions Foundation</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -877,6 +887,7 @@ pre{white-space:pre-wrap}
       <div class="card">
         <h2>Trade Center</h2>
         <div id="tradeCenterBox" class="muted">No trade targets available.</div>
+        <div id="tradeMachineBox" style="margin-top:14px"></div>
       </div>
       <div class="card">
         <h2>Draft Picks</h2>
@@ -8146,8 +8157,10 @@ function ensureFrontOffice(){
    teamDirections:{},
    transactions:[],
    tradeTargets:[],
-   freeAgentOffers:[]
+   freeAgentOffers:[],
+   tradeBuilder:{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]}
  };
+ state.frontOffice.tradeBuilder=state.frontOffice.tradeBuilder||{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
  if(!state.freeAgents)state.freeAgents=[];
 }
 function playerSalary(p){
@@ -8194,6 +8207,108 @@ function bestTradeAsset(teamName,targetValue){
  let roster=teamRoster(teamName).slice().sort((a,b)=>rosterValue(a)-rosterValue(b));
  return roster.find(p=>Math.abs(rosterValue(p)-targetValue)<14)||roster[0]||null;
 }
+
+function resetTradeBuilder(){
+ ensureFrontOffice();
+ state.frontOffice.tradeBuilder={otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
+}
+function setTradePartner(teamId){
+ ensureFrontOffice();
+ state.frontOffice.tradeBuilder={otherTeamId:teamId||null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
+ renderFrontOffice();
+}
+function toggleTradeBuilderAsset(bucket,id,checked){
+ ensureFrontOffice();let tb=state.frontOffice.tradeBuilder;
+ tb[bucket]=tb[bucket]||[];
+ if(checked&&!tb[bucket].includes(id))tb[bucket].push(id);
+ if(!checked)tb[bucket]=tb[bucket].filter(x=>x!==id);
+ renderTradeMachine();
+}
+function tradeMachineValue(playerIds,pickIds,receivingTeam){
+ ensureDraftPickAssets();
+ return (playerIds||[]).reduce((s,id)=>{let p=state.players.find(x=>x.id===id);return s+(p?advancedPlayerTradeValue(p,receivingTeam):0)},0)+
+        (pickIds||[]).reduce((s,id)=>{let pk=state.draftPicks.find(x=>x.id===id);return s+(pk?draftPickValue(pk):0)},0);
+}
+function tradeMachineCapLegal(myTeam,otherTeam,tb){
+ if(!state.leagueRules?.salaryCap)return {ok:true};
+ const cap=Number(state.frontOffice.cap||100);
+ const myOut=(tb.myPlayers||[]).reduce((s,id)=>s+playerSalary(state.players.find(p=>p.id===id)||{}),0);
+ const myIn=(tb.theirPlayers||[]).reduce((s,id)=>s+playerSalary(state.players.find(p=>p.id===id)||{}),0);
+ const otherOut=(tb.theirPlayers||[]).reduce((s,id)=>s+playerSalary(state.players.find(p=>p.id===id)||{}),0);
+ const otherIn=(tb.myPlayers||[]).reduce((s,id)=>s+playerSalary(state.players.find(p=>p.id===id)||{}),0);
+ const myAfter=teamPayroll(myTeam.name)-myOut+myIn;
+ const otherAfter=teamPayroll(otherTeam.name)-otherOut+otherIn;
+ return {ok:myAfter<=cap*1.15&&otherAfter<=cap*1.15,myAfter,otherAfter,cap};
+}
+function proposeTradeMachine(){
+ ensureFrontOffice();ensureDraftPickAssets();
+ const myTeam=currentControlledTeam(),tb=state.frontOffice.tradeBuilder||{},otherTeam=state.teams.find(t=>t.id===tb.otherTeamId);
+ if(!myTeam||!otherTeam)return;
+ if(!(tb.myPlayers?.length||tb.myPicks?.length)||!(tb.theirPlayers?.length||tb.theirPicks?.length)){
+   alert('Both teams need to include at least one asset.');return;
+ }
+ const capCheck=tradeMachineCapLegal(myTeam,otherTeam,tb);
+ if(!capCheck.ok){alert(`This trade fails the current cap check. ${myTeam.name}: $${capCheck.myAfter.toFixed(0)}M after trade. ${otherTeam.name}: $${capCheck.otherAfter.toFixed(0)}M.`);return;}
+ const myOffer=tradeMachineValue(tb.myPlayers,tb.myPicks,otherTeam);
+ const theirOffer=tradeMachineValue(tb.theirPlayers,tb.theirPicks,myTeam);
+ let threshold=.94;
+ const incomingStars=(tb.theirPlayers||[]).map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
+ if(incomingStars.some(p=>(p.ovr||0)>=85))threshold+=.08;
+ const dir=state.frontOffice.teamDirections[otherTeam.id]||'Balanced';
+ if(dir==='Build for the Future'&&(tb.myPicks||[]).some(id=>state.draftPicks.find(p=>p.id===id)?.round===1))threshold-=.04;
+ if(dir==='Cut Payroll'){
+   const salaryOut=(tb.theirPlayers||[]).reduce((s,id)=>s+playerSalary(state.players.find(p=>p.id===id)||{}),0);
+   const salaryIn=(tb.myPlayers||[]).reduce((s,id)=>s+playerSalary(state.players.find(p=>p.id===id)||{}),0);
+   if(salaryOut>salaryIn)threshold-=.04;
+ }
+ const ratio=myOffer/Math.max(1,theirOffer);
+ const accepted=ratio>=threshold;
+ if(!accepted){
+   const need=Math.max(1,Math.ceil(theirOffer*threshold-myOffer));
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${otherTeam.name} rejected the proposed trade. Their front office wants roughly ${need} more value.`});
+   alert(`${otherTeam.name} rejected the offer. They want more value in the package.`);renderFrontOffice();saveState();return;
+ }
+ const myName=myTeam.name,otherName=otherTeam.name;
+ (tb.myPlayers||[]).forEach(id=>{let p=state.players.find(x=>x.id===id);if(p&&p.teamName===myName)p.teamName=otherName;});
+ (tb.theirPlayers||[]).forEach(id=>{let p=state.players.find(x=>x.id===id);if(p&&p.teamName===otherName)p.teamName=myName;});
+ (tb.myPicks||[]).forEach(id=>{let pk=state.draftPicks.find(x=>x.id===id);if(pk&&pk.ownerTeamId===myTeam.id)pk.ownerTeamId=otherTeam.id;});
+ (tb.theirPicks||[]).forEach(id=>{let pk=state.draftPicks.find(x=>x.id===id);if(pk&&pk.ownerTeamId===otherTeam.id)pk.ownerTeamId=myTeam.id;});
+ const mine=[...(tb.myPlayers||[]).map(id=>state.players.find(p=>p.id===id)?.name).filter(Boolean),...(tb.myPicks||[]).map(id=>{let p=state.draftPicks.find(x=>x.id===id);return p?`${p.year} ${p.round===1?'1st':'2nd'}`:null}).filter(Boolean)].join(' + ');
+ const theirs=[...(tb.theirPlayers||[]).map(id=>state.players.find(p=>p.id===id)?.name).filter(Boolean),...(tb.theirPicks||[]).map(id=>{let p=state.draftPicks.find(x=>x.id===id);return p?`${p.year} ${p.round===1?'1st':'2nd'}`:null}).filter(Boolean)].join(' + ');
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${myTeam.name} trades ${mine} to ${otherTeam.name} for ${theirs}.`});
+ state.news.push({year:state.currentYear,title:'Trade',text:`${myTeam.name} and ${otherTeam.name} complete a trade: ${mine} for ${theirs}.`});
+ resetTradeBuilder();buildTradeTargets();renderAll();saveState();
+}
+function renderTradeMachine(){
+ const box=document.getElementById('tradeMachineBox');if(!box||!state)return;
+ ensureFrontOffice();ensureDraftPickAssets();
+ const myTeam=currentControlledTeam();
+ if(!myTeam||state.role!=='GM'){box.innerHTML='';return;}
+ const tb=state.frontOffice.tradeBuilder||{};
+ const otherTeams=state.teams.filter(t=>t.id!==myTeam.id).sort((a,b)=>a.name.localeCompare(b.name));
+ if(!tb.otherTeamId||!otherTeams.some(t=>t.id===tb.otherTeamId))tb.otherTeamId=otherTeams[0]?.id||null;
+ const other=state.teams.find(t=>t.id===tb.otherTeamId);
+ if(!other){box.innerHTML='<span class="muted">No trade partner available.</span>';return;}
+ const myRoster=teamRoster(myTeam.name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ const theirRoster=teamRoster(other.name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ const myPicks=teamDraftPicks(myTeam.id).slice(0,10),theirPicks=teamDraftPicks(other.id).slice(0,10);
+ const myVal=tradeMachineValue(tb.myPlayers,tb.myPicks,other),theirVal=tradeMachineValue(tb.theirPlayers,tb.theirPicks,myTeam);
+ const ratio=theirVal?myVal/theirVal:0;
+ const meter=theirVal===0?'Select assets from both teams':ratio>=1.02?'Strong offer':ratio>=.94?'Close to fair':'AI likely wants more';
+ const assetLine=(bucket,p,checked)=>`<label class="tradeAssetLine"><input type="checkbox" ${checked?'checked':''} onchange="toggleTradeBuilderAsset('${bucket}','${p.id}',this.checked)"><span><b>${p.name}</b><br><span class="muted">${p.pos} · OVR ${p.ovr||'—'} · $${playerSalary(p)}M · Value ${advancedPlayerTradeValue(p,bucket==='myPlayers'?other:myTeam).toFixed(0)}</span></span></label>`;
+ const pickLine=(bucket,pk,checked)=>`<label class="tradeAssetLine"><input type="checkbox" ${checked?'checked':''} onchange="toggleTradeBuilderAsset('${bucket}','${pk.id}',this.checked)"><span><b>${pk.year} ${pk.round===1?'1st':'2nd'} Round</b><br><span class="muted">Value ${draftPickValue(pk).toFixed(0)}</span></span></label>`;
+ box.innerHTML=`<div class="notice"><b>Trade Machine</b><br><span class="small">Build both sides manually. The other front office evaluates player value, age, potential, picks, team direction and star premium.</span></div>
+ <label>Trade partner</label><select onchange="setTradePartner(this.value)">${otherTeams.map(t=>`<option value="${t.id}" ${t.id===other.id?'selected':''}>${t.name}</option>`).join('')}</select>
+ <div class="tradeValueBar"><div class="tradeValueBox"><span class="small muted">You send</span><b>${myVal.toFixed(0)}</b></div><div class="tradeValueBox"><span class="small muted">You receive</span><b>${theirVal.toFixed(0)}</b></div></div>
+ <div class="small muted" style="text-align:center;margin-bottom:8px">${meter}</div>
+ <div class="tradeMachineGrid"><div class="tradeMachineSide"><h3>${myTeam.name}</h3><div class="small muted">Players</div>${myRoster.map(p=>assetLine('myPlayers',p,(tb.myPlayers||[]).includes(p.id))).join('')}<div class="small muted" style="margin-top:10px">Draft picks</div>${myPicks.map(pk=>pickLine('myPicks',pk,(tb.myPicks||[]).includes(pk.id))).join('')||'<span class="muted small">No picks.</span>'}</div>
+ <div class="tradeMachineSide"><h3>${other.name}</h3><div class="small muted">Players</div>${theirRoster.map(p=>assetLine('theirPlayers',p,(tb.theirPlayers||[]).includes(p.id))).join('')}<div class="small muted" style="margin-top:10px">Draft picks</div>${theirPicks.map(pk=>pickLine('theirPicks',pk,(tb.theirPicks||[]).includes(pk.id))).join('')||'<span class="muted small">No picks.</span>'}</div></div>
+ <div class="choicebar" style="margin-top:12px"><button class="primary" onclick="proposeTradeMachine()">Propose Trade</button><button onclick="resetTradeBuilder();renderFrontOffice()">Clear</button></div>`;
+}
+window.setTradePartner=setTradePartner;
+window.toggleTradeBuilderAsset=toggleTradeBuilderAsset;
+window.proposeTradeMachine=proposeTradeMachine;
+window.resetTradeBuilder=resetTradeBuilder;
 function proposeSimpleTrade(targetId){
  ensureFrontOffice();let team=currentControlledTeam(),target=state.players.find(p=>p.id===targetId);
  if(!team||!target)return;
@@ -8241,6 +8356,32 @@ function signFreeAgent(playerId){
 function careerMarketValueForAny(p){
  return Math.max(1,((p.ovr||60)-50)*.45+((p.pot||p.ovr||60)-50)*.15);
 }
+
+function makeFreeAgentOffer(playerId){
+ ensureFrontOffice();let team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);if(!team||!p)return;
+ const years=Math.max(1,Math.min(5,Number(document.getElementById(`faYears_${playerId}`)?.value||3)));
+ const salary=Math.max(1,Number(document.getElementById(`faSalary_${playerId}`)?.value||Math.round(careerMarketValueForAny(p))));
+ const cap=Number(state.frontOffice.cap||100),payroll=teamPayroll(team.name);
+ if(state.leagueRules?.salaryCap && payroll+salary>cap){alert(`This offer would put ${team.name} over the $${cap}M cap.`);return;}
+ const market=careerMarketValueForAny(p);
+ const winPct=(team.w||0)/Math.max(1,(team.w||0)+(team.l||0));
+ const contenderBonus=winPct>=.55?0.06:winPct<=.35?-0.03:0;
+ const age=p.age||27;
+ const securityBonus=age>=30&&years>=3?0.05:age<=25&&years>=4?0.03:0;
+ const score=(salary/Math.max(1,market)) + contenderBonus + securityBonus + (years-3)*.01;
+ let accepted=score>=1.0;
+ if(!accepted && score>=.9)accepted=Math.random()<(score-.88)*4;
+ state.frontOffice.freeAgentOffers.unshift({year:state.currentYear,playerId:p.id,player:p.name,teamId:team.id,years,salary,status:accepted?'Accepted':'Rejected'});
+ if(!accepted){
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} rejected ${team.name}'s ${years}-year, $${salary}M/year offer.`});
+   alert(`${p.name} rejected the offer. His market is about $${Math.round(market)}M per year.`);renderFrontOffice();saveState();return;
+ }
+ p.teamName=team.name;p.contract={years,salary};state.freeAgents=state.freeAgents.filter(id=>id!==p.id);
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for ${years} years at $${salary}M/year.`});
+ state.news.push({year:state.currentYear,title:'Free-agent signing',text:`${team.name} signs ${p.name} to a ${years}-year contract.`});
+ renderAll();saveState();
+}
+window.makeFreeAgentOffer=makeFreeAgentOffer;
 function releasePlayer(playerId){
  ensureFrontOffice();let team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);
  if(!team||!p||p.teamName!==team.name)return;
@@ -8259,6 +8400,7 @@ function renderFrontOffice(){
    rosterBox.innerHTML=`<span class="muted">Front-office roster controls are available in GM and Owner mode.</span>`;
    document.getElementById("frontOfficeDirection").innerHTML=`<span class="muted">No controllable front office.</span>`;
    document.getElementById("tradeCenterBox").innerHTML=`<span class="muted">Trade controls are available in GM and Owner mode.</span>`;
+   const tm=document.getElementById("tradeMachineBox");if(tm)tm.innerHTML="";
    document.getElementById("freeAgencyMarket").innerHTML=`<span class="muted">Free-agent controls are available in GM and Owner mode.</span>`;
    return;
  }
@@ -8272,7 +8414,8 @@ function renderFrontOffice(){
  document.getElementById("frontOfficeDirection").innerHTML=`<p><b>Current direction: ${dir}</b></p><div class="choicebar"><button onclick="setTeamDirection('Contend Now')">Contend Now</button><button onclick="setTeamDirection('Balanced')">Balanced</button><button onclick="setTeamDirection('Build for the Future')">Build for the Future</button><button onclick="setTeamDirection('Cut Payroll')">Cut Payroll</button></div>`;
 
  let targets=state.frontOffice.tradeTargets.map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
- document.getElementById("tradeCenterBox").innerHTML=targets.length?targets.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · $${playerSalary(p)}M</div><div style="margin-top:8px"><button onclick="proposeAdvancedTrade('${p.id}')">Build Trade Package</button></div></div>`).join(""):`<span class="muted">No matching trade targets.</span>`;
+ document.getElementById("tradeCenterBox").innerHTML=targets.length?targets.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · $${playerSalary(p)}M</div><div style="margin-top:8px"><button onclick="setTradePartner('${state.teams.find(t=>t.name===p.teamName)?.id||''}')">Open in Trade Machine</button></div></div>`).join(""):`<span class="muted">No matching trade targets.</span>`;
+ renderTradeMachine();
 
  ensureDraftPickAssets();
  let picks=teamDraftPicks(team.id);
@@ -8280,7 +8423,7 @@ function renderFrontOffice(){
  if(pb)pb.innerHTML=picks.length?picks.slice(0,20).map(pk=>`<div class="pickAsset"><b>${pk.year} ${pk.round===1?"1st":"2nd"} Round</b><div class="small muted">Original: ${state.teams.find(t=>t.id===pk.originalTeamId)?.name||"Unknown"} · Trade Value ${draftPickValue(pk).toFixed(0)}</div></div>`).join(""):`<span class="muted">No draft picks owned.</span>`;
 
  let fa=freeAgentPool().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,20);
- document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>`<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Asking about $${Math.round(careerMarketValueForAny(p))}M/year</div><div style="margin-top:8px"><button onclick="signFreeAgent('${p.id}')">Offer 3-Year Deal</button></div></div>`).join(""):`<span class="muted">No free agents are currently available.</span>`;
+ document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>{let ask=Math.max(1,Math.round(careerMarketValueForAny(p)));return `<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Market about $${ask}M/year</div><div class="faOfferControls"><div><label>Years</label><select id="faYears_${p.id}"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div><div><label>Salary / year</label><input id="faSalary_${p.id}" type="number" min="1" step="1" value="${ask}"></div><button class="primary" onclick="makeFreeAgentOffer('${p.id}')">Make Offer</button></div></div>`}).join(""):`<span class="muted">No free agents are currently available.</span>`;
 
  let log=state.frontOffice.transactions||[];
  document.getElementById("transactionLogBox").innerHTML=log.length?log.slice(0,30).map(x=>`<div class="careerTimelineRow"><b>${x.year}</b><div>${x.text}</div></div>`).join(""):`<span class="muted">No transactions yet.</span>`;
@@ -8289,6 +8432,7 @@ window.setTeamDirection=setTeamDirection;
 window.proposeSimpleTrade=proposeSimpleTrade;
 window.signFreeAgent=signFreeAgent;
 window.releasePlayer=releasePlayer;
+window.renderTradeMachine=renderTradeMachine;
 
 
 function offseasonDraftRequired(){

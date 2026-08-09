@@ -1,13 +1,21 @@
-v0.68.3 Basketball Universe — Decision Loop Fix
+v0.69 Basketball Universe — GM Transactions Foundation
 
-BLOCKING FIX
-- Injury decisions are now created once per actual injury episode.
-- Resolving an injury decision will not recreate the same decision after the next simulated game while that player is still hurt.
-- A later, separate injury can still create a new decision as intended.
-- Older saves with an injury already in progress are assigned a stable injury episode ID automatically.
+Development focus: build the GM role toward a complete playable loop while Viewer remains the main testing mode.
 
-WHY THIS HAPPENED
-v0.68.2 only checked whether an OPEN decision with the same title existed. As soon as you resolved it, the next game saw the same injured player and created the decision again.
+NEW
+- Manual Trade Machine for GM mode.
+- Choose a trade partner and build both sides of a deal.
+- Add multiple players and draft picks from either team.
+- Live trade-value comparison.
+- AI acceptance considers player value, age, potential, draft picks, team direction and star premium.
+- Salary-cap legality check when the league has an active cap.
+- Rejected offers remain rejected instead of silently forcing a deal.
+- Free agency now supports custom contract offers from 1–5 years and user-entered annual salary.
+- Free agents evaluate market value, contract security and contender context.
+- Free-agent offer history is stored in the front-office state.
 
-TESTING NOTE
-This build is intended as a blocker fix. Do not treat the current game as feature-complete yet; we are using normal GM play to identify anything that prevents a real season from flowing correctly.
+NOT YET DECLARED PLAYABLE
+GM mode is still under construction. Remaining GM work includes contract extensions/re-signing, deeper AI free agency, roster-rule enforcement, trade exceptions/era-specific trade rules, improved AI roster logic, and a complete offseason pass.
+
+TESTING POLICY
+Use Viewer Mode for normal development testing. A dedicated GM playtest will happen only after the GM role is declared ready.
