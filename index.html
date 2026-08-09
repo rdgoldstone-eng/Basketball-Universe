@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.2 · Offseason Workflow Repair</div>
+    <div class="pill">v0.82.3 · Draft Simulation Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -13031,6 +13031,131 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.82.2 offseason repair:",e);}
 },0);
+
+
+
+/* === v0.82.3 Draft Simulation Fix === */
+function safeAIDraftChoiceV0823(team){
+  const dr=state.draftRoom;
+  if(!dr || !Array.isArray(dr.available) || !dr.available.length)return null;
+  try{
+    const choice=aiDraftChoice(team?.name||"");
+    if(choice)return choice;
+  }catch(err){
+    console.warn("Normal AI draft choice failed; using fallback.",err);
+  }
+  // Always have a deterministic fallback so a broken fit/need calculation
+  // cannot freeze the draft.
+  return dr.available.slice().sort((a,b)=>{
+    const av=Number(a.prospect??a.ovr??a.rating??50)*.65+Number(a.pot??a.potential??a.ceilingHigh??a.prospect??50)*.35;
+    const bv=Number(b.prospect??b.ovr??b.rating??50)*.65+Number(b.pot??b.potential??b.ceilingHigh??b.prospect??50)*.35;
+    return bv-av;
+  })[0] || dr.available[0] || null;
+}
+
+function simNextDraftPickV0823(silent=false){
+  ensureDraftRoom();
+  repairAllMalformedNamesV0822?.();
+  const dr=state.draftRoom;
+  if(!dr?.active)return false;
+
+  const before=Number(dr.pickIndex||0);
+  const pick=currentDraftPick();
+  const team=currentDraftTeam();
+  if(!pick || !team){
+    console.warn("Draft halted because current pick/team could not be resolved.",pick,team);
+    return false;
+  }
+  if(isUserDraftPick() && state.role!=="Viewer" && state.role!=="Commissioner"){
+    if(!silent)alert("You are on the clock.");
+    return false;
+  }
+
+  const p=safeAIDraftChoiceV0823(team);
+  if(!p){
+    console.warn("Draft halted because no prospect was available.");
+    return false;
+  }
+
+  try{
+    makeDraftPick(p.draftId||p.id);
+  }catch(err){
+    console.error("Draft pick failed:",err);
+    if(!silent)alert(`The draft hit an error at pick #${pick.pick||pick.pickInRound}. The save is intact.`);
+    return false;
+  }
+  return Number(dr.pickIndex||0)>before || !!dr.completed;
+}
+
+simNextDraftPick=function(){ return simNextDraftPickV0823(false); };
+window.simNextDraftPick=simNextDraftPick;
+
+/*
+  The old "Sim Rest of Draft" called makeDraftPick once per pick, and every
+  pick re-rendered the entire app and saved the entire universe. On phones
+  that could take so long it looked like the button did nothing.
+  Batch simulation suppresses those expensive per-pick renders/saves and
+  performs one render/save at the end.
+*/
+simToUserDraftPick=function(){
+  ensureDraftRoom();
+  repairAllMalformedNamesV0822?.();
+  const dr=state.draftRoom;
+  if(!dr?.active)return false;
+
+  const viewer=(state.role==="Viewer"||state.role==="Commissioner");
+  const oldRenderAll=renderAll;
+  const oldSaveState=saveState;
+  let picksMade=0;
+  let guard=0;
+
+  try{
+    // makeDraftPick still performs all basketball/draft bookkeeping; these
+    // two no-ops only remove the repeated expensive UI/storage work.
+    renderAll=function(){};
+    saveState=function(){};
+
+    while(dr.active && guard<250){
+      if(!viewer && isUserDraftPick())break;
+      const before=Number(dr.pickIndex||0);
+      const ok=simNextDraftPickV0823(true);
+      guard++;
+      if(!ok || Number(dr.pickIndex||0)===before)break;
+      picksMade++;
+    }
+  }finally{
+    renderAll=oldRenderAll;
+    saveState=oldSaveState;
+  }
+
+  repairAllMalformedNamesV0822?.();
+  oldSaveState();
+  oldRenderAll();
+  renderDraftRoom();
+
+  if(!picksMade && dr.active){
+    const pick=currentDraftPick();
+    alert(`The draft could not advance past ${pick?`pick #${pick.pick||pick.pickInRound}`:"the current pick"}.`);
+    return false;
+  }
+  return true;
+};
+window.simToUserDraftPick=simToUserDraftPick;
+
+/* Make Viewer wording unambiguous and show immediate progress feedback. */
+const _v0823RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  _v0823RenderDraftRoom();
+  const dr=state.draftRoom;
+  const on=document.getElementById("draftOnClockBox");
+  if(!dr?.active || !on)return;
+  if(state.role==="Viewer"||state.role==="Commissioner"){
+    const buttons=on.querySelectorAll("button");
+    if(buttons[0])buttons[0].textContent="Sim This Pick";
+    if(buttons[1])buttons[1].textContent="Sim Rest of Draft";
+  }
+};
+window.renderDraftRoom=renderDraftRoom;
 
 </script>
 </body>
