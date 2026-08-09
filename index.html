@@ -60,6 +60,16 @@ button:hover{filter:brightness(1.08);cursor:pointer}
 .teamrow:last-child{border-bottom:0}
 .teammeta{flex:1}.teammeta b{display:block}
 .nav{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+.mainNav{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:3px 2px 7px}
+.mainNav::-webkit-scrollbar{display:none}
+.mainNav button{flex:0 0 auto;white-space:nowrap}
+.subNavWrap{margin:-5px 0 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
+.subNav{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:9px 2px}
+.subNav::-webkit-scrollbar{display:none}
+.subNav button{flex:0 0 auto;white-space:nowrap;padding:7px 10px;font-size:12px;background:transparent;border-color:transparent;color:var(--muted)}
+.subNav button.active{color:#111;background:var(--gold);border-color:var(--gold)}
+.subNav button.sim-location{outline:2px solid #ffd84d;outline-offset:1px}
+@media(max-width:700px){.mainNav{margin-left:-2px;margin-right:-2px}.mainNav button{padding:9px 12px;font-size:13px}.subNav button{padding:7px 9px;font-size:11px}}
 .nav button.active{background:var(--gold);color:#111}
 .nav button.sim-location{
   outline:2px solid #ffd84d;
@@ -298,7 +308,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.59 · Navigation, Seeds & Autosave</div>
+    <div class="pill">v0.60 · Clean Navigation</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -395,35 +405,17 @@ pre{white-space:pre-wrap}
     </div>
   </div>
 
-  <div class="nav">
-    <button class="active" data-tab="dashboard">Dashboard</button>
-    <button data-tab="season">Season</button>
-    <button data-tab="stats">Stats</button>
-    <button data-tab="playoffs">Playoffs</button>
-    <button data-tab="players">Players</button>
-    <button data-tab="scouting">Scouting</button>
-    <button data-tab="healthcenter">Health</button>
-    <button data-tab="history">History</button>
-    <button data-tab="alltime">All-Time</button>
-    <button data-tab="halloffame">Hall of Fame</button>
-    <button data-tab="drafthistory">Draft History</button>
-    <button data-tab="career">Career</button>
-    <button data-tab="draftroom">Draft Room</button>
-    <button data-tab="frontoffice">Front Office</button>
-    <button data-tab="coaching">Coaching</button>
-    <button data-tab="ownership">Ownership</button>
-    <button data-tab="staff">Staff</button>
-    <button data-tab="offseason">Offseason</button>
-    <button data-tab="leagueoffice">League Office</button>
-    <button data-tab="leaguerules">League Rules</button>
-    <button data-tab="bids">Expansion Bids</button>
-    <button data-tab="health">Franchise Health</button>
-    <button data-tab="teams">Teams</button>
-    <button data-tab="decisions">Decisions</button>
-    <button data-tab="identities">Identity Library</button>
-    <button data-tab="logobrowser">Logo Browser</button>
-    <button data-tab="leaguefiles">League Files</button>
-    <button data-tab="save">Save / Export</button>
+  <div class="nav mainNav" id="mainNav">
+    <button class="active" data-group="home" data-tab="dashboard">Home</button>
+    <button data-group="playoffs" data-tab="playoffs">Playoffs</button>
+    <button data-group="team" data-tab="players">Team</button>
+    <button data-group="frontoffice" data-tab="scouting">Front Office</button>
+    <button data-group="league" data-tab="leagueoffice">League</button>
+    <button data-group="history" data-tab="history">History</button>
+    <button data-group="offseason" data-tab="offseason" id="offseasonMainNav">Offseason</button>
+  </div>
+  <div class="subNavWrap">
+    <div class="subNav" id="subNav"></div>
   </div>
 
   <section id="dashboard" class="section active">
@@ -2920,6 +2912,14 @@ function refreshUniverseHeader(){
 }
 
 
+function updateOffseasonNavVisibility(){
+ const btn=document.getElementById("offseasonMainNav");
+ if(!btn||!state)return;
+ const phase=state.season?.phase;
+ const show=phase==="Season Complete" || !!state.offseason?.active;
+ btn.classList.toggle("hidden",!show);
+}
+
 function simulationLocationTab(){
  if(!state)return null;
  let phase=state.season?.phase;
@@ -2932,14 +2932,18 @@ function simulationLocationTab(){
 }
 
 function updateSimulationLocationNav(){
- document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("sim-location"));
+ document.querySelectorAll(".mainNav button").forEach(b=>b.classList.remove("sim-location"));
  let tab=simulationLocationTab();
  if(!tab)return;
- let btn=document.querySelector(`.nav button[data-tab="${tab}"]`);
+ let group=navigationGroupForTab(tab);
+ let btn=document.querySelector(`.mainNav button[data-group="${group}"]`);
  if(btn){
    btn.classList.add("sim-location");
    btn.title=`Current simulation stage: ${tab==="draftroom"?"Draft":tab==="offseason"?"Offseason":tab==="playoffs"?"Playoffs":"Regular Season"}`;
  }
+ document.querySelectorAll("#subNav button").forEach(b=>b.classList.remove("sim-location"));
+ let sub=document.querySelector(`#subNav button[data-subtab="${tab}"]`);
+ if(sub)sub.classList.add("sim-location");
 }
 function showGame(){
  ensureLeagueRules();
@@ -2966,6 +2970,8 @@ function showGame(){
     : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`);
  document.getElementById("permissionsText").innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("")+"</ul>";
  updateDraftRoomNav();
+ updateOffseasonNavVisibility();
+ updateNavigationForTab(document.querySelector(".section.active")?.id||"dashboard");
  updateSimulationLocationNav();
  renderAll();
 }
@@ -4538,13 +4544,45 @@ document.getElementById("saveIdentityBtn").onclick=()=>{
  renderAll();
 };
 
-document.querySelectorAll(".nav button").forEach(b=>{
- b.onclick=()=>{
-  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active")); b.classList.add("active");
-  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
-  document.getElementById(b.dataset.tab).classList.add("active");
- };
-});
+const navigationGroups={
+ home:[["dashboard","Dashboard"],["season","Season"],["stats","Stats"]],
+ playoffs:[["playoffs","Playoffs"]],
+ team:[["players","Players"],["healthcenter","Health"],["coaching","Coaching"],["staff","Staff"],["career","Career"]],
+ frontoffice:[["scouting","Scouting"],["draftroom","Draft Room"],["frontoffice","Front Office"],["ownership","Ownership"]],
+ league:[["leagueoffice","League Office"],["leaguerules","League Rules"],["bids","Expansion Bids"],["health","Franchise Health"],["teams","Franchises"],["identities","Identities"],["logobrowser","Logo Browser"],["leaguefiles","League Files"],["save","Save"]],
+ history:[["history","History"],["alltime","All-Time"],["halloffame","Hall of Fame"],["drafthistory","Draft History"],["decisions","Decisions"]],
+ offseason:[["offseason","Offseason"]]
+};
+
+function navigationGroupForTab(tab){
+ for(const [group,items] of Object.entries(navigationGroups)){
+   if(items.some(x=>x[0]===tab))return group;
+ }
+ return "home";
+}
+
+function renderSubNavigation(group,activeTab){
+ const sub=document.getElementById("subNav");
+ if(!sub)return;
+ const items=navigationGroups[group]||[];
+ const wrap=document.querySelector(".subNavWrap");
+ if(items.length<=1){
+   sub.innerHTML="";
+   if(wrap)wrap.classList.add("hidden");
+   return;
+ }
+ if(wrap)wrap.classList.remove("hidden");
+ sub.innerHTML=items.map(([tab,label])=>`<button data-subtab="${tab}" class="${tab===activeTab?"active":""}">${label}</button>`).join("");
+ sub.querySelectorAll("button").forEach(btn=>{btn.onclick=()=>switchTab(btn.dataset.subtab);});
+}
+
+function updateNavigationForTab(tab){
+ const group=navigationGroupForTab(tab);
+ document.querySelectorAll(".mainNav button").forEach(b=>b.classList.toggle("active",b.dataset.group===group));
+ renderSubNavigation(group,tab);
+}
+
+document.querySelectorAll(".mainNav button").forEach(b=>{b.onclick=()=>switchTab(b.dataset.tab);});
 
 document.getElementById("exportBtn").onclick=()=>{
  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
@@ -4641,13 +4679,13 @@ function initOffseason(){
  }
 }
 function switchTab(tab){
- const btn=[...document.querySelectorAll(".nav button")].find(b=>b.dataset.tab===tab);
- if(btn){
-   document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
-   document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
-   const sec=document.getElementById(tab);if(sec)sec.classList.add("active");
-   window.scrollTo({top:0,behavior:"smooth"});
- }
+ const sec=document.getElementById(tab);
+ if(!sec)return;
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ sec.classList.add("active");
+ updateNavigationForTab(tab);
+ updateSimulationLocationNav();
+ window.scrollTo({top:0,behavior:"smooth"});
 }
 function currentDraftYear(){ return state.currentYear+1; }
 function prospectBoard(){
@@ -8621,7 +8659,7 @@ document.getElementById("advanceBtn").onclick=()=>simulateUntil(document.getElem
 const originalShowGame=showGame;
 showGame=function(){originalShowGame();initSeasonIfNeeded();renderSeason();saveState();}
 const originalRenderAll=renderAll;
-renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateSimulationLocationNav();}
+renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateOffseasonNavVisibility();updateSimulationLocationNav();}
 
 // ----- Persistent mobile/browser autosave v0.59 -----
 let basketballUniverseAutosaveTimer=null;
