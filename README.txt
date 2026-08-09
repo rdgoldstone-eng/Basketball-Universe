@@ -1,27 +1,71 @@
-v0.64.1 Basketball Universe — Realignment Checkpoint Fixes
+v0.65 Basketball Universe — Realignment Era 2003–2018
 
-REALIGNMENT ERA
-The Realignment Era now begins with the 2003 offseason / 2003-04 season.
-LeBron's 2003 draft is therefore the transition point into the new era.
-The first-round playoff format is already best-of-7 beginning in 2002-03.
+ERA STRUCTURE
+The era structure is now:
+- The Founding Era: 1946–1966
+- ABA Rivalry Era: 1967–1975
+- Merger Era: 1976–1987
+- Expansion Era: 1988–2002
+- Realignment Era: 2003–2018
+- Play-In Era: 2019–present
 
-DRAFTED PLAYER NAME FIX
-Drafted players are guaranteed a valid name.
-- Historical prospects retain their defined real prospect name.
-- Generated second-round/depth players receive deterministic fictional names.
-- Literal undefined/null/blank/broken placeholder names in an older save are repaired when the universe loads.
+The 2003 offseason / 2003–04 season is the start of the Realignment Era.
+2019–20 starts the Play-In Era.
 
-NEWSPAPER ARCHIVE
-Every Season Chronicle is now kept permanently inside the save.
-History now contains a Newspaper Archive with a season dropdown.
-Older completed seasons are backfilled from existing league history where possible.
-The newest Chronicle still appears on the Season page.
+REALIGNMENT ERA HISTORICAL CROSSROADS
+Added:
+2004 — Six-Division Realignment
+2005 — New Orleans emergency home after Hurricane Katrina
+2006 — Seattle SuperSonics sale / arena ultimatum
+2007 — New Orleans full-time return decision
+2008 — Seattle / Oklahoma City relocation showdown
+2010 — New Orleans ownership crisis / possible NBA ownership
+2012 — Nets / Brooklyn move
+2012 — New Orleans local ownership rescue
+2013 — New Orleans Pelicans rebrand
+2013 — Sacramento Kings / Seattle relocation showdown
+2014 — Charlotte Bobcats / Hornets identity return
+2014 — Milwaukee Bucks sale and arena commitment
+2014 — Los Angeles Clippers ownership crisis
+2016 — Sacramento arena resolution
+2018 — Milwaukee arena resolution
 
-EXPANSION LOGO FIX
-Charlotte, Miami, Orlando, Minnesota, Toronto and Vancouver now prefer historical franchise artwork instead of the generic expansion marks.
-Embedded franchise-specific marks remain as offline fallback art if a remote historical image cannot load.
-Older saved generic expansion logos are cleared during rehydration so the historical resolver gets another chance.
+CHAIN-AWARE BEHAVIOR
+- No New Orleans Hornets -> Katrina/Hornets ownership/Pelicans chain is Not Applicable.
+- Temporary Katrina relocation does not automatically become a permanent relocation.
+- If Seattle never enters the Oklahoma City ownership chain, the 2008 relocation threat can disappear.
+- Recent champions receive strong protection against relocation.
+- Charlotte can only reclaim Hornets if New Orleans has released the name.
+- If Sacramento loses the Kings, its later arena-resolution event disappears.
+- Milwaukee's 2018 arena result depends on its 2014 ownership/arena path.
+- Nets can reach Brooklyn whether they are New Jersey Nets or still New York Nets in the alternate universe.
 
-NEXT CHECKPOINT
-2003 offseason / 2003-04 is now the Realignment Era baseline.
-After this regression passes, the next major build is Realignment Era Historical Crossroads.
+2002-03 SAVE COMPATIBILITY
+The supplied post-2003-draft Viewer save is a supported Realignment Era baseline.
+
+That save revealed an older 1997 result:
+Washington selected the Wizards rebrand, but the identity failed to resolve and the club remained Washington Bullets.
+v0.65 repairs that recorded historical decision when the save loads.
+
+IDENTITIES
+Added nonblank identity support for:
+- Oklahoma City Thunder
+- Brooklyn Nets
+- New Orleans Pelicans
+- Seattle Kings (alternate path)
+
+SEASON CHRONICLE
+Archived newspapers now display the era name on each edition.
+
+No Play-In tournament mechanics are added in this version.
+This version establishes 2019 as the Play-In Era boundary; Play-In-era rules/crossroads are the next historical block after Realignment Era testing.
+
+Existing systems retained:
+- 16-team playoffs / era-correct first-round series length
+- full first and second round draft
+- era-aware lottery
+- automatic conference/division balancing outside Commissioner mode
+- archived season newspapers
+- expansion logo support
+- champion relocation guardrails
+- multi-universe saves
