@@ -1,19 +1,16 @@
-v0.74 Basketball Universe — Depth Charts & Rotation Engine
+v0.75 Basketball Universe — Coach Game Plans & Player Roles
 
-This build connects roster construction to who actually plays.
+Viewer remains the recommended development/test role. Coach Mode is still under construction.
 
-NEW
-- Five-position depth chart (PG / SG / SF / PF / C) for every team.
-- Automatic starting five chosen by position fit, health and player quality.
-- AI teams now rebuild rotations after roster-changing league activity.
-- Injured/out players drop out of active minutes and healthy depth moves up.
-- Rotation minutes normalize to exactly 240 team minutes.
-- Rotation roles are explicit: Starter, Rotation, Bench, Reserve, Out.
-- Coach mode can choose 8-, 9- or 10-man rotations and rebuild the depth chart automatically.
-- Players screen shows the depth chart in Viewer mode too, so league rotations can be inspected during development testing.
-- Game simulation continues using rotation minutes and starter roles, so roster changes now directly affect usage.
+ADDED
+- Coach player-role assignments: Standard, Primary Option, Secondary Option, Sixth Man, Defensive Stopper, Prospect, Bench Leader.
+- Player buy-in / role satisfaction based on role, minutes, starter status, age and ability.
+- Poor role fit can gradually hurt morale and appear in Coaching Notes.
+- Primary/secondary options and sixth men now influence offensive usage in simulated box scores.
+- Game plans now have a roster-fit grade.
+- Matchup-aware coaching effects: pressure defense, paint protection, inside attacks and pace interact with opponent strengths/styles.
+- Crunch-time preference setting foundation: Best Five, Defense, Shooting, Size.
+- Coaching role data persists in the universe.
 
-ROLE STATUS
-Viewer remains the development/testing mode.
-GM is still under construction.
-Coach is still under construction; this build strengthens its core rotation foundation but does not mark Coach ready for role testing.
+STATUS
+Coach Mode is not yet considered ready for its dedicated role playtest. Remaining work includes stronger crunch-time lineup execution, substitution logic, playoff adjustments, role conversations/conflicts, and coach career/job consequences.

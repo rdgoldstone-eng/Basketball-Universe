@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.74 · Depth Charts & Rotation Engine</div>
+    <div class="pill">v0.75 · Coach Game Plans & Player Roles</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -866,6 +866,11 @@ pre{white-space:pre-wrap}
     <div class="card">
       <h2>Rotation</h2>
       <div id="coachRotationBox" class="muted">No controlled roster.</div>
+    </div>
+
+    <div class="card">
+      <h2>Player Roles & Buy-In</h2>
+      <div id="coachPlayerRolesBox" class="muted">No player roles assigned.</div>
     </div>
 
     <div class="grid2">
@@ -7348,7 +7353,7 @@ function playerUsageWeight(p){
  let role=(p.rotationMinutes||0)>0?(p.rotationMinutes||0):((p.starter?30:12));
  let ovr=Math.max(45,p.ovr||60);
  let posBonus=(p.pos==="PG"||p.pos==="SG")?1.08:p.pos==="SF"?1.02:.95;
- return Math.max(.1,role*(ovr-40)*posBonus*playerAvailabilityMultiplier(p));
+ return Math.max(.1,role*(ovr-40)*posBonus*playerAvailabilityMultiplier(p)*coachRoleUsageMultiplier(p));
 }
 function generateRegularBox(teamName,totalPoints){
  ensureSeasonStats();
@@ -8224,7 +8229,9 @@ function ensureCoaching(){
        defense:"Man-to-Man",
        rebounding:"Balanced",
        rotationSize:9,
-       developmentFocus:null
+       developmentFocus:null,
+       crunchStyle:"Best Five",
+       playerRoles:{}
      };
    }
  });
@@ -8390,6 +8397,73 @@ function setDevelopmentFocus(playerId){
  state.coaching.notes.unshift({year:state.currentYear,text:`Development focus set on ${p?.name||"player"}.`});
  renderCoaching();saveState();
 }
+function coachPlayerRole(teamId,playerId){
+ const s=coachSettings(teamId);s.playerRoles=s.playerRoles||{};
+ return s.playerRoles[playerId]||"Standard";
+}
+function setCoachPlayerRole(playerId,role){
+ let team=currentControlledTeam();if(!team||state.role!=="Coach")return;
+ let p=state.players.find(x=>x.id===playerId&&x.teamName===team.name);if(!p)return;
+ let s=coachSettings(team.id);s.playerRoles=s.playerRoles||{};s.playerRoles[playerId]=role;
+ p.coachRole=role;
+ p.roleSatisfaction=coachRoleSatisfaction(p,role);
+ state.coaching.notes.unshift({year:state.currentYear,text:`${p.name} assigned the ${role} role (${p.roleSatisfaction}% buy-in).`});
+ renderCoaching();saveState();
+}
+function coachRoleSatisfaction(p,role){
+ let mins=Number(p.rotationMinutes||0),ovr=Number(p.ovr||60),age=Number(p.age||25),score=72;
+ if(role==="Primary Option")score+=ovr>=80?18:ovr>=74?7:-15;
+ if(role==="Secondary Option")score+=ovr>=72?10:-6;
+ if(role==="Sixth Man")score+=!p.starter&&mins>=20?14:p.starter?-15:-3;
+ if(role==="Defensive Stopper")score+=(p.defense||60)>=75?14:-8;
+ if(role==="Prospect")score+=age<=24?14:-12;
+ if(role==="Bench Leader")score+=age>=28&&mins<22?12:-4;
+ if(mins<10&&ovr>=72)score-=18;
+ if(mins>=28&&ovr>=75)score+=8;
+ return Math.max(20,Math.min(100,Math.round(score)));
+}
+function updateCoachRoleBuyIn(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return;
+ let s=coachSettings(team.id);s.playerRoles=s.playerRoles||{};
+ state.players.filter(p=>p.teamName===teamName&&!p.retired&&!p.deferredEntry).forEach(p=>{
+   let role=s.playerRoles[p.id]||"Standard";
+   p.coachRole=role;p.roleSatisfaction=coachRoleSatisfaction(p,role);
+   if(p.roleSatisfaction<45){
+     p.morale=Math.max(20,(p.morale??65)-1);
+     if(Math.random()<.025)state.coaching.notes.unshift({year:state.currentYear,text:`${p.name} is frustrated with the ${role} role and current minutes.`});
+   }else if(p.roleSatisfaction>=80){p.morale=Math.min(100,(p.morale??65)+.3);}
+ });
+}
+function coachRoleUsageMultiplier(p){
+ let team=state.teams.find(t=>t.name===p.teamName);if(!team)return 1;
+ let role=coachPlayerRole(team.id,p.id);
+ if(role==="Primary Option")return 1.22;
+ if(role==="Secondary Option")return 1.10;
+ if(role==="Sixth Man")return 1.08;
+ if(role==="Prospect")return .96;
+ return 1;
+}
+function coachingMatchupModifier(aName,bName){
+ let a=state.teams.find(t=>t.name===aName),b=state.teams.find(t=>t.name===bName);if(!a||!b)return 0;
+ let sa=coachSettings(a.id),sb=coachSettings(b.id),mod=0;
+ const avg=(name,filter,key)=>{let r=state.players.filter(p=>p.teamName===name&&!p.retired&&!p.deferredEntry&&filter(p)).sort((x,y)=>(y.ovr||0)-(x.ovr||0)).slice(0,4);return r.length?r.reduce((s,p)=>s+(p[key]||p.ovr||60),0)/r.length:60};
+ let aGuard=avg(aName,p=>["PG","SG"].includes(p.pos),"passing"),bGuard=avg(bName,p=>["PG","SG"].includes(p.pos),"passing");
+ let aBig=avg(aName,p=>["PF","C"].includes(p.pos),"rebounding"),bBig=avg(bName,p=>["PF","C"].includes(p.pos),"rebounding");
+ if(sa.defense==="Pressure"&&bGuard<72)mod+=1.2;
+ if(sb.defense==="Pressure"&&aGuard<72)mod-=1.2;
+ if(sa.defense==="Protect Paint"&&sb.offense==="Inside")mod+=1.3;
+ if(sb.defense==="Protect Paint"&&sa.offense==="Inside")mod-=1.3;
+ if(sa.pace==="Fast"&&aGuard>bGuard+4)mod+=.8;
+ if(sb.pace==="Fast"&&bGuard>aGuard+4)mod-=.8;
+ if(sa.offense==="Inside"&&aBig>bBig+5)mod+=1;
+ if(sb.offense==="Inside"&&bBig>aBig+5)mod-=1;
+ return mod;
+}
+function coachingPlanGrade(teamName){
+ let team=state.teams.find(t=>t.name===teamName);if(!team)return {grade:"C",text:"No plan"};
+ let m=coachingTeamModifier(teamName),g=m>=4?"A":m>=2.5?"B+":m>=1?"B":m>=0?"C+":m>=-2?"C":"D";
+ return {grade:g,text:m>=2.5?"Strong fit for roster":m>=0?"Reasonable roster fit":"Scheme is fighting the roster"};
+}
 function coachingTeamModifier(teamName){
  ensureCoaching();let team=state.teams.find(t=>t.name===teamName);if(!team)return 0;
  let s=coachSettings(team.id),mod=0;
@@ -8455,6 +8529,7 @@ function renderCoaching(){
    document.getElementById("coachGamePlanBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
    document.getElementById("coachRotationBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
    document.getElementById("coachDevelopmentBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
+   if(document.getElementById("coachPlayerRolesBox"))document.getElementById("coachPlayerRolesBox").innerHTML=`<span class="muted">Coach mode is not active.</span>`;
    return;
  }
  initializeRotationForTeam(team.name);
@@ -8465,12 +8540,22 @@ function renderCoaching(){
  document.getElementById("coachGamePlanBox").innerHTML=
  `<b>Offense</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('offense','Perimeter')">Perimeter</button><button onclick="setCoachSetting('offense','Balanced')">Balanced</button><button onclick="setCoachSetting('offense','Inside')">Inside</button></div>
  <b style="display:block;margin-top:12px">Defense</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('defense','Pressure')">Pressure</button><button onclick="setCoachSetting('defense','Man-to-Man')">Man-to-Man</button><button onclick="setCoachSetting('defense','Protect Paint')">Protect Paint</button></div>
- <p class="small muted">The best scheme depends on the players actually on your roster.</p>
+ <p class="small muted">The best scheme depends on the players actually on your roster. Matchups now matter too — pressure can bother weak ball-handling teams, paint protection counters inside attacks, and pace works best with strong guard play.</p>
+ <div class="notice" style="margin-top:10px"><b>Plan Grade: ${coachingPlanGrade(team.name).grade}</b><br><span class="small">${coachingPlanGrade(team.name).text}</span></div>
+ <b style="display:block;margin-top:12px">Crunch-Time Preference</b><div class="choicebar" style="margin-top:6px"><button onclick="setCoachSetting('crunchStyle','Best Five')">Best Five</button><button onclick="setCoachSetting('crunchStyle','Defense')">Defense</button><button onclick="setCoachSetting('crunchStyle','Shooting')">Shooting</button><button onclick="setCoachSetting('crunchStyle','Size')">Size</button></div>
  <b style="display:block;margin-top:12px">Rotation Size</b><div class="choicebar" style="margin-top:6px"><button onclick="setRotationSize(8)">8-Man</button><button onclick="setRotationSize(9)">9-Man</button><button onclick="setRotationSize(10)">10-Man</button><button onclick="autoCoachRotation()">Auto Depth Chart</button></div>`;
 
  let roster=state.players.filter(p=>p.teamName===team.name&&!p.retired&&!p.deferredEntry).sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
  document.getElementById("coachRotationBox").innerHTML=`<p class="small muted">Depth chart positions, starter status and minutes now drive game usage. Minutes normalize to 240 total.</p>${rotationHealthSummary(team.name)}${depthChartHTML(team.name)}`+
  `<div style="margin-top:12px">`+roster.map(p=>`<div class="rotationRow"><div><b>${p.starter?'★ ':''}${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.healthStatus||"Healthy"}</div></div><div>${p.rotationRole||"Reserve"}</div><div><input class="minutesInput" type="number" min="0" max="48" value="${p.rotationMinutes||0}" onchange="setRotationMinutes('${p.id}',this.value)"></div><div class="coachHide">${p.fatigue||0} fatigue</div></div>`).join("")+`</div>`;
+
+ let roleBox=document.getElementById("coachPlayerRolesBox");
+ if(roleBox){
+   roleBox.innerHTML=roster.slice().sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)).map(p=>{
+     let role=coachPlayerRole(team.id,p.id),sat=p.roleSatisfaction??coachRoleSatisfaction(p,role);
+     return `<div class="coachChoice"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${p.name}</b><div class="small muted">${p.pos} · ${p.rotationRole||'Reserve'} · ${Math.round(p.rotationMinutes||0)} min</div></div><div><b>${sat}%</b><div class="small muted">buy-in</div></div></div><select style="margin-top:7px" onchange="setCoachPlayerRole('${p.id}',this.value)">${['Standard','Primary Option','Secondary Option','Sixth Man','Defensive Stopper','Prospect','Bench Leader'].map(r=>`<option ${r===role?'selected':''}>${r}</option>`).join('')}</select></div>`;
+   }).join('');
+ }
 
  let dev=roster.filter(p=>(p.age||99)<=27).sort((a,b)=>(b.pot||b.ovr||0)-(a.pot||a.ovr||0)).slice(0,10);
  document.getElementById("coachDevelopmentBox").innerHTML=dev.map(p=>`<div class="coachChoice"><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"} · OVR ${p.ovr} · POT ${p.pot||p.ovr}</div><div style="margin-top:6px"><button onclick="setDevelopmentFocus('${p.id}')">${s.developmentFocus===p.id?"Current Focus":"Focus Development"}</button></div></div>`).join("")||`<span class="muted">No eligible development targets.</span>`;
@@ -8483,6 +8568,7 @@ window.setCoachSetting=setCoachSetting;
 window.setDevelopmentFocus=setDevelopmentFocus;
 window.setRotationSize=setRotationSize;
 window.autoCoachRotation=autoCoachRotation;
+window.setCoachPlayerRole=setCoachPlayerRole;
 
 
 // ----- Trade Logic & Draft Picks v0.35 -----
@@ -10144,7 +10230,7 @@ function standingsTable(conf){
 }
 function winChance(a,b){
  a.power=teamPlayerPower(a.name);b.power=teamPlayerPower(b.name);
- let diff=(a.power-b.power);
+ let diff=(a.power-b.power)+coachingMatchupModifier(a.name,b.name);
  return 1/(1+Math.pow(10,-diff/18));
 }
 function playOneLeagueGame(){
@@ -10166,7 +10252,7 @@ function playOneLeagueGame(){
  simPlayersForTeam(a.name,baseA);
  simPlayersForTeam(b.name,baseB);
  state.season.gamesPlayed++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let regularResult={id:`reg_${state.currentYear}_${state.season.gamesPlayed}`,a:a.name,b:b.name,as:baseA,bs:baseB};
  recordRegularBoxScore(regularResult);
  state.season.recent.unshift(regularResult);
@@ -10632,7 +10718,7 @@ function playOnePlayoffGame(series){
  let base=88+Math.floor(Math.random()*25),margin=2+Math.floor(Math.random()*15);
  let as=aWin?base+margin:base,bs=aWin?base:base+margin;
  if(aWin)series.aw++;else series.bw++;
- applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
+ applyGameFatigue(a.name);applyGameFatigue(b.name);applyCoachingFatigue(a.name);applyCoachingFatigue(b.name);updateCoachRoleBuyIn(a.name);updateCoachRoleBuyIn(b.name);recoverRoster();maybeCreateRoleInjuryDecision();
  let need=Math.floor(series.bestOf/2)+1;
  let g={round:series.round,conf:series.conf,game:series.games.length+1,a:a.name,b:b.name,as,bs,seriesId:series.id};
  if(series.aw>=need||series.bw>=need){series.complete=true;series.winnerId=series.aw>series.bw?series.aId:series.bId}
