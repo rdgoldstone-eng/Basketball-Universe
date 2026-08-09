@@ -1,22 +1,21 @@
 Basketball Universe
-v0.76 · Coach Crunch Time & Playoff Adjustments
+v0.77 · Career Jobs & Employment
 
 WHAT CHANGED
-- Crunch-time preference now selects an actual closing five.
-- Best Five, Defense, Shooting, and Size emphasize different players late in games.
-- Watched playoff games show the closing lineups when Crunch Time begins.
-- Closing-lineup strength now affects late-possession results.
-- Coach playoff series adjustments are now available:
-  Stay Course, Shorten Rotation, Attack Guards, Attack Paint, Slow Tempo, Pressure Ball.
-- Opponent-specific playoff plans affect postseason game odds.
-- Coach role/buy-in problems can now create a one-time player conflict decision.
-- Conflict choices can change minutes, role satisfaction, morale, and GM/coach relationship.
-- Existing Coach milestone decisions now have real tactical/rotation effects.
-- Coaches reaching the playoffs receive a playoff rotation decision before Game 1.
-- Watched playoff games now apply coaching fatigue and role/buy-in effects consistently.
+- Career identity now persists independently of the franchise.
+- Coach, GM, Owner, and Commissioner careers can be employed or unemployed.
+- Career history records job starts, job endings, resignations, firings, and leaving for another job.
+- Added a career reputation score that affects available opportunities.
+- Added a job-market foundation with multiple team offers.
+- Unemployed characters can wait for or accept another job rather than restarting the universe.
+- Accepting a new job transfers control to the new franchise while keeping the same career.
+- Added an employment panel foundation for current status, offers, and career history.
+
+LOCKED DESIGN RULE
+The user controls the character, not the franchise.
 
 STATUS
-Coach mode is still under construction. This build strengthens the actual coaching loop, but the role is not yet marked ready for a dedicated role playtest.
+This is the employment foundation. Individual role firing logic, contracts, interviews, poaching, and owner/commissioner-specific career rules will continue to be expanded before those roles are marked ready for playtesting.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.

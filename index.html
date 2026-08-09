@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.76 · Coach Crunch Time & Playoff Adjustments</div>
+    <div class="pill">v0.77 · Career Jobs & Employment</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -11404,6 +11404,155 @@ setTimeout(()=>{
  migrateLegacySaveIfNeeded();
  renderSavedUniverseLists();
 },0);
+
+
+/* === v0.77 Career Jobs & Employment === */
+function ensureCareerState(){
+  state.career = state.career || {};
+  state.career.characterId = state.career.characterId || ("char_"+Date.now().toString(36));
+  state.career.role = state.career.role || state.role || "Viewer";
+  state.career.status = state.career.status || ((state.role && state.role!=="Viewer") ? "Employed" : "Viewer");
+  state.career.currentTeamId = state.career.currentTeamId || state.controlledTeamId || null;
+  state.career.reputation = Number.isFinite(state.career.reputation) ? state.career.reputation : 50;
+  state.career.history = Array.isArray(state.career.history) ? state.career.history : [];
+  state.career.jobOffers = Array.isArray(state.career.jobOffers) ? state.career.jobOffers : [];
+  state.career.lastJobMarketYear = state.career.lastJobMarketYear || null;
+}
+function teamByAnyId(id){
+  return (state.teams||[]).find(t=>t.id===id || t.abbrev===id || t.name===id) || null;
+}
+function careerTeamName(id){
+  const t=teamByAnyId(id); return t ? t.name : "Unattached";
+}
+function careerReputationDelta(reason){
+  const txt=(reason||"").toLowerCase();
+  if(txt.includes("champion")) return 12;
+  if(txt.includes("final")) return 7;
+  if(txt.includes("playoff")) return 4;
+  if(txt.includes("fired")) return -8;
+  if(txt.includes("resign")) return -2;
+  if(txt.includes("not renewed")) return -5;
+  return 0;
+}
+function recordCareerEvent(type, details={}){
+  ensureCareerState();
+  state.career.history.unshift({
+    year: state.currentYear,
+    type,
+    role: state.career.role,
+    teamId: details.teamId ?? state.career.currentTeamId ?? null,
+    teamName: details.teamName || careerTeamName(details.teamId ?? state.career.currentTeamId),
+    reason: details.reason || "",
+    note: details.note || ""
+  });
+  state.career.reputation = Math.max(0, Math.min(100, state.career.reputation + careerReputationDelta(details.reason||type)));
+}
+function leaveCurrentJob(reason="Resigned"){
+  ensureCareerState();
+  if(state.career.status==="Viewer") return;
+  recordCareerEvent("Job Ended",{reason});
+  state.career.status="Unemployed";
+  state.career.currentTeamId=null;
+  state.controlledTeamId=null;
+  state.career.jobOffers=[];
+}
+function fireCareerCharacter(reason="Fired"){
+  leaveCurrentJob(reason);
+  addRoleDecision?.(
+    "Your job has ended",
+    `You are now unemployed after being ${reason.toLowerCase()}. Your career continues and you may pursue another opening.`,
+    [{label:"Enter Job Market",effect:()=>{ generateCareerJobOffers(true); }}],
+    {decisionType:"career_job_end"}
+  );
+}
+function estimateCareerFit(team, role){
+  ensureCareerState();
+  if(!team) return 0;
+  const rep=state.career.reputation||50;
+  const wins=team.wins||0, losses=team.losses||0, games=wins+losses;
+  const pct=games?wins/games:.5;
+  let desirability=50 + (pct-.5)*30;
+  if(role==="Coach") desirability += (team.direction==="Contending" ? 8 : 0);
+  if(role==="GM") desirability += (team.direction==="Rebuilding" ? 5 : 0);
+  return Math.max(1, Math.min(99, rep*.65 + desirability*.35 + (Math.random()*16-8)));
+}
+function careerEligibleRoles(){
+  ensureCareerState();
+  return ["Coach","GM","Owner","Commissioner"].includes(state.career.role) ? [state.career.role] : [];
+}
+function generateCareerJobOffers(force=false){
+  ensureCareerState();
+  const roles=careerEligibleRoles();
+  if(!roles.length || state.career.status==="Viewer") return [];
+  if(!force && state.career.lastJobMarketYear===state.currentYear && state.career.jobOffers.length) return state.career.jobOffers;
+  const role=roles[0];
+  let candidates=(state.teams||[]).filter(t=>!t.defunct);
+  if(state.career.currentTeamId) candidates=candidates.filter(t=>t.id!==state.career.currentTeamId);
+  candidates = candidates
+    .map(t=>({team:t, score:estimateCareerFit(t,role)}))
+    .filter(x=>x.score >= Math.max(28,(state.career.reputation||50)-28))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0, Math.max(2, Math.min(5, 2+Math.floor((state.career.reputation||50)/25))));
+  state.career.jobOffers=candidates.map((x,i)=>({
+    id:`job_${state.currentYear}_${x.team.id}_${i}`,
+    teamId:x.team.id,
+    teamName:x.team.name,
+    role,
+    score:Math.round(x.score),
+    status:"Open"
+  }));
+  state.career.lastJobMarketYear=state.currentYear;
+  return state.career.jobOffers;
+}
+function acceptCareerJob(offerId){
+  ensureCareerState();
+  const offer=(state.career.jobOffers||[]).find(o=>o.id===offerId && o.status==="Open");
+  if(!offer) return false;
+  if(state.career.currentTeamId && state.career.status==="Employed") recordCareerEvent("Left for another job",{reason:"Left for another job"});
+  state.career.currentTeamId=offer.teamId;
+  state.controlledTeamId=offer.teamId;
+  state.career.role=offer.role;
+  state.role=offer.role;
+  state.career.status="Employed";
+  state.career.jobOffers.forEach(o=>o.status=(o.id===offerId?"Accepted":"Declined"));
+  recordCareerEvent("Job Started",{teamId:offer.teamId,teamName:offer.teamName,reason:"Accepted new job"});
+  return true;
+}
+function declineCareerJob(offerId){
+  ensureCareerState();
+  const offer=(state.career.jobOffers||[]).find(o=>o.id===offerId);
+  if(!offer) return false;
+  offer.status="Declined"; return true;
+}
+function renderCareerEmploymentPanel(){
+  ensureCareerState();
+  const offers=state.career.jobOffers||[];
+  return `<div class="card">
+    <h3>Career & Employment</h3>
+    <div><b>Status:</b> ${state.career.status} &nbsp; <b>Role:</b> ${state.career.role} &nbsp; <b>Reputation:</b> ${Math.round(state.career.reputation)}/100</div>
+    <div><b>Current team:</b> ${careerTeamName(state.career.currentTeamId)}</div>
+    ${state.career.status==="Unemployed" ? `<button onclick="generateCareerJobOffers(true);renderApp?.()">Refresh Job Market</button>` : ""}
+    ${offers.filter(o=>o.status==="Open").map(o=>`<div class="mini-card"><b>${o.teamName}</b> — ${o.role} offer · Fit ${o.score}<br><button onclick="acceptCareerJob('${o.id}');renderApp?.()">Accept</button> <button onclick="declineCareerJob('${o.id}');renderApp?.()">Decline</button></div>`).join("")}
+    <details><summary>Career History</summary>${(state.career.history||[]).map(h=>`<div>${h.year}: ${h.type} — ${h.teamName}${h.reason?` (${h.reason})`:""}</div>`).join("") || "No career events yet."}</details>
+  </div>`;
+}
+const _careerOldRenderApp = typeof renderApp==="function" ? renderApp : null;
+if(_careerOldRenderApp){
+  renderApp = function(){
+    ensureCareerState();
+    const result = _careerOldRenderApp.apply(this,arguments);
+    setTimeout(()=>{
+      try{
+        const host=document.querySelector("#frontOffice, .front-office, [data-page='frontoffice']");
+        if(host && !document.getElementById("careerEmploymentPanel")){
+          const wrap=document.createElement("div"); wrap.id="careerEmploymentPanel";
+          wrap.innerHTML=renderCareerEmploymentPanel(); host.appendChild(wrap);
+        }
+      }catch(e){}
+    },0);
+    return result;
+  }
+}
 
 </script>
 </body>
