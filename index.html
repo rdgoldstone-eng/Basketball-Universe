@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.4 · Draft Engine Hard Fix</div>
+    <div class="pill">v0.82.5 · Re-Signings Flow Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -13403,6 +13403,153 @@ openScheduledDraftRoom=function(){
   return true;
 };
 window.openScheduledDraftRoom=openScheduledDraftRoom;
+
+
+
+/* === v0.82.5 Re-Signings Flow Fix === */
+function fastLeagueReSigningsV0825(){
+  ensureFrontOffice();
+  if(!state.offseason)return [];
+  state.offseason.processed=state.offseason.processed||{};
+  if(state.offseason.processed["Re-signings"] && Array.isArray(state.offseason.reSignResults)){
+    return state.offseason.reSignResults;
+  }
+
+  const controlled=(state.role==="GM")?currentControlledTeam():null;
+  const results=[];
+  const walk=[];
+  const cap=Number(state.frontOffice.cap||100);
+
+  (state.teams||[]).forEach(team=>{
+    if(controlled && team.id===controlled.id)return;
+    const roster=teamRoster(team.name);
+    const expiring=roster.filter(p=>!p.retired && (p.faEligible || Number(p.contract?.years||0)<=0 || p.contractStatus==="Expiring"));
+
+    expiring.forEach(p=>{
+      const ovr=Number(p.ovr||60);
+      const pot=Number(p.pot||ovr);
+      const age=Number(p.age||27);
+      const currentSalary=Number(p.contract?.salary||1);
+      const payroll=teamPayroll(team.name)-currentSalary;
+
+      // Fast deterministic team-interest score. Avoid the heavier roster-planning path
+      // that could stall the offseason on phones.
+      let score=ovr*0.75 + pot*0.18 - Math.max(0,age-30)*1.6;
+      if(ovr>=76)score+=12;
+      if(age<=25 && pot>=74)score+=8;
+      const keep=score>=61;
+
+      let market=Math.max(1,Math.round((Math.max(0,ovr-55)*0.72 + Math.max(0,pot-ovr)*0.18 + 1)*10)/10);
+      let years=age>=32?1:age>=29?2:age<=25?4:3;
+      let salary=Math.max(1,Math.round(Math.max(currentSalary*.9,market)*10)/10);
+
+      const capBlocked=state.leagueRules?.salaryCap && payroll+salary>cap*1.08 && ovr<78;
+
+      if(keep && !capBlocked){
+        p.contract={years,salary,expires:state.currentYear+years};
+        p.faEligible=false;
+        p.faStatus=null;
+        p.contractStatus="Under Contract";
+        results.push(`${p.name} re-signed with ${team.name} (${years}y, $${salary.toFixed(1)}M/yr)`);
+      }else{
+        p.teamName="Free Agent";
+        p.contract={years:0,salary:0};
+        p.faEligible=true;
+        p.faStatus="Free Agent";
+        p.contractStatus="Free Agent";
+        state.freeAgents=state.freeAgents||[];
+        if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+        walk.push(`${p.name} entered free agency from ${team.name}`);
+      }
+    });
+  });
+
+  state.offseason.reSignResults=results;
+  state.offseason.reSignWalks=walk;
+  state.offseason.processed["Re-signings"]=true;
+
+  state.news=state.news||[];
+  state.news.push({
+    year:state.currentYear+1,
+    title:"Re-signings complete",
+    text:`${results.length} player${results.length===1?"":"s"} re-signed and ${walk.length} entered free agency.`
+  });
+  return results;
+}
+
+function reSigningsDetailV0825(){
+  const rs=state.offseason?.reSignResults||[];
+  const walks=state.offseason?.reSignWalks||[];
+  return `<div class="offseasonMechanism"><b>Re-signings complete</b><br>
+    <span class="small">${rs.length} player${rs.length===1?"":"s"} stayed with their teams. ${walks.length} player${walks.length===1?"":"s"} moved into free agency.</span></div>
+    ${rs.length?`<h4>Re-signed</h4>${rs.slice(0,80).map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join("")}`:`<div class="small muted">No veterans re-signed.</div>`}
+    ${walks.length?`<details><summary>Players entering free agency (${walks.length})</summary>${walks.slice(0,120).map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join("")}</details>`:""}`;
+}
+
+/* Extend the repaired offseason detail panel. */
+const _v0825OffseasonStageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  if(step==="Re-signings"){
+    if(step===state.offseason?.phase && !state.offseason?.processed?.["Re-signings"] && state.role!=="GM"){
+      fastLeagueReSigningsV0825();
+    }
+    if(state.role==="GM"){
+      const unresolved=(typeof unresolvedGMContractsV082==="function")?unresolvedGMContractsV082():[];
+      return `<div class="offseasonMechanism"><b>Your contract decisions</b><br><span class="small">${unresolved.length?`${unresolved.length} expiring player decision(s) remain.`:"Your expiring-player decisions are resolved."}</span></div>
+        <button onclick="switchTab('frontoffice')">Open Contracts</button>`;
+    }
+    return reSigningsDetailV0825();
+  }
+  return _v0825OffseasonStageDetail(step);
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+/* Hard-route Re-signings so Viewer cannot get trapped in the older heavy AI function. */
+const _v0825AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(!state?.offseason)initOffseason();
+  ensureOffseasonWorkflowV0822();
+  const p=state.offseason.phase;
+
+  if(p==="Re-signings" && state.role!=="GM"){
+    const btn=document.getElementById("advanceOffseasonBtn");
+    if(btn){btn.disabled=true;btn.textContent="Processing Re-signings...";}
+    try{
+      fastLeagueReSigningsV0825();
+      state.offseason.phaseIndex++;
+      state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+      saveState();
+      renderAll();
+      switchTab("offseason");
+      viewOffseasonStep(state.offseason.phase);
+    }catch(e){
+      console.error("Re-signings flow error",e);
+      if(btn){btn.disabled=false;btn.textContent="Retry Re-signings";}
+      const box=document.getElementById("offseasonDetailBox");
+      if(box)box.innerHTML=`<div class="notice danger"><b>Re-signings error:</b><br>${String(e?.message||e)}</div>`;
+    }
+    return;
+  }
+
+  return _v0825AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Rebind the static button to the latest wrapper. */
+const _advanceBtnV0825=document.getElementById("advanceOffseasonBtn");
+if(_advanceBtnV0825)_advanceBtnV0825.onclick=()=>advanceOffseason();
+
+/* Existing saves already parked on Re-signings get a clean screen immediately. */
+setTimeout(()=>{
+  try{
+    if(state?.offseason?.phase==="Re-signings" && state.season?.phase==="Season Complete"){
+      if(state.role!=="GM")fastLeagueReSigningsV0825();
+      renderOffseason();
+      viewOffseasonStep("Re-signings");
+      saveState();
+    }
+  }catch(e){console.error("v0.82.5 load repair",e);}
+},0);
 
 </script>
 </body>
