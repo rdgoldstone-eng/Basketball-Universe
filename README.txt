@@ -1,66 +1,61 @@
-v0.61 Basketball Universe — Multi-Universe Saves
+v0.62 Basketball Universe — Season Home
 
-SAVE IS NOW A TOP-LEVEL SECTION
-Navigation is now:
-Dashboard · Team · League · Front Office · History · Save
+DASHBOARD REMOVED
 
-SAVE SCREEN
-The Save page now contains:
-- Save Now
-- Rename Save
-- Export Save File
-- Import Save File
-- Saved Universes list
-- Back to Start Screen
-- Delete Current Save
+The main navigation is now:
 
-MULTIPLE SAVED UNIVERSES
-Basketball Universe no longer has only one browser save.
+Season · Team · League · Front Office · History · Save
 
-Every newly created universe receives its own save slot.
-Each slot stores:
-- universe name
+SEASON IS THE HOME PAGE
+Opening or loading any universe now lands directly on Season.
+
+Season submenu:
+- Season
+- Playoffs
+- Offseason
+
+The old Dashboard page is removed from the playable interface.
+
+ADVANCE CONTROLS MOVED TO SEASON
+The date / current phase, Advance To selector, Advance button, and Current Activity button now sit at the top of the Season screen.
+
+Season also contains:
+- East and West standings
+- recent results
+- postseason status
+- universe news
+
+The old Dashboard assignment/permissions cards were removed from the main interface because the persistent header and role-specific pages already cover that context.
+
+PERSISTENT HEADER
+The header now carries a compact line showing:
 - current season
+- current phase
 - role
-- current simulation phase
-- last-saved time
+- controlled team / entire league
 
-Every saved universe has:
-- Play
-- Rename
-- Delete
+CURRENT LOCATION OUTLINE
+- Regular season: Season is outlined
+- Playoffs: Season main tab stays outlined and Playoffs is outlined in the submenu
+- Offseason: Season main tab stays outlined and Offseason is outlined
+- Draft: Front Office and Draft Room are outlined
 
-START SCREEN
-The Basketball Universe start screen now shows the Saved Universes list.
-You can:
-- create a brand-new universe
-- press Play on any old universe
-- keep multiple alternate timelines at once
+OTHER NAVIGATION
 
-The old Load Existing Universe button:
-- immediately opens the only save if you have one
-- scrolls to the saved-game list if you have multiple
+TEAM
+Players · Stats · Health · Coaching · Staff · Career
 
-AUTOSAVE
-Autosave remains active every 15 seconds and when the browser is backgrounded/closed.
-Autosave now updates ONLY the save slot for the universe currently being played.
+LEAGUE
+League Office · Rules · Expansion Bids · Franchise Health · Teams · Identities
 
-BACK TO START SCREEN
-Using Back to Start Screen:
-- saves the current universe first
-- returns to universe creation
-- does NOT delete the universe
-- lets you create another universe or choose a different saved game
+FRONT OFFICE
+Scouting · Draft Room · Front Office · Ownership
 
-IMPORTS
-Imported JSON save files become a new independent saved universe, so importing does not overwrite an existing timeline.
+HISTORY
+History · All-Time · Hall of Fame · Draft History
 
-LEGACY SAVE MIGRATION
-A save made in older Basketball Universe versions is automatically migrated into the new multi-save system the first time v0.61 runs.
-
-IMPORTANT CHANGE FROM v0.59
-The game no longer automatically jumps straight into the most recent universe when the webpage opens.
-It opens the start screen and shows all saved universes so you can choose which one to play, similar to Basketball GM.
+SAVE
+All v0.61 multi-universe save features remain intact.
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.

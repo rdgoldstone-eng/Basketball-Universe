@@ -319,7 +319,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.61 · Multi-Universe Saves</div>
+    <div class="pill">v0.62 · Season Home</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -414,6 +414,7 @@ pre{white-space:pre-wrap}
     <div class="pill" id="rolePill"></div>
     <h1 id="gameTitle" style="margin-top:10px"></h1>
     <p class="muted" id="gameSubtitle"></p>
+    <div id="universeStatusLine" class="small muted" style="margin-top:6px"></div>
     <div class="kpis">
       <div class="kpi"><b id="yearKpi">1976</b><span>Season</span></div>
       <div class="kpi"><b id="roleKpi">Commissioner</b><span>Role</span></div>
@@ -423,7 +424,7 @@ pre{white-space:pre-wrap}
   </div>
 
   <div class="nav mainNav" id="mainNav">
-    <button class="active" data-group="dashboard" data-tab="dashboard">Dashboard</button>
+    <button class="active" data-group="season" data-tab="season">Season</button>
     <button data-group="team" data-tab="players">Team</button>
     <button data-group="league" data-tab="leagueoffice">League</button>
     <button data-group="frontoffice" data-tab="scouting">Front Office</button>
@@ -434,46 +435,7 @@ pre{white-space:pre-wrap}
     <div class="subNav" id="subNav"></div>
   </div>
 
-  <section id="dashboard" class="section active">
-    <div class="card">
-      <div class="calendarline">
-        <div><div class="pill" id="phasePill">Regular Season</div><h2 id="dateLabel" style="margin:8px 0 0">October 1976</h2></div>
-        <div class="small muted" id="progressLabel">0 / 82 games per team</div>
-      </div>
-      <div class="advancebar">
-        <div>
-          <label>Advance to</label>
-          <select id="advanceChoice">
-            <option value="game">1 Game</option>
-            <option value="week">1 Week</option>
-            <option value="month">1 Month</option>
-            <option value="half">Half Season</option>
-            <option value="deadline">Trade Deadline</option>
-            <option value="allstar">All-Star Break</option>
-            <option value="end">End of Regular Season</option>
-            <option value="decision">Next Decision</option>
-          </select>
-        </div>
-        <button class="primary" id="advanceBtn">⏭ ADVANCE</button>
-      </div>
-      <p class="small muted" style="margin:10px 0 0">Long simulations stop automatically if a decision requiring your role appears.</p>
-      <button id="currentActivityBtn" style="margin-top:12px" onclick="openCurrentActivity()">Current Activity</button>
-    </div>
-<div class="grid2">
-      <div class="card">
-        <h2>Current Assignment</h2>
-        <div id="assignmentText"></div>
-      </div>
-      <div class="card">
-        <h2>Role Permissions</h2>
-        <div id="permissionsText"></div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Universe News</h2>
-      <div id="newsBox"></div>
-    </div>
-  </section>
+  
 
 
 
@@ -500,8 +462,32 @@ pre{white-space:pre-wrap}
     </div>
   </section>
 
-  <section id="season" class="section">
-    <div class="grid2">
+  <section id="season" class="section active">
+<div class="card">
+      <div class="calendarline">
+        <div><div class="pill" id="phasePill">Regular Season</div><h2 id="dateLabel" style="margin:8px 0 0">October 1976</h2></div>
+        <div class="small muted" id="progressLabel">0 / 82 games per team</div>
+      </div>
+      <div class="advancebar">
+        <div>
+          <label>Advance to</label>
+          <select id="advanceChoice">
+            <option value="game">1 Game</option>
+            <option value="week">1 Week</option>
+            <option value="month">1 Month</option>
+            <option value="half">Half Season</option>
+            <option value="deadline">Trade Deadline</option>
+            <option value="allstar">All-Star Break</option>
+            <option value="end">End of Regular Season</option>
+            <option value="decision">Next Decision</option>
+          </select>
+        </div>
+        <button class="primary" id="advanceBtn">⏭ ADVANCE</button>
+      </div>
+      <p class="small muted" style="margin:10px 0 0">Long simulations stop automatically if a decision requiring your role appears.</p>
+      <button id="currentActivityBtn" style="margin-top:12px" onclick="openCurrentActivity()">Current Activity</button>
+    </div>
+<div class="grid2">
       <div class="card">
         <h2>Eastern Conference</h2>
         <div id="eastStandings"></div>
@@ -519,7 +505,11 @@ pre{white-space:pre-wrap}
       <h2>Postseason</h2>
       <div id="postseasonBox" class="muted">The playoffs have not started.</div>
     </div>
-  </section>
+<div class="card">
+      <h2>Universe News</h2>
+      <div id="newsBox"></div>
+    </div>
+</section>
 
 
 
@@ -3109,8 +3099,14 @@ function refreshUniverseHeader(){
  let team=document.getElementById("teamKpi");
  if(team)team.textContent=state.role==="Viewer"?"Entire League":state.controlledTeamId?teamById(state.controlledTeamId)?.name||"Team":"Entire League";
  let decisions=document.getElementById("decisionKpi");
- if(decisions)decisions.textContent=(state.decisions||[]).filter(d=>!d.resolved).length;
+ if(decisions)decisions.textContent=(state.decisions||[]).filter(d=>!d.resolved).length; let statusLine=document.getElementById("universeStatusLine");
+ if(statusLine){
+   const phase=state.season?.phase||"Preseason";
+   const control=state.role==="Viewer"?"Entire League":state.controlledTeamId?teamById(state.controlledTeamId)?.name||"Team":"Entire League";
+   statusLine.textContent=`${seasonName()} · ${phase} · ${state.role} · ${control}`;
+ }
 }
+
 
 
 function simulationLocationTab(){
@@ -3156,15 +3152,19 @@ function showGame(){
  document.getElementById("roleKpi").textContent=state.role;
  document.getElementById("teamKpi").textContent=state.controlledTeamId?teamById(state.controlledTeamId).name:"Entire League";
  document.getElementById("decisionKpi").textContent=(viewerMode()?0:state.decisions.filter(d=>!d.resolved).length);
- document.getElementById("assignmentText").innerHTML=`<div class="small muted" style="margin-bottom:8px">Current league era: ${currentEraSummary(state.currentYear)}</div>` + (state.role==="Viewer"
+ const assignmentEl=document.getElementById("assignmentText");
+ if(assignmentEl)assignmentEl.innerHTML=`<div class="small muted" style="margin-bottom:8px">Current league era: ${currentEraSummary(state.currentYear)}</div>` + (state.role==="Viewer"
   ? `<b>League Viewer</b><div class="muted small">Spectate the entire universe using the normal simulation controls without decision stops.</div>`
   : state.controlledTeamId
     ? `${logoHTML(teamById(state.controlledTeamId))}<div style="margin-top:10px"><b>${teamById(state.controlledTeamId).name}</b><div class="muted small">${state.role}</div></div>`
     : `<b>League Office</b><div class="muted small">You control league-level decisions, not an individual franchise.</div>`);
- document.getElementById("permissionsText").innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("")+"</ul>";
+ const permissionsEl=document.getElementById("permissionsText");
+ if(permissionsEl)permissionsEl.innerHTML="<ul>"+rolePermissions[state.role].map(x=>`<li>${x}</li>`).join("");
  updateDraftRoomNav();
-
- updateNavigationForTab(document.querySelector(".section.active")?.id||"dashboard");
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ document.getElementById("season")?.classList.add("active");
+ updateNavigationForTab("season");
+ refreshUniverseHeader();
  updateSimulationLocationNav();
  renderAll();
 }
@@ -4738,8 +4738,7 @@ document.getElementById("saveIdentityBtn").onclick=()=>{
 };
 
 const navigationGroups={
- dashboard:[
-  ["dashboard","Dashboard"],
+ season:[
   ["season","Season"],
   ["playoffs","Playoffs"],
   ["offseason","Offseason"]
@@ -5178,7 +5177,7 @@ function beginNextSeason(){
  refreshUniverseHeader();
  saveState();
  renderAll();
- switchTab("dashboard");
+ switchTab("season");
 
  if(state.role==="Player"&&state.playerCareer)state.playerCareer.seasonTotals={gp:0,pts:0,reb:0,ast:0};
  if(state.role==="Player")safeTransitionStep("player contract/trade",()=>{contractSeasonTick();processTradeRequest();});
@@ -5249,7 +5248,7 @@ function viewOffseasonStep(step){
    return;
  }
  if(step==="Free Agency"){switchTab("frontoffice");return;}
- if(step==="Next Season"){switchTab("dashboard");return;}
+ if(step==="Next Season"){switchTab("season");return;}
  if(!title||!box)return;
  title.textContent=step;
 
