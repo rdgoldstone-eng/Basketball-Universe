@@ -342,7 +342,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.67.1 · Logo Coverage Fix</div>
+    <div class="pill">v0.68.1 · Mobile + Version Label Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1109,8 +1109,7 @@ pre{white-space:pre-wrap}
       <div class="card">
         <h2>Built-in Franchise Identities</h2>
         <p class="muted small">These are candidate identities for future expansion or relocation. Every identity now carries a three-logo library: Early NBA, Growing NBA, and Modern.</p>
-        <div class="notice"><b>Complete visual coverage</b><br><span class="small">Every built-in identity now has Early NBA, Growing NBA, and Modern logo slots. The library is generated only when you open an identity, which keeps the game fast on phones.</span></div>
-        <div id="identityLogoPreview" style="margin:12px 0"></div>
+        <div class="notice"><b>Complete visual coverage</b><br><span class="small">Every built-in identity now ships with a three-era logo framework. Real/historical artwork can still override the active in-season logo when available.</span></div>
         <div id="identityList"></div>
       </div>
       <div class="card">
@@ -2787,7 +2786,7 @@ function syncEraGuideToStart(){
  if(!start||!guide)return;
  const e=eraInfoForYear(Number(start.value));
  guide.value=e.id;
- renderEraArchitecture();
+ syncEraGuideToStart();
 }
 window.syncEraGuideToStart=syncEraGuideToStart;
 
@@ -2892,16 +2891,21 @@ function logoHTML(obj){
 
 function ensureIdentityLogos(){
  if(!state)return;
+ ensureLogoLibraries();
  if(state.identityLibrary)state.identityLibrary.forEach(i=>{
    if(!i.logo && generatedIdentityLogos[i.id])i.logo=generatedIdentityLogos[i.id];
+   if(!i.logo && i.logoLibrary?.modern)i.logo=i.logoLibrary.modern;
+ });
+ if(state.customIdentities)state.customIdentities.forEach(i=>{
+   if(!i.logo && i.logoLibrary?.modern)i.logo=i.logoLibrary.modern;
  });
  if(state.teams)state.teams.forEach(t=>{
    const hist=historicalLogoFor(t.name,state.currentYear);
    if(hist && state.settings?.historicalLogos!==false){
      if(expansionHistoricalRemoteLogos[t.name])t.logo=null;
      if(t.logo && generatedTeamLogos[t.name]===t.logo)t.logo=null;
-   }else if(!t.logo){
-     t.logo=baseLogoForObject(t,state.currentYear)||null;
+   }else{
+     t.logo=resolvedLogoSrc(t,state.currentYear)||t.logo||null;
    }
  });
 }
@@ -2956,6 +2960,24 @@ function rehydrateLoadedState(s){
   }
   s.identityLibrary.forEach(i=>{
     if(i && !i.logo && generatedIdentityLogos[i.id])i.logo=generatedIdentityLogos[i.id];
+    if(i && (!i.logoLibrary || !i.logoLibrary.early || !i.logoLibrary.growing || !i.logoLibrary.modern)){
+      i.logoLibrary=createThreeLogoLibrary(i.logo||generatedIdentityLogos[i.id]||null,i.name,[]);
+    }
+  });
+  (s.customIdentities||[]).forEach(i=>{
+    if(i && (!i.logoLibrary || !i.logoLibrary.early || !i.logoLibrary.growing || !i.logoLibrary.modern)){
+      i.logoLibrary=createThreeLogoLibrary(i.logo||null,i.name,[]);
+    }
+  });
+  (s.teams||[]).forEach(t=>{
+    if(t && (!t.logoLibrary || !t.logoLibrary.early || !t.logoLibrary.growing || !t.logoLibrary.modern)){
+      t.logoLibrary=createThreeLogoLibrary(t.logo||generatedTeamLogos[t.name]||currentNbaRemoteLogos[t.name]||null,t.name,[]);
+    }
+    (t.identityHistory||[]).forEach(h=>{
+      if(h && (!h.logoLibrary || !h.logoLibrary.early || !h.logoLibrary.growing || !h.logoLibrary.modern)){
+        h.logoLibrary=createThreeLogoLibrary(h.logo||generatedTeamLogos[h.name]||currentNbaRemoteLogos[h.name]||null,h.name,[]);
+      }
+    });
   });
   return s;
 }
@@ -3213,7 +3235,7 @@ document.getElementById("createBtn").onclick=()=>{
    version:1,saveId:makeSaveId(),name,startYear:year,currentYear:year,role:selectedRole,controlledTeamId:teamId,careerPlayerId,
    teams:JSON.parse(JSON.stringify(year===2026?modern2026Teams:historical1976)),
    players:JSON.parse(JSON.stringify(year===2026?modern2026Players:historicalPlayers1976)),
-   identityLibrary:JSON.parse(JSON.stringify(builtInIdentities)).map(i=>({...i,logo:i.logo||generatedIdentityLogos[i.id]||null})),
+   identityLibrary:JSON.parse(JSON.stringify(builtInIdentities)).map(i=>({...i,logo:i.logo||generatedIdentityLogos[i.id]||null,logoLibrary:createThreeLogoLibrary(i.logo||generatedIdentityLogos[i.id]||null,i.name,[])})),
    customIdentities:[],
    decisions:[],
    news:[{year,title:"Universe created",text:`History branches beginning in ${year}.`}],
@@ -4290,8 +4312,6 @@ function logoAssetStatus(name,year){
 function renderLogoBrowser(){
  const grid=document.getElementById("logoBrowserGrid");
  if(!grid||!state)return;
- const section=document.getElementById("logobrowser");
- if(section && !section.classList.contains("active") && !grid.dataset.forceRender)return;
  ensureIdentityLogos();
  const year=Number(document.getElementById("logoBrowserYear")?.value||state.currentYear||1976);
  const teams=state.teams.slice().sort((a,b)=>a.name.localeCompare(b.name));
@@ -5731,24 +5751,18 @@ window.resolveDecision=(id,choice)=>{
  else state.news.push({year:state.currentYear,title:d.title,text:`Decision: ${choice}`});
  renderAll();
 };
-function previewIdentityLogos(id){
- const all=[...(state.identityLibrary||[]),...(state.customIdentities||[])];
- const i=all.find(x=>x.id===id);
- const box=document.getElementById("identityLogoPreview");
- if(!i||!box)return;
- const activeKey=logoLibraryBucketForYear(state.currentYear||1976);
- const lib=resolveLogoLibrary(i,state.currentYear||1976);
- box.innerHTML=`<div class="card" style="background:var(--panel2)"><div style="display:flex;gap:12px;align-items:center">${logoHTML(i)}<div><b>${i.name}</b><div class="small muted">${i.market||"Custom market"} · ${i.status||i.kind||"Custom identity"}</div></div></div>${logoLibraryPreviewHTML(lib,activeKey)}</div>`;
-}
-window.previewIdentityLogos=previewIdentityLogos;
 function renderIdentities(){
  ensureIdentityLogos();
- const all=[...(state.identityLibrary||[]),...(state.customIdentities||[])];
- const list=document.getElementById("identityList");
- if(!list)return;
- list.innerHTML=all.map(i=>`<div class="teamrow"><div style="display:flex;gap:10px;align-items:center;flex:1">${logoHTML(i)}<div class="teammeta"><b>${i.name}</b><span class="small muted">${i.market||"Custom market"} · 3-logo library</span></div></div><button onclick="previewIdentityLogos('${i.id}')">View 3 Logos</button></div>`).join("");
- const preview=document.getElementById("identityLogoPreview");
- if(preview && !preview.innerHTML && all.length)previewIdentityLogos(all[0].id);
+ const all=[...state.identityLibrary,...state.customIdentities];
+ document.getElementById("identityList").innerHTML=all.map(i=>{
+  const activeKey=logoLibraryBucketForYear(state.currentYear||1976);
+  const lib=resolveLogoLibrary(i,state.currentYear||1976);
+  return `<div class="teamrow" style="display:block">
+   <div style="display:flex;gap:12px;align-items:center">${logoHTML(i)}<div class="teammeta"><b>${i.name}</b><span class="small muted">${i.market||"Custom market"} · ${i.status||i.kind||"Custom identity"}</span></div></div>
+   ${lib?logoLibraryPreviewHTML(lib,activeKey):""}
+   <div class="logoLibraryNote">Active era slot: <b>${activeKey==='early'?'Early NBA':activeKey==='growing'?'Growing NBA':'Modern'}</b></div>
+  </div>`;
+ }).join("");
 }
 
 let pendingLogo=null;
@@ -5798,8 +5812,7 @@ const navigationGroups={
   ["bids","Expansion Bids"],
   ["health","Franchise Health"],
   ["teams","Teams"],
-  ["identities","Identities"],
-  ["logobrowser","Logo Library"]
+  ["identities","Identities"]
  ],
  frontoffice:[
   ["scouting","Scouting"],
@@ -5979,13 +5992,6 @@ function switchTab(tab){
  sec.classList.add("active");
  updateNavigationForTab(tab);
  updateSimulationLocationNav();
- if(tab==="logobrowser"){
-   const grid=document.getElementById("logoBrowserGrid");
-   if(grid)grid.dataset.forceRender="1";
-   renderLogoBrowser();
-   if(grid)delete grid.dataset.forceRender;
- }
- if(tab==="identities")renderIdentities();
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function currentDraftYear(){ return state.currentYear+1; }

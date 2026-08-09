@@ -1,13 +1,10 @@
-v0.68.1 Basketball Universe — Mobile Load Fix
+v0.68.1 Basketball Universe — Mobile + Version Label Fix
 
-Fixes v0.68 failing/hanging on phones.
+This build keeps the v0.68 three-logo framework and fixes the visible version banner above “Create a Basketball Universe.”
 
-Changes:
-- Removed an accidental recursive start-year function that could lock the page.
-- Changed the 3-logo library to lazy loading so the phone is not asked to render hundreds of logo images at once.
-- Identities now show a lightweight list with a “View 3 Logos” button.
-- Added Logo Library to League navigation.
-- The Logo Library only renders when opened.
-- Keeps the Early NBA / Growing NBA / Modern three-logo framework intact.
+Visible banner should now read:
+v0.68.1 · Mobile + Version Label Fix
 
-Use the same GitHub upload process: replace index.html and README.txt.
+Use this as the test build so we can immediately confirm the updated file is actually live on GitHub Pages.
+
+Upload both index.html and README.txt over the existing files in the repository, then refresh the GitHub Pages site. If Safari still shows the older banner, close the tab and reopen the site or use a private tab to bypass cache.
