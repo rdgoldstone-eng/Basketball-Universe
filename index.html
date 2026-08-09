@@ -82,6 +82,17 @@ button:hover{filter:brightness(1.08);cursor:pointer}
 .historyChampionMain{display:flex;align-items:center;gap:10px;min-width:0}
 .historyChampionLogo{width:46px;height:46px;flex:0 0 46px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .historyChampionLogo img{width:100%;height:100%;object-fit:contain}
+.savedUniverseRow{display:grid;grid-template-columns:minmax(170px,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.savedUniverseRow:last-child{border-bottom:0}
+.savedUniverseMeta{min-width:0}
+.savedUniverseTitle{font-weight:900;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.savedUniverseActions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:600px){
+ .savedUniverseRow{grid-template-columns:1fr}
+ .savedUniverseActions{justify-content:flex-start}
+ .savedUniverseActions button{flex:1 1 auto}
+}
+
 .playoffSeed{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:999px;background:#252d3a;border:1px solid var(--line);font-size:11px;font-weight:900;margin-right:6px;color:#fff}
 
 .section{display:none}.section.active{display:block}
@@ -308,7 +319,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.60.1 · Five-Section Navigation</div>
+    <div class="pill">v0.61 · Multi-Universe Saves</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -386,6 +397,12 @@ pre{white-space:pre-wrap}
   </div>
 
   <div class="card">
+    <h2>Saved Universes</h2>
+    <p class="small muted">Continue any universe saved in this browser.</p>
+    <div id="setupSavedUniverseList"></div>
+  </div>
+
+  <div class="card">
     <button class="primary" id="createBtn">Create Universe</button>
     <div class="small muted" style="margin-top:8px">Mobile-safe saves: built-in logo artwork is stored in the game, not duplicated inside your browser save.</div>
     <button id="loadBtn">Load Existing Universe</button>
@@ -411,6 +428,7 @@ pre{white-space:pre-wrap}
     <button data-group="league" data-tab="leagueoffice">League</button>
     <button data-group="frontoffice" data-tab="scouting">Front Office</button>
     <button data-group="history" data-tab="history">History</button>
+    <button data-group="save" data-tab="save">Save</button>
   </div>
   <div class="subNavWrap">
     <div class="subNav" id="subNav"></div>
@@ -1140,16 +1158,45 @@ pre{white-space:pre-wrap}
   </section>
 
   <section id="save" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h2>Current Universe</h2>
+        <div id="currentUniverseSaveBox" class="muted">No universe loaded.</div>
+        <div class="choicebar">
+          <button class="primary" id="saveNowBtn">Save Now</button>
+          <button id="renameSaveBtn">Rename Save</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Backup & Transfer</h2>
+        <p class="muted small">Export a save file for backup or move a universe to another browser/device.</p>
+        <div class="choicebar">
+          <button class="primary" id="exportBtn">Export Save File</button>
+          <label style="margin:0">
+            <input id="importFile" type="file" accept=".json" class="hidden">
+            <button id="importTrigger" type="button">Import Save File</button>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
-      <h2>Save Universe</h2>
-      <p class="muted">The game saves automatically in this browser. You can also export the universe as a JSON file and import it later.</p>
+      <div class="calendarline">
+        <div>
+          <h2 style="margin:0">Saved Universes</h2>
+          <div class="small muted">Each universe autosaves independently in this browser.</div>
+        </div>
+        <button id="refreshSaveListBtn">Refresh</button>
+      </div>
+      <div id="savedUniverseList" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Universe Management</h2>
+      <p class="small muted">Return to the Basketball Universe start screen without deleting this save. From there you can create another universe or reopen any saved game.</p>
       <div class="choicebar">
-        <button class="primary" id="exportBtn">Export Save File</button>
-        <label style="margin:0">
-          <input id="importFile" type="file" accept=".json" class="hidden">
-          <button id="importTrigger" type="button">Import Save File</button>
-        </label>
-        <button class="danger" id="newUniverseBtn">Start New Universe</button>
+        <button id="homeScreenBtn">Back to Start Screen</button>
+        <button class="danger" id="deleteCurrentSaveBtn">Delete Current Save</button>
       </div>
     </div>
   </section>
@@ -2734,38 +2781,192 @@ function rehydrateLoadedState(s){
   return s;
 }
 
+const SAVE_INDEX_KEY="basketball_universe_save_index_v2";
+const LEGACY_SAVE_KEY="basketball_universe_v1";
+
+function saveIndex(){
+ try{
+   const raw=localStorage.getItem(SAVE_INDEX_KEY);
+   const parsed=raw?JSON.parse(raw):[];
+   return Array.isArray(parsed)?parsed:[];
+ }catch(e){return []}
+}
+function writeSaveIndex(index){
+ localStorage.setItem(SAVE_INDEX_KEY,JSON.stringify(index));
+}
+function saveStorageKey(id){return `basketball_universe_save_${id}`;}
+function makeSaveId(){
+ return "u_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);
+}
+function currentSaveId(){
+ return state?.saveId||null;
+}
+function saveSummaryFromState(s){
+ return {
+   id:s.saveId,
+   name:s.name||"Basketball Universe",
+   season:(()=>{let y=Number(s.currentYear??s.startYear??1976);return `${y}-${String((y+1)%100).padStart(2,"0")}`})(),
+   currentYear:Number(s.currentYear??s.startYear??1976),
+   role:s.role||"Viewer",
+   team:s.controlledTeamId?(s.teams||[]).find(t=>t.id===s.controlledTeamId)?.name||"Team":"Entire League",
+   phase:s.season?.phase||"Preseason",
+   updatedAt:Date.now()
+ };
+}
+function upsertSaveIndex(summary){
+ let index=saveIndex().filter(x=>x.id!==summary.id);
+ index.unshift(summary);
+ index.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+ writeSaveIndex(index);
+}
+function migrateLegacySaveIfNeeded(){
+ let index=saveIndex();
+ if(index.length)return;
+ let raw=null;
+ try{raw=localStorage.getItem(LEGACY_SAVE_KEY);}catch(e){}
+ if(!raw)return;
+ try{
+   let s=JSON.parse(raw);
+   s=rehydrateLoadedState(s);
+   if(!s.saveId)s.saveId=makeSaveId();
+   const compact=compactStateForStorage.call(null,s);
+   localStorage.setItem(saveStorageKey(s.saveId),JSON.stringify(compact));
+   upsertSaveIndex(saveSummaryFromState(s));
+   localStorage.removeItem(LEGACY_SAVE_KEY);
+ }catch(e){
+   console.error("Legacy save migration failed:",e);
+ }
+}
+function compactStateForStorageValue(sourceState){
+ const original=state;
+ state=sourceState;
+ try{return compactStateForStorage();}
+ finally{state=original;}
+}
 function saveState(){
   if(!state)return false;
   try{
+    if(!state.saveId)state.saveId=makeSaveId();
     const compact=compactStateForStorage();
-    localStorage.setItem("basketball_universe_v1",JSON.stringify(compact));
+    localStorage.setItem(saveStorageKey(state.saveId),JSON.stringify(compact));
+    upsertSaveIndex(saveSummaryFromState(state));
     const status=document.getElementById("saveStatus");
     if(status){
       const now=new Date();
       status.textContent=`Autosaved · ${state.name} · ${now.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     }
+    renderSavedUniverseLists();
     return true;
   }catch(err){
     console.error("Basketball Universe save failed:",err);
     const status=document.getElementById("saveStatus");
     if(status)status.textContent="Running · browser save unavailable";
-    // Do not throw. The universe should remain playable even if browser storage is full.
     return false;
   }
 }
-function loadState(){
+function loadState(saveId=null){
+  migrateLegacySaveIfNeeded();
+  let id=saveId;
+  if(!id){
+    const first=saveIndex()[0];
+    id=first?.id||null;
+  }
+  if(!id)return null;
   let raw=null;
-  try{raw=localStorage.getItem("basketball_universe_v1");}
+  try{raw=localStorage.getItem(saveStorageKey(id));}
   catch(e){return null;}
   if(!raw)return null;
-  try{return rehydrateLoadedState(JSON.parse(raw));}catch(e){return null}
+  try{
+    let s=rehydrateLoadedState(JSON.parse(raw));
+    s.saveId=id;
+    return s;
+  }catch(e){return null}
 }
+function deleteSavedUniverse(saveId){
+ try{
+   localStorage.removeItem(saveStorageKey(saveId));
+   writeSaveIndex(saveIndex().filter(x=>x.id!==saveId));
+   return true;
+ }catch(e){return false}
+}
+function renameSavedUniverse(saveId,newName){
+ let s=loadState(saveId);
+ if(!s)return false;
+ s.name=(newName||"").trim()||s.name;
+ try{
+   const compact=compactStateForStorageValue(s);
+   localStorage.setItem(saveStorageKey(saveId),JSON.stringify(compact));
+   upsertSaveIndex(saveSummaryFromState(s));
+   if(state?.saveId===saveId)state.name=s.name;
+   return true;
+ }catch(e){return false}
+}
+function playSavedUniverse(saveId){
+ const s=loadState(saveId);
+ if(!s){alert("That saved universe could not be loaded.");return;}
+ state=s;
+ applyHistoricalIdentityAssets();
+ showGame();
+ saveState();
+}
+window.playSavedUniverse=playSavedUniverse;
+
+function savedUniverseRowHTML(x){
+ const when=x.updatedAt?new Date(x.updatedAt).toLocaleString():"Unknown";
+ return `<div class="savedUniverseRow">
+   <div class="savedUniverseMeta">
+     <div class="savedUniverseTitle">${x.name||"Basketball Universe"}</div>
+     <div class="small muted">${x.season||""} · ${x.role||"Viewer"} · ${x.phase||"Season"}<br>Last saved ${when}</div>
+   </div>
+   <div class="savedUniverseActions">
+     <button class="primary" onclick="playSavedUniverse('${x.id}')">Play</button>
+     <button onclick="renameUniverseFromList('${x.id}')">Rename</button>
+     <button class="danger" onclick="deleteUniverseFromList('${x.id}')">Delete</button>
+   </div>
+ </div>`;
+}
+function renderSavedUniverseLists(){
+ migrateLegacySaveIfNeeded();
+ const index=saveIndex();
+ ["savedUniverseList","setupSavedUniverseList"].forEach(id=>{
+   const el=document.getElementById(id);
+   if(!el)return;
+   el.innerHTML=index.length?index.map(savedUniverseRowHTML).join(""):`<span class="muted">No saved universes yet.</span>`;
+ });
+ const current=document.getElementById("currentUniverseSaveBox");
+ if(current){
+   if(!state)current.innerHTML=`<span class="muted">No universe loaded.</span>`;
+   else current.innerHTML=`<b>${state.name}</b><div class="small muted">${seasonName()} · ${state.role} · ${state.season?.phase||"Season"}<br>Autosave is active for this universe.</div>`;
+ }
+}
+window.renameUniverseFromList=function(id){
+ const item=saveIndex().find(x=>x.id===id);
+ if(!item)return;
+ const name=prompt("Rename this saved universe:",item.name||"Basketball Universe");
+ if(name==null)return;
+ if(renameSavedUniverse(id,name)){renderSavedUniverseLists();if(state?.saveId===id){document.getElementById("gameTitle").textContent=state.name;saveState();}}
+};
+window.deleteUniverseFromList=function(id){
+ const item=saveIndex().find(x=>x.id===id);
+ if(!item)return;
+ if(!confirm(`Delete "${item.name}"? This cannot be undone unless you exported a backup.`))return;
+ const deletingCurrent=state?.saveId===id;
+ deleteSavedUniverse(id);
+ if(deletingCurrent){
+   state=null;
+   document.getElementById("gameView").classList.add("hidden");
+   document.getElementById("setupView").classList.remove("hidden");
+   document.getElementById("saveStatus").textContent="No universe loaded";
+ }
+ renderSavedUniverseLists();
+};
 function fillTeams(){
   const sel=document.getElementById("teamChoice");
   const teams=pendingLeagueFile?.teams||historical1976;
   sel.innerHTML=teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
 }
 fillTeams();
+setTimeout(()=>renderSavedUniverseLists(),0);
 
 function fillPlayerChoices(){
  const card=document.getElementById("playerChooserCard");
@@ -2813,7 +3014,7 @@ document.getElementById("createBtn").onclick=()=>{
    return;
  }
  state={
-   version:1,name,startYear:year,currentYear:year,role:selectedRole,controlledTeamId:teamId,careerPlayerId,
+   version:1,saveId:makeSaveId(),name,startYear:year,currentYear:year,role:selectedRole,controlledTeamId:teamId,careerPlayerId,
    teams:JSON.parse(JSON.stringify(historical1976)),
    players:JSON.parse(JSON.stringify(historicalPlayers1976)),
    identityLibrary:JSON.parse(JSON.stringify(builtInIdentities)).map(i=>({...i,logo:i.logo||generatedIdentityLogos[i.id]||null})),
@@ -2867,8 +3068,10 @@ document.getElementById("inGameLeagueFileInput")?.addEventListener("change",asyn
 
 
 document.getElementById("loadBtn").onclick=()=>{
- const s=loadState(); if(!s){alert("No saved universe found in this browser.");return;}
- state=s; applyHistoricalIdentityAssets(); showGame();
+ const index=saveIndex();
+ if(!index.length){alert("No saved universe found in this browser.");return;}
+ if(index.length===1){playSavedUniverse(index[0].id);return;}
+ document.getElementById("setupSavedUniverseList")?.scrollIntoView({behavior:"smooth",block:"center"});
 };
 
 function seedDecisions(){
@@ -4568,6 +4771,9 @@ const navigationGroups={
   ["alltime","All-Time"],
   ["halloffame","Hall of Fame"],
   ["drafthistory","Draft History"]
+ ],
+ save:[
+  ["save","Save"]
  ]
 };
 
@@ -4612,17 +4818,47 @@ document.getElementById("importFile").onchange=(e)=>{
  const file=e.target.files[0]; if(!file)return;
  const reader=new FileReader();
  reader.onload=()=>{
-  try{state=JSON.parse(reader.result);saveState();showGame();}
+  try{
+    state=rehydrateLoadedState(JSON.parse(reader.result));
+    state.saveId=makeSaveId();
+    state.name=(state.name||"Imported Basketball Universe")+" (Imported)";
+    saveState();showGame();
+  }
   catch(err){alert("That save file could not be read.");}
  };
  reader.readAsText(file);
 };
-document.getElementById("newUniverseBtn").onclick=()=>{
- if(confirm("Start a new universe? Your current browser save will be replaced when you create it.")){
-   state=null;document.getElementById("gameView").classList.add("hidden");document.getElementById("setupView").classList.remove("hidden");
-   document.getElementById("saveStatus").textContent="No universe loaded";
- }
-};
+function showStartScreen(){
+ if(state)saveState();
+ state=null;
+ document.getElementById("gameView").classList.add("hidden");
+ document.getElementById("setupView").classList.remove("hidden");
+ document.getElementById("saveStatus").textContent="Choose or create a universe";
+ renderSavedUniverseLists();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+window.showStartScreen=showStartScreen;
+
+document.getElementById("saveNowBtn")?.addEventListener("click",()=>{
+ if(saveState())renderSavedUniverseLists();
+});
+document.getElementById("renameSaveBtn")?.addEventListener("click",()=>{
+ if(!state)return;
+ const name=prompt("Rename this universe:",state.name);
+ if(name==null)return;
+ state.name=name.trim()||state.name;
+ document.getElementById("gameTitle").textContent=state.name;
+ saveState();renderSavedUniverseLists();
+});
+document.getElementById("refreshSaveListBtn")?.addEventListener("click",renderSavedUniverseLists);
+document.getElementById("homeScreenBtn")?.addEventListener("click",showStartScreen);
+document.getElementById("deleteCurrentSaveBtn")?.addEventListener("click",()=>{
+ if(!state?.saveId)return;
+ deleteUniverseFromList(state.saveId);
+});
+
+const oldNewUniverseBtn=document.getElementById("newUniverseBtn");
+if(oldNewUniverseBtn)oldNewUniverseBtn.onclick=()=>showStartScreen();
 
 
 
@@ -6024,6 +6260,7 @@ function createUniverseFromLeagueFile(file,role,teamId,nameOverride){
  let identities=JSON.parse(JSON.stringify(file.identities||[]));
  state={
    version:1,
+   saveId:makeSaveId(),
    name:nameOverride||file.name||"Custom Basketball Universe",
    startYear:year,
    currentYear:year,
@@ -8676,7 +8913,7 @@ document.getElementById("advanceBtn").onclick=()=>simulateUntil(document.getElem
 const originalShowGame=showGame;
 showGame=function(){originalShowGame();initSeasonIfNeeded();renderSeason();saveState();}
 const originalRenderAll=renderAll;
-renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateSimulationLocationNav();}
+renderAll=function(){originalRenderAll();renderSeason();renderPlayoffs();updateSimulationLocationNav();renderSavedUniverseLists();}
 
 // ----- Persistent mobile/browser autosave v0.59 -----
 let basketballUniverseAutosaveTimer=null;
@@ -8697,18 +8934,10 @@ document.addEventListener("visibilitychange",()=>{
 });
 startUniverseAutosave();
 
-// Resume the most recent browser universe automatically on return.
+// On return, stay on the start screen and show every saved universe.
 setTimeout(()=>{
- if(state)return;
- const saved=loadState();
- if(saved){
-   state=saved;
-   try{applyHistoricalIdentityAssets();showGame();}
-   catch(err){
-     console.error("Automatic universe resume failed:",err);
-     state=null;
-   }
- }
+ migrateLegacySaveIfNeeded();
+ renderSavedUniverseLists();
 },0);
 
 </script>
