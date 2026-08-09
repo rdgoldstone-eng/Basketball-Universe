@@ -352,7 +352,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.72 · Draft Rights & Undrafted Pathways</div>
+    <div class="pill">v0.73 · AI Roster Intelligence</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -6241,8 +6241,166 @@ function offerTeamContract(playerId){
  state.news.push({year:state.currentYear,title:isExpiring?'Re-signing':'Contract extension',text:`${team.name} keeps ${p.name} on a ${years}-year contract.`});
  renderAll();saveState();
 }
-function runLeagueReSigningsAI(){
+
+// ----- AI Roster Construction & Transaction Intelligence v0.73 -----
+function positionGroup(pos){
+ const p=String(pos||'').toUpperCase();
+ if(p==='PG'||p==='SG'||p==='G')return 'Guard';
+ if(p==='SF'||p==='F'||p==='G/F'||p==='F/G')return 'Wing';
+ if(p==='PF'||p==='C'||p==='F/C'||p==='C/F')return 'Big';
+ return 'Wing';
+}
+function teamWinPctNow(team){
+ const gp=Number(team?.gp||0),w=Number(team?.w||0);
+ return gp>0?w/gp:.5;
+}
+function rosterCore(team){
+ return teamRoster(team.name).filter(p=>!p.retired&&!p.deferredEntry).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,10);
+}
+function teamRosterProfile(team){
+ const roster=teamRoster(team.name).filter(p=>!p.retired&&!p.deferredEntry);
+ const core=rosterCore(team);
+ const groups={Guard:[],Wing:[],Big:[]};
+ roster.forEach(p=>groups[positionGroup(p.pos)].push(p));
+ Object.values(groups).forEach(arr=>arr.sort((a,b)=>(b.ovr||0)-(a.ovr||0)));
+ const topAvg=core.length?core.reduce((s,p)=>s+(p.ovr||0),0)/core.length:50;
+ const avgAge=core.length?core.reduce((s,p)=>s+Number(p.age||26),0)/core.length:26;
+ const youth=roster.filter(p=>(p.age||99)<=24&&(p.pot||p.ovr||0)>=(p.ovr||0)+3).length;
+ const cap=Number(state.frontOffice?.cap||100),payroll=teamPayroll(team.name);
+ const needScores={};
+ for(const g of ['Guard','Wing','Big']){
+   const arr=groups[g];
+   const top=arr.slice(0,3);
+   const quality=top.length?top.reduce((s,p)=>s+(p.ovr||0),0)/top.length:45;
+   const depthPenalty=Math.max(0,3-arr.length)*5;
+   needScores[g]=Math.max(0,Math.round(82-quality+depthPenalty));
+ }
+ const biggestNeed=Object.entries(needScores).sort((a,b)=>b[1]-a[1])[0]?.[0]||'Wing';
+ return {roster,core,groups,topAvg,avgAge,youth,payroll,cap,needScores,biggestNeed};
+}
+function inferAITeamDirection(team){
+ const prof=teamRosterProfile(team),win=teamWinPctNow(team),power=teamPlayerPower(team.name);
+ if(state.leagueRules?.salaryCap && prof.payroll>prof.cap*1.07 && power<71)return 'Cut Payroll';
+ if((team.gp||0)>=20 && win>=.57)return 'Contend Now';
+ if(power>=74 && prof.avgAge>=25)return 'Contend Now';
+ if(((team.gp||0)>=20 && win<=.38)||power<62)return 'Build for the Future';
+ if(prof.avgAge<24.5&&prof.youth>=3&&power<70)return 'Build for the Future';
+ return 'Balanced';
+}
+function refreshAIRosterPlans(){
  ensureFrontOffice();
+ state.frontOffice.aiRosterPlans=state.frontOffice.aiRosterPlans||{};
+ const controlled=state.role==='GM'?currentControlledTeam():null;
+ state.teams.forEach(team=>{
+   if(!(controlled&&team.id===controlled.id))state.frontOffice.teamDirections[team.id]=inferAITeamDirection(team);
+   const profile=teamRosterProfile(team);
+   state.frontOffice.aiRosterPlans[team.id]={
+     direction:state.frontOffice.teamDirections[team.id]||'Balanced',
+     biggestNeed:profile.biggestNeed,
+     needScores:profile.needScores,
+     avgAge:Number(profile.avgAge.toFixed(1)),
+     payroll:Math.round(profile.payroll),
+     updatedYear:state.currentYear
+   };
+ });
+}
+function teamNeedForPlayer(team,p){
+ const prof=teamRosterProfile(team),group=positionGroup(p.pos);
+ return prof.needScores[group]||0;
+}
+function aiPlayerFitScore(team,p){
+ const dir=state.frontOffice.teamDirections[team.id]||inferAITeamDirection(team);
+ const need=teamNeedForPlayer(team,p);
+ const ovr=Number(p.ovr||60),pot=Number(p.pot||ovr),age=Number(p.age||27),salary=playerSalary(p);
+ let score=ovr*.72+pot*.18+need*.55-salary*.28;
+ if(dir==='Contend Now')score+=ovr*.18-(Math.max(0,age-33)*1.2);
+ else if(dir==='Build for the Future')score+=pot*.20-Math.max(0,age-25)*1.6;
+ else if(dir==='Cut Payroll')score-=salary*.75+(age>30?2:0);
+ else score+=Math.max(0,pot-ovr)*.15;
+ return score;
+}
+function aiKeepScore(team,p){
+ const fit=aiPlayerFitScore(team,p),prof=teamRosterProfile(team),group=positionGroup(p.pos);
+ const rank=prof.groups[group].findIndex(x=>x.id===p.id);
+ let scarcity=rank>=0&&rank<2?6:rank===2?2:-2;
+ return fit+scarcity;
+}
+function aiTradeCandidateScore(team,p){
+ const dir=state.frontOffice.teamDirections[team.id]||inferAITeamDirection(team);
+ const prof=teamRosterProfile(team),group=positionGroup(p.pos),rank=prof.groups[group].findIndex(x=>x.id===p.id);
+ let shop=0;
+ if(rank>=3)shop+=6;
+ if(dir==='Build for the Future'&&Number(p.age||0)>=29)shop+=Math.max(0,(p.ovr||0)-62)*.35+7;
+ if(dir==='Cut Payroll')shop+=playerSalary(p)*.9+Math.max(0,Number(p.age||0)-28)*.5;
+ if(dir==='Contend Now'&&(p.ovr||0)<66)shop+=4;
+ shop-=Math.max(0,(p.pot||p.ovr||0)-(p.ovr||0))*.25;
+ return shop;
+}
+function bestAITradePackage(buyer,seller,target){
+ ensureDraftPickAssets();
+ const targetVal=advancedPlayerTradeValue(target,buyer);
+ const buyerRoster=teamRoster(buyer.name).filter(p=>!p.retired&&!p.deferredEntry&&p.id!==target.id);
+ const expendable=buyerRoster.map(p=>({p,keep:aiKeepScore(buyer,p),value:advancedPlayerTradeValue(p,seller)}))
+   .filter(x=>x.keep<aiKeepScore(buyer,target)+4)
+   .sort((a,b)=>a.keep-b.keep||b.value-a.value);
+ const picks=teamDraftPicks(buyer.id).slice().sort((a,b)=>draftPickValue(b)-draftPickValue(a));
+ let best=null;
+ const consider=(players,pickList)=>{
+   const value=players.reduce((s,p)=>s+advancedPlayerTradeValue(p,seller),0)+pickList.reduce((s,p)=>s+draftPickValue(p),0);
+   if(value<targetVal*.90||value>targetVal*1.45)return;
+   const fitGain=aiPlayerFitScore(buyer,target)-players.reduce((s,p)=>s+aiPlayerFitScore(buyer,p),0)/Math.max(1,players.length);
+   if(fitGain<2)return;
+   const waste=Math.abs(value-targetVal)+players.length*1.5+pickList.length;
+   if(!best||waste<best.waste)best={players,picks:pickList,value,waste};
+ };
+ expendable.slice(0,8).forEach(x=>consider([x.p],[]));
+ expendable.slice(0,8).forEach(x=>picks.slice(0,4).forEach(pk=>consider([x.p],[pk])));
+ picks.slice(0,5).forEach(pk=>consider([],[pk]));
+ for(let i=0;i<Math.min(6,expendable.length);i++)for(let j=i+1;j<Math.min(7,expendable.length);j++)consider([expendable[i].p,expendable[j].p],[]);
+ return best;
+}
+function runAIDeadlineTrades(){
+ ensureFrontOffice();refreshAIRosterPlans();ensureDraftPickAssets();
+ if(state.season?.aiDeadlineTradesRun)return [];
+ if(state.season)state.season.aiDeadlineTradesRun=true;
+ const controlled=state.role==='GM'?currentControlledTeam():null;
+ const sellers=state.teams.filter(t=>!(controlled&&t.id===controlled.id)).filter(t=>['Build for the Future','Cut Payroll'].includes(state.frontOffice.teamDirections[t.id]));
+ const buyers=state.teams.filter(t=>!(controlled&&t.id===controlled.id)).filter(t=>state.frontOffice.teamDirections[t.id]==='Contend Now'||(state.frontOffice.teamDirections[t.id]==='Balanced'&&teamWinPctNow(t)>.53));
+ const used=new Set(),moves=[];
+ const targets=[];
+ sellers.forEach(seller=>teamRoster(seller.name).filter(p=>!p.retired&&!p.deferredEntry).forEach(p=>{
+   const score=aiTradeCandidateScore(seller,p);
+   if(score>=7&&((p.ovr||0)>=66||(p.age||0)>=29))targets.push({seller,p,score});
+ }));
+ targets.sort((a,b)=>b.score-a.score||(b.p.ovr||0)-(a.p.ovr||0));
+ for(const item of targets){
+   if(moves.length>=4)break;
+   if(used.has(item.seller.id)||used.has(item.p.id))continue;
+   const rankedBuyers=buyers.filter(b=>b.id!==item.seller.id&&!used.has(b.id)).map(b=>({b,fit:aiPlayerFitScore(b,item.p)+teamNeedForPlayer(b,item.p)})).sort((a,b)=>b.fit-a.fit);
+   for(const rb of rankedBuyers){
+     const buyer=rb.b,pack=bestAITradePackage(buyer,item.seller,item.p);if(!pack)continue;
+     const sellerIncomingFit=pack.players.length?pack.players.reduce((s,p)=>s+aiPlayerFitScore(item.seller,p),0)/pack.players.length:0;
+     const pickValue=pack.picks.reduce((s,p)=>s+draftPickValue(p),0);
+     if(sellerIncomingFit+pickValue < advancedPlayerTradeValue(item.p,item.seller)*.72)continue;
+     const oldSeller=item.seller.name;
+     pack.players.forEach(p=>p.teamName=oldSeller);
+     pack.picks.forEach(pk=>pk.ownerTeamId=item.seller.id);
+     item.p.teamName=buyer.name;
+     const assets=[...pack.players.map(p=>p.name),...pack.picks.map(pk=>`${pk.year} ${pk.round===1?'1st':'2nd'}-round pick`)];
+     const line=`${buyer.name} acquired ${item.p.name} from ${item.seller.name} for ${assets.join(' + ')}.`;
+     moves.push(line);used.add(buyer.id);used.add(item.seller.id);used.add(item.p.id);
+     (state.tradeLog||(state.tradeLog=[])).push(line);
+     state.frontOffice.transactions.unshift({year:state.currentYear,text:line});
+     state.news.push({year:state.currentYear,title:'Trade',text:line});
+     break;
+   }
+ }
+ if(!moves.length)state.news.push({year:state.currentYear,title:'Trade deadline activity',text:'Teams explored deadline deals, but no proposal met both clubs\' roster and value requirements.'});
+ return moves;
+}
+
+function runLeagueReSigningsAI(){
+ ensureFrontOffice();refreshAIRosterPlans();
  const controlled=state.role==='GM'?currentControlledTeam():null;
  const results=[];
  state.teams.forEach(team=>{
@@ -6253,7 +6411,7 @@ function runLeagueReSigningsAI(){
      const market=contractMarketAnnual(p);
      const payroll=teamPayroll(team.name)-playerSalary(p);
      const dir=state.frontOffice.teamDirections[team.id]||'Balanced';
-     let keep=(p.ovr||0)>=70 || ((p.age||99)<=26&&(p.pot||0)>=74);
+     let keep=aiKeepScore(team,p)>=66 || (p.ovr||0)>=76 || ((p.age||99)<=25&&(p.pot||0)>=75);
      if(dir==='Build for the Future'&&(p.age||0)>30&&(p.ovr||0)<82)keep=false;
      if(dir==='Contend Now'&&(p.ovr||0)>=68)keep=true;
      if(!keep){if(qualifyingOfferEligible(p))state.frontOffice.rfaRights[p.id]=team.id;return;}
@@ -6269,12 +6427,10 @@ function runLeagueReSigningsAI(){
  if(results.length)state.news.push({year:state.currentYear+1,title:'Re-signings',text:`${results.length} veterans stayed with their teams before open free agency.`});
 }
 function teamPositionNeedScore(team,p){
- const roster=teamRoster(team.name);
- const same=roster.filter(x=>x.pos===p.pos).length;
- return Math.max(-4,5-same*1.5);
+ return teamNeedForPlayer(team,p)*.55;
 }
 function runRosterCutsAI(){
- ensureFrontOffice();
+ ensureFrontOffice();refreshAIRosterPlans();
  const limit=rosterLimitForYear(state.currentYear+1);
  const controlled=state.role==='GM'?currentControlledTeam():null;
  const rows=[];
@@ -6283,8 +6439,8 @@ function runRosterCutsAI(){
    let roster=teamRoster(team.name);
    if(roster.length>limit){
      const cutCount=roster.length-limit;
-     const cuts=roster.slice().sort((a,b)=>rosterValue(a)-rosterValue(b)).slice(0,cutCount);
-     cuts.forEach(p=>{p.teamName='Free Agent';p.contract={years:0,salary:0};p.faEligible=true;if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);});
+     const cuts=roster.slice().sort((a,b)=>aiKeepScore(team,a)-aiKeepScore(team,b)).slice(0,cutCount);
+     cuts.forEach(p=>{p.previousTeamName=team.name;p.teamName='Free Agent';p.contract={years:0,salary:0};p.faEligible=true;if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);});
    }
    rows.push({team:team.name,count:teamRoster(team.name).length,limit});
  });
@@ -6330,7 +6486,7 @@ function finalizeFreeAgentSigning(p,team,years,salary,sourceLabel){
 }
 function runFreeAgencyAI(){
  if(!state.offseason.freeAgents.length)openFreeAgency();
- ensureFrontOffice();
+ ensureFrontOffice();refreshAIRosterPlans();
  let moves=[];
  const controlled=state.role==='GM'?currentControlledTeam():null;
  const pool=state.offseason.freeAgents.map(pid=>playerById(pid)).filter(p=>p&&!p.retired&&p.teamName==='Free Agent').sort((a,b)=>(b.ovr||0)-(a.ovr||0));
@@ -6340,9 +6496,11 @@ function runFreeAgencyAI(){
      const payroll=teamPayroll(team.name),room=Number(state.frontOffice.cap||100)-payroll;
      if(state.leagueRules?.salaryCap&&room<Math.max(1,market*.82))return null;
      const dir=state.frontOffice.teamDirections[team.id]||'Balanced';
-     let fit=teamPositionNeedScore(team,p);
-     fit+=(dir==='Contend Now'?(p.ovr||0)*.045:dir==='Build for the Future'?(p.pot||p.ovr||0)*.04-(p.age||27)*.05:0);
-     fit+=teamPlayerPower(team.name)*.025;
+     let fit=aiPlayerFitScore(team,p)+teamPositionNeedScore(team,p);
+     if(dir==='Contend Now'&&(p.ovr||0)>=72)fit+=4;
+     if(dir==='Build for the Future'&&(p.age||99)<=25)fit+=4;
+     if(dir==='Cut Payroll'&&market>6)fit-=7;
+     fit+=teamPlayerPower(team.name)*.012;
      const noise=(parseInt(hashlibCompat(`${p.id}|${team.id}|fa|${state.currentYear}`).slice(0,4),16)/65535)*2.5;
      return {team,fit:fit+noise,room};
    }).filter(Boolean).sort((a,b)=>b.fit-a.fit);
@@ -7101,8 +7259,12 @@ function renderLeagueOffice(){
       <button onclick="commissionerRename('${t.id}')">Rename / Rebrand</button>`:"<span class='muted small'>Commissioner controls unavailable in this role.</span>"}
     </div>
    </div>`;
- document.getElementById("teamDirectionBox").innerHTML=state.teams.map(x=>`
-   <div class="teamrow"><div class="teammeta"><b>${x.name}</b><span class="small muted">${state.teamDirections[x.id]}</span></div></div>`).join("");
+ refreshAIRosterPlans();
+ document.getElementById("teamDirectionBox").innerHTML=state.teams.map(x=>{
+   const plan=state.frontOffice.aiRosterPlans?.[x.id]||{};
+   const dir=state.frontOffice.teamDirections?.[x.id]||state.teamDirections[x.id]||"Balanced";
+   return `<div class="teamrow"><div class="teammeta"><b>${x.name}</b><span class="small muted">${dir} · Priority: ${plan.biggestNeed||"Balanced depth"}</span></div></div>`;
+ }).join("");
  let roster=rosterFor(t.name).filter(p=>!p.retired).sort((a,b)=>b.ovr-a.ovr);
  document.getElementById("contractsBox").innerHTML=
  `<div class="contractRow small muted"><div>Player</div><div>OVR</div><div>Years</div><div class="hideTiny">Salary</div></div>`+
@@ -7132,40 +7294,18 @@ window.commissionerRename=function(tid){
  renderAll();saveState();
 }
 function updateTeamDirections(){
- initManagementIfNeeded();
+ initManagementIfNeeded();ensureFrontOffice();refreshAIRosterPlans();
  state.teams.forEach(t=>{
-   let r=rosterFor(t.name).filter(p=>!p.retired);
-   let avgAge=r.length?r.reduce((s,p)=>s+(p.age||25),0)/r.length:25;
-   let power=teamPlayerPower(t.name);
-   let dir="Balanced";
-   if(power>=73)dir="Contend";
-   else if(power<63 || avgAge<24)dir="Rebuild";
-   state.teamDirections[t.id]=dir;
+   const dir=state.frontOffice.teamDirections[t.id]||"Balanced";
+   state.teamDirections[t.id]=dir==='Contend Now'?'Contend':dir==='Build for the Future'?'Rebuild':dir;
  });
 }
 function generateTradeActivity(){
- initManagementIfNeeded();updateTeamDirections();
- let contenders=state.teams.filter(t=>state.teamDirections[t.id]==="Contend");
- let rebuilders=state.teams.filter(t=>state.teamDirections[t.id]==="Rebuild");
- let moves=[];
- for(let i=0;i<Math.min(3,contenders.length,rebuilders.length);i++){
-   let buyer=contenders[i],seller=rebuilders[(i*2)%rebuilders.length];
-   let sellRoster=rosterFor(seller.name).filter(p=>!p.retired && p.age>=27).sort((a,b)=>b.ovr-a.ovr);
-   let buyRoster=rosterFor(buyer.name).filter(p=>!p.retired).sort((a,b)=>contractValue(a)-contractValue(b));
-   if(!sellRoster.length||!buyRoster.length)continue;
-   let target=sellRoster[0],out=buyRoster[0];
-   if(Math.abs(contractValue(target)-contractValue(out))>22)continue;
-   target.teamName=buyer.name;out.teamName=seller.name;
-   let line=`${buyer.name} acquired ${target.name} from ${seller.name} for ${out.name}.`;
-   moves.push(line);state.tradeLog.push(line);
-   state.news.push({year:state.currentYear,title:"Trade",text:line});
- }
- if(!moves.length){
-   const line="Teams discussed trades, but no deal met both clubs' valuation thresholds.";
-   state.tradeLog.push(line);moves.push(line);
- }
+ initManagementIfNeeded();ensureFrontOffice();
+ if(state.season)state.season.aiDeadlineTradesRun=false;
+ const moves=runAIDeadlineTrades();
  renderAll();saveState();
- alert(moves.join("\n\n"));
+ alert(moves.length?moves.join("\n\n"):"Teams discussed trades, but no deal met both clubs' roster and value requirements.");
 }
 document.getElementById("generateTradesBtn").onclick=generateTradeActivity;
 document.addEventListener("change",e=>{
@@ -8376,11 +8516,13 @@ function ensureFrontOffice(){
    rfaRights:{},
    capExceptions:{},
    tradeCounter:null,
+   aiRosterPlans:{},
    tradeBuilder:{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]}
  };
  state.frontOffice.tradeBuilder=state.frontOffice.tradeBuilder||{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
  state.frontOffice.rfaRights=state.frontOffice.rfaRights||{};
  state.frontOffice.capExceptions=state.frontOffice.capExceptions||{};
+ state.frontOffice.aiRosterPlans=state.frontOffice.aiRosterPlans||{};
  if(state.frontOffice.tradeCounter===undefined)state.frontOffice.tradeCounter=null;
  if(!state.freeAgents)state.freeAgents=[];
 }
@@ -9957,6 +10099,7 @@ function maybeTriggerMilestones(){
  if(avg>=58 && !state.season.markers.deadline){
    state.season.markers.deadline=true;
    state.news.push({year:state.currentYear,title:"Trade deadline",text:"The trade deadline has arrived."});
+   safeTransitionStep("AI trade deadline",()=>runAIDeadlineTrades());
    if(state.role==="Commissioner") addRoleDecision("Trade deadline league review","The deadline has passed. The league office must decide whether any pending transaction or competitive-balance concern requires review.",["Approve all completed business","Review unusual transactions","Open competitive-balance review"]);
    if(state.role==="Owner") addRoleDecision("Deadline ownership posture","Your GM asks whether ownership will authorize additional spending for a late-season push.",["Authorize spending","Hold budget","Reduce costs"]);
    if(state.role==="GM") addRoleDecision("Trade deadline","The deadline is here. Choose your front office posture.",["Buy","Sell","Stand pat"]);

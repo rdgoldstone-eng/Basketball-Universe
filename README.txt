@@ -1,21 +1,23 @@
-v0.72 Basketball Universe — Draft Rights & Undrafted Pathways
+v0.73 Basketball Universe — AI Roster Intelligence
 
-Viewer remains the main development/testing mode. GM is still under construction.
+This build continues the GM foundation by improving how AI teams build and manage rosters. Viewer remains the recommended development/test mode until a role is explicitly marked ready.
 
-CORE FIXES
-- Draft-and-stash / deferred players no longer occupy an active NBA roster before they arrive.
-- Drafted deferred players are stored as Draft Rights, with the drafting franchise retaining their rights.
-- Deferred players cannot accidentally enter normal free agency before their eligibility year.
-- Deferred rookies do not receive an NBA contract until they actually join the team.
-- When the eligibility year arrives, drafted-rights players join the franchise that owns their rights, even if the team has since changed its displayed identity.
-- If an undrafted prospect has a future arrival/eligibility year, he remains an Unsigned Prospect outside the NBA rather than incorrectly becoming a free agent immediately.
-- When that undrafted prospect becomes eligible, he enters the free-agent pool.
-- Ordinary undrafted players still become free agents immediately after the draft.
-- Old saves with deferred players are repaired on load so they no longer count against active rosters.
+NEW / IMPROVED
+- AI teams now evaluate roster balance by Guard / Wing / Big groups rather than exact-position counts alone.
+- Each AI team builds a current roster plan with a competitive direction and biggest positional need.
+- Team direction considers record, roster power, age, youth/upside, payroll and cap pressure.
+- Re-signing logic now considers whether a player actually fits the roster and competitive window.
+- Free-agency logic now weighs positional need, contender/rebuild status, age, potential, roster quality and payroll strategy.
+- Training-camp cuts now preserve useful positional depth and fit instead of simply cutting the lowest raw-value players.
+- AI trade-deadline activity now seeks mutually useful deals between contenders and sellers.
+- Rebuilding/payroll-cutting teams are more likely to shop older veterans and roster surpluses.
+- Contenders favor players who solve real roster needs.
+- AI trade packages can include players and draft picks and must clear value/fit thresholds for both clubs.
+- The League Office team-direction list now displays each team's roster priority for easier universe inspection.
 
-GM / FRONT OFFICE
-- Added a Draft Rights panel showing deferred prospects owned by the controlled franchise.
-- The panel shows draft year, pick, position and expected NBA eligibility year.
+ROLE STATUS
+- Viewer: development baseline
+- GM: still under construction; do not begin the dedicated GM role test yet.
 
-WHY THIS MATTERS
-This fixes the Larry Bird / David Robinson / Toni Kukoc / Manu Ginobili type pathway and prevents historical or alternate draft-rights players from being treated like ordinary NBA free agents while they are still unavailable.
+NEXT
+The next GM work should focus on a coherent rotation/depth-chart layer, transaction consequences, and making draft/free-agency/trade decisions connect to that depth chart rather than operating as separate systems.
