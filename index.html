@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82 · GM Full-Loop Integration</div>
+    <div class="pill">v0.82.1 · Draft Room Launch Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -5900,7 +5900,16 @@ function renderSubNavigation(group,activeTab){
    const displayLabel=(tab==="decisions" && state && !viewerMode())?`${label} (${(state.decisions||[]).filter(d=>!d.resolved).length})`:label;
    return `<button data-subtab="${tab}" class="${tab===activeTab?"active":""}">${displayLabel}</button>`;
  }).join("");
- sub.querySelectorAll("button").forEach(btn=>{btn.onclick=()=>switchTab(btn.dataset.subtab);});
+ sub.querySelectorAll("button").forEach(btn=>{
+   btn.onclick=()=>{
+     const tab=btn.dataset.subtab;
+     if(tab==="draftroom" && draftCalendarOpen()){
+       openScheduledDraftRoom();
+       return;
+     }
+     switchTab(tab);
+   };
+ });
 }
 
 function updateNavigationForTab(tab){
@@ -9650,7 +9659,7 @@ function draftCalendarOpen(){
  return !!(state?.offseason && state.offseason.phase==="Draft");
 }
 function updateDraftRoomNav(){
- let btn=document.querySelector('.nav button[data-tab="draftroom"]');
+ let btn=document.querySelector('#subNav button[data-subtab="draftroom"], .nav button[data-tab="draftroom"]');
  if(!btn||!state)return;
  let open=draftCalendarOpen()||state.draftRoom?.active;
  btn.disabled=!open;
@@ -12637,6 +12646,73 @@ renderFrontOffice=function(){
   el.innerHTML=renderGMIntegrationV082();
 };
 window.renderFrontOffice=renderFrontOffice;
+
+
+
+/* === v0.82.1 Draft Room Launch Fix === */
+function repairDraftRoomStateV0821(){
+  ensureDraftRoom();
+  const dr=state.draftRoom;
+  if(!Array.isArray(dr.order))dr.order=[];
+  if(!Array.isArray(dr.available))dr.available=[];
+  if(!Array.isArray(dr.results))dr.results=[];
+  if(!Array.isArray(dr.tradeOffers))dr.tradeOffers=[];
+  if(!Number.isFinite(dr.pickIndex))dr.pickIndex=0;
+
+  // A save can reach the Draft stage with an empty/incomplete room. Rebuild it.
+  if(draftCalendarOpen() && !dr.completed &&
+     (!dr.active || !dr.order.length || !dr.available.length)){
+    startDraftRoom();
+    return true;
+  }
+  return false;
+}
+
+const _v0821SwitchTab = switchTab;
+switchTab = function(tab){
+  if(tab==="draftroom" && state){
+    try{
+      if(draftCalendarOpen()){
+        repairDraftRoomStateV0821();
+      }
+    }catch(err){
+      console.error("Draft Room launch repair failed:",err);
+    }
+  }
+  const result=_v0821SwitchTab.apply(this,arguments);
+  if(tab==="draftroom"){
+    try{renderDraftRoom();}catch(err){console.error("Draft Room render failed:",err);}
+  }
+  return result;
+};
+window.switchTab=switchTab;
+
+const _v0821OpenScheduledDraftRoom=openScheduledDraftRoom;
+openScheduledDraftRoom=function(){
+  if(!draftCalendarOpen())return false;
+  try{
+    repairDraftRoomStateV0821();
+  }catch(err){
+    console.error("Draft Room initialization failed:",err);
+    alert("The Draft Room could not initialize. Reload the page once; your save has not been deleted.");
+    return false;
+  }
+  updateDraftRoomNav();
+  _v0821SwitchTab("draftroom");
+  renderDraftRoom();
+  saveState();
+  return true;
+};
+window.openScheduledDraftRoom=openScheduledDraftRoom;
+
+function forceOpenDraftRoomV0821(){
+  if(!draftCalendarOpen()){
+    alert("The Draft Room opens when the offseason reaches the Draft stage.");
+    return;
+  }
+  openScheduledDraftRoom();
+}
+window.forceOpenDraftRoomV0821=forceOpenDraftRoomV0821;
 
 </script>
 </body>
