@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.5 · Re-Signings Flow Fix</div>
+    <div class="pill">v0.82.7 · Offseason Finish Flow</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -13549,6 +13549,395 @@ setTimeout(()=>{
       saveState();
     }
   }catch(e){console.error("v0.82.5 load repair",e);}
+},0);
+
+
+
+/* === v0.82.6 Draft State Repair ===
+   Fixes saves where the Draft Room visibly has an order/prospects but
+   draftRoom.active was incorrectly false. */
+function repairDraftActivityV0826(){
+  ensureDraftRoom();
+  const dr=state.draftRoom;
+  const hasOrder=Array.isArray(dr.order)&&dr.order.length>0;
+  const hasProspects=Array.isArray(dr.available)&&dr.available.length>0;
+  const idx=Number(dr.pickIndex||0);
+  const picksRemain=hasOrder && idx<dr.order.length;
+
+  // If the room contains a real unfinished draft, it is active regardless of
+  // a stale active/completed flag from an earlier build.
+  if(picksRemain && hasProspects){
+    dr.active=true;
+    dr.completed=false;
+    if(state.offseason){
+      state.offseason.draftComplete=false;
+      // If an older bug advanced the offseason early, put the calendar back
+      // on Draft so the user can actually finish it.
+      const draftIdx=state.offseason.phases?.indexOf("Draft");
+      const currentIdx=Number(state.offseason.phaseIndex||0);
+      if(draftIdx>=0 && currentIdx>draftIdx && !state.offseason.processed?.["Draft"]){
+        state.offseason.phaseIndex=draftIdx;
+        state.offseason.phase="Draft";
+      }
+    }
+    return {repaired:true,reason:"unfinished draft restored"};
+  }
+
+  // If there is no initialized order while the calendar is on Draft, build it.
+  if(draftCalendarOpen() && (!hasOrder || !hasProspects) && !dr.completed){
+    startDraftRoom();
+    return {repaired:true,reason:"draft rebuilt"};
+  }
+
+  // Completed means every order slot is used or there are no prospects left.
+  if((hasOrder && idx>=dr.order.length) || (hasOrder && !hasProspects)){
+    dr.active=false;
+    dr.completed=true;
+    if(state.offseason)state.offseason.draftComplete=true;
+  }
+
+  return {repaired:false};
+}
+
+const _v0826ExecuteDraftPick = executeDraftPickV0824;
+executeDraftPickV0824=function(prospectId=null){
+  repairDraftActivityV0826();
+  return _v0826ExecuteDraftPick(prospectId);
+};
+window.executeDraftPickV0824=executeDraftPickV0824;
+
+const _v0826SimOne=simOneDraftPickV0824;
+simOneDraftPickV0824=function(){
+  const rep=repairDraftActivityV0826();
+  if(rep.repaired){
+    try{saveState();}catch(_){}
+    try{renderDraftRoom();}catch(_){}
+  }
+  return _v0826SimOne();
+};
+window.simOneDraftPickV0824=simOneDraftPickV0824;
+
+const _v0826SimRest=simRestDraftV0824;
+simRestDraftV0824=function(){
+  const rep=repairDraftActivityV0826();
+  if(rep.repaired){
+    try{saveState();}catch(_){}
+    try{renderDraftRoom();}catch(_){}
+  }
+  return _v0826SimRest();
+};
+window.simRestDraftV0824=simRestDraftV0824;
+
+/* Re-render Draft Room from the repaired state so stale "on the clock" UI
+   cannot disagree with draftRoom.active. */
+const _v0826RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  try{repairDraftActivityV0826();}catch(e){console.warn("Draft state repair skipped",e);}
+  _v0826RenderDraftRoom();
+};
+window.renderDraftRoom=renderDraftRoom;
+
+const _v0826OpenDraftRoom=openScheduledDraftRoom;
+openScheduledDraftRoom=function(){
+  ensureDraftRoom();
+  repairDraftActivityV0826();
+  if(!draftCalendarOpen() && !state.draftRoom.active && !state.draftRoom.completed)return false;
+  if(!state.draftRoom.active && !state.draftRoom.completed)startDraftRoom();
+  updateDraftRoomNav();
+  switchTab("draftroom");
+  renderDraftRoom();
+  saveState();
+  return true;
+};
+window.openScheduledDraftRoom=openScheduledDraftRoom;
+
+/* Repair the currently loaded save immediately. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    const r=repairDraftActivityV0826();
+    if(r.repaired){
+      saveState();
+      if(document.getElementById("draftRoomTitle"))renderDraftRoom();
+      if(state.season?.phase==="Season Complete")renderOffseason();
+    }
+  }catch(e){console.error("v0.82.6 draft-state load repair",e);}
+},0);
+
+
+
+/* === v0.82.7 Offseason Finish Flow ===
+   Repairs Viewer-mode Free Agency, Roster Cuts, stale action buttons,
+   and the handoff into the next season. */
+
+function ensureViewerFreeAgencyV0827(){
+  ensureFrontOffice();
+  state.offseason=state.offseason||{};
+  state.offseason.processed=state.offseason.processed||{};
+  state.offseason.faResults=Array.isArray(state.offseason.faResults)?state.offseason.faResults:[];
+}
+
+function fastViewerFreeAgencyV0827(){
+  ensureViewerFreeAgencyV0827();
+  if(state.offseason.processed["Free Agency"])return state.offseason.faResults;
+
+  // Build the pool without the heavy AI roster-plan refresh.
+  let pool=(state.players||[]).filter(p=>
+    !p.retired &&
+    !p.deferredEntry &&
+    (p.teamName==="Free Agent" || p.faEligible || Number(p.contract?.years||0)===0)
+  );
+
+  pool.forEach(p=>{
+    if(p.teamName!=="Free Agent")p.previousTeamName=p.teamName;
+    p.teamName="Free Agent";
+    p.faEligible=true;
+    p.faStatus=p.faStatus||"Unrestricted Free Agent";
+  });
+
+  state.freeAgents=state.freeAgents||[];
+  pool.forEach(p=>{ if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id); });
+  state.offseason.freeAgents=pool.map(p=>p.id);
+
+  const results=[];
+  const teams=(state.teams||[]).filter(t=>!t.defunct);
+
+  pool.slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).forEach(p=>{
+    const ovr=Number(p.ovr||60);
+    const pot=Number(p.pot||ovr);
+    const age=Number(p.age||27);
+    const market=Math.max(1,Math.round((Math.max(0,ovr-55)*.70+Math.max(0,pot-ovr)*.12+1)*10)/10);
+
+    let best=null,bestScore=-9999;
+    teams.forEach(team=>{
+      if(!canAddPlayerToRoster(team).ok)return;
+      const roster=teamRoster(team.name);
+      const payroll=teamPayroll(team.name);
+      const cap=Number(state.frontOffice.cap||100);
+
+      if(state.leagueRules?.salaryCap && payroll+market>cap*1.10 && ovr<78)return;
+
+      const group=positionGroup(p.pos);
+      const guards=roster.filter(x=>positionGroup(x.pos)==="Guard").length;
+      const wings=roster.filter(x=>positionGroup(x.pos)==="Wing").length;
+      const bigs=roster.filter(x=>positionGroup(x.pos)==="Big").length;
+      let need=0;
+      if(group==="Guard" && guards<5)need=8;
+      if(group==="Wing" && wings<5)need=8;
+      if(group==="Big" && bigs<4)need=8;
+
+      const avgAge=roster.length?roster.reduce((s,x)=>s+Number(x.age||27),0)/roster.length:27;
+      let score=ovr*.78+pot*.15+need-market*.95;
+      if(avgAge>29 && age<=26)score+=3;
+      if(ovr>=76)score+=6;
+      score += ((parseInt(hashlibCompat(`${p.id}|${team.id}|v0827`).slice(0,4),16)%1000)/1000)*4;
+
+      if(score>bestScore){bestScore=score;best=team;}
+    });
+
+    // Lower-end players can remain unsigned.
+    if(!best || (ovr<60 && bestScore<49))return;
+
+    const years=age>=32?1:age<=25?4:(age>=29?2:3);
+    const salary=Math.max(1,Math.round(market*(.92+((ovr%7)/100))*10)/10);
+
+    p.teamName=best.name;
+    p.contract={years,salary,expires:state.currentYear+years};
+    p.faEligible=false;
+    p.faStatus=null;
+    p.contractStatus="Under Contract";
+    state.freeAgents=state.freeAgents.filter(id=>id!==p.id);
+    results.push(`${p.name} → ${best.name} (${years}y, $${salary.toFixed(1)}M/yr)`);
+  });
+
+  state.offseason.faResults=results;
+  state.offseason.processed["Free Agency"]=true;
+  state.news=state.news||[];
+  state.news.push({
+    year:state.currentYear+1,
+    title:"Free agency complete",
+    text:`${results.length} free-agent signing${results.length===1?"":"s"} completed.`
+  });
+  return results;
+}
+
+function fastViewerRosterCutsV0827(){
+  state.offseason.processed=state.offseason.processed||{};
+  if(state.offseason.processed["Roster Cuts"] && Array.isArray(state.offseason.rosterCuts)){
+    return state.offseason.rosterCuts;
+  }
+
+  const limit=rosterLimitForYear(state.currentYear+1);
+  const rows=[];
+
+  (state.teams||[]).filter(t=>!t.defunct).forEach(team=>{
+    let roster=teamRoster(team.name);
+
+    if(roster.length>limit){
+      roster.slice().sort((a,b)=>{
+        const keep=x=>Number(x.ovr||0)*.75+Number(x.pot||x.ovr||0)*.20-
+          Math.max(0,Number(x.age||27)-31)*1.3-
+          Number(x.contract?.salary||0)*.10;
+        return keep(a)-keep(b);
+      }).slice(0,roster.length-limit).forEach(p=>{
+        p.previousTeamName=team.name;
+        p.teamName="Free Agent";
+        p.contract={years:0,salary:0};
+        p.faEligible=true;
+        p.faStatus="Free Agent";
+        state.freeAgents=state.freeAgents||[];
+        if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+      });
+    }
+
+    rows.push({team:team.name,count:teamRoster(team.name).length,limit});
+  });
+
+  state.offseason.rosterCuts=rows;
+  state.offseason.processed["Roster Cuts"]=true;
+  return rows;
+}
+
+function viewerFreeAgencyDetailV0827(){
+  const moves=state.offseason?.faResults||[];
+  const unsigned=(state.freeAgents||[]).map(id=>playerById(id)).filter(Boolean);
+  return `<div class="offseasonMechanism">
+    <b>Free agency ${state.offseason?.processed?.["Free Agency"]?"complete":"ready"}</b><br>
+    <span class="small">${moves.length} signing${moves.length===1?"":"s"} completed. ${unsigned.length} player${unsigned.length===1?"":"s"} remain unsigned.</span>
+  </div>
+  ${moves.length?moves.slice(0,100).map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join(""):`<div class="small muted">No free-agent signings were completed.</div>`}`;
+}
+
+function viewerRosterCutsDetailV0827(){
+  const rows=state.offseason?.rosterCuts||[];
+  return `<div class="offseasonMechanism"><b>Roster cuts ${state.offseason?.processed?.["Roster Cuts"]?"complete":"ready"}</b><br>
+    <span class="small">Teams are trimmed to the ${rosterLimitForYear(state.currentYear+1)}-player roster limit.</span></div>
+    ${rows.map(x=>`<div class="teamrow"><div class="teammeta"><b>${x.team}</b><span class="small muted">${x.count}/${x.limit} players</span></div></div>`).join("")}`;
+}
+
+/* Make these detail pages useful in Viewer instead of just opening Front Office. */
+const _v0827StageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  if(step==="Free Agency" && state.role!=="GM"){
+    if(step===state.offseason?.phase && !state.offseason?.processed?.["Free Agency"]){
+      fastViewerFreeAgencyV0827();
+    }
+    return viewerFreeAgencyDetailV0827();
+  }
+  if(step==="Roster Cuts" && state.role!=="GM"){
+    if(step===state.offseason?.phase && !state.offseason?.processed?.["Roster Cuts"]){
+      fastViewerRosterCutsV0827();
+    }
+    return viewerRosterCutsDetailV0827();
+  }
+  return _v0827StageDetail(step);
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+/* One hard current-stage action path for the rest of Viewer offseason. */
+const _v0827AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(!state?.offseason)initOffseason();
+  ensureOffseasonWorkflowV0822();
+  const p=state.offseason.phase;
+
+  if(state.role!=="GM" && p==="Free Agency"){
+    try{
+      fastViewerFreeAgencyV0827();
+      state.offseason.phaseIndex++;
+      state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+      saveState();
+      renderAll();
+      switchTab("offseason");
+      renderOffseason();
+      viewOffseasonStep(state.offseason.phase);
+    }catch(e){
+      console.error("Viewer free agency flow error",e);
+      const box=document.getElementById("offseasonDetailBox");
+      if(box)box.innerHTML=`<div class="notice danger"><b>Free Agency error:</b><br>${String(e?.message||e)}</div>`;
+    }
+    return;
+  }
+
+  if(state.role!=="GM" && p==="Roster Cuts"){
+    try{
+      fastViewerRosterCutsV0827();
+      state.offseason.phaseIndex++;
+      state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+      saveState();
+      renderAll();
+      switchTab("offseason");
+      renderOffseason();
+      viewOffseasonStep(state.offseason.phase);
+    }catch(e){
+      console.error("Viewer roster cuts flow error",e);
+      const box=document.getElementById("offseasonDetailBox");
+      if(box)box.innerHTML=`<div class="notice danger"><b>Roster Cuts error:</b><br>${String(e?.message||e)}</div>`;
+    }
+    return;
+  }
+
+  if(state.role!=="GM" && p==="Next Season"){
+    try{
+      beginNextSeason();
+      saveState();
+      renderAll();
+      switchTab("season");
+    }catch(e){
+      console.error("Next season flow error",e);
+      const box=document.getElementById("offseasonDetailBox");
+      if(box)box.innerHTML=`<div class="notice danger"><b>Next Season error:</b><br>${String(e?.message||e)}</div>`;
+    }
+    return;
+  }
+
+  return _v0827AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Always force the large action button to match the ACTUAL current phase.
+   This specifically removes stale labels such as "Retry Re-signings"
+   after the save has already moved to Free Agency. */
+const _v0827RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  _v0827RenderOffseason();
+  if(!state?.offseason)return;
+  const btn=document.getElementById("advanceOffseasonBtn");
+  if(!btn)return;
+
+  const p=state.offseason.phase;
+  btn.disabled=false;
+  btn.classList.remove("hidden");
+
+  if(p==="Draft"){
+    btn.classList.add("hidden");
+    return;
+  }
+  if(p==="Next Season"){
+    btn.textContent="Start Next Season";
+  }else{
+    const next=state.offseason.phases[state.offseason.phaseIndex+1];
+    btn.textContent=`Complete ${p}${next?` → ${next}`:""}`;
+  }
+  btn.onclick=()=>advanceOffseason();
+};
+window.renderOffseason=renderOffseason;
+
+/* Repair a save already showing Free Agency while the button still says Retry Re-signings. */
+setTimeout(()=>{
+  try{
+    if(state?.season?.phase==="Season Complete" && state?.offseason){
+      if(state.offseason.phase==="Free Agency" && state.role!=="GM"){
+        fastViewerFreeAgencyV0827();
+      }
+      if(state.offseason.phase==="Roster Cuts" && state.role!=="GM"){
+        fastViewerRosterCutsV0827();
+      }
+      renderOffseason();
+      viewOffseasonStep(state.offseason.phase);
+      saveState();
+    }
+  }catch(e){console.error("v0.82.7 load repair",e);}
 },0);
 
 </script>

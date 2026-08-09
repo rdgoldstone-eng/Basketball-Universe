@@ -1,21 +1,26 @@
 Basketball Universe
-v0.82.5 · Re-Signings Flow Fix
+v0.82.7 · Offseason Finish Flow
 
-BLOCKER FIX
-- Fixed Viewer mode getting stuck at Re-signings.
-- Re-signings now use a fast phone-friendly batch process instead of the heavier AI roster-planning path.
-- Players either re-sign or enter free agency in one pass.
-- The Re-signings detail panel now shows how many players stayed and how many entered free agency.
-- Existing saves already parked at Re-signings are repaired on load.
-- Complete Re-signings now advances directly to Free Agency.
-- GM mode still keeps its manual contract decisions; this Viewer repair does not automate a controlled GM roster.
-- Added visible error output if Re-signings itself fails instead of leaving the screen stuck.
+WHAT THIS FIXES
+- The screenshot showed Free Agency as the current task while the main button still said "Retry Re-signings."
+- The offseason action button is now forced to match the ACTUAL saved phase every time the screen renders.
+- Viewer Free Agency now runs through a fast phone-friendly league pass rather than the heavier AI roster-planning path.
+- Free Agency shows completed signings and how many players remain unsigned.
+- Complete Free Agency now advances directly to Roster Cuts.
+- Viewer Roster Cuts now run through a fast batch process and show each team's final roster count.
+- Complete Roster Cuts advances to Next Season.
+- Start Next Season now has its own direct Viewer path.
+- Existing saves already sitting on Free Agency or Roster Cuts repair themselves on load.
+- Includes the v0.82.6 draft-state repair as well.
 
 TEST
-Load the same save at Re-signings.
-You should immediately see a Re-signings summary.
-Tap "Complete Re-signings → Free Agency".
-The current highlighted offseason task should move to Free Agency.
+Use the same save from the screenshot.
+1. Free Agency should remain highlighted.
+2. The large yellow button should now say "Complete Free Agency → Roster Cuts."
+3. Tap it.
+4. Roster Cuts should highlight.
+5. Complete Roster Cuts → Next Season.
+6. Start Next Season.
 
 INSTALL
-Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.
+Upload index.html and README.txt to the GitHub Pages repository root.
