@@ -333,7 +333,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.65 · Realignment Era 2003–2018</div>
+    <div class="pill">v0.66 · Play-In Era 2019–Present</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -479,7 +479,12 @@ pre{white-space:pre-wrap}
   </section>
 
   <section id="season" class="section active">
-    <div class="card" id="seasonNewspaperCard" style="display:none">
+    
+    <div class="card" id="playInCard" style="display:none">
+      <div class="calendarline"><h2>Play-In Tournament</h2><span class="small muted" id="playInStatus"></span></div>
+      <div id="playInBox"></div>
+    </div>
+<div class="card" id="seasonNewspaperCard" style="display:none">
       <div class="calendarline"><h2>Season Chronicle</h2><span class="small muted" id="seasonNewspaperLabel"></span></div>
       <div id="seasonNewspaperBox"></div>
     </div>
@@ -4328,6 +4333,41 @@ const historicalCrossroadDefinitions=[
    id:"bucks_2018_arena",historicalYear:2018,title:"2018 Milwaukee Arena Resolution",franchiseNames:["Milwaukee Bucks"],
    description:"Milwaukee reaches the opening of its new downtown arena. If the 2014 ownership/arena plan held together, this should largely end the franchise's relocation danger.",
    choices:["Open the new Milwaukee arena","Delay completion and keep arena pressure alive"]
+ },
+ {
+   id:"nba_2019_playin_experiment",historicalYear:2019,title:"2019–20 Postseason Access Experiment",leagueEvent:true,
+   description:"The league reaches the first Play-In Era season. The alternate NBA can use the historical 8-vs-9 trigger as an experimental postseason access rule before deciding whether to broaden the concept.",
+   choices:["Use the conditional 8-vs-9 play-in","Keep the traditional 16-team bracket"]
+ },
+ {
+   id:"nba_2020_playin_710",historicalYear:2020,title:"2020–21 7–10 Play-In Tournament",leagueEvent:true,
+   description:"After the first play-in experiment, the league considers the modern format: seeds 7 and 8 receive two chances to qualify while seeds 9 and 10 must win twice.",
+   choices:["Adopt the 7–10 play-in for one season","Return to the traditional playoff field"]
+ },
+ {
+   id:"nba_2022_playin_permanent",historicalYear:2022,title:"2022 Permanent Play-In Vote",leagueEvent:true,
+   description:"The NBA reaches the historical vote that made the 7–10 Play-In Tournament a permanent part of the postseason structure.",
+   choices:["Make the Play-In Tournament permanent","End the Play-In experiment"]
+ },
+ {
+   id:"suns_2023_ownership",historicalYear:2023,title:"2023 Phoenix Suns Ownership Sale",franchiseNames:["Phoenix Suns"],
+   description:"Phoenix reaches the historical transfer to a new controlling ownership group. The sale can reset trust and spending appetite, or the current ownership can remain in this alternate universe.",
+   choices:["Approve a new ownership group","Keep current ownership","Seek a different buyer"]
+ },
+ {
+   id:"mavs_2023_ownership",historicalYear:2023,title:"2023 Dallas Mavericks Controlling Ownership Sale",franchiseNames:["Dallas Mavericks"],
+   description:"Dallas reaches the historical sale of controlling ownership while retaining continuity in basketball operations. This universe can approve the transaction or keep the existing ownership structure.",
+   choices:["Approve the controlling ownership sale","Keep current ownership","Approve a minority investment only"]
+ },
+ {
+   id:"clippers_2024_intuit",historicalYear:2024,title:"2024 Clippers New Arena",franchiseNames:["Los Angeles Clippers"],
+   description:"The Clippers reach the opening of their own Inglewood arena, ending decades of sharing a building with the Lakers and materially strengthening their Los Angeles position.",
+   choices:["Open the new Clippers arena","Delay the arena project"]
+ },
+ {
+   id:"nba_2026_expansion_exploration",historicalYear:2026,title:"2026 Seattle & Las Vegas Expansion Exploration",leagueEvent:true,
+   description:"The league reaches the modern expansion checkpoint: formally evaluating Seattle and Las Vegas as possible new NBA markets. This does not force expansion; league size, economics and market readiness decide whether to proceed.",
+   choices:["Explore both Seattle and Las Vegas","Explore Seattle only","Explore Las Vegas only","Do not pursue expansion"]
  }
 ];
 
@@ -4509,6 +4549,14 @@ function historicalCrossroadScore(def,team){
  if(def.id==="clippers_2014_ownership")return Math.round((70-m.trust)*.7+(65-m.stability)*.25+45);
  if(def.id==="kings_2016_arena")return Math.round((65-m.arena)*.8+(65-m.stability)*.4+m.relocationPressure*.4);
  if(def.id==="bucks_2018_arena")return Math.round((65-m.arena)*.9+(65-m.stability)*.35+m.relocationPressure*.35);
+
+ if(def.id==="nba_2019_playin_experiment")return 65;
+ if(def.id==="nba_2020_playin_710")return 72;
+ if(def.id==="nba_2022_playin_permanent")return 80;
+ if(def.id==="suns_2023_ownership")return Math.round((68-m.trust)*.7+(62-m.stability)*.25+45);
+ if(def.id==="mavs_2023_ownership")return Math.round((m.stability-55)*.2+(m.attendance-60)*.2+55);
+ if(def.id==="clippers_2024_intuit")return Math.round((68-m.arena)*.8+(m.attendance-55)*.2+55);
+ if(def.id==="nba_2026_expansion_exploration")return Math.round((m.attendance-60)*.45+(m.stability-60)*.4+(m.leagueTeams<=30?35:m.leagueTeams<=32?15:0));
 
  return 0;
 }
@@ -5124,6 +5172,85 @@ function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
      result="Arena completion slips, keeping pressure on the Bucks' long-term Milwaukee future.";cls="crossroadStayed";
    }
  }
+ else if(def.id==="nba_2019_playin_experiment"){
+   state.leagueRules=state.leagueRules||{};
+   if(choice==="Use the conditional 8-vs-9 play-in"){
+     state.leagueRules.playInEnabledFrom=2019;
+     result="The league launches the conditional 8-vs-9 Play-In experiment.";
+   }else{
+     state.leagueRules.playInDisabledYears=state.leagueRules.playInDisabledYears||[];
+     state.leagueRules.playInDisabledYears.push(2019);
+     result="The league keeps the traditional 16-team playoff field for 2019–20.";cls="crossroadStayed";
+   }
+ }else if(def.id==="nba_2020_playin_710"){
+   state.leagueRules=state.leagueRules||{};
+   if(choice==="Adopt the 7–10 play-in for one season"){
+     state.leagueRules.standardPlayInFrom=2020;
+     result="The league adopts the 7–10 Play-In format for 2020–21.";
+   }else{
+     state.leagueRules.playInDisabledYears=state.leagueRules.playInDisabledYears||[];
+     state.leagueRules.playInDisabledYears.push(2020);
+     result="The league returns to a direct 16-team playoff field.";cls="crossroadStayed";
+   }
+ }else if(def.id==="nba_2022_playin_permanent"){
+   state.leagueRules=state.leagueRules||{};
+   if(choice==="Make the Play-In Tournament permanent"){
+     state.leagueRules.playInPermanent=true;
+     result="The 7–10 Play-In becomes a permanent league rule.";
+   }else{
+     state.leagueRules.playInPermanent=false;
+     state.leagueRules.playInEnded=2022;
+     result="The league ends the Play-In experiment after 2021–22.";cls="crossroadStayed";
+   }
+ }else if(def.id==="suns_2023_ownership"){
+   if(choice==="Approve a new ownership group"){
+     crossroadSetOwnershipFlag(team,"newOwnership2023",true);
+     try{let o=ownerData(team.id);o.publicTrust=Math.min(100,Number(o.publicTrust||50)+25);o.cash=Number(o.cash||15)+25;o.patience=Math.max(55,Number(o.patience||50));}catch(e){}
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+18);
+     result="Phoenix approves a new controlling ownership group, improving franchise stability and spending capacity.";
+   }else if(choice==="Seek a different buyer"){
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.max(25,m.stability-5);
+     result="Phoenix rejects the first transaction and keeps searching for another buyer.";cls="crossroadStayed";
+   }else{
+     result="Phoenix keeps its existing ownership structure in this universe.";cls="crossroadStayed";
+   }
+ }else if(def.id==="mavs_2023_ownership"){
+   if(choice==="Approve the controlling ownership sale"){
+     crossroadSetOwnershipFlag(team,"newControllingOwnership2023",true);
+     try{let o=ownerData(team.id);o.cash=Number(o.cash||15)+30;o.publicTrust=Math.min(100,Number(o.publicTrust||50)+8);}catch(e){}
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].stability=Math.min(100,m.stability+12);
+     result="Dallas approves a new controlling ownership group while preserving basketball continuity.";
+   }else if(choice==="Approve a minority investment only"){
+     try{let o=ownerData(team.id);o.cash=Number(o.cash||15)+12;}catch(e){}
+     result="Dallas adds outside capital without transferring controlling ownership.";cls="crossroadStayed";
+   }else{
+     result="Dallas keeps its existing ownership structure.";cls="crossroadStayed";
+   }
+ }else if(def.id==="clippers_2024_intuit"){
+   if(choice==="Open the new Clippers arena"){
+     if(state.franchiseHealth?.[team.id]){state.franchiseHealth[team.id].stability=Math.min(100,m.stability+20);state.franchiseHealth[team.id].attendance=Math.min(100,m.attendance+8);state.franchiseHealth[team.id].relocationPressure=0;}
+     state.teamArenas=state.teamArenas||{};state.teamArenas[team.id]={name:"Clippers Arena",opened:2024,market:"Inglewood / Los Angeles"};
+     result="The Clippers open their own Inglewood arena and become substantially more secure in Los Angeles.";
+   }else{
+     if(state.franchiseHealth?.[team.id])state.franchiseHealth[team.id].relocationPressure=Math.min(100,m.relocationPressure+8);
+     result="The Clippers' arena project is delayed.";cls="crossroadStayed";
+   }
+ }else if(def.id==="nba_2026_expansion_exploration"){
+   state.modernExpansionExploration=state.modernExpansionExploration||{};
+   if(choice==="Explore both Seattle and Las Vegas"){
+     state.modernExpansionExploration={year:2026,markets:["Seattle","Las Vegas"],status:"Exploration authorized"};
+     result="The league formally opens expansion exploration for both Seattle and Las Vegas.";
+   }else if(choice==="Explore Seattle only"){
+     state.modernExpansionExploration={year:2026,markets:["Seattle"],status:"Exploration authorized"};
+     result="The league explores a Seattle return without committing to Las Vegas.";
+   }else if(choice==="Explore Las Vegas only"){
+     state.modernExpansionExploration={year:2026,markets:["Las Vegas"],status:"Exploration authorized"};
+     result="The league explores Las Vegas without committing to Seattle.";
+   }else{
+     state.modernExpansionExploration={year:2026,markets:[],status:"Declined"};
+     result="The league declines to pursue expansion at this checkpoint.";cls="crossroadStayed";
+   }
+ }
  let entry={id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,teamAtEvaluation:team.name,score,choice,outcome:result,automatic,cssClass:cls};
  let old=state.historicalCrossroads.findIndex(x=>x.id===def.id);
  if(old>=0)state.historicalCrossroads[old]=entry; else state.historicalCrossroads.push(entry);
@@ -5212,6 +5339,14 @@ function autoHistoricalCrossroadChoice(def,team,score){
    return b?.choice==="Sell without a firm arena guarantee"&&score>=45?"Delay completion and keep arena pressure alive":"Open the new Milwaukee arena";
  }
 
+ if(def.id==="nba_2019_playin_experiment")return "Use the conditional 8-vs-9 play-in";
+ if(def.id==="nba_2020_playin_710")return "Adopt the 7–10 play-in for one season";
+ if(def.id==="nba_2022_playin_permanent")return "Make the Play-In Tournament permanent";
+ if(def.id==="suns_2023_ownership")return score>=35?"Approve a new ownership group":"Keep current ownership";
+ if(def.id==="mavs_2023_ownership")return score>=40?"Approve the controlling ownership sale":"Keep current ownership";
+ if(def.id==="clippers_2024_intuit")return score>=25?"Open the new Clippers arena":"Delay the arena project";
+ if(def.id==="nba_2026_expansion_exploration"){if(score>=30)return "Explore both Seattle and Las Vegas";if(score>=15)return "Explore Seattle only";return "Do not pursue expansion";}
+
  return def.choices[0];
 }
 
@@ -5253,7 +5388,10 @@ function evaluateHistoricalCrossroads(){
      bucks_2014_sale_arena:"Milwaukee Bucks",
      clippers_2014_ownership:"Los Angeles Clippers",
      kings_2016_arena:"Sacramento Kings",
-     bucks_2018_arena:"Milwaukee Bucks"
+     bucks_2018_arena:"Milwaukee Bucks",
+     suns_2023_ownership:"Phoenix Suns",
+     mavs_2023_ownership:"Dallas Mavericks",
+     clippers_2024_intuit:"Los Angeles Clippers"
    };
    if(requireExact[def.id] && team.name!==requireExact[def.id]){
      state.historicalCrossroads.push({id:def.id,historicalYear:def.historicalYear,title:def.title,teamId:team.id,status:"Not applicable",outcome:`The franchise is ${team.name} in ${def.historicalYear}, so this historical path never develops.`,automatic:true,cssClass:"crossroadNA"});
@@ -5812,7 +5950,7 @@ function seasonNewspaperHTML(p){
      <div class="newspaperStory"><h3>Awards Desk</h3><div><b>MVP:</b> ${p.awards.mvp||"—"}</div><div><b>Rookie of the Year:</b> ${p.awards.rookie||"—"}</div><div><b>Defensive Player:</b> ${p.awards.dpoy||"—"}</div><div><b>Sixth Man:</b> ${p.awards.sixth||"—"}</div></div>
      <div class="newspaperStory"><h3>Draft Headline</h3>${p.topPick?`<b>#1 Overall:</b> ${p.topPick.player}<br>${p.topPick.team}`:`Draft results were not available when this edition was printed.`}</div>
      <div class="newspaperStory"><h3>Franchise Desk</h3>${changes}</div>
-     <div class="newspaperStory"><h3>League Alignment</h3>${conferenceBalanceText()}<br><span class="small">Playoff field: ${playoffFormatForYear(p.year).teamsPerConference*2} teams · First round best-of-${playoffFormatForYear(p.year).firstRoundBestOf}</span></div>
+     <div class="newspaperStory"><h3>League Alignment</h3>${conferenceBalanceText()}<br><span class="small">Playoff field: ${playoffFormatForYear(p.year).teamsPerConference*2} teams · First round best-of-${playoffFormatForYear(p.year).firstRoundBestOf}${playInFormatForYear(p.year).type!=="none"?" · Play-In determines final seeds":""}</span></div>
    </div>
  </div>`;
 }
@@ -9202,6 +9340,99 @@ function playoffSeriesObj(a,b,round,conf,bestOf=7){
  return {id:"ps_"+Math.random().toString(36).slice(2),aId:a.id,bId:b.id,aw:0,bw:0,round,conf,bestOf,complete:false,winnerId:null,games:[]};
 }
 
+
+function playInFormatForYear(year){
+ let y=Number(year),rules=state?.leagueRules||{};
+ if(y<2019)return {type:"none"};
+ if((rules.playInDisabledYears||[]).includes(y))return {type:"none"};
+ if(rules.playInEnded!=null && y>=Number(rules.playInEnded))return {type:"none"};
+ if(y===2019)return {type:"bubble89",label:"2020 Bubble Play-In"};
+ return {type:"standard710",label:"7–10 Play-In Tournament"};
+}
+function teamSimStrength(t){
+ let roster=rosterFor(t.name).filter(p=>!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,9);
+ let rp=roster.length?roster.reduce((s,x)=>s+(x.ovr||50),0)/roster.length:Number(t.power||55);
+ return Number(t.power||55)*.45+rp*.55;
+}
+function simPlayInGame(home,away,key){
+ let a=teamSimStrength(home)+(pct(home)-.5)*20+2.2;
+ let b=teamSimStrength(away)+(pct(away)-.5)*20;
+ let rand=seededDraftRandom(`${state.saveId||state.name}_${state.currentYear}_${key}_${home.id}_${away.id}`);
+ let swing=(rand()-.5)*15;
+ let winner=(a+swing)>=b?home:away;
+ let loser=winner.id===home.id?away:home;
+ let margin=Math.max(1,Math.round(Math.abs((a+swing)-b)/2+1));
+ let loserPts=96+Math.floor(rand()*18),winnerPts=loserPts+margin;
+ return {homeId:home.id,awayId:away.id,winnerId:winner.id,loserId:loser.id,score:`${winnerPts}-${loserPts}`};
+}
+function buildPlayInTournament(){
+ if(!state?.season || state.season.playInState)return state.season?.playInState||null;
+ let fmt=playInFormatForYear(state.currentYear);
+ if(fmt.type==="none")return null;
+ let pi={year:state.currentYear,type:fmt.type,label:fmt.label,complete:false,games:[],qualified:{East:[],West:[]}};
+ ["East","West"].forEach(conf=>{
+   let seeds=ordered(conf);
+   if(fmt.type==="bubble89"){
+     let eight=seeds[7],nine=seeds[8];
+     if(!eight){return;}
+     // Real 2020 rule: trigger only if No. 9 is within four games of No. 8.
+     let gap=Math.abs((eight.w||0)-(nine?.w||0));
+     if(!nine || gap>4){
+       pi.qualified[conf]=[seeds[6]?.id,eight.id].filter(Boolean);
+       pi.games.push({conf,type:"Bubble rule",note:`No play-in triggered; ${eight.name} holds the No. 8 seed.`});
+       return;
+     }
+     let g1=simPlayInGame(eight,nine,`${conf}_89_g1`);
+     pi.games.push({...g1,conf,type:"8 vs 9"});
+     if(g1.winnerId===eight.id){
+       pi.qualified[conf]=[seeds[6]?.id,eight.id].filter(Boolean);
+     }else{
+       let g2=simPlayInGame(eight,nine,`${conf}_89_g2`);
+       pi.games.push({...g2,conf,type:"8 vs 9 — Decider"});
+       pi.qualified[conf]=[seeds[6]?.id,g2.winnerId].filter(Boolean);
+     }
+   }else{
+     let s7=seeds[6],s8=seeds[7],s9=seeds[8],s10=seeds[9];
+     if(!s7||!s8){return;}
+     if(!s9||!s10){pi.qualified[conf]=[s7.id,s8.id];return;}
+     let g78=simPlayInGame(s7,s8,`${conf}_78`);
+     let g910=simPlayInGame(s9,s10,`${conf}_910`);
+     pi.games.push({...g78,conf,type:"7 vs 8"});
+     pi.games.push({...g910,conf,type:"9 vs 10"});
+     let loser78=teamById(g78.loserId),winner910=teamById(g910.winnerId);
+     let g8=simPlayInGame(loser78,winner910,`${conf}_8seed`);
+     pi.games.push({...g8,conf,type:"Final for No. 8"});
+     pi.qualified[conf]=[g78.winnerId,g8.winnerId];
+   }
+ });
+ pi.complete=true;
+ state.season.playInState=pi;
+ state.news.push({year:state.currentYear,title:"Play-In Tournament complete",text:`The ${fmt.label} determines the final playoff qualifiers.`});
+ return pi;
+}
+function playInQualifiedSeeds(conf){
+ let pi=state.season?.playInState;
+ if(!pi?.complete)return null;
+ return pi.qualified?.[conf]||null;
+}
+function renderPlayInTournament(){
+ let card=document.getElementById("playInCard"),box=document.getElementById("playInBox"),status=document.getElementById("playInStatus");
+ if(!card||!box)return;
+ let fmt=playInFormatForYear(state.currentYear),pi=state.season?.playInState;
+ if(fmt.type==="none"){card.style.display="none";return;}
+ card.style.display="";
+ if(status)status.textContent=fmt.label;
+ if(!pi){
+   box.innerHTML=`<span class="muted">The Play-In Tournament will be resolved when the postseason field is created.</span>`;
+   return;
+ }
+ box.innerHTML=pi.games.map(g=>{
+   if(g.note)return `<div class="teamrow"><div class="teammeta"><b>${g.conf} · ${g.type}</b><span class="small muted">${g.note}</span></div></div>`;
+   let w=teamById(g.winnerId),h=teamById(g.homeId),a=teamById(g.awayId);
+   return `<div class="teamrow"><div class="teammeta"><b>${g.conf} · ${g.type}</b><span class="small muted">${h?.name||""} vs ${a?.name||""} · Winner: ${w?.name||""} · ${g.score}</span></div></div>`;
+ }).join("");
+}
+
 function playoffFormatForYear(year){
  let y=Number(year);
  if(y<=1983)return {teamsPerConference:6,firstRoundBestOf:3,firstRoundByes:2};
@@ -9211,6 +9442,17 @@ function playoffFormatForYear(year){
 function playoffFieldTeamIds(){
  let ps=state.season?.playoffState;
  if(ps?.seedByTeam)return new Set(Object.keys(ps.seedByTeam));
+ let fmt=playInFormatForYear(state.currentYear);
+ if(fmt.type!=="none"){
+   let pi=state.season?.playInState||buildPlayInTournament();
+   let ids=[];
+   ["East","West"].forEach(c=>{
+     let top=ordered(c).slice(0,6).map(t=>t.id);
+     let q=playInQualifiedSeeds(c)||ordered(c).slice(6,8).map(t=>t.id);
+     ids.push(...top,...q);
+   });
+   return new Set(ids);
+ }
  let f=playoffFormatForYear(state.currentYear);
  return new Set(["East","West"].flatMap(c=>ordered(c).slice(0,f.teamsPerConference).map(t=>t.id)));
 }
@@ -9219,11 +9461,22 @@ function initPostseasonExperience(){
  if(state.season.phase!=="Regular Season Complete" && state.season.phase!=="Playoffs")return;
  if(state.season.playoffState)return;
  const fmt=playoffFormatForYear(state.currentYear);
- const east=ordered("East").slice(0,fmt.teamsPerConference),west=ordered("West").slice(0,fmt.teamsPerConference);
+ const piFmt=playInFormatForYear(state.currentYear);
+ if(piFmt.type!=="none")buildPlayInTournament();
+
+ function playoffSeeds(conf){
+   let orderedTeams=ordered(conf);
+   if(piFmt.type==="none")return orderedTeams.slice(0,fmt.teamsPerConference);
+   let firstSix=orderedTeams.slice(0,6);
+   let q=playInQualifiedSeeds(conf)||orderedTeams.slice(6,8).map(t=>t.id);
+   let seventh=teamById(q[0]),eighth=teamById(q[1]);
+   return [...firstSix,seventh,eighth].filter(Boolean);
+ }
+ const east=playoffSeeds("East"),west=playoffSeeds("West");
  state.season.playoffState={round:1,gameNo:1,series:[],gameLog:[],championId:null,slateCursor:0,seedByTeam:{},format:fmt};
- ["East","West"].forEach(conf=>ordered(conf).slice(0,fmt.teamsPerConference).forEach((t,i)=>state.season.playoffState.seedByTeam[t.id]=i+1));
  state.playoffPlayerStats={};state.finalsMvp=null;
  [["East",east],["West",west]].forEach(([conf,s])=>{
+   s.forEach((t,i)=>state.season.playoffState.seedByTeam[t.id]=i+1);
    if(fmt.teamsPerConference===6 && s.length>=6){
      state.season.playoffState.series.push(playoffSeriesObj(s[2],s[5],"First Round",conf,fmt.firstRoundBestOf));
      state.season.playoffState.series.push(playoffSeriesObj(s[3],s[4],"First Round",conf,fmt.firstRoundBestOf));
@@ -9235,7 +9488,7 @@ function initPostseasonExperience(){
    }
  });
  state.season.phase="Playoffs";
- state.news.push({year:state.currentYear,title:"NBA Playoffs begin",text:`The ${fmt.teamsPerConference*2}-team postseason field is set. First round: best-of-${fmt.firstRoundBestOf}.`});
+ state.news.push({year:state.currentYear,title:"NBA Playoffs begin",text:`The ${fmt.teamsPerConference*2}-team postseason field is set${piFmt.type!=="none"?" after the Play-In Tournament":""}. First round: best-of-${fmt.firstRoundBestOf}.`});
  saveState();
 }
 function activePlayoffSeries(){return state.season.playoffState?.series.filter(s=>!s.complete)||[]}
@@ -9846,6 +10099,7 @@ function renderSeason(){
      advChoice.disabled=false;
    }
  }
+ renderPlayInTournament();
  renderSeasonNewspaper();
  if(el("postseasonBox")){
    if(state.season.phase==="Regular Season Complete")el("postseasonBox").innerHTML=`<div class="notice"><b>The playoff field is set.</b><br>The postseason now advances game by game.</div><button class="primary" onclick="runPostseason()">Open Playoffs</button>`;
