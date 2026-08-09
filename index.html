@@ -361,7 +361,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.81 · GM Role Readiness Audit</div>
+    <div class="pill">v0.82 · GM Full-Loop Integration</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -12476,6 +12476,167 @@ careerPerformanceGradeV078=function(team,role){
   }
   return base;
 };
+
+
+
+/* === v0.82 GM Full-Loop Integration === */
+function ensureGMIntegrationV082(){
+  ensureGMWorkflowV080();
+  state.gmIntegration=state.gmIntegration||{};
+  state.gmIntegration.year=state.currentYear;
+  state.gmIntegration.aiStageRuns=state.gmIntegration.aiStageRuns||{};
+  state.gmIntegration.contractDecisions=state.gmIntegration.contractDecisions||{};
+  state.gmIntegration.transitionLog=Array.isArray(state.gmIntegration.transitionLog)?state.gmIntegration.transitionLog:[];
+}
+function gmStageKeyV082(){return `${state.currentYear}|${offseasonStageNameV080()}`;}
+function recordGMTransitionV082(text){
+  ensureGMIntegrationV082();
+  state.gmIntegration.transitionLog.unshift({year:state.currentYear,stage:offseasonStageNameV080(),text});
+  state.gmIntegration.transitionLog=state.gmIntegration.transitionLog.slice(0,40);
+}
+function unresolvedGMContractsV082(){
+  const team=controlledGMTeamV080(); if(!team)return [];
+  ensureGMIntegrationV082();
+  return teamRoster(team.name).filter(p=>{
+    const exp=Number(p.contract?.years||0)<=0 || p.contractStatus==='Expiring';
+    return exp && !state.gmIntegration.contractDecisions[p.id];
+  });
+}
+function gmLetPlayerWalkV082(playerId){
+  const team=controlledGMTeamV080(),p=state.players.find(x=>x.id===playerId); if(!team||!p||p.teamName!==team.name)return;
+  ensureGMIntegrationV082();
+  state.gmIntegration.contractDecisions[p.id]='Let Walk';
+  p.teamName='Free Agent'; p.contract={years:0,salary:0}; p.contractStatus='Free Agent'; p.faEligible=true;
+  if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} lets ${p.name} enter free agency.`});
+  state.news.push({year:state.currentYear,title:'Contract Decision',text:`${team.name} will not re-sign ${p.name}.`});
+  recordGMTransitionV082(`Let ${p.name} walk in free agency.`);
+  renderAll(); saveState();
+}
+window.gmLetPlayerWalkV082=gmLetPlayerWalkV082;
+
+// Successful contract offers count as an explicit GM decision.
+const _v082OfferTeamContract=offerTeamContract;
+offerTeamContract=function(playerId){
+  const before=state.players.find(x=>x.id===playerId); const oldTeam=before?.teamName; const oldYears=Number(before?.contract?.years||0);
+  const r=_v082OfferTeamContract.apply(this,arguments);
+  ensureGMIntegrationV082();
+  const p=state.players.find(x=>x.id===playerId),team=controlledGMTeamV080();
+  if(p&&team&&p.teamName===team.name&&Number(p.contract?.years||0)>Math.max(0,oldYears)){
+    state.gmIntegration.contractDecisions[p.id]='Re-signed';
+    recordGMTransitionV082(`Re-signed ${p.name}.`);
+  }
+  return r;
+};
+window.offerTeamContract=offerTeamContract;
+
+function gmChecklistV082(){
+  ensureGMIntegrationV082();
+  const team=controlledGMTeamV080(); if(!team)return [];
+  const roster=teamRoster(team.name),limits=rosterLimits(),stage=offseasonStageNameV080();
+  const unsigned=roster.filter(p=>p.isRookie&&(!p.contract||Number(p.contract.years||0)<=0));
+  const unresolved=unresolvedGMContractsV082();
+  const draftDone=!!state.draftRoom?.completed;
+  const rosterMin=8;
+  return [
+    {key:'draft',label:'Complete Draft',required:stage==='Draft',done:stage!=='Draft'||draftDone,detail:draftDone?'Draft complete.':'Finish the Draft Room before advancing.'},
+    {key:'rookies',label:'Sign Rookies',required:stage!=='Draft'&&unsigned.length>0,done:unsigned.length===0,detail:unsigned.length?`${unsigned.length} rookie contract(s) unresolved.`:'All rookies under contract.'},
+    {key:'resign',label:'Resolve Expiring Contracts',required:stage==='Re-signings',done:stage!=='Re-signings'||unresolved.length===0,detail:unresolved.length?`${unresolved.length} player decision(s) remain.`:'Every expiring player has a decision.'},
+    {key:'fa',label:'Finish Free Agency',required:stage==='Free Agency',done:stage!=='Free Agency'||!!state.gmWorkflow.completed.freeAgency,detail:stage==='Free Agency'?'Sign players as desired, then mark Free Agency complete.':'Not current stage.'},
+    {key:'minroster',label:'Minimum Roster',required:stage==='Roster Cuts'||stage==='Next Season',done:roster.length>=rosterMin,detail:`${roster.length} players; minimum ${rosterMin}.`},
+    {key:'maxroster',label:'Roster Limit',required:true,done:roster.length<=limits.offseasonMax,detail:`${roster.length}/${limits.offseasonMax} offseason roster spots.`},
+    {key:'opening',label:'Opening-Night Limit',required:stage==='Next Season'||stage==='Roster Cuts',done:roster.length<=limits.activeMax,detail:`${roster.length}/${limits.activeMax} active-roster limit.`}
+  ];
+}
+function gmBlockingItemsV082(){return gmChecklistV082().filter(x=>x.required&&!x.done);}
+function gmCanAdvanceOffseasonV082(){const b=gmBlockingItemsV082();return b.length?{ok:false,blockers:b}:{ok:true};}
+
+function runAIStageOnceV082(stage){
+  ensureGMIntegrationV082();
+  const key=`${state.currentYear}|${stage}`; if(state.gmIntegration.aiStageRuns[key])return;
+  state.gmIntegration.aiStageRuns[key]=true;
+  // Let the original offseason engine run its normal AI exactly once when leaving each stage.
+  recordGMTransitionV082(`League AI processed ${stage}.`);
+}
+function gmNextActionV082(){
+  const team=controlledGMTeamV080(); if(!team)return null;
+  if(!state.offseason){
+    if(!tradeDeadlinePassedV079())return {label:'Review roster, contracts, trades and scouting',tab:'frontoffice'};
+    return {label:'Prepare for the postseason and offseason',tab:'frontoffice'};
+  }
+  const stage=offseasonStageNameV080(),block=gmBlockingItemsV082()[0];
+  if(block){
+    if(block.key==='draft')return {label:'Open Draft Room',tab:'draftroom'};
+    return {label:block.label,tab:'frontoffice'};
+  }
+  return {label:`Advance past ${stage}`,tab:'offseason'};
+}
+function renderGMIntegrationV082(){
+  const team=controlledGMTeamV080(); if(!team)return '';
+  const stage=gmSeasonPhaseV081(),items=gmChecklistV082(),next=gmNextActionV082();
+  return `<div class="card"><h2>GM Season Guide</h2>
+    <div class="notice"><b>${state.offseason?`Offseason: ${stage}`:'In Season'}</b><br><span class="small">The game will not advance past required GM decisions for your team.</span></div>
+    ${items.filter(x=>x.required).map(x=>`<div class="staffCard"><b>${x.done?'✓':'○'} ${x.label}</b><div class="small muted">${x.detail}</div></div>`).join('')}
+    ${next?`<button onclick="switchTab('${next.tab}')">${next.label}</button>`:''}
+    ${stage==='Re-signings'&&unresolvedGMContractsV082().length?`<h4>Expiring Contract Decisions</h4>${unresolvedGMContractsV082().map(p=>`<div class="staffCard"><b>${p.name}</b><div class="small muted">${p.pos||''} · OVR ${p.ovr||'—'} · Market ~$${contractMarketAnnual(p)}M/year</div><button onclick="gmLetPlayerWalkV082('${p.id}')">Let Walk</button></div>`).join('')}`:''}
+  </div>`;
+}
+
+// Replace the v0.80 gate with an integration-aware wrapper while keeping the existing engine underneath.
+const _v082AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  ensureGMIntegrationV082();
+  const team=controlledGMTeamV080();
+  if(team){
+    const gate=gmCanAdvanceOffseasonV082();
+    if(!gate.ok){
+      alert('You still have required GM business:\n\n'+gate.blockers.map(x=>'• '+x.label+': '+x.detail).join('\n'));
+      renderAll(); return;
+    }
+    const stage=offseasonStageNameV080();
+    runAIStageOnceV082(stage);
+    if(stage==='Draft')state.gmWorkflow.completed.draft=!!state.draftRoom?.completed;
+    if(stage==='Re-signings')state.gmWorkflow.completed.resignings=true;
+  }
+  return _v082AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+// Starting a new year requires both minimum and maximum legal roster sizes and refreshes the actual rotation.
+const _v082BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const team=controlledGMTeamV080();
+  if(team){
+    const limits=rosterLimits(),roster=teamRoster(team.name);
+    if(roster.length<8){alert(`${team.name} has only ${roster.length} players. Sign at least 8 before beginning the season.`);switchTab('frontoffice');return;}
+    if(roster.length>limits.activeMax){alert(`${team.name} has ${roster.length} players. Cut to ${limits.activeMax} before beginning the season.`);switchTab('frontoffice');return;}
+    ensureTeamRotation(team,true);
+  }
+  const r=_v082BeginNextSeason.apply(this,arguments);
+  state.gmIntegration={year:state.currentYear,aiStageRuns:{},contractDecisions:{},transitionLog:[]};
+  return r;
+};
+window.beginNextSeason=beginNextSeason;
+
+// Draft completion automatically satisfies the GM draft requirement; no redundant manual checkbox.
+const _v082ContinueAfterDraft=continueAfterDraft;
+continueAfterDraft=function(){
+  const r=_v082ContinueAfterDraft.apply(this,arguments);
+  ensureGMIntegrationV082();
+  if(state.draftRoom?.completed){state.gmWorkflow.completed.draft=true;recordGMTransitionV082('Completed the draft.');}
+  saveState(); return r;
+};
+window.continueAfterDraft=continueAfterDraft;
+
+const _v082RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  _v082RenderFrontOffice();
+  const section=document.getElementById('frontoffice'); if(!section||!controlledGMTeamV080())return;
+  let el=document.getElementById('gmIntegrationV082');
+  if(!el){el=document.createElement('div');el.id='gmIntegrationV082';section.insertBefore(el,section.firstChild);}
+  el.innerHTML=renderGMIntegrationV082();
+};
+window.renderFrontOffice=renderFrontOffice;
 
 </script>
 </body>

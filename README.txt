@@ -1,17 +1,21 @@
 Basketball Universe
-v0.81 · GM Role Readiness Audit
+v0.82 · GM Full-Loop Integration
 
 WHAT CHANGED
-- Added an in-game GM Role Readiness audit covering the full job loop.
-- Added explicit rookie-contract signing for drafted players still unsigned.
-- Added a GM Transaction Center for quick access to trades, free agency, waivers, extensions, and roster decisions.
-- Added custom in-season extension offers for players entering the final year of their contracts.
-- Strengthened protection against AI re-signing/cut automation taking over the user-controlled GM roster.
-- GM employment reviews now consider roster age, contender performance, and expensive underperformance in addition to record.
-- Front Office now shows whether each major GM system exists and is available in the current universe.
+- Connected the GM role into one continuous season-to-season workflow.
+- Draft completion now automatically satisfies the GM draft requirement.
+- Re-signings now require an explicit decision on each expiring player.
+- Added “Let Walk” for expiring contracts instead of forcing every player to be re-signed.
+- Successful re-signings are recorded as completed contract decisions.
+- Free agency still allows the GM to decide when the team is finished shopping.
+- Roster Cuts / Next Season now enforce both a minimum roster and the active-roster maximum.
+- Beginning the next season refreshes the controlled team’s depth chart/rotation.
+- Added a GM Season Guide that shows the current stage, required work, and next action.
+- Added integration logging so offseason AI stages are not intentionally processed more than once by the new GM layer.
+- User-controlled GM decisions remain protected from AI automation.
 
-ROLE STATUS
-This is an audit/closure build, not the declaration that GM is ready. The next milestone is a dedicated GM playtest only after the audit and first-pass integration are stable.
+STATUS
+GM now has a connected core loop on paper. It is still not being declared ready until the dedicated GM role playtest confirms that the integrated flow works in actual play. Viewer remains the normal development mode until that milestone.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root, replacing the previous files.
