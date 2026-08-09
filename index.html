@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.3 · Draft Simulation Fix</div>
+    <div class="pill">v0.82.4 · Draft Engine Hard Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -13156,6 +13156,253 @@ renderDraftRoom=function(){
   }
 };
 window.renderDraftRoom=renderDraftRoom;
+
+
+
+/* === v0.82.4 Draft Engine Hard Fix ===
+   This bypasses the old nested draft-button path entirely. */
+function draftStatusV0824(msg,isError=false){
+  let el=document.getElementById("draftActionStatusV0824");
+  if(!el){
+    const host=document.getElementById("draftOnClockBox");
+    if(host){
+      el=document.createElement("div");
+      el.id="draftActionStatusV0824";
+      el.style.marginTop="10px";
+      host.appendChild(el);
+    }
+  }
+  if(el){
+    el.className=isError?"notice danger":"notice";
+    el.innerHTML=`<b>${isError?"Draft error":"Draft status"}:</b> ${msg}`;
+  }
+}
+
+function robustDraftProspectV0824(team){
+  const dr=state.draftRoom;
+  if(!dr?.available?.length)return null;
+  let choice=null;
+  try{ choice=aiDraftChoice(team?.name||""); }catch(e){ console.warn(e); }
+  if(choice)return choice;
+  return dr.available.slice().sort((a,b)=>{
+    const score=x=>{
+      const o=Number(x.prospect??x.ovr??x.rating??55);
+      const p=Number(x.pot??x.potential??x.ceilingHigh??o);
+      return o*.68+p*.32;
+    };
+    return score(b)-score(a);
+  })[0]||dr.available[0]||null;
+}
+
+function executeDraftPickV0824(prospectId=null){
+  ensureDraftRoom();
+  if(typeof repairAllMalformedNamesV0822==="function")repairAllMalformedNamesV0822();
+  const dr=state.draftRoom;
+  if(!dr?.active)return {ok:false,error:"The draft is not active."};
+
+  const pick=dr.order?.[dr.pickIndex];
+  if(!pick)return {ok:false,error:"The current draft pick is missing."};
+
+  const team=state.teams.find(t=>t.id===pick.teamId) ||
+             state.teams.find(t=>t.name===pick.teamName);
+  if(!team)return {ok:false,error:`The team for pick #${pick.pick||dr.pickIndex+1} could not be found.`};
+
+  let p=null;
+  if(prospectId){
+    p=dr.available.find(x=>(x.draftId||x.id)===prospectId || x.id===prospectId);
+  }
+  if(!p)p=robustDraftProspectV0824(team);
+  if(!p)return {ok:false,error:"No prospect is available for this pick."};
+
+  const draftYear=Number(dr.year||state.currentYear+1);
+  const pickNo=Number(pick.pick||dr.pickIndex+1);
+  const round=Number(pick.round||1);
+  const pickInRound=Number(pick.pickInRound||pickNo);
+
+  // Remove the asset/prospect FIRST so the engine cannot repeat the same pick.
+  if(pick.pickAssetId && Array.isArray(state.draftPicks)){
+    state.draftPicks=state.draftPicks.filter(x=>x.id!==pick.pickAssetId);
+  }
+  dr.available=dr.available.filter(x=>x!==p && (x.draftId||x.id)!==(p.draftId||p.id));
+
+  let newPlayer=null;
+  try{
+    newPlayer=convertProspectToPlayer(p,team.name,pickNo,team.id);
+  }catch(e){
+    console.warn("convertProspectToPlayer fallback",e);
+  }
+
+  if(!newPlayer){
+    const base=Number(p.prospect??p.ovr??p.rating??58);
+    const ceiling=Number(p.ceilingHigh??p.pot??p.potential??Math.min(95,base+8));
+    newPlayer={
+      id:p.id||p.draftId||`rook_${draftYear}_${pickNo}`,
+      name:validBasketballName(p.name)?p.name:generatedDraftName(draftYear,p.id||p.draftId||pickNo),
+      teamName:team.name,pos:p.pos||"G",age:Number(p.age||22),
+      ovr:Math.max(45,Math.min(90,base)),
+      pot:Math.max(base,Math.min(99,ceiling)),
+      scoring:base,shooting:base,passing:base,rebounding:base,defense:base,
+      rotationMinutes:8,starter:false,sim:{gp:0,min:0,pts:0,reb:0,ast:0},
+      rookie:true,rookieYear:draftYear,draftYear
+    };
+  }
+
+  newPlayer.id=p.id||p.draftId||newPlayer.id||`rook_${draftYear}_${pickNo}`;
+  newPlayer.name=validBasketballName(p.name)?p.name:
+    (validBasketballName(newPlayer.name)?newPlayer.name:generatedDraftName(draftYear,newPlayer.id));
+  newPlayer.rookie=true;
+  newPlayer.draftYear=draftYear;
+  newPlayer.draftRound=round;
+  newPlayer.draftPickInRound=pickInRound;
+  if(!newPlayer.deferredEntry){
+    newPlayer.teamName=team.name;
+    newPlayer.contract=newPlayer.contract||{
+      years:round===1?3:2,
+      salary:round===1?Math.max(1,Math.round((state.teams.length-pickInRound+1)/Math.max(1,state.teams.length)*6)):1
+    };
+  }else{
+    newPlayer.contract=null;
+  }
+
+  state.players=state.players||[];
+  // Avoid duplicate player IDs in a repaired/retried save.
+  const oldIdx=state.players.findIndex(x=>x.id===newPlayer.id);
+  if(oldIdx>=0)state.players.splice(oldIdx,1);
+  state.players.push(newPlayer);
+
+  dr.results=dr.results||[];
+  dr.results.push({
+    pick:pickNo,round,pickInRound,
+    teamId:team.id,teamName:team.name,
+    playerName:newPlayer.name,pos:newPlayer.pos||p.pos||"—",
+    ovr:Number(newPlayer.ovr||60),pot:Number(newPlayer.pot||newPlayer.truePotential||newPlayer.ovr||60),
+    deferred:!!newPlayer.deferredEntry,rightsOnlyUntil:newPlayer.rightsOnlyUntil||null
+  });
+
+  try{
+    recordPlayerTransaction?.(newPlayer,"Draft",null,team.name,draftYear,
+      `Drafted Round ${round}, Pick ${pickInRound} (#${pickNo} overall) by ${team.name} in the ${draftYear} NBA Draft.`);
+  }catch(e){console.warn("Draft transaction log skipped",e);}
+  try{
+    state.news=state.news||[];
+    state.news.push({year:state.currentYear,title:`Draft Pick #${pickNo}`,
+      text:`${team.name} selects ${newPlayer.name}, ${newPlayer.pos||p.pos||""}.`});
+  }catch(e){}
+
+  dr.pickIndex=Number(dr.pickIndex||0)+1;
+  dr.tradeOffers=[];
+
+  if(dr.pickIndex>=dr.order.length || !dr.available.length){
+    dr.active=false;
+    dr.completed=true;
+    if(state.offseason)state.offseason.draftComplete=true;
+    try{saveCompletedDraftToHistory();}catch(e){console.warn("Draft history save skipped",e);}
+    state.news=state.news||[];
+    state.news.push({year:state.currentYear,title:"Draft complete",text:`The ${draftYear} draft is complete.`});
+  }else{
+    try{generateDraftTradeOffers();}catch(e){dr.tradeOffers=[];}
+  }
+
+  return {ok:true,pick:pickNo,player:newPlayer.name,team:team.name,complete:!!dr.completed};
+}
+
+function simOneDraftPickV0824(){
+  draftStatusV0824("Simulating current pick…");
+  try{
+    const dr=state.draftRoom;
+    if(!dr?.active){draftStatusV0824("The draft is not active.",true);return;}
+    if(isUserDraftPick() && !["Viewer","Commissioner"].includes(state.role)){
+      draftStatusV0824("Your team is on the clock. Choose a prospect.",true);return;
+    }
+    const r=executeDraftPickV0824();
+    if(!r.ok){draftStatusV0824(r.error,true);return;}
+    saveState();
+    renderAll();
+    renderDraftRoom();
+    draftStatusV0824(r.complete?`Draft complete. Last pick: ${r.team} selected ${r.player}.`:`Pick #${r.pick}: ${r.team} selected ${r.player}.`);
+  }catch(e){
+    console.error("v0.82.4 sim one",e);
+    draftStatusV0824(e?.message||"Unknown draft error.",true);
+  }
+}
+window.simOneDraftPickV0824=simOneDraftPickV0824;
+
+function simRestDraftV0824(){
+  draftStatusV0824("Simulating the rest of the draft…");
+  try{
+    const dr=state.draftRoom;
+    if(!dr?.active){draftStatusV0824("The draft is not active.",true);return;}
+    const viewer=["Viewer","Commissioner"].includes(state.role);
+    let made=0,guard=0,last=null;
+    while(dr.active && guard<250){
+      if(!viewer && isUserDraftPick())break;
+      const before=Number(dr.pickIndex||0);
+      const r=executeDraftPickV0824();
+      guard++;
+      if(!r.ok){last=r;break;}
+      if(Number(dr.pickIndex||0)<=before){
+        last={ok:false,error:"The pick counter did not advance."};break;
+      }
+      made++;
+      last=r;
+    }
+    saveState();
+    renderAll();
+    renderDraftRoom();
+    if(last && last.ok===false){
+      draftStatusV0824(`${last.error} ${made} pick(s) were completed before the stop.`,true);
+    }else if(dr.completed){
+      draftStatusV0824(`Draft complete — ${made} pick(s) simulated.`);
+    }else if(!viewer && isUserDraftPick()){
+      draftStatusV0824(`${made} pick(s) simulated. Your team is now on the clock.`);
+    }else{
+      draftStatusV0824(`${made} pick(s) simulated.`);
+    }
+  }catch(e){
+    console.error("v0.82.4 sim rest",e);
+    try{saveState();}catch(_){}
+    draftStatusV0824(e?.message||"Unknown draft error.",true);
+  }
+}
+window.simRestDraftV0824=simRestDraftV0824;
+
+/* Hard-bind the visible Draft Room controls; no reliance on legacy inline handlers. */
+const _v0824RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  _v0824RenderDraftRoom();
+  const dr=state.draftRoom;
+  const on=document.getElementById("draftOnClockBox");
+  if(!dr?.active || !on)return;
+
+  if(!isUserDraftPick() || ["Viewer","Commissioner"].includes(state.role)){
+    on.innerHTML=`<h3>${currentDraftTeam()?.name||"Team"} is on the clock</h3>
+      <div class="choicebar">
+        <button id="draftSimOneV0824" type="button">Sim This Pick</button>
+        <button id="draftSimRestV0824" type="button" class="primary">${["Viewer","Commissioner"].includes(state.role)?"Sim Rest of Draft":"Sim to My Pick"}</button>
+      </div>
+      <div id="draftActionStatusV0824" class="small muted" style="margin-top:10px">Draft engine ready.</div>`;
+    const one=document.getElementById("draftSimOneV0824");
+    const rest=document.getElementById("draftSimRestV0824");
+    if(one)one.addEventListener("click",simOneDraftPickV0824,{once:false});
+    if(rest)rest.addEventListener("click",simRestDraftV0824,{once:false});
+  }
+};
+window.renderDraftRoom=renderDraftRoom;
+
+/* Repair/open the room with the hard-bound renderer. */
+const _v0824OpenScheduledDraftRoom=openScheduledDraftRoom;
+openScheduledDraftRoom=function(){
+  if(!draftCalendarOpen())return false;
+  ensureDraftRoom();
+  if(!state.draftRoom.active&&!state.draftRoom.completed)startDraftRoom();
+  if(typeof repairAllMalformedNamesV0822==="function")repairAllMalformedNamesV0822();
+  updateDraftRoomNav();
+  switchTab("draftroom");
+  renderDraftRoom();
+  saveState();
+  return true;
+};
+window.openScheduledDraftRoom=openScheduledDraftRoom;
 
 </script>
 </body>
