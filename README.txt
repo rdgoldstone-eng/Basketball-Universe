@@ -1,21 +1,28 @@
-v0.70 Basketball Universe — GM Contracts & Offseason
+v0.71 Basketball Universe — GM Roster Rules & Restricted Free Agency
 
-GM role remains UNDER CONSTRUCTION. Viewer remains the baseline development mode.
+GM remains UNDER CONSTRUCTION. Viewer remains the normal development/test mode.
 
-NEW
-- Contract Center in Front Office.
-- Extension/re-signing offers with years and salary controls.
-- Player acceptance depends on market value, security, age, team quality, and familiarity.
-- Added a Re-signings stage to the offseason before open free agency.
-- AI teams now decide which expiring players to retain based on quality, age, direction, and cap room.
-- Open free agency now uses actual expiring contracts instead of manufacturing extra free agents.
-- AI free agency now considers cap room, position need, team direction, team quality, age/potential, and contract market value.
-- Training-camp roster cuts now actually trim AI rosters to an era-based roster limit.
-- Controlled GM teams are not automatically managed by AI during re-signings, free agency, or roster cuts.
+ADDED
+- Restricted free agency framework for qualifying young players.
+- Original team retains matching rights on qualifying RFAs.
+- GM offer sheets can be matched by the rights-holding team.
+- AI free agency also respects RFA matching rights.
+- Active and offseason roster limits are now enforced.
+- Controlled GM teams cannot start the next season above the active roster limit.
+- Free-agent signings are blocked when the offseason/active roster is already full.
+- Simplified cap exception framework when the salary cap is active.
+- Trade Machine now produces an actual AI counter request after some rejected trades.
+- One-tap Apply Counter adds the requested asset to the existing proposal.
+- Front Office now displays roster-limit and cap-exception status.
+- Free Agency market labels restricted free agents and shows which team can match.
+
+SIMPLIFIED RULES
+- Early leagues use the existing 12-player roster framework; later leagues use 15.
+- Offseason rosters can temporarily carry three additional players before final cuts.
+- The cap exception is currently a simplified single-use exception rather than a full historical CBA recreation.
 
 NEXT GM WORK
-- Controlled-team roster cut workflow and roster legality warnings.
-- Better cap exceptions / bird-rights style logic.
-- Sign-and-trade / restricted free agency where appropriate.
-- More trade negotiation and AI counteroffers.
-- Full GM offseason gate before role playtesting.
+- Bird/deferred draft rights and undrafted free-agent handling.
+- Better waiver/release consequences.
+- Contract options and qualifying-offer details.
+- Deeper AI roster construction and transaction timing.

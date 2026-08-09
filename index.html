@@ -352,7 +352,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.70 · GM Contracts & Offseason</div>
+    <div class="pill">v0.71 · GM Roster Rules & Restricted Free Agency</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -6149,6 +6149,41 @@ function rosterLimitForYear(year){
  const y=Number(year??state?.currentYear??1976);
  return y<=1980?12:15;
 }
+function offseasonRosterLimitForYear(year){
+ return rosterLimitForYear(year)+3;
+}
+function rosterStatusForTeam(teamName,year){
+ const count=teamRoster(teamName).length;
+ const regularLimit=rosterLimitForYear(year);
+ const offseasonLimit=offseasonRosterLimitForYear(year);
+ const isOffseason=!!state?.offseason;
+ return {count,regularLimit,offseasonLimit,max:isOffseason?offseasonLimit:regularLimit,legal:count<=(isOffseason?offseasonLimit:regularLimit)};
+}
+function qualifyingOfferEligible(p){
+ const rookieYear=Number(p?.rookieYear??9999);
+ const service=Number(state?.currentYear??1976)-rookieYear+1;
+ return !!p && !p.retired && Number(p.age||99)<=27 && service>=1 && service<=4;
+}
+function capExceptionAmount(team){
+ if(!state?.leagueRules?.salaryCap)return 0;
+ const cap=Number(state.frontOffice?.cap||100);
+ return Math.max(2,Math.round(cap*.12));
+}
+function capExceptionAvailable(team){
+ ensureFrontOffice();
+ if(!team||!state.leagueRules?.salaryCap)return false;
+ const key=`${state.currentYear}|${team.id}|MLE`;
+ return !state.frontOffice.capExceptions[key];
+}
+function markCapExceptionUsed(team){
+ ensureFrontOffice();
+ const key=`${state.currentYear}|${team.id}|MLE`;
+ state.frontOffice.capExceptions[key]=true;
+}
+function canAddPlayerToRoster(team){
+ const s=rosterStatusForTeam(team.name,state.currentYear+1);
+ return {ok:s.count<s.max,...s};
+}
 function contractMarketAnnual(p){
  const age=Number(p.age||27),ovr=Number(p.ovr||60),pot=Number(p.pot||ovr);
  const prime=Math.max(0,Math.min(5,(pot-ovr)*.12));
@@ -6182,6 +6217,7 @@ function offerTeamContract(playerId){
    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} rejected ${team.name}'s ${years}-year, $${salary}M/year ${isExpiring?'re-signing':'extension'} offer.`});
    alert(`${p.name} rejected the offer. Estimated market: about $${contractMarketAnnual(p)}M/year.`);renderFrontOffice();saveState();return;
  }
+ delete state.frontOffice.rfaRights[p.id];
  p.contract={years,salary,expires:state.currentYear+years};p.faEligible=false;p.faStatus=null;
  state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} ${isExpiring?'re-signs':'extends'} ${p.name}: ${years} years, $${salary}M/year.`});
@@ -6203,10 +6239,11 @@ function runLeagueReSigningsAI(){
      let keep=(p.ovr||0)>=70 || ((p.age||99)<=26&&(p.pot||0)>=74);
      if(dir==='Build for the Future'&&(p.age||0)>30&&(p.ovr||0)<82)keep=false;
      if(dir==='Contend Now'&&(p.ovr||0)>=68)keep=true;
-     if(!keep)return;
+     if(!keep){if(qualifyingOfferEligible(p))state.frontOffice.rfaRights[p.id]=team.id;return;}
      let years=(p.age||27)>=31?2:(p.age||27)<=25?4:3;
      let salary=Math.max(1,Math.round(market*(.96+((parseInt(hashlibCompat(p.id+state.currentYear).slice(0,2),16)%9)/100))));
-     if(state.leagueRules?.salaryCap&&payroll+salary>Number(state.frontOffice.cap||100)*1.06)return;
+     if(state.leagueRules?.salaryCap&&payroll+salary>Number(state.frontOffice.cap||100)*1.06){if(qualifyingOfferEligible(p))state.frontOffice.rfaRights[p.id]=team.id;return;}
+     delete state.frontOffice.rfaRights[p.id];
      p.contract={years,salary,expires:state.currentYear+years};p.faEligible=false;p.faStatus=null;
      results.push(`${p.name} re-signed with ${team.name} (${years}y, $${salary}M/yr)`);
    });
@@ -6242,10 +6279,37 @@ function openFreeAgency(){
  let pool=state.players.filter(p=>!p.retired && !p.deferredEntry && (p.faEligible||(p.contract?.years||0)===0));
  pool.forEach(p=>{
    if(p.teamName!=='Free Agent')p.previousTeamName=p.teamName;
-   p.teamName='Free Agent';p.faStatus='Unrestricted Free Agent';
+   const prevTeam=state.teams.find(t=>t.name===p.previousTeamName);
+   if(qualifyingOfferEligible(p)&&prevTeam&&!state.frontOffice.rfaRights[p.id])state.frontOffice.rfaRights[p.id]=prevTeam.id;
+   p.teamName='Free Agent';
+   p.faStatus=state.frontOffice.rfaRights[p.id]?'Restricted Free Agent':'Unrestricted Free Agent';
    if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
  });
  state.offseason.freeAgents=pool.map(p=>p.id);
+}
+function rfaRightsTeam(p){
+ ensureFrontOffice();
+ const tid=state.frontOffice.rfaRights[p?.id];
+ return tid?state.teams.find(t=>t.id===tid)||null:null;
+}
+function shouldMatchRfaOffer(p,rightsTeam,salary,years){
+ if(!p||!rightsTeam)return false;
+ const market=contractMarketAnnual(p);
+ const value=(p.ovr||0)*.65+(p.pot||p.ovr||0)*.35;
+ const payroll=teamPayroll(rightsTeam.name);
+ const cap=Number(state.frontOffice.cap||100);
+ const affordable=!state.leagueRules?.salaryCap || payroll+salary<=cap*1.12;
+ const core=value>=76 || ((p.age||99)<=25&&(p.pot||0)>=78);
+ const fair=salary<=market*1.18;
+ return affordable && core && fair;
+}
+function finalizeFreeAgentSigning(p,team,years,salary,sourceLabel){
+ const old=p.previousTeamName||'Free Agency';
+ p.teamName=team.name;p.contract={years,salary,expires:state.currentYear+years};p.faStatus=null;p.faEligible=false;
+ state.freeAgents=state.freeAgents.filter(id=>id!==p.id);
+ delete state.frontOffice.rfaRights[p.id];
+ recordPlayerTransaction(p,'Free Agency',old,team.name,state.currentYear+1,`${p.name} signed with ${team.name}.`);
+ return `${p.name}: ${old} → ${team.name} (${years}y, $${salary}M/yr${sourceLabel?` · ${sourceLabel}`:''})`;
 }
 function runFreeAgencyAI(){
  if(!state.offseason.freeAgents.length)openFreeAgency();
@@ -6255,7 +6319,7 @@ function runFreeAgencyAI(){
  const pool=state.offseason.freeAgents.map(pid=>playerById(pid)).filter(p=>p&&!p.retired&&p.teamName==='Free Agent').sort((a,b)=>(b.ovr||0)-(a.ovr||0));
  pool.forEach(p=>{
    const market=contractMarketAnnual(p);
-   const candidates=state.teams.filter(t=>!(controlled&&t.id===controlled.id)).map(team=>{
+   const candidates=state.teams.filter(t=>!(controlled&&t.id===controlled.id)).filter(team=>canAddPlayerToRoster(team).ok).map(team=>{
      const payroll=teamPayroll(team.name),room=Number(state.frontOffice.cap||100)-payroll;
      if(state.leagueRules?.salaryCap&&room<Math.max(1,market*.82))return null;
      const dir=state.frontOffice.teamDirections[team.id]||'Balanced';
@@ -6270,11 +6334,12 @@ function runFreeAgencyAI(){
    const years=(p.age||27)>=32?1+(seed%2):(p.age||27)<=25?3+(seed%2):2+(seed%3);
    const salary=Math.max(1,Math.round(market*(.90+(seed%17)/100)));
    if(state.leagueRules?.salaryCap&&teamPayroll(best.team.name)+salary>Number(state.frontOffice.cap||100))return;
-   const old=p.previousTeamName||'Free Agency';
-   p.teamName=best.team.name;p.contract={years,salary,expires:state.currentYear+years};p.faStatus=null;p.faEligible=false;
-   state.freeAgents=state.freeAgents.filter(id=>id!==p.id);
-   recordPlayerTransaction(p,'Free Agency',old,best.team.name,state.currentYear+1,`${p.name} signed with ${best.team.name}.`);
-   moves.push(`${p.name}: ${old} → ${best.team.name} (${years}y, $${salary}M/yr)`);
+   const rightsTeam=rfaRightsTeam(p);
+   if(rightsTeam && rightsTeam.id!==best.team.id && shouldMatchRfaOffer(p,rightsTeam,salary,years)){
+     moves.push(finalizeFreeAgentSigning(p,rightsTeam,years,salary,'RFA offer matched'));
+   }else{
+     moves.push(finalizeFreeAgentSigning(p,best.team,years,salary,rightsTeam?'RFA rights declined':''));
+   }
  });
  state.offseason.faResults=moves;
  state.news.push({year:state.currentYear+1,title:'Free agency',text:moves.length?`${moves.length} free agents signed new contracts.`:'No major free-agent moves were completed.'});
@@ -6450,6 +6515,13 @@ function advanceOffseason(){
    runRosterCutsAI();
    state.news.push({year:state.currentYear+1,title:"Training camp",text:"Teams trimmed rosters and set preliminary rotations."});
  }else if(p==="Next Season"){
+   if(state.role==='GM'){
+     const controlled=currentControlledTeam();
+     if(controlled){
+       const rs=rosterStatusForTeam(controlled.name,state.currentYear+1);
+       if(rs.count>rs.regularLimit){alert(`${controlled.name} has ${rs.count} players. Cut the roster to ${rs.regularLimit} before starting the next season.`);switchTab('frontoffice');return;}
+     }
+   }
    let btn=document.getElementById("advanceOffseasonBtn");
    if(btn){btn.disabled=true;btn.textContent="Starting Next Season...";}
    beginNextSeason();
@@ -8268,9 +8340,15 @@ function ensureFrontOffice(){
    transactions:[],
    tradeTargets:[],
    freeAgentOffers:[],
+   rfaRights:{},
+   capExceptions:{},
+   tradeCounter:null,
    tradeBuilder:{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]}
  };
  state.frontOffice.tradeBuilder=state.frontOffice.tradeBuilder||{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
+ state.frontOffice.rfaRights=state.frontOffice.rfaRights||{};
+ state.frontOffice.capExceptions=state.frontOffice.capExceptions||{};
+ if(state.frontOffice.tradeCounter===undefined)state.frontOffice.tradeCounter=null;
  if(!state.freeAgents)state.freeAgents=[];
 }
 function playerSalary(p){
@@ -8320,10 +8398,12 @@ function bestTradeAsset(teamName,targetValue){
 
 function resetTradeBuilder(){
  ensureFrontOffice();
+ state.frontOffice.tradeCounter=null;
  state.frontOffice.tradeBuilder={otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
 }
 function setTradePartner(teamId){
  ensureFrontOffice();
+ state.frontOffice.tradeCounter=null;
  state.frontOffice.tradeBuilder={otherTeamId:teamId||null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
  renderFrontOffice();
 }
@@ -8350,6 +8430,24 @@ function tradeMachineCapLegal(myTeam,otherTeam,tb){
  const otherAfter=teamPayroll(otherTeam.name)-otherOut+otherIn;
  return {ok:myAfter<=cap*1.15&&otherAfter<=cap*1.15,myAfter,otherAfter,cap};
 }
+function buildTradeCounter(myTeam,otherTeam,tb,neededValue){
+ ensureDraftPickAssets();
+ const chosenPlayers=new Set(tb.myPlayers||[]),chosenPicks=new Set(tb.myPicks||[]);
+ const extras=[
+   ...teamDraftPicks(myTeam.id).filter(pk=>!chosenPicks.has(pk.id)).map(pk=>({type:'pick',id:pk.id,value:draftPickValue(pk),label:`${pk.year} ${pk.round===1?'1st':'2nd'} Round`})),
+   ...teamRoster(myTeam.name).filter(p=>!chosenPlayers.has(p.id)).map(p=>({type:'player',id:p.id,value:advancedPlayerTradeValue(p,otherTeam),label:p.name}))
+ ].filter(x=>x.value>0).sort((a,b)=>Math.abs(a.value-neededValue)-Math.abs(b.value-neededValue));
+ const extra=extras[0]||null;
+ if(!extra)return null;
+ return {otherTeamId:otherTeam.id,extraType:extra.type,extraId:extra.id,label:extra.label,neededValue:Math.ceil(neededValue)};
+}
+function applyTradeCounter(){
+ ensureFrontOffice();const c=state.frontOffice.tradeCounter,tb=state.frontOffice.tradeBuilder;if(!c||!tb||c.otherTeamId!==tb.otherTeamId)return;
+ if(c.extraType==='pick'&&!tb.myPicks.includes(c.extraId))tb.myPicks.push(c.extraId);
+ if(c.extraType==='player'&&!tb.myPlayers.includes(c.extraId))tb.myPlayers.push(c.extraId);
+ state.frontOffice.tradeCounter=null;renderTradeMachine();
+}
+window.applyTradeCounter=applyTradeCounter;
 function proposeTradeMachine(){
  ensureFrontOffice();ensureDraftPickAssets();
  const myTeam=currentControlledTeam(),tb=state.frontOffice.tradeBuilder||{},otherTeam=state.teams.find(t=>t.id===tb.otherTeamId);
@@ -8375,8 +8473,9 @@ function proposeTradeMachine(){
  const accepted=ratio>=threshold;
  if(!accepted){
    const need=Math.max(1,Math.ceil(theirOffer*threshold-myOffer));
-   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${otherTeam.name} rejected the proposed trade. Their front office wants roughly ${need} more value.`});
-   alert(`${otherTeam.name} rejected the offer. They want more value in the package.`);renderFrontOffice();saveState();return;
+   state.frontOffice.tradeCounter=buildTradeCounter(myTeam,otherTeam,tb,need);
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${otherTeam.name} rejected the proposed trade. Their front office wants roughly ${need} more value.${state.frontOffice.tradeCounter?` Counter request: ${state.frontOffice.tradeCounter.label}.`:''}`});
+   alert(`${otherTeam.name} rejected the offer.${state.frontOffice.tradeCounter?` They countered by asking you to add ${state.frontOffice.tradeCounter.label}.`:' They want more value in the package.'}`);renderFrontOffice();saveState();return;
  }
  const myName=myTeam.name,otherName=otherTeam.name;
  (tb.myPlayers||[]).forEach(id=>{let p=state.players.find(x=>x.id===id);if(p&&p.teamName===myName)p.teamName=otherName;});
@@ -8411,6 +8510,7 @@ function renderTradeMachine(){
  <label>Trade partner</label><select onchange="setTradePartner(this.value)">${otherTeams.map(t=>`<option value="${t.id}" ${t.id===other.id?'selected':''}>${t.name}</option>`).join('')}</select>
  <div class="tradeValueBar"><div class="tradeValueBox"><span class="small muted">You send</span><b>${myVal.toFixed(0)}</b></div><div class="tradeValueBox"><span class="small muted">You receive</span><b>${theirVal.toFixed(0)}</b></div></div>
  <div class="small muted" style="text-align:center;margin-bottom:8px">${meter}</div>
+ ${state.frontOffice.tradeCounter&&state.frontOffice.tradeCounter.otherTeamId===other.id?`<div class="notice"><b>${other.name} counteroffer</b><br><span class="small">Add <b>${state.frontOffice.tradeCounter.label}</b> to the package and resubmit.</span><div style="margin-top:8px"><button onclick="applyTradeCounter()">Apply Counter</button></div></div>`:''}
  <div class="tradeMachineGrid"><div class="tradeMachineSide"><h3>${myTeam.name}</h3><div class="small muted">Players</div>${myRoster.map(p=>assetLine('myPlayers',p,(tb.myPlayers||[]).includes(p.id))).join('')}<div class="small muted" style="margin-top:10px">Draft picks</div>${myPicks.map(pk=>pickLine('myPicks',pk,(tb.myPicks||[]).includes(pk.id))).join('')||'<span class="muted small">No picks.</span>'}</div>
  <div class="tradeMachineSide"><h3>${other.name}</h3><div class="small muted">Players</div>${theirRoster.map(p=>assetLine('theirPlayers',p,(tb.theirPlayers||[]).includes(p.id))).join('')}<div class="small muted" style="margin-top:10px">Draft picks</div>${theirPicks.map(pk=>pickLine('theirPicks',pk,(tb.theirPicks||[]).includes(pk.id))).join('')||'<span class="muted small">No picks.</span>'}</div></div>
  <div class="choicebar" style="margin-top:12px"><button class="primary" onclick="proposeTradeMachine()">Propose Trade</button><button onclick="resetTradeBuilder();renderFrontOffice()">Clear</button></div>`;
@@ -8469,10 +8569,17 @@ function careerMarketValueForAny(p){
 
 function makeFreeAgentOffer(playerId){
  ensureFrontOffice();let team=currentControlledTeam(),p=state.players.find(x=>x.id===playerId);if(!team||!p)return;
+ const rosterCheck=canAddPlayerToRoster(team);
+ if(!rosterCheck.ok){alert(`${team.name} is already at the ${rosterCheck.max}-player ${state.offseason?'offseason':'active'} roster limit.`);return;}
  const years=Math.max(1,Math.min(5,Number(document.getElementById(`faYears_${playerId}`)?.value||3)));
  const salary=Math.max(1,Number(document.getElementById(`faSalary_${playerId}`)?.value||Math.round(careerMarketValueForAny(p))));
  const cap=Number(state.frontOffice.cap||100),payroll=teamPayroll(team.name);
- if(state.leagueRules?.salaryCap && payroll+salary>cap){alert(`This offer would put ${team.name} over the $${cap}M cap.`);return;}
+ let usingException=false;
+ if(state.leagueRules?.salaryCap && payroll+salary>cap){
+   const exception=capExceptionAmount(team);
+   if(capExceptionAvailable(team)&&salary<=exception){usingException=true;}
+   else {alert(`This offer would put ${team.name} over the $${cap}M cap. Available exception: ${capExceptionAvailable(team)?`up to $${exception}M`:'already used'}.`);return;}
+ }
  const market=careerMarketValueForAny(p);
  const winPct=(team.w||0)/Math.max(1,(team.w||0)+(team.l||0));
  const contenderBonus=winPct>=.55?0.06:winPct<=.35?-0.03:0;
@@ -8481,13 +8588,22 @@ function makeFreeAgentOffer(playerId){
  const score=(salary/Math.max(1,market)) + contenderBonus + securityBonus + (years-3)*.01;
  let accepted=score>=1.0;
  if(!accepted && score>=.9)accepted=Math.random()<(score-.88)*4;
- state.frontOffice.freeAgentOffers.unshift({year:state.currentYear,playerId:p.id,player:p.name,teamId:team.id,years,salary,status:accepted?'Accepted':'Rejected'});
+ state.frontOffice.freeAgentOffers.unshift({year:state.currentYear,playerId:p.id,player:p.name,teamId:team.id,years,salary,status:accepted?'Accepted':'Rejected',restricted:!!rfaRightsTeam(p),exception:usingException});
  if(!accepted){
    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} rejected ${team.name}'s ${years}-year, $${salary}M/year offer.`});
    alert(`${p.name} rejected the offer. His market is about $${Math.round(market)}M per year.`);renderFrontOffice();saveState();return;
  }
- p.teamName=team.name;p.contract={years,salary};state.freeAgents=state.freeAgents.filter(id=>id!==p.id);
- state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for ${years} years at $${salary}M/year.`});
+ const rightsTeam=rfaRightsTeam(p);
+ if(rightsTeam&&rightsTeam.id!==team.id&&shouldMatchRfaOffer(p,rightsTeam,salary,years)){
+   finalizeFreeAgentSigning(p,rightsTeam,years,salary,'RFA offer matched');
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${rightsTeam.name} matched ${team.name}'s offer sheet for ${p.name}.`});
+   state.news.push({year:state.currentYear,title:'Restricted free agency',text:`${rightsTeam.name} matched an offer sheet for ${p.name}.`});
+   alert(`${p.name} accepted your offer sheet, but ${rightsTeam.name} matched it and kept him.`);
+   renderAll();saveState();return;
+ }
+ finalizeFreeAgentSigning(p,team,years,salary,rightsTeam?'RFA rights declined':'');
+ if(usingException)markCapExceptionUsed(team);
+ state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for ${years} years at $${salary}M/year${usingException?' using its cap exception':''}.`});
  state.news.push({year:state.currentYear,title:'Free-agent signing',text:`${team.name} signs ${p.name} to a ${years}-year contract.`});
  renderAll();saveState();
 }
@@ -8518,7 +8634,8 @@ function renderFrontOffice(){
  buildTradeTargets();
  let roster=teamRoster(team.name).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
  let payroll=teamPayroll(team.name),cap=state.frontOffice.cap,capClass=payroll>cap?"capBad":payroll>cap*.88?"capWarn":"capGood";
- rosterBox.innerHTML=`<p><b>${team.name}</b> · ${roster.length} players · <span class="${capClass}">$${payroll.toFixed(0)}M / $${cap}M</span></p>`+
+ const rosterStatus=rosterStatusForTeam(team.name,state.currentYear+1),exception=capExceptionAmount(team),exceptionOpen=capExceptionAvailable(team);
+ rosterBox.innerHTML=`<p><b>${team.name}</b> · ${roster.length}/${rosterStatus.max} players · <span class="${capClass}">$${payroll.toFixed(0)}M / $${cap}M</span></p>${state.leagueRules?.salaryCap?`<div class="small muted" style="margin-bottom:8px">Cap exception: ${exceptionOpen?`$${exception}M available`:'used'} · Regular-season roster limit ${rosterStatus.regularLimit}${state.offseason?` · Offseason limit ${rosterStatus.offseasonLimit}`:''}</div>`:''}`+
  roster.map(p=>`<div class="rosterRow"><div><b>${p.name}</b><div class="small muted">${p.pos} · Age ${p.age||"—"}</div></div><div>OVR ${p.ovr||"—"}</div><div>$${playerSalary(p)}M</div><div class="rosterHide"><button onclick="releasePlayer('${p.id}')">Release</button></div></div>`).join("");
  const contractBox=document.getElementById("contractCenterBox");
  if(contractBox){
@@ -8540,7 +8657,7 @@ function renderFrontOffice(){
  if(pb)pb.innerHTML=picks.length?picks.slice(0,20).map(pk=>`<div class="pickAsset"><b>${pk.year} ${pk.round===1?"1st":"2nd"} Round</b><div class="small muted">Original: ${state.teams.find(t=>t.id===pk.originalTeamId)?.name||"Unknown"} · Trade Value ${draftPickValue(pk).toFixed(0)}</div></div>`).join(""):`<span class="muted">No draft picks owned.</span>`;
 
  let fa=freeAgentPool().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,20);
- document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>{let ask=contractMarketAnnual(p);return `<div class="tradeTarget"><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Market about $${ask}M/year</div><div class="faOfferControls"><div><label>Years</label><select id="faYears_${p.id}"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div><div><label>Salary / year</label><input id="faSalary_${p.id}" type="number" min="1" step="1" value="${ask}"></div><button class="primary" onclick="makeFreeAgentOffer('${p.id}')">Make Offer</button></div></div>`}).join(""):`<span class="muted">No free agents are currently available.</span>`;
+ document.getElementById("freeAgencyMarket").innerHTML=fa.length?fa.map(p=>{let ask=contractMarketAnnual(p),rights=rfaRightsTeam(p);return `<div class="tradeTarget"><b>${p.name}${rights?' · RFA':''}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · POT ${p.pot||p.ovr} · Market about $${ask}M/year${rights?` · ${rights.name} can match`:''}</div><div class="faOfferControls"><div><label>Years</label><select id="faYears_${p.id}"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div><div><label>Salary / year</label><input id="faSalary_${p.id}" type="number" min="1" step="1" value="${ask}"></div><button class="primary" onclick="makeFreeAgentOffer('${p.id}')">Make Offer</button></div></div>`}).join(""):`<span class="muted">No free agents are currently available.</span>`;
 
  let log=state.frontOffice.transactions||[];
  document.getElementById("transactionLogBox").innerHTML=log.length?log.slice(0,30).map(x=>`<div class="careerTimelineRow"><b>${x.year}</b><div>${x.text}</div></div>`).join(""):`<span class="muted">No transactions yet.</span>`;
