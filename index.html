@@ -285,7 +285,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.57 · Complete & Future Draft Pipeline</div>
+    <div class="pill">v0.58 · Historical Expansion Drafts</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -3963,6 +3963,120 @@ function crossroadAddExpansionTeam(identityName,conference,year){
  return team;
 }
 
+function historicalExpansionDraftValue(p,team,pickIndex){
+ let base=(p.ovr||50)*1.12+(p.pot||p.ovr||50)*.34-(p.age||25)*.28;
+ let roster=rosterFor(team.name).filter(x=>!x.retired);
+ let posCount=roster.filter(x=>x.pos===p.pos).length;
+ let needBonus=Math.max(0,3-posCount)*2.2;
+ let seed=parseInt(hashlibCompat(`${team.name}_${p.name}_${state.currentYear}_${pickIndex}`).slice(0,4),16);
+ let variance=(seed%9)-4;
+ return base+needBonus+variance*.35;
+}
+
+function normalizeExpansionRoster(team){
+ let roster=rosterFor(team.name).filter(p=>!p.retired);
+ if(!roster.length)return;
+ roster.sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ roster.forEach((p,i)=>{
+   let target=i<5?30-Math.min(6,i*1.5):i<9?18-Math.min(6,(i-5)*1.5):8;
+   p.rotationMinutes=Math.max(0,target);
+   p.starter=i<5;
+ });
+ let active=roster.slice(0,Math.min(10,roster.length));
+ let total=active.reduce((s,p)=>s+(p.rotationMinutes||0),0)||1;
+ active.forEach(p=>p.rotationMinutes=(p.rotationMinutes||0)/total*240);
+ roster.slice(active.length).forEach(p=>{p.rotationMinutes=0;p.starter=false;});
+ let top=roster.slice(0,8);
+ if(top.length)team.power=Math.round(top.reduce((s,p)=>s+(p.ovr||50),0)/top.length);
+}
+
+function runHistoricalMultiTeamExpansionDraft(expansionTeams,year){
+ expansionTeams=(expansionTeams||[]).filter(Boolean);
+ if(!expansionTeams.length)return null;
+ state.historicalExpansionDrafts=state.historicalExpansionDrafts||[];
+ let teamIds=expansionTeams.map(t=>t.id).sort();
+ let existing=state.historicalExpansionDrafts.find(d=>Number(d.year)===Number(year) &&
+   (d.teamIds||[]).slice().sort().join("|")===teamIds.join("|"));
+ if(existing)return existing;
+
+ initPlayersIfNeeded();
+
+ let expansionIdSet=new Set(teamIds);
+ let sourceTeams=state.teams.filter(t=>!expansionIdSet.has(t.id));
+ let protectedIds=new Set();
+
+ sourceTeams.forEach(t=>{
+   let roster=rosterFor(t.name).filter(p=>!p.retired && !p.deferredEntry)
+     .sort((a,b)=>(b.ovr||0)-(a.ovr||0)||(b.pot||0)-(a.pot||0));
+   roster.slice(0,8).forEach(p=>protectedIds.add(p.id));
+ });
+
+ let eligible=state.players.filter(p=>
+   !p.retired && !p.deferredEntry &&
+   sourceTeams.some(t=>t.name===p.teamName) &&
+   !protectedIds.has(p.id)
+ );
+
+ let sourceLosses={};
+ let teamSourceUsed={};
+ let results={};
+ expansionTeams.forEach(t=>{teamSourceUsed[t.id]=new Set();results[t.id]=[];});
+
+ const picksPerTeam=12;
+ for(let round=0;round<picksPerTeam;round++){
+   expansionTeams.forEach(team=>{
+     let candidates=eligible.filter(p=>{
+       let source=p.teamName;
+       return !teamSourceUsed[team.id].has(source) &&
+         (sourceLosses[source]||0)<expansionTeams.length;
+     });
+     if(!candidates.length){
+       candidates=eligible.filter(p=>(sourceLosses[p.teamName]||0)<expansionTeams.length);
+     }
+     if(!candidates.length)return;
+
+     candidates.sort((a,b)=>historicalExpansionDraftValue(b,team,round)-historicalExpansionDraftValue(a,team,round));
+     let p=candidates[0];
+     let oldTeam=p.teamName;
+
+     eligible=eligible.filter(x=>x.id!==p.id);
+     sourceLosses[oldTeam]=(sourceLosses[oldTeam]||0)+1;
+     teamSourceUsed[team.id].add(oldTeam);
+
+     p.teamName=team.name;
+     p.rotationMinutes=Math.max(8,p.rotationMinutes||8);
+     p.starter=false;
+     if(typeof recordPlayerTransaction==="function"){
+       recordPlayerTransaction(p,"Expansion Draft",oldTeam,team.name,year,`Selected by ${team.name} in the ${year} expansion draft.`);
+     }
+     results[team.id].push({player:p.name,from:oldTeam,pos:p.pos,ovr:p.ovr,pot:p.pot});
+   });
+ }
+
+ expansionTeams.forEach(normalizeExpansionRoster);
+
+ let record={
+   year:Number(year),
+   teamIds:expansionTeams.map(t=>t.id),
+   teams:expansionTeams.map(t=>({
+     teamId:t.id,
+     teamName:t.name,
+     picks:results[t.id]||[]
+   })),
+   protectedPerTeam:8,
+   picksPerExpansionTeam:picksPerTeam,
+   completed:true
+ };
+ state.historicalExpansionDrafts.push(record);
+
+ let summary=record.teams.map(x=>`${x.teamName}: ${x.picks.length} players`).join(" · ");
+ state.news.push({year:Number(year),title:`${year} Expansion Draft`,text:`Historical expansion draft completed. ${summary}. Existing teams protected their top 8 players.`});
+
+ state.lastHistoricalExpansionDraft=record;
+ return record;
+}
+
+
 function scheduleHistoricalExpansion(identityName,conference,startYear){
  state.pendingHistoricalExpansions=state.pendingHistoricalExpansions||[];
  if(state.pendingHistoricalExpansions.some(x=>x.identityName===identityName))return;
@@ -3971,11 +4085,22 @@ function scheduleHistoricalExpansion(identityName,conference,startYear){
 
 function processPendingHistoricalExpansions(){
  if(!state?.pendingHistoricalExpansions)return;
- state.pendingHistoricalExpansions.forEach(x=>{
-   if(!x.completed && Number(state.currentYear)>=Number(x.startYear)){
-     let t=crossroadAddExpansionTeam(x.identityName,x.conference,x.startYear);
+ let due=state.pendingHistoricalExpansions.filter(x=>!x.completed && Number(state.currentYear)>=Number(x.startYear));
+ let byYear={};
+ due.forEach(x=>{
+   let y=Number(x.startYear);
+   byYear[y]=byYear[y]||[];
+   byYear[y].push(x);
+ });
+ Object.entries(byYear).forEach(([year,entries])=>{
+   let newTeams=[];
+   entries.forEach(x=>{
+     let already=state.teams.find(t=>t.name===x.identityName);
+     let t=already||crossroadAddExpansionTeam(x.identityName,x.conference,x.startYear);
      x.completed=!!t;
-   }
+     if(t && !already)newTeams.push(t);
+   });
+   if(newTeams.length)runHistoricalMultiTeamExpansionDraft(newTeams,Number(year));
  });
 }
 
@@ -4060,8 +4185,10 @@ function applyHistoricalCrossroadOutcome(def,team,choice,automatic=false){
    }
  }else if(def.id==="dallas_1980_expansion"){
    if(choice==="Approve Dallas expansion"){
+     let existed=state.teams.some(x=>x.name==="Dallas Mavericks");
      let t=crossroadAddExpansionTeam("Dallas Mavericks","West",1980);
-     result=t?"Dallas is approved and the Mavericks join the alternate NBA.":"Dallas was approved, but the Mavericks identity is not available in this data pack.";
+     if(t && !existed)runHistoricalMultiTeamExpansionDraft([t],1980);
+     result=t?"Dallas is approved and the Mavericks join the alternate NBA with an expansion-draft roster.":"Dallas was approved, but the Mavericks identity is not available in this data pack.";
    }else if(choice==="Delay Dallas expansion"){
      scheduleHistoricalExpansion("Dallas Mavericks","West",1981);
      result="The NBA delays Dallas by one season rather than following the exact historical timetable.";cls="crossroadStayed";
@@ -5050,6 +5177,12 @@ function runExpansionDraftAI(){
 function renderExpansionDraft(){
  const box=document.getElementById("expansionDraftBox");if(!box)return;
  if(!state.pendingExpansionDraft){
+   let h=state.lastHistoricalExpansionDraft||(state.historicalExpansionDrafts||[]).slice(-1)[0];
+   if(h){
+     box.innerHTML=`<div class="notice"><b>${h.year} Historical Expansion Draft</b><br>Existing clubs protected ${h.protectedPerTeam} players. ${h.teams.length>1?"Expansion clubs selected in alternating rounds.":"The expansion club built its opening roster from the unprotected pool."}</div>`+
+       h.teams.map(t=>`<div style="margin-top:12px"><b>${t.teamName}</b><div class="small muted">${t.picks.length} selections</div>${t.picks.map((p,i)=>`<div class="protectRow"><div><b>#${i+1} ${p.player}</b><div class="small muted">from ${p.from} · ${p.pos}</div></div><div>OVR ${p.ovr}</div><div>POT ${p.pot??"—"}</div></div>`).join("")}</div>`).join("");
+     return;
+   }
    box.innerHTML=`<span class="muted">No expansion draft is pending.</span>`;return;
  }
  let team=teamById(state.pendingExpansionDraft.teamId);

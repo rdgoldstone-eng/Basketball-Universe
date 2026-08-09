@@ -1,67 +1,58 @@
-v0.57 Basketball Universe — Complete & Future Draft Pipeline
+v0.58 Basketball Universe — Historical Expansion Drafts
 
-THE REAL-WORLD DRAFT PIPELINE IS NOW CAUGHT UP.
+MAJOR STRUCTURAL FIX
+Historical expansion teams now enter the league with actual expansion-draft rosters.
 
-COMPLETED HISTORICAL DRAFTS
-1977–2026
+WHY THIS MATTERS
+The Historical Crossroads system could already approve:
+- Dallas
+- Charlotte
+- Miami
+- Orlando
+- Minnesota
 
-2025
-The completed 2025 class is added using draft-time perception.
-Cooper Flagg is a franchise-level No. 1 prospect.
-Dylan Harper, VJ Edgecombe, Kon Knueppel, Ace Bailey and the rest follow based on their draft context rather than post-draft hindsight.
+But those franchises were previously added without a proper roster-building process.
 
-2026
-The completed 2026 class is added.
-AJ Dybantsa, Darryn Peterson and Cameron Boozer form an elite top three.
-Caleb Wilson follows, with the rest of the class modeled from its actual draft context.
+NEW HISTORICAL EXPANSION DRAFT ENGINE
+When a historical expansion team joins:
+- existing franchises protect their top 8 players
+- the new team selects 12 players
+- one expansion team cannot repeatedly raid the same source club
+- when two teams enter together, selections alternate between the expansion clubs
+- an existing club can lose at most one player to each expansion club
+- expansion selections consider talent, potential, age, position need, and small deterministic variance
+- opening rotations and starter roles are created automatically
+- expansion selections are recorded in player transaction history
+- the completed expansion draft is stored in league history
 
-FUTURE REAL-PLAYER MOCK CLASSES
-2027–2030
+HISTORICAL WAVES
+1980 Dallas:
+If approved at the historical crossroads, Dallas now immediately receives an expansion-draft roster.
 
-These are NOT treated as historical truth.
-They are snapshots of publicly available draft projections as of August 2026.
+1988 Charlotte + Miami:
+If both are approved, they are added together and draft from one shared protected/unprotected player pool.
 
-2027
-A deliberately flat/uncertain class.
-Tyran Stokes opens at No. 1, with Jordan Smith Jr., Caleb Holt, Bruce Branch III and other names in the mix.
-This class has more uncertainty than 2025 or 2026.
+1989 Orlando + Minnesota:
+Same multi-team system.
 
-2028
-Joaquim Boumtje Boumtje and Nikola Kusturica currently lead the early projection.
-Because these prospects are much farther from the NBA, scouting uncertainty is substantially higher.
+If the alternate universe approves only Charlotte and Miami in 1987, only those two expansion drafts occur.
 
-2029
-A.J. Williams currently leads the very early pool.
-Nearly every player has a wide outcome range.
+DELAYED EXPANSION
+If Dallas is delayed to 1981, the roster draft happens when Dallas actually enters.
 
-2030
-Mohamed Dabone currently leads an extremely early projection.
-This class should be treated as a watch list, not a prediction.
+LEAGUE OFFICE UI
+The Expansion Draft panel now displays the most recent completed historical expansion draft when no manual expansion draft is pending.
 
-2031 AND BEYOND
-Basketball Universe now automatically generates fictional future draft classes.
+MANUAL EXPANSION
+The existing Commissioner manual expansion system remains available and unchanged.
 
-This means a universe can run forever without:
-- recycling an old draft class
-- stopping because data ended
-- inventing fake certainty about real children/future prospects years before reliable NBA evaluations exist
-
-Generated classes contain 30 prospects with:
-- positions
-- ages
-- prospect grades
-- ceiling ranges
-- scouting uncertainty
-- development variance
-
-They are explicitly marked as fictional future-universe prospects.
-
-CORE RULE
-1977–2026 = completed historical/draft-time information
-2027–2030 = real-player projection snapshots, highly uncertain
-2031+ = fictional Basketball Universe future
-
-Future projection classes can later be updated as real draft cycles develop.
+NEXT TEST TARGET
+A fresh Viewer run from 1976 through 1990 is now especially valuable:
+- see which historical crossroads fire
+- verify Dallas roster if approved
+- verify Charlotte/Miami simultaneous entry
+- verify Orlando/Minnesota entry
+- inspect expansion rosters and league stability
 
 GitHub update:
 Upload index.html and README.txt over the current files and commit.
