@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.8 · Draft Completion & Redirect Fix</div>
+    <div class="pill">v0.82.9 · New Season Newspaper Flow</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -14180,6 +14180,131 @@ setTimeout(()=>{
       }
     }
   }catch(e){console.error("v0.82.8 completed-draft repair",e);}
+},0);
+
+
+
+/* === v0.82.9 New Season Newspaper Flow ===
+   Next Season should open the new-season newspaper first.
+   Continue from the newspaper then begins Game 1. */
+
+function ensureSeasonNewspaperFlowV0829(){
+  state.seasonNewspaper=state.seasonNewspaper||{};
+  if(typeof state.seasonNewspaper.pending!=="boolean")state.seasonNewspaper.pending=false;
+  if(!state.seasonNewspaper.year)state.seasonNewspaper.year=null;
+}
+
+function markNewSeasonNewspaperPendingV0829(){
+  ensureSeasonNewspaperFlowV0829();
+  state.seasonNewspaper.pending=true;
+  state.seasonNewspaper.year=state.currentYear;
+}
+
+function openSeasonNewspaperV0829(){
+  ensureSeasonNewspaperFlowV0829();
+  // Season -> Seasons is where the newspaper already lives.
+  try{switchTab("season");}catch(_){}
+  try{
+    if(typeof switchSeasonSubtab==="function"){
+      switchSeasonSubtab("seasons");
+    }else{
+      const btn=document.querySelector('#subNav button[data-subtab="seasons"]');
+      if(btn)btn.click();
+    }
+  }catch(e){console.warn("Season newspaper navigation warning",e);}
+
+  // Try known renderers if present.
+  try{ if(typeof renderSeasonHome==="function")renderSeasonHome(); }catch(_){}
+  try{ if(typeof renderSeason==="function")renderSeason(); }catch(_){}
+  try{ if(typeof renderAll==="function")renderAll(); }catch(_){}
+
+  // Scroll the newspaper area into view when we can identify it.
+  setTimeout(()=>{
+    const candidates=[
+      document.getElementById("newspaper"),
+      document.getElementById("seasonNewspaper"),
+      document.querySelector(".newspaper"),
+      document.querySelector("[data-newspaper]")
+    ].filter(Boolean);
+    candidates[0]?.scrollIntoView?.({behavior:"smooth",block:"start"});
+  },50);
+}
+
+function finishNewSeasonNewspaperV0829(){
+  ensureSeasonNewspaperFlowV0829();
+  state.seasonNewspaper.pending=false;
+  state.seasonNewspaper.year=state.currentYear;
+  try{saveState();}catch(_){}
+  // Continue goes to the normal Season page at Game 1.
+  try{switchTab("season");}catch(_){}
+  try{
+    if(typeof switchSeasonSubtab==="function")switchSeasonSubtab("season");
+    else{
+      const btn=document.querySelector('#subNav button[data-subtab="season"]');
+      if(btn)btn.click();
+    }
+  }catch(_){}
+  try{renderAll();}catch(_){}
+}
+window.finishNewSeasonNewspaperV0829=finishNewSeasonNewspaperV0829;
+
+/* Wrap Begin Next Season so the universe is initialized first, then newspaper opens.
+   We intentionally DO NOT auto-sim the first game here. */
+const _v0829BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const result=_v0829BeginNextSeason.apply(this,arguments);
+  // If the underlying call refused to start because of roster rules, do nothing.
+  if(state?.season?.phase==="Season Complete")return result;
+
+  markNewSeasonNewspaperPendingV0829();
+  try{saveState();}catch(_){}
+  setTimeout(()=>openSeasonNewspaperV0829(),0);
+  return result;
+};
+window.beginNextSeason=beginNextSeason;
+
+/* Replace any visible newspaper Continue control with the intended flow.
+   We do this after normal rendering so old inline handlers cannot send the
+   user somewhere else or simulate unexpectedly. */
+function bindNewspaperContinueV0829(){
+  ensureSeasonNewspaperFlowV0829();
+  if(!state.seasonNewspaper.pending)return;
+
+  const all=[...document.querySelectorAll("button,a")];
+  const continueBtn=all.find(el=>{
+    const txt=(el.textContent||"").trim().toLowerCase();
+    return txt==="continue" || txt==="continue to season" || txt.includes("continue to");
+  });
+
+  if(continueBtn){
+    const clone=continueBtn.cloneNode(true);
+    clone.textContent="Continue";
+    clone.type="button";
+    clone.onclick=(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      finishNewSeasonNewspaperV0829();
+    };
+    continueBtn.replaceWith(clone);
+  }
+}
+
+const _v0829RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0829RenderAll.apply(this,arguments);
+  setTimeout(bindNewspaperContinueV0829,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+/* Existing save repair:
+   if a new season has already started but the user hasn't acknowledged its newspaper,
+   allow the page to reopen the newspaper rather than silently skipping it. */
+setTimeout(()=>{
+  try{
+    ensureSeasonNewspaperFlowV0829();
+    bindNewspaperContinueV0829();
+  }catch(e){console.warn("v0.82.9 newspaper repair warning",e);}
 },0);
 
 </script>
