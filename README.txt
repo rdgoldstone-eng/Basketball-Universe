@@ -1,28 +1,25 @@
 Basketball Universe
-v0.82.11 · Newspaper Generation Fix
+v0.82.12 · Newspaper Opening Screen Fix
 
-WHAT WAS ACTUALLY WRONG
-v0.82.10 fixed WHEN the newspaper was supposed to appear, but it still assumed
-a completed newspaper object already existed after Start Next Season.
+CHANGE OF APPROACH
+The existing Season Chronicle card has proven unreliable as an automatic transition.
+This build no longer depends on that hidden card to make the newspaper appear.
 
-In some saves, the season transition changed/cleared the data before the
-newspaper was marked pending. Result: correct timing logic, but no paper existed
-to display.
+NEW FLOW
+- Start Next Season completes the season transition.
+- The game moves to Season.
+- A dedicated full-screen newspaper is placed directly over the Season page.
+- The paper is generated from the season that just ended.
+- Continue to Game 1 closes the paper.
+- The normal Season page is immediately underneath, still at Game 1.
+- Continue does NOT simulate a game.
 
-FIX
-- The completed-season newspaper is now captured/generated BEFORE the year changes.
-- That snapshot is carried into the new season and marked pending immediately.
-- Start Next Season then opens the Season page and forces the newspaper card visible.
-- The newspaper has its own Continue button.
-- Continue closes the paper and leaves the user at Game 1.
-- Added a fallback newspaper renderer if an older save's newspaper object is incomplete.
-- Existing saves already at Game 1 can reconstruct the paper from the previous season's history.
+SAVE REPAIR
+If an existing save is already at Game 1 and the opening paper has not been acknowledged,
+the newspaper is shown automatically after load.
 
-EXPECTED FLOW
-Start Next Season
-→ previous season newspaper appears immediately
-→ Continue
-→ Game 1
+EXPECTED
+Offseason → Start Next Season → Newspaper → Continue to Game 1 → Season
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root.

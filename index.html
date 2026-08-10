@@ -356,6 +356,21 @@ pre{white-space:pre-wrap}
 .offseasonMechanism{padding:12px;border:1px solid var(--line);border-radius:12px;margin:10px 0;background:var(--panel2)}
 .offseasonResultRow{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 
+
+/* v0.82.12 dedicated season-opening newspaper screen */
+#seasonOpeningPaperV08212{
+  position:fixed;inset:0;z-index:99999;background:var(--bg);
+  overflow:auto;padding:18px 12px 40px;
+}
+#seasonOpeningPaperV08212 .openingPaperShell{max-width:920px;margin:0 auto}
+#seasonOpeningPaperV08212 .openingPaperTop{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin-bottom:12px
+}
+#seasonOpeningPaperV08212 .openingPaperContinue{
+  display:block;width:min(100%,520px);margin:20px auto 4px;padding:14px 18px;font-size:17px
+}
+
 </style>
 </head>
 <body>
@@ -370,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.11 · Newspaper Generation Fix</div>
+    <div class="pill">v0.82.12 · Newspaper Opening Screen Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -14620,6 +14635,186 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.82.11 newspaper recovery",e);}
 },60);
+
+
+
+/* === v0.82.12 Dedicated Season-Opening Newspaper Screen ===
+   Do not rely on the old hidden Season Chronicle card. A new season now gets
+   its own guaranteed opening screen rendered directly into document.body. */
+
+function ensureOpeningPaperV08212(){
+  state.openingPaper=state.openingPaper||{};
+  state.openingPaper.forSeason=state.openingPaper.forSeason??null;
+  state.openingPaper.paperYear=state.openingPaper.paperYear??null;
+  state.openingPaper.acknowledgedSeason=state.openingPaper.acknowledgedSeason??null;
+}
+
+function paperForSeasonOpeningV08212(seasonYear){
+  ensureLeagueHistory?.();
+  const paperYear=Number(seasonYear)-1;
+
+  let p=(state.seasonNewspapers||[]).find(x=>Number(x.year)===paperYear) || null;
+  if(!p){
+    try{p=createSeasonNewspaper(paperYear);}catch(e){console.warn("Newspaper creation fallback",e);}
+  }
+
+  if(!p){
+    const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===paperYear);
+    if(hs){
+      p={
+        year:paperYear,
+        seasonLabel:`${paperYear}-${String((paperYear+1)%100).padStart(2,"0")}`,
+        era:eraInfoForYear?.(paperYear)?.name||"",
+        champion:hs.champion||"League Champion",
+        runnerUp:hs.runnerUp||null,
+        finalsMvp:hs.finalsMvp||null,
+        awards:{
+          mvp:hs.mvp||null,
+          rookie:hs.rookie||null,
+          dpoy:hs.dpoy||null,
+          sixth:hs.sixth||null
+        },
+        topPick:null,
+        changes:[]
+      };
+      state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+      state.seasonNewspapers.push(p);
+      state.latestSeasonNewspaper=p;
+    }
+  }
+  return p;
+}
+
+function openingPaperHTMLV08212(p){
+  if(!p)return `<div class="newspaper"><div class="newspaperMast"><h2>Basketball Universe Chronicle</h2></div><div class="newspaperHeadline">A New Season Begins</div></div>`;
+  try{
+    return seasonNewspaperHTML(p);
+  }catch(e){
+    return `<div class="newspaper">
+      <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel||p.year||""} Final Edition</div><h2>Basketball Universe Chronicle</h2></div>
+      <div class="newspaperHeadline">${p.champion||"League Champion"} Rule the Basketball World</div>
+      <div class="newspaperDeck">The completed season is in the books. A new season is ready to begin.</div>
+      <div class="newspaperGrid">
+        <div class="newspaperStory"><h3>Awards Desk</h3>
+          <div><b>MVP:</b> ${p.awards?.mvp||p.mvp||"—"}</div>
+          <div><b>Rookie of the Year:</b> ${p.awards?.rookie||p.rookie||"—"}</div>
+          <div><b>Finals MVP:</b> ${p.finalsMvp||"—"}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+}
+
+function closeSeasonOpeningPaperV08212(){
+  ensureOpeningPaperV08212();
+  state.openingPaper.acknowledgedSeason=state.currentYear;
+  state.openingPaper.forSeason=null;
+
+  // Keep older newspaper state from reopening the old card unexpectedly.
+  state.seasonNewspaper=state.seasonNewspaper||{};
+  state.seasonNewspaper.pending=false;
+  state.seasonNewspaper.acknowledgedSeasonYear=state.currentYear;
+
+  document.getElementById("seasonOpeningPaperV08212")?.remove();
+  try{saveState();}catch(_){}
+
+  // Continue means: go to Season > Season at Game 1. No simulation.
+  try{switchTab("season");}catch(_){}
+  try{renderSeason();}catch(_){}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+window.closeSeasonOpeningPaperV08212=closeSeasonOpeningPaperV08212;
+
+function showSeasonOpeningPaperV08212(force=false){
+  if(!state)return false;
+  ensureOpeningPaperV08212();
+
+  const seasonYear=Number(state.currentYear);
+  const atOpening=
+    state.season?.phase==="Regular Season" &&
+    Number(state.season?.gamesPlayed||0)===0 &&
+    Number(state.season?.leagueDay||0)===0;
+
+  if(!force && !atOpening)return false;
+  if(!force && Number(state.openingPaper.acknowledgedSeason)===seasonYear)return false;
+
+  const p=paperForSeasonOpeningV08212(seasonYear);
+  if(!p)return false;
+
+  state.openingPaper.forSeason=seasonYear;
+  state.openingPaper.paperYear=Number(p.year);
+
+  document.getElementById("seasonOpeningPaperV08212")?.remove();
+  const overlay=document.createElement("div");
+  overlay.id="seasonOpeningPaperV08212";
+  overlay.innerHTML=`<div class="openingPaperShell">
+    <div class="openingPaperTop">
+      <div><b>${seasonName()}</b><div class="small muted">Season Opening</div></div>
+    </div>
+    ${openingPaperHTMLV08212(p)}
+    <button type="button" class="primary openingPaperContinue" onclick="closeSeasonOpeningPaperV08212()">Continue to Game 1</button>
+  </div>`;
+  document.body.appendChild(overlay);
+
+  try{saveState();}catch(_){}
+  return true;
+}
+window.showSeasonOpeningPaperV08212=showSeasonOpeningPaperV08212;
+
+/* This wrapper is deliberately the FINAL season-transition wrapper.
+   Whatever the older newspaper code does underneath, this screen is created
+   after the new season exists. */
+const _v08212BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const before=Number(state.currentYear||0);
+  const result=_v08212BeginNextSeason.apply(this,arguments);
+  const after=Number(state.currentYear||0);
+
+  if(after>before && state.season?.phase==="Regular Season"){
+    ensureOpeningPaperV08212();
+    state.openingPaper.acknowledgedSeason=null;
+
+    // We are explicitly on the Season page behind the opening newspaper.
+    try{switchTab("season");}catch(_){}
+    try{renderSeason();}catch(_){}
+
+    setTimeout(()=>showSeasonOpeningPaperV08212(true),0);
+  }
+  return result;
+};
+window.beginNextSeason=beginNextSeason;
+
+/* The Viewer Next Season handler used to call renderAll again after the
+   transition. The overlay is attached to body, so even that cannot hide it.
+   Re-show after the current event loop as an extra guarantee. */
+const _v08212AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  const wasNext=state?.offseason?.phase==="Next Season";
+  const before=Number(state?.currentYear||0);
+  const r=_v08212AdvanceOffseason.apply(this,arguments);
+  if(wasNext && Number(state?.currentYear||0)>before){
+    setTimeout(()=>showSeasonOpeningPaperV08212(true),10);
+  }
+  return r;
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Existing save repair. If the user is already at Game 1 and has never
+   acknowledged this season's newspaper, show it now. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    ensureOpeningPaperV08212();
+    const atOpening=
+      state.season?.phase==="Regular Season" &&
+      Number(state.season?.gamesPlayed||0)===0 &&
+      Number(state.season?.leagueDay||0)===0;
+
+    if(atOpening && Number(state.openingPaper.acknowledgedSeason)!==Number(state.currentYear)){
+      showSeasonOpeningPaperV08212();
+    }
+  }catch(e){console.error("v0.82.12 opening newspaper repair",e);}
+},120);
 
 </script>
 </body>
