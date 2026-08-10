@@ -1,25 +1,20 @@
 Basketball Universe
-v0.82.12 · Newspaper Opening Screen Fix
+v0.82.14 · Chronicle & Draft History Persistence
 
-CHANGE OF APPROACH
-The existing Season Chronicle card has proven unreliable as an automatic transition.
-This build no longer depends on that hidden card to make the newspaper appear.
+FIXES
+- Season-opening newspapers are permanently written into the Season > Seasons Chronicle archive.
+- The newspaper is saved as soon as it is created, and again before Continue closes it.
+- Missing newspaper editions can be rebuilt from completed season history.
 
-NEW FLOW
-- Start Next Season completes the season transition.
-- The game moves to Season.
-- A dedicated full-screen newspaper is placed directly over the Season page.
-- The paper is generated from the season that just ended.
-- Continue to Game 1 closes the paper.
-- The normal Season page is immediately underneath, still at Game 1.
-- Continue does NOT simulate a game.
+- Draft History is now permanently saved during the draft, not only after the final post-draft render.
+- Every completed pick updates the persistent draft-history entry.
+- The final draft is archived before the game leaves Draft Room.
+- Draft History refreshes immediately after saving.
+- Missing draft-history entries from older broken builds can be reconstructed from offseason draft results or permanent player draft data.
+- A stale/empty history object cannot overwrite a richer completed draft.
 
-SAVE REPAIR
-If an existing save is already at Game 1 and the opening paper has not been acknowledged,
-the newspaper is shown automatically after load.
-
-EXPECTED
-Offseason → Start Next Season → Newspaper → Continue to Game 1 → Season
+GOAL
+If you can see a newspaper or a completed draft once, it should still exist later in its History screen and after reloading the save.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root.

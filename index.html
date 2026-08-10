@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.12 · Newspaper Opening Screen Fix</div>
+    <div class="pill">v0.82.14 · Chronicle & Draft History Persistence</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -14815,6 +14815,250 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.82.12 opening newspaper repair",e);}
 },120);
+
+
+
+/* === v0.82.14 Chronicle + Draft History Persistence === */
+
+/* ---------- NEWSPAPER: permanently archive the opening edition ---------- */
+function normalizePaperV08214(p){
+  if(!p)return null;
+  const y=Number(p.year);
+  const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===y)||{};
+  return {
+    ...p,
+    year:y,
+    seasonLabel:p.seasonLabel||`${y}-${String((y+1)%100).padStart(2,"0")}`,
+    champion:p.champion||hs.champion||"—",
+    runnerUp:p.runnerUp||hs.runnerUp||null,
+    finalsMvp:p.finalsMvp||hs.finalsMvp||null,
+    awards:{
+      mvp:p.awards?.mvp||p.mvp||hs.mvp||null,
+      rookie:p.awards?.rookie||p.rookie||hs.rookie||null,
+      dpoy:p.awards?.dpoy||p.dpoy||hs.dpoy||null,
+      sixth:p.awards?.sixth||p.sixth||hs.sixth||null
+    },
+    changes:Array.isArray(p.changes)?p.changes:[]
+  };
+}
+
+function archiveNewspaperV08214(p){
+  const paper=normalizePaperV08214(p);
+  if(!paper)return null;
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  const i=state.seasonNewspapers.findIndex(x=>Number(x.year)===paper.year);
+  if(i>=0)state.seasonNewspapers[i]=paper;
+  else state.seasonNewspapers.push(paper);
+  state.seasonNewspapers.sort((a,b)=>Number(a.year)-Number(b.year));
+  state.latestSeasonNewspaper=paper;
+  try{saveState();}catch(e){console.warn("Newspaper archive save",e);}
+  return paper;
+}
+window.archiveNewspaperV08214=archiveNewspaperV08214;
+
+const _v08214PaperForOpening=paperForSeasonOpeningV08212;
+paperForSeasonOpeningV08212=function(seasonYear){
+  let p=_v08214PaperForOpening(seasonYear);
+  if(!p){
+    const y=Number(seasonYear)-1;
+    const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===y);
+    if(hs)p={
+      year:y,
+      seasonLabel:`${y}-${String((y+1)%100).padStart(2,"0")}`,
+      champion:hs.champion||"—",
+      runnerUp:hs.runnerUp||null,
+      finalsMvp:hs.finalsMvp||null,
+      awards:{mvp:hs.mvp||null,rookie:hs.rookie||null,dpoy:hs.dpoy||null,sixth:hs.sixth||null},
+      changes:[]
+    };
+  }
+  return archiveNewspaperV08214(p);
+};
+window.paperForSeasonOpeningV08212=paperForSeasonOpeningV08212;
+
+const _v08214ClosePaper=closeSeasonOpeningPaperV08212;
+closeSeasonOpeningPaperV08212=function(){
+  const y=Number(state.openingPaper?.paperYear);
+  const p=(state.seasonNewspapers||[]).find(x=>Number(x.year)===y)||state.latestSeasonNewspaper;
+  if(p)archiveNewspaperV08214(p);
+  const r=_v08214ClosePaper.apply(this,arguments);
+  try{ensureSeasonNewspaperArchive?.();renderNewspaperArchive?.();saveState();}catch(_){}
+  return r;
+};
+window.closeSeasonOpeningPaperV08212=closeSeasonOpeningPaperV08212;
+
+
+/* ---------- DRAFT HISTORY: save immediately and rebuild if missing ---------- */
+function draftHistoryEntryFromRoomV08214(){
+  ensurePostDraftStateV0828?.();
+  const dr=state.draftRoom;
+  if(!dr?.year)return null;
+  return {
+    year:Number(dr.year),
+    results:(dr.results||[]).map((r,i)=>({
+      pick:Number(r.pick||i+1),
+      round:Number(r.round||1),
+      pickInRound:Number(r.pickInRound||r.pick||i+1),
+      teamId:r.teamId||null,
+      teamName:r.teamName||teamById(r.teamId)?.name||"Team",
+      playerName:r.playerName||"Player",
+      pos:r.pos||"—",
+      ovr:r.ovr??null,
+      pot:r.pot??null
+    })),
+    undrafted:(dr.available||[]).map(p=>({
+      name:p.name||"Player",pos:p.pos||"—",prospect:p.prospect??null,college:p.college||""
+    }))
+  };
+}
+
+function archiveDraftHistoryV08214(entry=null){
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  const e=entry||draftHistoryEntryFromRoomV08214();
+  if(!e || !Number.isFinite(Number(e.year)))return null;
+
+  e.year=Number(e.year);
+  e.results=Array.isArray(e.results)?e.results:[];
+  e.undrafted=Array.isArray(e.undrafted)?e.undrafted:[];
+
+  const i=state.draftHistory.findIndex(x=>Number(x.year)===e.year);
+  if(i>=0){
+    const old=state.draftHistory[i]||{};
+    // Never replace a richer completed draft with an empty/stale object.
+    if(e.results.length >= (old.results||[]).length){
+      state.draftHistory[i]={...old,...e};
+    }
+  }else{
+    state.draftHistory.push(e);
+  }
+  state.draftHistory.sort((a,b)=>Number(a.year)-Number(b.year));
+  try{saveState();}catch(err){console.warn("Draft history archive save",err);}
+  try{renderDraftHistory?.();}catch(_){}
+  return e;
+}
+window.archiveDraftHistoryV08214=archiveDraftHistoryV08214;
+
+/* Replace the old saver with a guaranteed persistent one. */
+const _v08214OldSaveDraftHistory=saveCompletedDraftToHistory;
+saveCompletedDraftToHistory=function(){
+  try{_v08214OldSaveDraftHistory?.();}catch(e){console.warn("Legacy draft-history saver skipped",e);}
+  return archiveDraftHistoryV08214();
+};
+window.saveCompletedDraftToHistory=saveCompletedDraftToHistory;
+
+/* Save after EVERY pick so a reload cannot erase draft-history progress. */
+const _v08214ExecutePick=executeDraftPickV0824;
+executeDraftPickV0824=function(prospectId=null){
+  const r=_v08214ExecutePick(prospectId);
+  if(r?.ok){
+    archiveDraftHistoryV08214();
+  }
+  return r;
+};
+window.executeDraftPickV0824=executeDraftPickV0824;
+
+/* When the draft finishes/redirects, archive it BEFORE leaving Draft Room. */
+const _v08214ShowCompleted=showCompletedDraftV0828;
+showCompletedDraftV0828=function(picksMade){
+  try{archiveDraftHistoryV08214();}catch(e){console.warn("Final draft archive warning",e);}
+  const r=_v08214ShowCompleted(picksMade);
+  try{archiveDraftHistoryV08214();saveState();}catch(_){}
+  return r;
+};
+window.showCompletedDraftV0828=showCompletedDraftV0828;
+
+/* Reconstruct a missing draft-history edition from permanent player draft data
+   and offseason results. This repairs drafts completed in earlier broken builds. */
+function repairMissingDraftHistoryV08214(year){
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  const y=Number(year);
+  const existing=state.draftHistory.find(x=>Number(x.year)===y);
+  if(existing?.results?.length)return existing;
+
+  let results=[];
+
+  // Best source: saved offseason draft result rows.
+  if(state.offseason?.draftResults?.length && Number(state.draftRoom?.year||y)===y){
+    results=state.offseason.draftResults.map((r,i)=>({
+      pick:Number(r.pick||i+1),
+      round:Number(r.round||1),
+      pickInRound:Number(r.pickInRound||r.pick||i+1),
+      teamId:r.teamId||null,
+      teamName:r.team||r.teamName||"Team",
+      playerName:r.player||r.playerName||"Player",
+      pos:r.pos||"—",
+      ovr:r.ovr??null,pot:r.pot??null
+    }));
+  }
+
+  // Fallback: players permanently stamped with this draft year.
+  if(!results.length){
+    results=(state.players||[])
+      .filter(p=>Number(p.draftYear)===y && Number.isFinite(Number(p.draftPickInRound||p.draftPick)))
+      .sort((a,b)=>{
+        const ao=Number(a.draftOverallPick||a.draftPick||a.draftPickInRound||999);
+        const bo=Number(b.draftOverallPick||b.draftPick||b.draftPickInRound||999);
+        return ao-bo;
+      })
+      .map((p,i)=>({
+        pick:Number(p.draftOverallPick||p.draftPick||i+1),
+        round:Number(p.draftRound||1),
+        pickInRound:Number(p.draftPickInRound||p.draftPick||i+1),
+        teamId:p.draftedByTeamId||null,
+        teamName:p.draftedBy||p.draftTeam||p.teamName||"Team",
+        playerName:p.name||"Player",
+        pos:p.pos||"—",
+        ovr:p.ovr??null,pot:p.pot??null
+      }));
+  }
+
+  if(!results.length)return null;
+  return archiveDraftHistoryV08214({year:y,results,undrafted:[]});
+}
+
+/* Make Draft History itself self-healing when opened. */
+const _v08214RenderDraftHistory=renderDraftHistory;
+renderDraftHistory=function(){
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  // Try the active/recent draft first.
+  const candidateYears=[
+    Number(state.draftRoom?.year),
+    Number(state.currentYear),
+    Number(state.currentYear)+1
+  ].filter(Number.isFinite);
+  candidateYears.forEach(y=>repairMissingDraftHistoryV08214(y));
+  return _v08214RenderDraftHistory();
+};
+window.renderDraftHistory=renderDraftHistory;
+
+/* Load-time archive repair for both systems. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+
+    // Newspaper archive repair from completed season history.
+    state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+    const prior=Number(state.currentYear)-1;
+    if(!state.seasonNewspapers.some(p=>Number(p.year)===prior)){
+      const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===prior);
+      if(hs)archiveNewspaperV08214({
+        year:prior,
+        seasonLabel:`${prior}-${String((prior+1)%100).padStart(2,"0")}`,
+        champion:hs.champion||"—",
+        runnerUp:hs.runnerUp||null,
+        finalsMvp:hs.finalsMvp||null,
+        awards:{mvp:hs.mvp||null,rookie:hs.rookie||null,dpoy:hs.dpoy||null,sixth:hs.sixth||null},
+        changes:[]
+      });
+    }
+
+    // Draft history repair.
+    [Number(state.draftRoom?.year),Number(state.currentYear),Number(state.currentYear)+1]
+      .filter(Number.isFinite).forEach(y=>repairMissingDraftHistoryV08214(y));
+
+    saveState();
+  }catch(e){console.error("v0.82.14 archive repair",e);}
+},180);
 
 </script>
 </body>
