@@ -1,31 +1,30 @@
 Basketball Universe League
-v0.85 · GM Transaction Center
+v0.86 · GM Trade & Draft Control
 
-GM BUILD PASS 2
+GM BUILD PASS 3
 
-NEW GM TRANSACTION CENTER
-- Full controlled-team roster and contracts
-- Payroll / cap / roster status
-- Release players manually
-- Re-sign expiring players manually
-- Browse free agents during Free Agency
-- Make salary + years offers
-- Players can accept or reject offers
-- Estimated asking salary shown
-- Transaction log records signings, releases, and rejected offers
-- Direct links to Trade Machine and Draft Room
+TRADE MACHINE
+- Human GM can build both sides of a trade.
+- Select multiple players from each team.
+- Add draft picks from either side.
+- Live trade-value comparison.
+- AI evaluates talent, potential, age, salary, roster needs, team direction, and picks.
+- AI can accept, reject, or tell you the offer is close.
+- Salary legality is checked when a cap is active.
+- Completed trades move players/picks and update the transaction log.
+- Trade deadline is enforced.
 
-GM PROTECTION
-- League AI still handles the other teams.
-- Human team cannot be silently filled by AI free agency.
-- Human roster cannot be silently cut by AI.
-- Opening night is blocked until the GM reaches the legal roster limit.
-- Trade deadline status is visible.
+DRAFT CONTROL
+- Human GM draft turns remain protected from AI.
+- Visible prospects get a Draft button on the user's pick.
+- Confirmation before selection.
+- Draft history/save path remains intact.
+- Front Office shows owned draft assets and basic trade value.
 
-DRAFT
-- Human-controlled draft selections remain protected from AI.
-- Prospect rows become selectable for the user's pick when supported by the existing Draft Room markup.
+MOBILE
+The Trade Machine is embedded directly into Front Office so it does not depend on a buried navigation page.
 
-This is still a GM construction build, not yet the dedicated GM playtest build.
+STATUS
+GM is still under construction. Next pass: scouting/board control, team needs, transaction feedback, and final role-readiness cleanup before the GM playtest.
 
 Upload index.html and README.txt to the GitHub Pages repository root.

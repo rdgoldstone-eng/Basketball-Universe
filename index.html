@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.85 · GM Transaction Center</div>
+    <div class="pill">v0.86 · GM Trade & Draft Control</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -16583,6 +16583,206 @@ refreshAllAIRotations=function(){
 window.refreshAllAIRotations=refreshAllAIRotations;
 
 setTimeout(()=>{try{if(isHumanGMV084())renderFrontOffice();}catch(e){console.error("v0.85 GM center init",e);}},300);
+
+
+
+/* === v0.86 GM Trade & Draft Control === */
+
+function gmTradeValueV086(p){
+  if(!p)return 0;
+  const o=Number(p.ovr||50),pot=Number(p.pot||o),age=Number(p.age||27),salary=Number(p.contract?.salary||0);
+  let v=o*1.05+Math.max(0,pot-o)*1.5-Math.max(0,age-29)*2.1;
+  if(o>=88)v+=28; else if(o>=83)v+=18; else if(o>=78)v+=9;
+  v-=Math.max(0,salary-(o-55))*0.45;
+  return Math.max(1,Math.round(v));
+}
+function gmPickValueV086(pk){
+  const round=Number(pk.round||1),year=Number(pk.year||state.currentYear+1);
+  const distance=Math.max(0,year-state.currentYear);
+  return Math.max(2,Math.round((round===1?28:9)-distance*2));
+}
+window.gmTradeValueV086=gmTradeValueV086;
+
+function gmOwnedPicksV086(team){
+  return (state.draftPicks||[]).filter(pk=>
+    pk.ownerTeamId===team.id||pk.teamId===team.id||pk.owner===team.name||pk.ownerTeam===team.name
+  ).sort((a,b)=>Number(a.year)-Number(b.year)||Number(a.round||1)-Number(b.round||1));
+}
+
+function gmTradeBuilderStateV086(){
+  state.gmTradeBuilder=state.gmTradeBuilder||{otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
+  return state.gmTradeBuilder;
+}
+function gmToggleTradeAssetV086(side,type,id){
+  const b=gmTradeBuilderStateV086();
+  const key=side==="mine"?(type==="player"?"myPlayers":"myPicks"):(type==="player"?"theirPlayers":"theirPicks");
+  b[key]=b[key]||[];
+  const i=b[key].indexOf(id);
+  if(i>=0)b[key].splice(i,1);else b[key].push(id);
+  renderGMTradeBuilderV086();
+}
+window.gmToggleTradeAssetV086=gmToggleTradeAssetV086;
+
+function gmTradeSideValueV086(playerIds,pickIds){
+  let v=0;
+  (playerIds||[]).forEach(id=>v+=gmTradeValueV086(state.players.find(p=>p.id===id)));
+  (pickIds||[]).forEach(id=>v+=gmPickValueV086((state.draftPicks||[]).find(p=>p.id===id)));
+  return v;
+}
+function gmTradeSalaryV086(ids){
+  return (ids||[]).reduce((s,id)=>s+Number(state.players.find(p=>p.id===id)?.contract?.salary||0),0);
+}
+
+function gmEvaluateTradeV086(){
+  const team=gmTeamV084(),b=gmTradeBuilderStateV086();
+  const other=state.teams.find(t=>t.id===b.otherTeamId);
+  if(!team||!other)return {ok:false,msg:"Choose another team."};
+  if(!(b.myPlayers.length+b.theirPlayers.length+b.myPicks.length+b.theirPicks.length))return {ok:false,msg:"Add assets to the trade."};
+
+  const outgoing=gmTradeSideValueV086(b.myPlayers,b.myPicks);
+  const incoming=gmTradeSideValueV086(b.theirPlayers,b.theirPicks);
+  const mySalary=gmTradeSalaryV086(b.myPlayers),theirSalary=gmTradeSalaryV086(b.theirPlayers);
+
+  if(state.leagueRules?.salaryCap){
+    const myPayroll=teamPayroll(team.name),theirPayroll=teamPayroll(other.name),cap=Number(state.frontOffice?.cap||100);
+    if(myPayroll-mySalary+theirSalary>cap*1.25)return {ok:false,msg:`${team.name} cannot absorb that salary.`};
+    if(theirPayroll-theirSalary+mySalary>cap*1.25)return {ok:false,msg:`${other.name} cannot absorb that salary.`};
+  }
+
+  const prof=teamRosterProfile(other);
+  let aiNeedBonus=0;
+  b.myPlayers.forEach(id=>{
+    const p=state.players.find(x=>x.id===id);
+    if(p&&positionGroup(p.pos)===prof.weakestGroup)aiNeedBonus+=6;
+  });
+  if(other.direction==="Rebuilding")aiNeedBonus+=b.myPicks.length*5;
+  if(other.direction==="Contending"){
+    aiNeedBonus+=b.myPlayers.reduce((s,id)=>s+(state.players.find(p=>p.id===id)?.ovr>=76?6:0),0);
+  }
+
+  const aiReceives=outgoing+aiNeedBonus;
+  const aiGives=incoming;
+  const ratio=aiGives?aiReceives/aiGives:2;
+  if(ratio>=1.02)return {ok:true,msg:`${other.name} accepts.`,outgoing,incoming};
+  if(ratio>=.88)return {ok:false,counter:true,msg:`${other.name} wants a little more value.`,outgoing,incoming};
+  return {ok:false,msg:`${other.name} rejects the offer.`,outgoing,incoming};
+}
+
+function gmCompleteTradeV086(){
+  const team=gmTeamV084(),b=gmTradeBuilderStateV086(),other=state.teams.find(t=>t.id===b.otherTeamId);
+  if(!team||!other)return;
+  const e=gmEvaluateTradeV086();
+  if(!e.ok){alert(e.msg+(e.counter?" Try adding another asset.":""));return;}
+
+  b.myPlayers.forEach(id=>{const p=state.players.find(x=>x.id===id);if(p)p.teamName=other.name;});
+  b.theirPlayers.forEach(id=>{const p=state.players.find(x=>x.id===id);if(p)p.teamName=team.name;});
+  b.myPicks.forEach(id=>{const p=(state.draftPicks||[]).find(x=>x.id===id);if(p){p.ownerTeamId=other.id;p.owner=other.name;p.ownerTeam=other.name;}});
+  b.theirPicks.forEach(id=>{const p=(state.draftPicks||[]).find(x=>x.id===id);if(p){p.ownerTeamId=team.id;p.owner=team.name;p.ownerTeam=team.name;}});
+
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} completes a trade with ${other.name}.`});
+  state.news.push({year:state.currentYear,title:"Trade",text:`${team.name} and ${other.name} complete a trade.`});
+  state.gmTradeBuilder={otherTeamId:null,myPlayers:[],theirPlayers:[],myPicks:[],theirPicks:[]};
+  try{refreshAllAIRotations();}catch(_){}
+  saveState();renderGMTradeBuilderV086();renderFrontOffice();
+}
+window.gmCompleteTradeV086=gmCompleteTradeV086;
+
+function renderGMTradeBuilderV086(){
+  const host=document.getElementById("gmTradeBuilderV086");if(!host)return;
+  const team=gmTeamV084();if(!team){host.innerHTML="";return;}
+  const b=gmTradeBuilderStateV086();
+  const others=state.teams.filter(t=>!t.defunct&&t.id!==team.id);
+  if(!b.otherTeamId)b.otherTeamId=others[0]?.id||null;
+  const other=state.teams.find(t=>t.id===b.otherTeamId);
+  const mine=teamRoster(team.name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  const theirs=other?teamRoster(other.name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0)):[];
+  const myPicks=gmOwnedPicksV086(team),theirPicks=other?gmOwnedPicksV086(other):[];
+  const evaln=gmEvaluateTradeV086();
+
+  const rows=(players,side)=>players.map(p=>`<label class="teamrow" style="cursor:pointer">
+    <input type="checkbox" ${((side==="mine"?b.myPlayers:b.theirPlayers)||[]).includes(p.id)?"checked":""} onchange="gmToggleTradeAssetV086('${side}','player','${p.id}')">
+    <div class="teammeta"><b>${p.name}</b><span class="small muted">${p.pos||"—"} · OVR ${p.ovr??"—"} · ${gmPlayerContractTextV085(p)} · Value ${gmTradeValueV086(p)}</span></div>
+  </label>`).join("");
+
+  const pickRows=(picks,side)=>picks.map(pk=>`<label class="teamrow" style="cursor:pointer">
+    <input type="checkbox" ${((side==="mine"?b.myPicks:b.theirPicks)||[]).includes(pk.id)?"checked":""} onchange="gmToggleTradeAssetV086('${side}','pick','${pk.id}')">
+    <div class="teammeta"><b>${pk.year} Round ${pk.round||1}</b><span class="small muted">Trade value ${gmPickValueV086(pk)}</span></div>
+  </label>`).join("");
+
+  host.innerHTML=`<div class="card">
+    <div class="sectionTitle">GM Trade Machine</div>
+    <div class="small muted">Build both sides of the deal. The other team evaluates talent, age, picks, roster need, direction, and salary.</div>
+    <select onchange="state.gmTradeBuilder.otherTeamId=this.value;state.gmTradeBuilder.theirPlayers=[];state.gmTradeBuilder.theirPicks=[];renderGMTradeBuilderV086()" style="margin:10px 0">
+      ${others.map(t=>`<option value="${t.id}" ${t.id===b.otherTeamId?"selected":""}>${t.name}</option>`).join("")}
+    </select>
+    <div class="grid2">
+      <div><h3>${team.name} sends</h3>${rows(mine,"mine")}<h4>Draft Picks</h4>${pickRows(myPicks,"mine")||`<span class="muted">No tradeable picks.</span>`}</div>
+      <div><h3>${other?.name||"Other team"} sends</h3>${rows(theirs,"theirs")}<h4>Draft Picks</h4>${pickRows(theirPicks,"theirs")||`<span class="muted">No tradeable picks.</span>`}</div>
+    </div>
+    <div class="notice" style="margin-top:12px"><b>Your package value:</b> ${gmTradeSideValueV086(b.myPlayers,b.myPicks)} · <b>Incoming:</b> ${gmTradeSideValueV086(b.theirPlayers,b.theirPicks)}<br><span class="small">${evaln.msg}</span></div>
+    <button class="primary" onclick="gmCompleteTradeV086()" ${gmTradeWindowOpenV084()?"":"disabled"}>${gmTradeWindowOpenV084()?"Propose Trade":"Trade Deadline Passed"}</button>
+  </div>`;
+}
+window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+
+/* Put the new trade machine directly on Front Office so it is reachable on mobile. */
+const _v086RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v086RenderFrontOffice.apply(this,arguments);
+  if(!isHumanGMV084())return r;
+  let host=document.getElementById("gmTradeBuilderV086");
+  if(!host){
+    host=document.createElement("div");host.id="gmTradeBuilderV086";
+    (document.getElementById("frontOfficePanel")||document.getElementById("frontOfficeDirection")?.parentElement)?.appendChild(host);
+  }
+  renderGMTradeBuilderV086();
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* Draft Room human selection: append a real Draft button to each visible prospect row
+   even if the older markup has no data-prospect-id. */
+const _v086RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  const r=_v086RenderDraftRoom.apply(this,arguments);
+  if(!isHumanGMV084()||!isUserDraftPick()||!state.draftRoom?.active)return r;
+  const board=document.getElementById("draftProspectBoard");
+  if(!board)return r;
+  const prospects=state.draftRoom.available||[];
+  const visible=[...board.querySelectorAll(".teamrow, tr, .prospectRow")];
+  visible.forEach((row,i)=>{
+    const p=prospects[i];if(!p||row.querySelector(".gmDraftBtnV086"))return;
+    const btn=document.createElement("button");
+    btn.className="miniBtn gmDraftBtnV086";btn.type="button";btn.textContent="Draft";
+    btn.onclick=e=>{
+      e.preventDefault();e.stopPropagation();
+      if(!confirm(`Select ${p.name} with this pick?`))return;
+      const result=executeDraftPickV0824(p.draftId||p.id);
+      if(result?.ok===false){alert(result.error||"Pick failed.");return;}
+      if(state.draftRoom.completed)showCompletedDraftV0828(1);
+      else renderDraftRoom();
+      saveState();
+    };
+    row.appendChild(btn);
+  });
+  return r;
+};
+window.renderDraftRoom=renderDraftRoom;
+
+/* Show owned future picks on GM desk. */
+const _v086GMCenter=gmTransactionCenterHTMLV085;
+gmTransactionCenterHTMLV085=function(){
+  let h=_v086GMCenter.apply(this,arguments);
+  if(!isHumanGMV084())return h;
+  const picks=gmOwnedPicksV086(gmTeamV084());
+  const extra=`<details style="margin-top:14px"><summary><b>Draft Assets (${picks.length})</b></summary>
+    ${picks.length?picks.map(pk=>`<div class="teamrow"><div class="teammeta"><b>${pk.year} Round ${pk.round||1}</b><span class="small muted">Value ${gmPickValueV086(pk)}</span></div></div>`).join(""):`<span class="muted">No future picks currently tracked.</span>`}
+  </details>`;
+  return h.replace("</div>",extra+"</div>");
+};
+window.gmTransactionCenterHTMLV085=gmTransactionCenterHTMLV085;
+
+setTimeout(()=>{try{if(isHumanGMV084()){renderFrontOffice();renderGMTradeBuilderV086();}}catch(e){console.error("v0.86 GM trade/draft init",e);}},350);
 
 </script>
 </body>
