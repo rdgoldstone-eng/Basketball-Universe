@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.14 · Chronicle & Draft History Persistence</div>
+    <div class="pill">v0.82.15 · Permanent Archive Store</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -15059,6 +15059,266 @@ setTimeout(()=>{
     saveState();
   }catch(e){console.error("v0.82.14 archive repair",e);}
 },180);
+
+
+
+/* === v0.82.15 Permanent Archive Store ===
+   Newspapers and Draft History now live in a small dedicated localStorage
+   archive in addition to the main universe save. This prevents them from
+   disappearing when the main save is compacted, reset during a season
+   transition, or runs close to Safari/localStorage quota. */
+
+function permanentArchiveKeyV08215(){
+  const id=state?.saveId||"default";
+  return `basketball_universe_permanent_archives_v1_${id}`;
+}
+function readPermanentArchivesV08215(){
+  try{
+    const raw=localStorage.getItem(permanentArchiveKeyV08215());
+    const a=raw?JSON.parse(raw):{};
+    a.newspapers=a.newspapers||{};
+    a.drafts=a.drafts||{};
+    return a;
+  }catch(e){
+    console.warn("Permanent archive read failed",e);
+    return {newspapers:{},drafts:{}};
+  }
+}
+function writePermanentArchivesV08215(a){
+  try{
+    localStorage.setItem(permanentArchiveKeyV08215(),JSON.stringify(a));
+    return true;
+  }catch(e){
+    console.error("Permanent archive write failed",e);
+    const status=document.getElementById("saveStatus");
+    if(status)status.textContent="Archive save unavailable";
+    return false;
+  }
+}
+function mergePermanentArchivesV08215(){
+  if(!state)return;
+  const a=readPermanentArchivesV08215();
+
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  Object.values(a.newspapers||{}).forEach(p=>{
+    if(!p||!Number.isFinite(Number(p.year)))return;
+    const i=state.seasonNewspapers.findIndex(x=>Number(x.year)===Number(p.year));
+    if(i>=0)state.seasonNewspapers[i]=p;
+    else state.seasonNewspapers.push(p);
+  });
+  state.seasonNewspapers.sort((x,y)=>Number(x.year)-Number(y.year));
+  if(state.seasonNewspapers.length){
+    state.latestSeasonNewspaper=state.seasonNewspapers[state.seasonNewspapers.length-1];
+  }
+
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  Object.values(a.drafts||{}).forEach(d=>{
+    if(!d||!Number.isFinite(Number(d.year)))return;
+    const i=state.draftHistory.findIndex(x=>Number(x.year)===Number(d.year));
+    if(i>=0){
+      const current=state.draftHistory[i]||{};
+      if((d.results||[]).length >= (current.results||[]).length)state.draftHistory[i]=d;
+    }else state.draftHistory.push(d);
+  });
+  state.draftHistory.sort((x,y)=>Number(x.year)-Number(y.year));
+}
+window.mergePermanentArchivesV08215=mergePermanentArchivesV08215;
+
+function permanentlyStoreNewspaperV08215(p){
+  if(!p||!Number.isFinite(Number(p.year)))return false;
+  const paper=normalizePaperV08214?normalizePaperV08214(p):p;
+  const a=readPermanentArchivesV08215();
+  a.newspapers[String(Number(paper.year))]=paper;
+  const ok=writePermanentArchivesV08215(a);
+
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  const i=state.seasonNewspapers.findIndex(x=>Number(x.year)===Number(paper.year));
+  if(i>=0)state.seasonNewspapers[i]=paper;
+  else state.seasonNewspapers.push(paper);
+  state.seasonNewspapers.sort((x,y)=>Number(x.year)-Number(y.year));
+  state.latestSeasonNewspaper=paper;
+  return ok;
+}
+window.permanentlyStoreNewspaperV08215=permanentlyStoreNewspaperV08215;
+
+function permanentlyStoreDraftV08215(entry){
+  if(!entry||!Number.isFinite(Number(entry.year)))return false;
+  const d={
+    ...entry,
+    year:Number(entry.year),
+    results:Array.isArray(entry.results)?entry.results:[],
+    undrafted:Array.isArray(entry.undrafted)?entry.undrafted:[]
+  };
+  const a=readPermanentArchivesV08215();
+  const old=a.drafts[String(d.year)];
+  if(!old || d.results.length >= (old.results||[]).length){
+    a.drafts[String(d.year)]=d;
+  }
+  const ok=writePermanentArchivesV08215(a);
+
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  const i=state.draftHistory.findIndex(x=>Number(x.year)===d.year);
+  if(i>=0){
+    if(d.results.length >= (state.draftHistory[i].results||[]).length)state.draftHistory[i]=d;
+  }else state.draftHistory.push(d);
+  state.draftHistory.sort((x,y)=>Number(x.year)-Number(y.year));
+  return ok;
+}
+window.permanentlyStoreDraftV08215=permanentlyStoreDraftV08215;
+
+/* Hook newspaper creation itself, not just the later display/continue path. */
+const _v08215CreateSeasonNewspaper=createSeasonNewspaper;
+createSeasonNewspaper=function(year){
+  const p=_v08215CreateSeasonNewspaper(year);
+  if(p)permanentlyStoreNewspaperV08215(p);
+  return p;
+};
+window.createSeasonNewspaper=createSeasonNewspaper;
+
+/* Hook the opening overlay as a second guaranteed write. */
+const _v08215PaperOpening=paperForSeasonOpeningV08212;
+paperForSeasonOpeningV08212=function(seasonYear){
+  const p=_v08215PaperOpening(seasonYear);
+  if(p)permanentlyStoreNewspaperV08215(p);
+  return p;
+};
+window.paperForSeasonOpeningV08212=paperForSeasonOpeningV08212;
+
+/* Hook draft-history creation at the canonical saver. */
+const _v08215SaveDraftHistory=saveCompletedDraftToHistory;
+saveCompletedDraftToHistory=function(){
+  let legacy=null;
+  try{legacy=_v08215SaveDraftHistory();}catch(e){console.warn("Legacy draft history save warning",e);}
+  const entry=draftHistoryEntryFromRoomV08214?.();
+  if(entry)permanentlyStoreDraftV08215(entry);
+  return legacy||entry;
+};
+window.saveCompletedDraftToHistory=saveCompletedDraftToHistory;
+
+/* Save a snapshot after every pick. This survives even if the Draft Room is
+   reset immediately after completion. */
+const _v08215ExecutePick=executeDraftPickV0824;
+executeDraftPickV0824=function(prospectId=null){
+  const result=_v08215ExecutePick(prospectId);
+  if(result?.ok){
+    const entry=draftHistoryEntryFromRoomV08214?.();
+    if(entry)permanentlyStoreDraftV08215(entry);
+  }
+  return result;
+};
+window.executeDraftPickV0824=executeDraftPickV0824;
+
+/* Before a new season resets the Draft Room, force both archives to disk. */
+const _v08215BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  try{
+    mergePermanentArchivesV08215();
+
+    const drEntry=draftHistoryEntryFromRoomV08214?.();
+    if(drEntry?.results?.length)permanentlyStoreDraftV08215(drEntry);
+
+    const oldYear=Number(state.currentYear||0);
+    let paper=(state.seasonNewspapers||[]).find(p=>Number(p.year)===oldYear);
+    if(!paper){
+      try{paper=createSeasonNewspaper(oldYear);}catch(_){}
+    }
+    if(paper)permanentlyStoreNewspaperV08215(paper);
+  }catch(e){console.warn("Pre-transition archive flush warning",e);}
+
+  const r=_v08215BeginNextSeason.apply(this,arguments);
+
+  try{
+    mergePermanentArchivesV08215();
+    saveState();
+  }catch(_){}
+  return r;
+};
+window.beginNextSeason=beginNextSeason;
+
+/* Archive renderers pull from the independent archive every time they open. */
+const _v08215RenderNewspaperArchive=renderNewspaperArchive;
+renderNewspaperArchive=function(){
+  mergePermanentArchivesV08215();
+  return _v08215RenderNewspaperArchive();
+};
+window.renderNewspaperArchive=renderNewspaperArchive;
+
+const _v08215RenderDraftHistory=renderDraftHistory;
+renderDraftHistory=function(){
+  mergePermanentArchivesV08215();
+  return _v08215RenderDraftHistory();
+};
+window.renderDraftHistory=renderDraftHistory;
+
+/* Rebuild older missing records and then push them into the permanent store. */
+function rebuildPermanentArchivesV08215(){
+  if(!state)return;
+  mergePermanentArchivesV08215();
+  ensureLeagueHistory?.();
+
+  // Newspapers from every completed season.
+  (state.history?.seasons||[]).forEach(s=>{
+    const y=Number(s.year);
+    let p=(state.seasonNewspapers||[]).find(x=>Number(x.year)===y);
+    if(!p){
+      p={
+        year:y,
+        seasonLabel:`${y}-${String((y+1)%100).padStart(2,"0")}`,
+        champion:s.champion||"—",
+        runnerUp:s.runnerUp||null,
+        finalsMvp:s.finalsMvp||null,
+        awards:{mvp:s.mvp||null,rookie:s.rookie||null,dpoy:s.dpoy||null,sixth:s.sixth||null},
+        topPick:null,
+        changes:majorSeasonChangesForNewspaper?.(y)||[]
+      };
+    }
+    permanentlyStoreNewspaperV08215(p);
+  });
+
+  // Drafts recoverable from existing draft history or player draft stamps.
+  const years=new Set((state.draftHistory||[]).map(d=>Number(d.year)).filter(Number.isFinite));
+  (state.players||[]).forEach(p=>{
+    const y=Number(p.draftYear);
+    if(Number.isFinite(y))years.add(y);
+  });
+
+  years.forEach(y=>{
+    let d=(state.draftHistory||[]).find(x=>Number(x.year)===y);
+    if(!d?.results?.length){
+      try{d=repairMissingDraftHistoryV08214(y)||d;}catch(_){}
+    }
+    if(d?.results?.length)permanentlyStoreDraftV08215(d);
+  });
+
+  mergePermanentArchivesV08215();
+  try{saveState();}catch(_){}
+}
+window.rebuildPermanentArchivesV08215=rebuildPermanentArchivesV08215;
+
+/* Merge archives after every universe load. */
+const _v08215LoadState=loadState;
+loadState=function(saveId=null){
+  const r=_v08215LoadState(saveId);
+  try{
+    mergePermanentArchivesV08215();
+    rebuildPermanentArchivesV08215();
+    renderNewspaperArchive?.();
+    renderDraftHistory?.();
+  }catch(e){console.warn("Archive load merge warning",e);}
+  return r;
+};
+window.loadState=loadState;
+
+/* Initial already-loaded universe. */
+setTimeout(()=>{
+  try{
+    if(state){
+      rebuildPermanentArchivesV08215();
+      renderNewspaperArchive?.();
+      renderDraftHistory?.();
+    }
+  }catch(e){console.error("v0.82.15 archive initialization",e);}
+},250);
 
 </script>
 </body>
