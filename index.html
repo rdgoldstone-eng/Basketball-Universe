@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.8 · Newspaper Auto-Open</div>
+    <div class="pill">v0.82.8 · Draft Completion & Redirect Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -13942,58 +13942,245 @@ setTimeout(()=>{
 
 
 
-/* === v0.82.8 Newspaper Auto-Open === */
-function showLatestSeasonNewspaperV0828(){
-  try{
-    const paper=state.latestSeasonNewspaper||(state.seasonNewspapers||[]).slice().sort((a,b)=>b.year-a.year)[0];
-    if(!paper)return;
+/* === v0.82.8 Draft Completion & Redirect Fix ===
+   The draft itself was completing, but the old post-draft render path could
+   throw "Cannot read properties of undefined (reading 'push')" AFTER the last
+   pick. That made a completed draft look broken. This build separates draft
+   completion from the expensive global render and returns directly to the
+   offseason. */
 
-    switchTab("season");
-    renderSeasonNewspaper();
+function ensurePostDraftStateV0828(){
+  state.players=Array.isArray(state.players)?state.players:[];
+  state.news=Array.isArray(state.news)?state.news:[];
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  state.freeAgents=Array.isArray(state.freeAgents)?state.freeAgents:[];
+  state.draftPicks=Array.isArray(state.draftPicks)?state.draftPicks:[];
+  state.frontOffice=state.frontOffice||{};
+  state.frontOffice.transactions=Array.isArray(state.frontOffice.transactions)?state.frontOffice.transactions:[];
+  if(state.offseason){
+    state.offseason.draftResults=Array.isArray(state.offseason.draftResults)?state.offseason.draftResults:[];
+    state.offseason.processed=state.offseason.processed||{};
+  }
+  ensureDraftRoom();
+  state.draftRoom.results=Array.isArray(state.draftRoom.results)?state.draftRoom.results:[];
+  state.draftRoom.tradeOffers=Array.isArray(state.draftRoom.tradeOffers)?state.draftRoom.tradeOffers:[];
+}
 
-    const card=document.getElementById("seasonNewspaperCard");
-    const season=document.getElementById("season");
-    if(card && season){
-      // Put the Chronicle at the very top of the Season page for the new-season handoff.
-      const firstCard=season.querySelector(".card");
-      if(firstCard && firstCard!==card)season.insertBefore(card,firstCard);
-      card.style.display="";
-      card.classList.add("current");
-      setTimeout(()=>{
-        card.scrollIntoView({behavior:"smooth",block:"start"});
-      },60);
-    }
+function copyDraftRoomResultsToOffseasonV0828(){
+  if(!state.offseason)return;
+  ensurePostDraftStateV0828();
+  state.offseason.draftResults=(state.draftRoom.results||[]).map(r=>({
+    pick:r.pick,
+    round:r.round||1,
+    team:r.teamName||teamById(r.teamId)?.name||"Team",
+    player:r.playerName||"Player",
+    pos:r.pos||"—",
+    deferred:!!r.deferred
+  }));
+  state.offseason.draftComplete=true;
+  state.offseason.processed["Draft"]=true;
+}
 
-    state.unreadSeasonNewspaperYear=paper.year;
-    saveState();
-  }catch(e){
-    console.error("Newspaper auto-open failed",e);
+function moveFromDraftToReSigningsV0828(){
+  if(!state.offseason)return;
+  ensurePostDraftStateV0828();
+  copyDraftRoomResultsToOffseasonV0828();
+
+  const draftIdx=state.offseason.phases.indexOf("Draft");
+  const resignIdx=state.offseason.phases.indexOf("Re-signings");
+  if(resignIdx>=0){
+    state.offseason.phaseIndex=resignIdx;
+    state.offseason.phase="Re-signings";
+  }else if(draftIdx>=0 && state.offseason.phaseIndex<=draftIdx){
+    state.offseason.phaseIndex=draftIdx+1;
+    state.offseason.phase=state.offseason.phases[draftIdx+1]||"Re-signings";
   }
 }
-window.showLatestSeasonNewspaperV0828=showLatestSeasonNewspaperV0828;
 
-const _v0828BeginNextSeason=beginNextSeason;
-beginNextSeason=function(){
-  const oldYear=Number(state.currentYear||state.startYear||1976);
-  const r=_v0828BeginNextSeason.apply(this,arguments);
+function showCompletedDraftV0828(picksMade){
+  ensurePostDraftStateV0828();
+  moveFromDraftToReSigningsV0828();
 
-  // The completed-season newspaper is created inside beginNextSeason().
-  // Immediately surface it after the new season is initialized.
-  setTimeout(()=>{
-    try{
-      if(!state.latestSeasonNewspaper || Number(state.latestSeasonNewspaper.year)!==oldYear){
-        createSeasonNewspaper(oldYear);
+  // Save BEFORE touching the UI. If a cosmetic render fails, the basketball
+  // state and offseason calendar are already correct.
+  try{saveState();}catch(e){console.warn("Post-draft save warning",e);}
+
+  // Do not call renderAll here. That was the path producing the misleading
+  // "...reading push" error after a draft had already finished.
+  try{switchTab("offseason");}catch(e){console.warn("Offseason tab switch warning",e);}
+  try{renderOffseason();}catch(e){console.warn("Offseason render warning",e);}
+  try{viewOffseasonStep("Re-signings");}catch(e){console.warn("Re-signings detail warning",e);}
+
+  const status=document.getElementById("offseasonStatus");
+  if(status){
+    status.innerHTML=`<b>Draft complete — ${picksMade} pick${picksMade===1?"":"s"} simulated.</b><div class="small muted">The offseason has moved automatically to Re-signings.</div>`;
+  }
+}
+
+function simOneDraftPickV0828(){
+  ensurePostDraftStateV0828();
+  try{repairDraftActivityV0826?.();}catch(_){}
+  draftStatusV0824("Simulating current pick…");
+
+  try{
+    const dr=state.draftRoom;
+    if(!dr?.active){
+      // A completed draft should exit cleanly, not report an error.
+      if(dr?.completed){
+        showCompletedDraftV0828(0);
+        return;
       }
-      renderAll();
-      showLatestSeasonNewspaperV0828();
-    }catch(e){
-      console.error("Post-transition newspaper handoff failed",e);
+      draftStatusV0824("The draft is not active.",true);
+      return;
     }
-  },0);
+    if(isUserDraftPick() && !["Viewer","Commissioner"].includes(state.role)){
+      draftStatusV0824("Your team is on the clock. Choose a prospect.",true);
+      return;
+    }
 
-  return r;
+    const r=executeDraftPickV0824();
+    if(!r.ok){draftStatusV0824(r.error,true);return;}
+
+    if(r.complete || state.draftRoom.completed){
+      showCompletedDraftV0828(1);
+      return;
+    }
+
+    try{saveState();}catch(e){console.warn("Draft pick save warning",e);}
+    // Only redraw the small Draft Room, not the entire app.
+    try{renderDraftRoom();}catch(e){console.warn("Draft room redraw warning",e);}
+    draftStatusV0824(`Pick #${r.pick}: ${r.team} selected ${r.player}.`);
+  }catch(e){
+    console.error("v0.82.8 sim one",e);
+    draftStatusV0824(e?.message||"Unknown draft error.",true);
+  }
+}
+window.simOneDraftPickV0828=simOneDraftPickV0828;
+
+function simRestDraftV0828(){
+  ensurePostDraftStateV0828();
+  try{repairDraftActivityV0826?.();}catch(_){}
+  draftStatusV0824("Simulating the rest of the draft…");
+
+  const dr=state.draftRoom;
+  if(!dr?.active){
+    if(dr?.completed){
+      showCompletedDraftV0828(0);
+      return;
+    }
+    draftStatusV0824("The draft is not active.",true);
+    return;
+  }
+
+  const viewer=["Viewer","Commissioner"].includes(state.role);
+  let made=0,guard=0,lastError=null;
+
+  try{
+    while(dr.active && guard<250){
+      if(!viewer && isUserDraftPick())break;
+      const before=Number(dr.pickIndex||0);
+      const r=executeDraftPickV0824();
+      guard++;
+
+      if(!r.ok){lastError=r.error;break;}
+      if(Number(dr.pickIndex||0)<=before && !dr.completed){
+        lastError="The pick counter did not advance.";
+        break;
+      }
+      made++;
+    }
+
+    // The key fix: a completed draft exits BEFORE any global render.
+    if(dr.completed || !dr.active){
+      showCompletedDraftV0828(made);
+      return;
+    }
+
+    try{saveState();}catch(e){console.warn("Draft batch save warning",e);}
+    try{renderDraftRoom();}catch(e){console.warn("Draft room redraw warning",e);}
+
+    if(lastError){
+      draftStatusV0824(`${lastError} ${made} pick(s) were completed before the stop.`,true);
+    }else if(!viewer && isUserDraftPick()){
+      draftStatusV0824(`${made} pick(s) simulated. Your team is now on the clock.`);
+    }else{
+      draftStatusV0824(`${made} pick(s) simulated.`);
+    }
+  }catch(e){
+    console.error("v0.82.8 sim rest",e);
+    // If all picks actually finished before a cosmetic/logging exception,
+    // treat the draft as complete.
+    if(dr.completed || Number(dr.pickIndex||0)>=Number(dr.order?.length||9999)){
+      dr.active=false;dr.completed=true;
+      showCompletedDraftV0828(made);
+      return;
+    }
+    try{saveState();}catch(_){}
+    draftStatusV0824(e?.message||"Unknown draft error.",true);
+  }
+}
+window.simRestDraftV0828=simRestDraftV0828;
+
+/* Replace the visible button bindings one final time with the v0.82.8
+   functions. The old functions can remain for save compatibility but are
+   no longer called by the UI. */
+const _v0828RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  _v0828RenderDraftRoom();
+  const dr=state.draftRoom;
+  const on=document.getElementById("draftOnClockBox");
+
+  if(dr?.completed){
+    if(on){
+      on.innerHTML=`<h3>Draft complete</h3>
+        <div class="notice">All selections are complete.</div>
+        <button id="returnToOffseasonV0828" class="primary" type="button">Continue to Re-signings</button>`;
+      document.getElementById("returnToOffseasonV0828")?.addEventListener("click",()=>showCompletedDraftV0828(0));
+    }
+    return;
+  }
+
+  if(!dr?.active || !on)return;
+
+  if(!isUserDraftPick() || ["Viewer","Commissioner"].includes(state.role)){
+    on.innerHTML=`<h3>${currentDraftTeam()?.name||"Team"} is on the clock</h3>
+      <div class="choicebar">
+        <button id="draftSimOneV0828" type="button">Sim This Pick</button>
+        <button id="draftSimRestV0828" type="button" class="primary">${["Viewer","Commissioner"].includes(state.role)?"Sim Rest of Draft":"Sim to My Pick"}</button>
+      </div>
+      <div id="draftActionStatusV0824" class="small muted" style="margin-top:10px">Draft engine ready.</div>`;
+
+    document.getElementById("draftSimOneV0828")?.addEventListener("click",simOneDraftPickV0828);
+    document.getElementById("draftSimRestV0828")?.addEventListener("click",simRestDraftV0828);
+  }
 };
-window.beginNextSeason=beginNextSeason;
+window.renderDraftRoom=renderDraftRoom;
+
+/* Repair saves where the draft already completed but the user was left
+   stranded on the Draft Room screen. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    ensurePostDraftStateV0828();
+    const dr=state.draftRoom;
+    const finished=!!dr?.completed ||
+      (Array.isArray(dr?.order) && dr.order.length>0 && Number(dr.pickIndex||0)>=dr.order.length);
+
+    if(finished && state.season?.phase==="Season Complete"){
+      dr.active=false;
+      dr.completed=true;
+      moveFromDraftToReSigningsV0828();
+      saveState();
+      // Only auto-navigate if the Draft Room is currently visible.
+      const draftSection=document.getElementById("draftroom");
+      if(draftSection?.classList.contains("active")){
+        switchTab("offseason");
+        renderOffseason();
+        viewOffseasonStep("Re-signings");
+      }
+    }
+  }catch(e){console.error("v0.82.8 completed-draft repair",e);}
+},0);
 
 </script>
 </body>
