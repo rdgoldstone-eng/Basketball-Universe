@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.86 · GM Trade & Draft Control</div>
+    <div class="pill">v0.87 · GM Tasks & Job Security</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -16783,6 +16783,269 @@ gmTransactionCenterHTMLV085=function(){
 window.gmTransactionCenterHTMLV085=gmTransactionCenterHTMLV085;
 
 setTimeout(()=>{try{if(isHumanGMV084()){renderFrontOffice();renderGMTradeBuilderV086();}}catch(e){console.error("v0.86 GM trade/draft init",e);}},350);
+
+
+
+/* === v0.87 GM Tasks & Job Security ===
+   GM careers now have concrete owner objectives and real firing risk. */
+
+function ensureGMObjectivesV087(){
+  if(!state)return;
+  state.gmCareer=state.gmCareer||{};
+  state.gmCareer.objectives=Array.isArray(state.gmCareer.objectives)?state.gmCareer.objectives:[];
+  state.gmCareer.security=Number.isFinite(Number(state.gmCareer.security))?Number(state.gmCareer.security):65;
+  state.gmCareer.reputation=Number.isFinite(Number(state.gmCareer.reputation))?Number(state.gmCareer.reputation):50;
+  state.gmCareer.history=Array.isArray(state.gmCareer.history)?state.gmCareer.history:[];
+  state.gmCareer.lastObjectiveYear=state.gmCareer.lastObjectiveYear??null;
+  state.gmCareer.lastReviewYear=state.gmCareer.lastReviewYear??null;
+  state.gmCareer.status=state.gmCareer.status||"Employed";
+}
+
+function gmTeamDirectionV087(team){
+  const roster=teamRoster(team.name);
+  if(!roster.length)return "Rebuild";
+  const avg=roster.reduce((s,p)=>s+Number(p.ovr||0),0)/roster.length;
+  const top=roster.slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,5);
+  const topAvg=top.length?top.reduce((s,p)=>s+Number(p.ovr||0),0)/top.length:avg;
+  const age=roster.reduce((s,p)=>s+Number(p.age||27),0)/roster.length;
+  if(topAvg>=78)return "Contend";
+  if(age<=25.5)return "Develop";
+  if(avg<67)return "Rebuild";
+  return "Compete";
+}
+
+function createGMObjectivesV087(force=false){
+  if(!isHumanGMV084())return;
+  ensureGMObjectivesV087();
+  if(!force && Number(state.gmCareer.lastObjectiveYear)===Number(state.currentYear) && state.gmCareer.objectives.length)return;
+
+  const team=gmTeamV084();
+  const direction=gmTeamDirectionV087(team);
+  const roster=teamRoster(team.name);
+  const cap=Number(state.frontOffice?.cap||100);
+  const payroll=teamPayroll(team.name);
+  const oldest=roster.slice().sort((a,b)=>Number(b.age||0)-Number(a.age||0))[0];
+  const youngest=roster.slice().sort((a,b)=>Number(a.age||99)-Number(b.age||99))[0];
+
+  const obj=[];
+  const add=(id,label,description,type,target,weight=1)=>obj.push({
+    id,year:state.currentYear,label,description,type,target,weight,
+    completed:false,failed:false,progress:0
+  });
+
+  if(direction==="Contend"){
+    add("wins","Win enough games to contend","Finish the regular season with a winning percentage of at least .585.","winPct",0.585,2);
+    add("playoffs","Make a playoff run","Reach at least the second round of the playoffs.","playoffRound",2,2);
+    add("roster","Keep a strong top end","Finish the season with at least three players rated 75+ on the roster.","players75",3,1);
+  }else if(direction==="Develop"){
+    add("youngcore","Develop the young core","Finish the season with at least three players age 25 or younger rated 70+.","young70",3,2);
+    add("picks","Protect the future","Finish the year owning at least one first-round pick in the next two drafts.","firstPicks",1,1);
+    add("improve","Show progress","Improve the team's win percentage from the previous season or finish at .400+.","progress",0.400,2);
+  }else if(direction==="Rebuild"){
+    add("future","Build draft capital","Own at least two first-round picks across the next three drafts.","firstPicks3",2,2);
+    add("youth","Get younger","Finish the season with an average roster age under 27.0.","avgAge",27.0,1);
+    add("flex","Maintain flexibility","Finish the season at or below 110% of the salary cap.","payrollRatio",1.10,1);
+  }else{
+    add("competitive","Stay competitive","Finish with a winning percentage of at least .500.","winPct",0.500,2);
+    add("playin","Reach the postseason","Reach the playoffs or play-in where applicable.","postseason",1,2);
+    add("balance","Maintain roster balance","Finish with at least four guards, four wings, and three bigs.","balance",1,1);
+  }
+
+  // One situational task when appropriate.
+  if(payroll>cap*1.15)add("payroll","Reduce payroll pressure","Finish the season below 115% of the salary cap.","payrollRatio",1.15,1);
+  else if(oldest && Number(oldest.age)>=33)add("veteran","Plan for aging veterans","Finish with at least one player age 25 or younger rated 72+.","young72",1,1);
+  else if(youngest && Number(youngest.age)<=22)add("prospect","Give the prospect room to grow","Keep at least one player age 22 or younger on the roster through season end.","u22",1,1);
+
+  state.gmCareer.objectives=obj.slice(0,4);
+  state.gmCareer.lastObjectiveYear=state.currentYear;
+  saveState();
+}
+window.createGMObjectivesV087=createGMObjectivesV087;
+
+function gmPreviousSeasonRowV087(team){
+  const y=Number(state.currentYear)-1;
+  return (state.history?.seasons||[]).find(s=>Number(s.year)===y && (!s.teamId || s.teamId===team.id))||null;
+}
+
+function updateGMObjectivesV087(){
+  if(!isHumanGMV084())return [];
+  ensureGMObjectivesV087();
+  if(!state.gmCareer.objectives.length)createGMObjectivesV087();
+
+  const team=gmTeamV084(),roster=teamRoster(team.name);
+  const wins=Number(team.w||team.wins||0),losses=Number(team.l||team.losses||0);
+  const pct=(wins+losses)?wins/(wins+losses):0;
+  const picks=gmOwnedPicksV086(team);
+  const groups={Guard:0,Wing:0,Big:0};
+  roster.forEach(p=>{let g=positionGroup(p.pos);if(groups[g]!==undefined)groups[g]++;});
+  const avgAge=roster.length?roster.reduce((s,p)=>s+Number(p.age||27),0)/roster.length:99;
+  const payrollRatio=teamPayroll(team.name)/Math.max(1,Number(state.frontOffice?.cap||100));
+  const playoffRound=Number(state.playoffs?.teamProgress?.[team.id]||state.playoffs?.roundReached?.[team.id]||0);
+  const postseason=(playoffRound>0 || !!state.playoffs?.qualifiedTeamIds?.includes?.(team.id))?1:0;
+  const prev=gmPreviousSeasonRowV087(team);
+  const prevPct=Number(prev?.winPct||prev?.pct||0);
+
+  state.gmCareer.objectives.forEach(o=>{
+    let val=0,done=false;
+    switch(o.type){
+      case "winPct": val=pct; done=val>=o.target; break;
+      case "playoffRound": val=playoffRound; done=val>=o.target; break;
+      case "players75": val=roster.filter(p=>Number(p.ovr||0)>=75).length; done=val>=o.target; break;
+      case "young70": val=roster.filter(p=>Number(p.age||99)<=25&&Number(p.ovr||0)>=70).length; done=val>=o.target; break;
+      case "young72": val=roster.filter(p=>Number(p.age||99)<=25&&Number(p.ovr||0)>=72).length; done=val>=o.target; break;
+      case "firstPicks": val=picks.filter(pk=>Number(pk.round||1)===1&&Number(pk.year)<=Number(state.currentYear)+2).length; done=val>=o.target; break;
+      case "firstPicks3": val=picks.filter(pk=>Number(pk.round||1)===1&&Number(pk.year)<=Number(state.currentYear)+3).length; done=val>=o.target; break;
+      case "progress": val=pct; done=prevPct?val>prevPct:val>=o.target; break;
+      case "avgAge": val=avgAge; done=val<=o.target; break;
+      case "payrollRatio": val=payrollRatio; done=val<=o.target; break;
+      case "postseason": val=postseason; done=val>=1; break;
+      case "balance": val=(groups.Guard>=4&&groups.Wing>=4&&groups.Big>=3)?1:0; done=val>=1; break;
+      case "u22": val=roster.filter(p=>Number(p.age||99)<=22).length; done=val>=1; break;
+      default: val=0;
+    }
+    o.progress=val;o.completed=!!done;
+  });
+  return state.gmCareer.objectives;
+}
+window.updateGMObjectivesV087=updateGMObjectivesV087;
+
+function gmObjectiveProgressTextV087(o){
+  const p=Number(o.progress||0);
+  if(["winPct","progress"].includes(o.type))return `${(p*100).toFixed(1)}%`;
+  if(o.type==="payrollRatio")return `${(p*100).toFixed(0)}% of cap`;
+  if(o.type==="avgAge")return p.toFixed(1);
+  if(o.type==="balance")return p?"Balanced":"Not balanced";
+  return String(Math.round(p));
+}
+
+function gmSeasonReviewV087(){
+  if(!isHumanGMV084())return;
+  ensureGMObjectivesV087();
+  if(Number(state.gmCareer.lastReviewYear)===Number(state.currentYear))return;
+
+  const tasks=updateGMObjectivesV087();
+  const totalWeight=tasks.reduce((s,o)=>s+Number(o.weight||1),0)||1;
+  const earned=tasks.reduce((s,o)=>s+(o.completed?Number(o.weight||1):0),0);
+  const score=earned/totalWeight;
+
+  const team=gmTeamV084();
+  const wins=Number(team.w||team.wins||0),losses=Number(team.l||team.losses||0);
+  const pct=(wins+losses)?wins/(wins+losses):0;
+
+  let delta=Math.round((score-.5)*34);
+  if(pct>=.60)delta+=5;
+  if(pct<.30)delta-=7;
+
+  state.gmCareer.security=Math.max(0,Math.min(100,Number(state.gmCareer.security||65)+delta));
+  state.gmCareer.reputation=Math.max(0,Math.min(100,Number(state.gmCareer.reputation||50)+Math.round((score-.5)*12)));
+
+  state.gmCareer.history.unshift({
+    year:state.currentYear,teamId:team.id,teamName:team.name,
+    completed:tasks.filter(o=>o.completed).length,total:tasks.length,
+    security:state.gmCareer.security,record:`${wins}-${losses}`
+  });
+  state.gmCareer.lastReviewYear=state.currentYear;
+
+  const failedMajor=tasks.filter(o=>!o.completed&&Number(o.weight||1)>=2).length;
+  const fired=state.gmCareer.security<=20 || (state.gmCareer.security<=32&&failedMajor>=2);
+
+  if(fired){
+    state.gmCareer.status="Fired";
+    state.career=state.career||{};
+    state.career.status="Unemployed";
+    state.career.role="GM";
+    state.career.reputation=state.gmCareer.reputation;
+    state.career.currentTeamId=null;
+    state.controlledTeamId=null;
+
+    state.news=state.news||[];
+    state.news.push({year:state.currentYear,title:"Front Office Change",text:`${team.name} has fired its general manager after the season.`});
+
+    try{
+      if(typeof recordCareerEvent==="function"){
+        recordCareerEvent("Job Ended",{teamId:team.id,teamName:team.name,reason:"Fired"});
+      }
+      if(typeof generateCareerJobOffersV078==="function")generateCareerJobOffersV078(true);
+      else if(typeof generateCareerJobOffers==="function")generateCareerJobOffers(true);
+    }catch(e){console.warn("GM firing career handoff",e);}
+
+    alert(`You have been fired by the ${team.name}.\n\nYour GM career continues. You can pursue another job.`);
+  }else{
+    alert(`Owner Review\n\nYou completed ${tasks.filter(o=>o.completed).length} of ${tasks.length} objectives.\nJob Security: ${state.gmCareer.security}/100`);
+  }
+
+  saveState();
+}
+window.gmSeasonReviewV087=gmSeasonReviewV087;
+
+/* Perform GM review at the Awards stage, once the season is actually over. */
+const _v087PrepareAwards=prepareAwardsV0822;
+prepareAwardsV0822=function(){
+  const r=_v087PrepareAwards.apply(this,arguments);
+  if(isHumanGMV084()){
+    updateGMObjectivesV087();
+    gmSeasonReviewV087();
+  }
+  return r;
+};
+window.prepareAwardsV0822=prepareAwardsV0822;
+
+function renderGMObjectivesV087(){
+  if(!isHumanGMV084())return "";
+  ensureGMObjectivesV087();createGMObjectivesV087();updateGMObjectivesV087();
+  const rows=state.gmCareer.objectives.map(o=>`
+    <div class="staffCard">
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        <b>${o.completed?"✓":"○"} ${o.label}</b>
+        <span class="pill">${gmObjectiveProgressTextV087(o)}</span>
+      </div>
+      <div class="small muted">${o.description}</div>
+    </div>`).join("");
+  return `<div class="card" id="gmObjectivesV087">
+    <div class="sectionTitle">Owner Objectives</div>
+    <div class="notice"><b>Job Security: ${Math.round(state.gmCareer.security)}/100</b><br><span class="small">Reputation: ${Math.round(state.gmCareer.reputation)}/100 · Status: ${state.gmCareer.status}</span></div>
+    ${rows}
+    <div class="small muted" style="margin-top:8px">Missing important objectives lowers job security. Strong seasons and completed goals improve it.</div>
+  </div>`;
+}
+window.renderGMObjectivesV087=renderGMObjectivesV087;
+
+const _v087RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v087RenderFrontOffice.apply(this,arguments);
+  if(!isHumanGMV084())return r;
+  document.getElementById("gmObjectivesV087")?.remove();
+  const host=document.getElementById("frontOfficePanel")||document.getElementById("frontOfficeDirection")?.parentElement;
+  if(host)host.insertAdjacentHTML("afterbegin",renderGMObjectivesV087());
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* New seasons generate a fresh task list after employment carries over. */
+const _v087BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const wasGM=isHumanGMV084();
+  const r=_v087BeginNextSeason.apply(this,arguments);
+  if(wasGM&&isHumanGMV084()){
+    state.gmCareer.objectives=[];
+    state.gmCareer.lastObjectiveYear=null;
+    createGMObjectivesV087(true);
+    saveState();
+  }
+  return r;
+};
+window.beginNextSeason=beginNextSeason;
+
+setTimeout(()=>{
+  try{
+    if(isHumanGMV084()){
+      ensureGMObjectivesV087();
+      createGMObjectivesV087();
+      renderFrontOffice();
+      saveState();
+    }
+  }catch(e){console.error("v0.87 GM objectives init",e);}
+},350);
 
 </script>
 </body>
