@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.10 · Newspaper Timing Fix</div>
+    <div class="pill">v0.82.11 · Newspaper Generation Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -14452,6 +14452,174 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.82.10 newspaper timing repair",e);}
 },0);
+
+
+
+/* === v0.82.11 Newspaper Generation Fix ===
+   v0.82.10 fixed timing but still depended on an already-existing paper.
+   In some saves beginNextSeason() had already cleared/changed the source used
+   by the newspaper before we marked it pending, so there was simply no paper
+   to show. This build snapshots/generates the paper BEFORE the season flips. */
+
+function buildSeasonPaperSnapshotV08211(){
+  ensureLeagueHistory?.();
+
+  const completedYear=Number(state.currentYear||0);
+  const seasonLabel=typeof seasonName==="function" ? seasonName() : String(completedYear);
+  const historySeason=(state.history?.seasons||[]).find(s=>Number(s.year)===completedYear) || null;
+
+  // Prefer the game's own newspaper if it already exists.
+  let existing=null;
+  if(state.latestSeasonNewspaper && Number(state.latestSeasonNewspaper.year)===completedYear){
+    existing=JSON.parse(JSON.stringify(state.latestSeasonNewspaper));
+  }else if(Array.isArray(state.seasonNewspapers)){
+    const p=state.seasonNewspapers.find(x=>Number(x.year)===completedYear);
+    if(p)existing=JSON.parse(JSON.stringify(p));
+  }
+  if(existing)return existing;
+
+  // Otherwise create a compact snapshot while all just-completed-season data
+  // still exists. seasonNewspaperHTML can render these common fields.
+  const champion=historySeason?.champion || state.playoffs?.championName || state.playoffs?.champion || "Season complete";
+  const mvp=historySeason?.mvp || "—";
+  const rookie=historySeason?.rookie || "—";
+  const finalsMvp=historySeason?.finalsMvp || "—";
+
+  return {
+    year:completedYear,
+    seasonLabel,
+    champion,
+    mvp,
+    rookie,
+    finalsMvp,
+    headline:`${champion} headline the ${seasonLabel} season`,
+    createdBy:"v0.82.11 snapshot"
+  };
+}
+
+function installSeasonPaperSnapshotV08211(paper,newSeasonYear){
+  if(!paper)return false;
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  const idx=state.seasonNewspapers.findIndex(p=>Number(p.year)===Number(paper.year));
+  if(idx>=0)state.seasonNewspapers[idx]=paper;
+  else state.seasonNewspapers.push(paper);
+
+  state.latestSeasonNewspaper=paper;
+  state.seasonNewspaper=state.seasonNewspaper||{};
+  state.seasonNewspaper.pending=true;
+  state.seasonNewspaper.paperYear=paper.year;
+  state.seasonNewspaper.seasonYear=newSeasonYear;
+  state.seasonNewspaper.acknowledgedSeasonYear=null;
+  return true;
+}
+
+/* Replace the begin-next-season path again, but this time capture the paper
+   BEFORE calling the old season transition. */
+const _v08211BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const beforeYear=Number(state.currentYear||0);
+  const paper=buildSeasonPaperSnapshotV08211();
+
+  const result=_v08211BeginNextSeason.apply(this,arguments);
+
+  const afterYear=Number(state.currentYear||0);
+  if(afterYear<=beforeYear || state?.season?.phase==="Season Complete"){
+    return result;
+  }
+
+  installSeasonPaperSnapshotV08211(paper,afterYear);
+  try{saveState();}catch(e){console.warn("Newspaper save warning",e);}
+
+  // Render the Season tab directly. The newspaper card is part of this page.
+  try{switchTab("season");}catch(_){}
+  try{renderSeason();}catch(e){console.warn("Season render warning",e);}
+
+  setTimeout(()=>{
+    try{
+      renderSeasonNewspaper();
+      const card=document.getElementById("seasonNewspaperCard");
+      if(card){
+        card.style.display="";
+        card.scrollIntoView?.({behavior:"smooth",block:"start"});
+      }
+    }catch(e){console.error("Newspaper display error",e);}
+  },30);
+
+  return result;
+};
+window.beginNextSeason=beginNextSeason;
+
+/* Make the newspaper renderer resilient even if the historical newspaper
+   object lacks the exact shape expected by the older formatter. */
+const _v08211SeasonNewspaperHTML=seasonNewspaperHTML;
+seasonNewspaperHTML=function(p){
+  try{
+    const rendered=_v08211SeasonNewspaperHTML(p);
+    if(rendered && String(rendered).trim())return rendered;
+  }catch(e){
+    console.warn("Legacy newspaper formatter failed; using fallback.",e);
+  }
+
+  return `<div class="newspaperPaper">
+    <div class="newspaperMasthead">BASKETBALL UNIVERSE</div>
+    <div class="newspaperDate">${p?.seasonLabel||p?.year||""} FINAL EDITION</div>
+    <h1>${p?.headline||"A New Season Begins"}</h1>
+    <div class="newspaperColumns">
+      <div>
+        <h3>Season Champion</h3>
+        <p><b>${p?.champion||"—"}</b> finished the year on top.</p>
+      </div>
+      <div>
+        <h3>Major Honors</h3>
+        <p>MVP: <b>${p?.mvp||"—"}</b><br>
+        Rookie of the Year: <b>${p?.rookie||"—"}</b><br>
+        Finals MVP: <b>${p?.finalsMvp||"—"}</b></p>
+      </div>
+    </div>
+  </div>`;
+};
+window.seasonNewspaperHTML=seasonNewspaperHTML;
+
+/* Existing-save recovery: if the user is at Game 1 with no pending paper,
+   create one from the most recently completed history season. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    ensureNewspaperTimingV08210?.();
+
+    const noGamesYet=
+      state.season?.phase==="Regular Season" &&
+      Number(state.season?.gamesPlayed||0)===0 &&
+      Number(state.season?.leagueDay||0)===0;
+
+    if(noGamesYet && !state.seasonNewspaper?.pending){
+      ensureLeagueHistory?.();
+      const previousYear=Number(state.currentYear)-1;
+      const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===previousYear);
+
+      if(hs){
+        const paper={
+          year:previousYear,
+          seasonLabel:`${previousYear}-${String((previousYear+1)%100).padStart(2,"0")}`,
+          champion:hs.champion||"—",
+          mvp:hs.mvp||"—",
+          rookie:hs.rookie||"—",
+          finalsMvp:hs.finalsMvp||"—",
+          headline:`${hs.champion||"The champion"} headline the completed season`,
+          createdBy:"v0.82.11 recovery"
+        };
+        installSeasonPaperSnapshotV08211(paper,state.currentYear);
+        saveState();
+      }
+    }
+
+    if(noGamesYet && state.seasonNewspaper?.pending){
+      switchTab("season");
+      renderSeason();
+      renderSeasonNewspaper();
+    }
+  }catch(e){console.error("v0.82.11 newspaper recovery",e);}
+},60);
 
 </script>
 </body>

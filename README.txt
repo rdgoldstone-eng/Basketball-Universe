@@ -1,30 +1,28 @@
 Basketball Universe
-v0.82.10 · Newspaper Timing Fix
+v0.82.11 · Newspaper Generation Fix
 
-WHAT WAS WRONG
-The previous newspaper build searched the whole page for any button named "Continue."
-The newspaper itself did not have its own Continue button. That could leave the
-newspaper marked as pending until a completely unrelated Continue button appeared
-at the end of the following season.
+WHAT WAS ACTUALLY WRONG
+v0.82.10 fixed WHEN the newspaper was supposed to appear, but it still assumed
+a completed newspaper object already existed after Start Next Season.
+
+In some saves, the season transition changed/cleared the data before the
+newspaper was marked pending. Result: correct timing logic, but no paper existed
+to display.
 
 FIX
-- The newspaper now has its OWN Continue button at the bottom.
-- It appears immediately after Start Next Season.
-- It displays the final edition for the season that just ended.
-- Continue hides the newspaper and leaves you on the Season screen at Game 1.
-- The newspaper does not remain pending through the season.
-- The old page-wide generic Continue-button search is disabled.
-- Existing saves with a stale pending-newspaper flag are repaired.
-- If a save is already at Game 1 and the prior-season paper has not been acknowledged,
-  it is restored as the opening screen.
+- The completed-season newspaper is now captured/generated BEFORE the year changes.
+- That snapshot is carried into the new season and marked pending immediately.
+- Start Next Season then opens the Season page and forces the newspaper card visible.
+- The newspaper has its own Continue button.
+- Continue closes the paper and leaves the user at Game 1.
+- Added a fallback newspaper renderer if an older save's newspaper object is incomplete.
+- Existing saves already at Game 1 can reconstruct the paper from the previous season's history.
 
 EXPECTED FLOW
-Finish offseason
-→ Start Next Season
-→ Season screen opens with prior-season newspaper
-→ Continue to [new season]
-→ newspaper closes
-→ Game 1 controls are immediately visible
+Start Next Season
+→ previous season newspaper appears immediately
+→ Continue
+→ Game 1
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root.
