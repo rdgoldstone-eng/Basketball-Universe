@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.83 · History Ledger Rebuild</div>
+    <div class="pill">v0.83.1 · History UI & Recording Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -15679,6 +15679,269 @@ setTimeout(()=>{
     saveState();
   }catch(e){console.error("v0.83 history ledger initialization",e);}
 },300);
+
+
+
+/* === v0.83.1 History UI + Recording Fix ===
+   Fix two separate problems:
+   1) history milestone data must be written at Awards/Draft time
+   2) opening History/Draft History must explicitly render the page */
+
+function safeHistoryStateV0831(){
+  state.history=state.history||{};
+  state.history.seasons=Array.isArray(state.history.seasons)?state.history.seasons:[];
+  state.history.champions=Array.isArray(state.history.champions)?state.history.champions:[];
+  state.history.allStars=Array.isArray(state.history.allStars)?state.history.allStars:[];
+  state.history.records=Array.isArray(state.history.records)?state.history.records:[];
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+}
+
+/* Write the Awards-stage result directly into permanent history.
+   This does not depend on recordSeasonHonors successfully running later. */
+function commitAwardsToHistoryV0831(){
+  if(!state?.offseason)return null;
+  safeHistoryStateV0831();
+
+  const y=Number(state.currentYear);
+  const a=state.offseason.awardResults||{};
+  let row=state.history.seasons.find(s=>Number(s.year)===y)||{year:y};
+
+  row.mvp=a.MVP||row.mvp||"—";
+  row.rookie=a["Rookie of the Year"]||row.rookie||"—";
+  row.dpoy=a["Defensive Player"]||row.dpoy||"—";
+  row.sixth=a["Sixth Man"]||row.sixth||"—";
+  row.finalsMvp=a["Finals MVP"]||row.finalsMvp||"—";
+  row.champion=a.Champion||row.champion||state.season?.champion||state.playoffs?.champion||"—";
+
+  try{row.runnerUp=row.runnerUp||determineFinalsRunnerUp?.()||"—";}catch(_){row.runnerUp=row.runnerUp||"—";}
+
+  const i=state.history.seasons.findIndex(s=>Number(s.year)===y);
+  if(i>=0)state.history.seasons[i]=row;
+  else state.history.seasons.push(row);
+
+  if(row.champion && row.champion!=="—"){
+    const team=state.teams.find(t=>t.name===row.champion);
+    const c={
+      year:y,team:row.champion,teamId:team?.id||null,
+      runnerUp:row.runnerUp||"—",finalsMvp:row.finalsMvp||"—"
+    };
+    const ci=state.history.champions.findIndex(x=>Number(x.year)===y);
+    if(ci>=0)state.history.champions[ci]=c;
+    else state.history.champions.push(c);
+  }
+
+  state.history.seasons.sort((x,y)=>Number(x.year)-Number(y.year));
+  state.history.champions.sort((x,y)=>Number(x.year)-Number(y.year));
+
+  try{writeHistoryLedgerV083?.();}catch(_){}
+  try{saveState();}catch(_){}
+  return row;
+}
+window.commitAwardsToHistoryV0831=commitAwardsToHistoryV0831;
+
+/* Wrap Awards preparation so the visible Awards page and permanent History
+   are written in the same operation. */
+const _v0831PrepareAwards=prepareAwardsV0822;
+prepareAwardsV0822=function(){
+  const r=_v0831PrepareAwards.apply(this,arguments);
+  commitAwardsToHistoryV0831();
+  return r;
+};
+window.prepareAwardsV0822=prepareAwardsV0822;
+
+/* The draft result is also committed from the offseason copy, which remains
+   available even after Draft Room redirects away. */
+function commitOffseasonDraftToHistoryV0831(){
+  safeHistoryStateV0831();
+  const rows=state.offseason?.draftResults||[];
+  const dr=state.draftRoom||{};
+  const y=Number(dr.year||state.currentYear+1);
+  if(!rows.length && !(dr.results||[]).length)return null;
+
+  const source=rows.length?rows:(dr.results||[]);
+  const entry={
+    year:y,
+    results:source.map((r,i)=>({
+      pick:Number(r.pick||i+1),
+      round:Number(r.round||1),
+      pickInRound:Number(r.pickInRound||r.pick||i+1),
+      teamId:r.teamId||null,
+      teamName:r.team||r.teamName||"Team",
+      playerName:r.player||r.playerName||"Player",
+      pos:r.pos||"—",
+      ovr:r.ovr??null,pot:r.pot??null
+    })),
+    undrafted:[]
+  };
+
+  const i=state.draftHistory.findIndex(d=>Number(d.year)===y);
+  if(i>=0)state.draftHistory[i]=entry;
+  else state.draftHistory.push(entry);
+  state.draftHistory.sort((a,b)=>Number(a.year)-Number(b.year));
+
+  try{writeHistoryLedgerV083?.();}catch(_){}
+  try{saveState();}catch(_){}
+  return entry;
+}
+window.commitOffseasonDraftToHistoryV0831=commitOffseasonDraftToHistoryV0831;
+
+const _v0831ShowCompletedDraft=showCompletedDraftV0828;
+showCompletedDraftV0828=function(picksMade){
+  try{
+    copyDraftRoomResultsToOffseasonV0828?.();
+    commitOffseasonDraftToHistoryV0831();
+  }catch(e){console.warn("Direct draft history commit warning",e);}
+  const r=_v0831ShowCompletedDraft.apply(this,arguments);
+  try{commitOffseasonDraftToHistoryV0831();}catch(_){}
+  return r;
+};
+window.showCompletedDraftV0828=showCompletedDraftV0828;
+
+/* Render History with a minimal, failure-resistant path.
+   One bad logo or record should not prevent the rest of History from showing. */
+function renderLeagueHistoryV0831(){
+  if(!state)return;
+  safeHistoryStateV0831();
+  try{mergeHistoryLedgerV083?.();}catch(_){}
+
+  const sh=document.getElementById("seasonHonorsBox");
+  const ah=document.getElementById("allStarHistoryBox");
+  const ch=document.getElementById("championsHistoryBox");
+  const rh=document.getElementById("recordsHistoryBox");
+
+  if(sh){
+    const seasons=state.history.seasons.slice().sort((a,b)=>Number(b.year)-Number(a.year));
+    sh.innerHTML=seasons.length?seasons.map(s=>`
+      <div class="historyRow">
+        <b>${s.year}-${String((Number(s.year)+1)%100).padStart(2,"0")}</b>
+        <div><span class="honorBadge">MVP</span> ${s.mvp||"—"}<br><span class="honorBadge">ROY</span> ${s.rookie||"—"}</div>
+        <div><span class="honorBadge">DPOY</span> ${s.dpoy||"—"}<br><span class="honorBadge">6MOY</span> ${s.sixth||"—"}</div>
+      </div>`).join(""):`<span class="muted">No completed season honors yet.</span>`;
+  }
+
+  if(ah){
+    const stars=state.history.allStars.slice().sort((a,b)=>Number(b.year)-Number(a.year));
+    ah.innerHTML=stars.length?stars.map(a=>`
+      <div class="historyRow"><b>${a.year}</b>
+      <div><b>East</b><div class="small muted">${(a.east||[]).join(", ")||"—"}</div></div>
+      <div><b>West</b><div class="small muted">${(a.west||[]).join(", ")||"—"}</div></div></div>`).join("")
+      :`<span class="muted">No All-Star selections yet.</span>`;
+  }
+
+  if(ch){
+    const champs=state.history.champions.slice().sort((a,b)=>Number(b.year)-Number(a.year));
+    ch.innerHTML=champs.length?champs.map(c=>`
+      <div class="historyRow">
+        <b>${c.year}-${String((Number(c.year)+1)%100).padStart(2,"0")}</b>
+        <div><b>${c.team||"—"}</b><br><span class="small muted">Runner-up: ${c.runnerUp||"—"}</span></div>
+        <div><b>Finals MVP:</b> ${c.finalsMvp||"—"}</div>
+      </div>`).join(""):`<span class="muted">No champions recorded yet.</span>`;
+  }
+
+  if(rh){
+    rh.innerHTML=state.history.records.length?state.history.records.map(r=>`
+      <div class="historyRow"><b>${r.type||"Record"}</b><div><b>${r.player||"—"}</b></div><div>${Number(r.value||0).toFixed(1)} · ${r.year||"—"}</div></div>`).join("")
+      :`<span class="muted">No records recorded yet.</span>`;
+  }
+
+  try{renderNewspaperArchive?.();}catch(e){
+    const box=document.getElementById("newspaperArchiveBox");
+    if(box)box.innerHTML=`<span class="muted">No newspaper editions saved yet.</span>`;
+  }
+}
+window.renderLeagueHistoryV0831=renderLeagueHistoryV0831;
+
+function renderDraftHistoryV0831(){
+  if(!state)return;
+  safeHistoryStateV0831();
+  try{mergeHistoryLedgerV083?.();}catch(_){}
+  try{commitOffseasonDraftToHistoryV0831();}catch(_){}
+
+  const sel=document.getElementById("draftHistoryYearSelect");
+  const summary=document.getElementById("draftHistorySummary");
+  const list=document.getElementById("draftHistoryList");
+  if(!sel||!summary||!list)return;
+
+  const drafts=state.draftHistory.filter(d=>(d.results||[]).length).slice().sort((a,b)=>Number(b.year)-Number(a.year));
+  if(!drafts.length){
+    sel.innerHTML="";
+    summary.innerHTML=`<span class="muted">Complete a draft to begin the league's draft history.</span>`;
+    list.innerHTML="";
+    return;
+  }
+
+  const old=sel.value;
+  sel.innerHTML=drafts.map(d=>`<option value="${d.year}">${d.year} Draft</option>`).join("");
+  if(old&&drafts.some(d=>String(d.year)===String(old)))sel.value=old;
+  const d=drafts.find(x=>String(x.year)===String(sel.value))||drafts[0];
+  sel.value=d.year;
+
+  summary.innerHTML=`<div class="notice"><b>${d.year} Draft</b><br><span class="small">${d.results.length} selections recorded.</span></div>`;
+  list.innerHTML=d.results.slice().sort((a,b)=>Number(a.pick)-Number(b.pick)).map(r=>`
+    <div class="teamrow">
+      <div class="teammeta"><b>#${r.pick} ${r.playerName}</b><span class="small muted">${r.teamName} · ${r.pos||"—"}</span></div>
+    </div>`).join("");
+}
+window.renderDraftHistoryV0831=renderDraftHistoryV0831;
+
+/* Explicit page openers. */
+function openAwardsHistoryV0831(){
+  try{
+    if(state?.offseason?.awardResults)commitAwardsToHistoryV0831();
+    else if(state?.season?.phase==="Season Complete"){
+      try{prepareAwardsV0822();}catch(_){}
+      commitAwardsToHistoryV0831();
+    }
+  }catch(e){console.warn("Awards history commit warning",e);}
+  switchTab("history");
+  renderLeagueHistoryV0831();
+}
+window.openAwardsHistoryV0831=openAwardsHistoryV0831;
+
+function openDraftHistoryV0831(){
+  try{commitOffseasonDraftToHistoryV0831();}catch(_){}
+  switchTab("drafthistory");
+  renderDraftHistoryV0831();
+}
+window.openDraftHistoryV0831=openDraftHistoryV0831;
+
+/* Replace Awards detail button with the explicit opener. */
+const _v0831StageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  let html=_v0831StageDetail(step);
+  if(step==="Awards"){
+    html=String(html).replace(
+      /onclick="switchTab\('history'\)"/g,
+      'onclick="openAwardsHistoryV0831()"'
+    );
+  }
+  return html;
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+/* Any navigation into a history page renders immediately. */
+const _v0831SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v0831SwitchTab.apply(this,arguments);
+  if(tab==="history")setTimeout(()=>renderLeagueHistoryV0831(),0);
+  if(tab==="drafthistory")setTimeout(()=>renderDraftHistoryV0831(),0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Initial repair for a save currently sitting in or just past offseason. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    safeHistoryStateV0831();
+    if(state.offseason?.awardResults)commitAwardsToHistoryV0831();
+    if((state.offseason?.draftResults||[]).length)commitOffseasonDraftToHistoryV0831();
+    renderLeagueHistoryV0831();
+    renderDraftHistoryV0831();
+    saveState();
+  }catch(e){console.error("v0.83.1 history repair",e);}
+},250);
 
 </script>
 </body>

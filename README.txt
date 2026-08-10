@@ -1,40 +1,26 @@
 Basketball Universe League
-v0.83 · History Ledger Rebuild
+v0.83.1 · History UI & Recording Fix
 
-OFFICIAL NAME
-The game is now named BASKETBALL UNIVERSE LEAGUE.
-Internal browser-storage keys remain unchanged so existing saves stay compatible.
+WHAT WAS WRONG
+There were two separate failures:
+1. Awards/Draft results were not always being committed to permanent history at the moment they existed.
+2. Open Awards / History navigation only switched screens and did not force History to render.
 
-WHY THIS BUILD
-The issue is larger than Newspaper or Draft History individually:
-the game was not maintaining one reliable source of truth for league history.
+FIXES
+- Awards results are committed directly to Season Honors + Champions during the Awards offseason stage.
+- Draft results are committed directly from the completed offseason draft results.
+- Open Full Awards History now explicitly writes the awards, opens History, and renders it.
+- Opening History from navigation now renders History immediately.
+- Opening Draft History now renders Draft History immediately.
+- Added failure-resistant History rendering so one bad logo/record cannot blank the entire page.
+- Added a simple direct Draft History renderer from the canonical stored draft results.
+- Existing saves with offseason awardResults or draftResults are repaired on load.
 
-NEW CANONICAL HISTORY LEDGER
-- Seasons / awards
-- Champions / runners-up / Finals MVP
-- All-Star history
-- League records
-- Draft history
-- Newspaper archive
-
-The ledger is:
-- initialized on every universe
-- updated at actual season and draft milestones
-- saved independently from the main universe save
-- merged back when a save loads
-- rebuilt from surviving player/season/draft data where possible
-
-MILESTONE WRITES
-- Season Complete immediately snapshots awards + champion into history.
-- Draft completion immediately snapshots the full draft.
-- Newspaper archive is rebuilt from the completed season and following draft.
-- Start Next Season writes the outgoing season BEFORE offseason/draft state resets.
-
-EXISTING SAVE REPAIR
-Opening History or Draft History now triggers a full history rebuild from any
-surviving universe data. If the old broken builds never stored enough source
-information, some old details may be unrecoverable; future seasons will use
-the new ledger automatically.
+TEST
+1. Open Awards and tap Open Full Awards History.
+2. Season Honors and Champions should show the completed season.
+3. Open History > Draft History.
+4. The completed draft should show if draftResults still exist in the save.
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root.
