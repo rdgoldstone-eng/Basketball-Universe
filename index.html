@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.83.2 · Complete Draft Classes</div>
+    <div class="pill">v0.83.3 · Re-Signings Position Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -8284,7 +8284,7 @@ function coachSettings(teamId){
  ensureCoaching();
  return state.coaching.teams[teamId];
 }
-function positionGroup(pos){
+function depthChartPositionSlot(pos){
  if(pos==="PG")return "PG";
  if(pos==="SG")return "SG";
  if(pos==="SF")return "SF";
@@ -16105,6 +16105,67 @@ setTimeout(()=>{
     renderAll();
   }catch(e){console.error("v0.83.2 draft class/name repair",e);}
 },250);
+
+
+
+/* === v0.83.3 Re-signings position-group fix === */
+const _v0833TeamRosterProfile=teamRosterProfile;
+teamRosterProfile=function(team){
+  const roster=teamRoster(team.name).filter(p=>!p.retired&&!p.deferredEntry);
+  const core=rosterCore(team);
+  const groups={Guard:[],Wing:[],Big:[]};
+
+  roster.forEach(p=>{
+    let group=positionGroup(p?.pos);
+    if(!groups[group])group="Wing";
+    groups[group].push(p);
+  });
+
+  Object.values(groups).forEach(arr=>arr.sort((a,b)=>(b.ovr||0)-(a.ovr||0)));
+  const topAvg=core.length?core.reduce((s,p)=>s+(p.ovr||0),0)/core.length:50;
+  const avgAge=core.length?core.reduce((s,p)=>s+Number(p.age||26),0)/core.length:26;
+  const youth=roster.filter(p=>(p.age||99)<=24&&(p.pot||p.ovr||0)>=(p.ovr||0)+3).length;
+  const cap=Number(state.frontOffice?.cap||100),payroll=teamPayroll(team.name);
+  const needScores={};
+
+  for(const g of ["Guard","Wing","Big"]){
+    const arr=groups[g];
+    const top=arr.slice(0,3);
+    const quality=top.length?top.reduce((s,p)=>s+(p.ovr||0),0)/top.length:45;
+    const depthPenalty=Math.max(0,3-arr.length)*5;
+    needScores[g]=Math.max(0,Math.round(82-quality+depthPenalty));
+  }
+
+  const biggestNeed=Object.entries(needScores).sort((a,b)=>b[1]-a[1])[0]?.[0]||"Wing";
+  return {roster,core,groups,topAvg,avgAge,youth,payroll,cap,needScores,biggestNeed,weakestGroup:biggestNeed};
+};
+window.teamRosterProfile=teamRosterProfile;
+
+/* Existing saves stopped at Free Agency with a stale Re-signings error
+   should clear that error and restore the correct current-stage button. */
+setTimeout(()=>{
+  try{
+    if(!state?.offseason)return;
+    if(state.offseason.phase==="Free Agency"){
+      const box=document.getElementById("offseasonDetailBox");
+      if(box && /Re-signings error/i.test(box.textContent||"")){
+        try{
+          if(state.role!=="GM" && typeof fastViewerFreeAgencyV0827==="function"){
+            fastViewerFreeAgencyV0827();
+          }
+          renderOffseason();
+          viewOffseasonStep("Free Agency");
+        }catch(e){console.warn("Free Agency repair warning",e);}
+      }
+      const btn=document.getElementById("advanceOffseasonBtn");
+      if(btn){
+        btn.disabled=false;
+        btn.textContent="Complete Free Agency → Roster Cuts";
+        btn.onclick=()=>advanceOffseason();
+      }
+    }
+  }catch(e){console.error("v0.83.3 load repair",e);}
+},300);
 
 </script>
 </body>
