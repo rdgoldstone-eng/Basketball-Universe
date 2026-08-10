@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.84 · GM Control Foundation</div>
+    <div class="pill">v0.85 · GM Transaction Center</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -16378,6 +16378,211 @@ setTimeout(()=>{
     if(isHumanGMV084()){renderOffseason();renderFrontOffice();saveState();}
   }catch(e){console.error("v0.84 GM initialization",e);}
 },250);
+
+
+
+/* === v0.85 GM Transaction Center ===
+   Turn the GM role from protected AI control into an actual working desk. */
+
+function gmPlayerContractTextV085(p){
+  const c=p?.contract||{};
+  const years=Number(c.years||0), salary=Number(c.salary||0);
+  return years>0?`${years} yr · $${salary.toFixed(1)}M`:"Expiring";
+}
+function gmRosterSortedV085(){
+  const t=gmTeamV084(); if(!t)return [];
+  return teamRoster(t.name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+}
+function gmFreeAgentsV085(){
+  return (state.players||[]).filter(p=>p.teamName==="Free Agent"&&!p.retired&&!p.deferredEntry)
+    .sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+}
+function gmFairSalaryV085(p){
+  const o=Number(p.ovr||50),pot=Number(p.pot||o),age=Number(p.age||26);
+  let value=Math.max(1,(o-50)*0.85+(pot-o)*0.25);
+  if(o>=85)value+=12; else if(o>=80)value+=7; else if(o>=75)value+=3;
+  if(age>=33)value*=.82;
+  return Math.max(1,Math.round(value*10)/10);
+}
+window.gmFairSalaryV085=gmFairSalaryV085;
+
+function gmContractOfferV085(playerId,mode){
+  if(!isHumanGMV084())return;
+  const p=state.players.find(x=>x.id===playerId); if(!p)return;
+  const team=gmTeamV084();
+  const salary=Math.max(1,Number(prompt(`Annual salary for ${p.name} ($M):`,String(gmFairSalaryV085(p))))||0);
+  if(!salary)return;
+  const years=Math.max(1,Math.min(5,Number(prompt(`Contract years for ${p.name}:`,"3"))||0));
+  if(!years)return;
+
+  const payroll=teamPayroll(team.name);
+  const cap=Number(state.frontOffice?.cap||100);
+  if(mode==="fa" && payroll+salary>cap*1.18){
+    alert(`That would push ${team.name} too far above the current payroll limit.`);
+    return;
+  }
+
+  const fair=gmFairSalaryV085(p);
+  const age=Number(p.age||26);
+  const desire=Math.max(.78,1.08-(years-1)*.025+(age<27?.04:0));
+  const threshold=fair*desire;
+  const accepted=salary>=threshold;
+
+  state.frontOffice.transactions=state.frontOffice.transactions||[];
+  if(accepted){
+    p.teamName=team.name;
+    p.contract={years,salary};
+    p.faEligible=false;
+    state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for ${years} year${years===1?"":"s"}, $${salary.toFixed(1)}M annually.`});
+    alert(`${p.name} accepted the offer.`);
+  }else{
+    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} rejected ${team.name}'s ${years}-year, $${salary.toFixed(1)}M offer.`});
+    alert(`${p.name} rejected the offer. He is looking for roughly $${threshold.toFixed(1)}M per year.`);
+  }
+  saveState();renderFrontOffice();renderOffseason();
+}
+window.gmContractOfferV085=gmContractOfferV085;
+
+function gmReleasePlayerV085(playerId){
+  if(!isHumanGMV084())return;
+  const p=state.players.find(x=>x.id===playerId),team=gmTeamV084();
+  if(!p||p.teamName!==team.name)return;
+  if(!confirm(`Release ${p.name}? He will become a free agent.`))return;
+  p.previousTeamName=team.name;p.teamName="Free Agent";p.faEligible=true;
+  if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+  state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} releases ${p.name}.`});
+  saveState();renderFrontOffice();renderOffseason();
+}
+window.gmReleasePlayerV085=gmReleasePlayerV085;
+
+function gmExtendPlayerV085(playerId){
+  const p=state.players.find(x=>x.id===playerId); if(!p)return;
+  gmContractOfferV085(playerId,"extension");
+}
+window.gmExtendPlayerV085=gmExtendPlayerV085;
+
+function gmTransactionCenterHTMLV085(){
+  if(!isHumanGMV084())return "";
+  const team=gmTeamV084(),phase=state.offseason?.phase||"Regular Season";
+  const roster=gmRosterSortedV085();
+  const expiring=roster.filter(p=>(p.contract?.years||0)<=1||p.faEligible);
+  const fas=gmFreeAgentsV085().slice(0,40);
+  const tradeOpen=gmTradeWindowOpenV084();
+
+  const rosterRows=roster.map(p=>`
+    <div class="teamrow">
+      <div class="teammeta"><b>${p.name}</b><span class="small muted">${p.pos||"—"} · ${p.age||"—"} · OVR ${p.ovr??"—"} · ${gmPlayerContractTextV085(p)}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${phase==="Re-signings"&&expiring.includes(p)?`<button class="miniBtn" onclick="gmExtendPlayerV085('${p.id}')">Offer Contract</button>`:""}
+        <button class="miniBtn" onclick="gmReleasePlayerV085('${p.id}')">Release</button>
+      </div>
+    </div>`).join("");
+
+  const faRows=fas.map(p=>`
+    <div class="teamrow">
+      <div class="teammeta"><b>${p.name}</b><span class="small muted">${p.pos||"—"} · ${p.age||"—"} · OVR ${p.ovr??"—"} · Asking ≈ $${gmFairSalaryV085(p).toFixed(1)}M</span></div>
+      <button class="miniBtn" onclick="gmContractOfferV085('${p.id}','fa')">Make Offer</button>
+    </div>`).join("");
+
+  return `
+    <div class="card" id="gmTransactionCenterV085" style="margin-top:14px">
+      <div class="sectionTitle">GM Transaction Center</div>
+      <div class="small muted" style="margin-bottom:10px">Your roster decisions are manual. League AI handles the other teams.</div>
+      <div class="notice" style="margin-bottom:12px">
+        <b>${team.name}</b> · Payroll $${teamPayroll(team.name).toFixed(1)}M / $${Number(state.frontOffice?.cap||100).toFixed(0)}M ·
+        ${roster.length} players · Trades ${tradeOpen?"OPEN":"CLOSED"}
+      </div>
+      <details open>
+        <summary><b>Roster & Contracts</b></summary>
+        <div style="margin-top:8px">${rosterRows||`<span class="muted">No players.</span>`}</div>
+      </details>
+      ${phase==="Free Agency"?`
+      <details open style="margin-top:14px">
+        <summary><b>Free-Agent Market</b></summary>
+        <div class="small muted" style="margin:6px 0">Players can reject low offers. Asking price is an estimate, not a guarantee.</div>
+        ${faRows||`<span class="muted">No free agents available.</span>`}
+      </details>`:""}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button class="secondary" onclick="switchTab('trade')">Open Trade Machine</button>
+        ${state.offseason?.phase==="Draft"?`<button class="secondary" onclick="switchTab('draftroom')">Open Draft Room</button>`:""}
+      </div>
+    </div>`;
+}
+window.gmTransactionCenterHTMLV085=gmTransactionCenterHTMLV085;
+
+const _v085RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v085RenderFrontOffice.apply(this,arguments);
+  if(!isHumanGMV084())return r;
+  const existing=document.getElementById("gmTransactionCenterV085");
+  if(existing)existing.remove();
+  const host=document.getElementById("frontOfficePanel")||document.getElementById("frontOfficeDirection")?.parentElement;
+  if(host)host.insertAdjacentHTML("beforeend",gmTransactionCenterHTMLV085());
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* Draft room: user pick becomes selectable directly from prospect rows. */
+const _v085RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  const r=_v085RenderDraftRoom.apply(this,arguments);
+  if(!isHumanGMV084()||!isUserDraftPick())return r;
+  const board=document.getElementById("draftProspectBoard");
+  if(board){
+    board.querySelectorAll("[data-prospect-id]").forEach(row=>{
+      const id=row.getAttribute("data-prospect-id");
+      if(!id)return;
+      row.style.cursor="pointer";
+      row.onclick=()=>{
+        const p=state.draftRoom.available.find(x=>String(x.id||x.draftId)===String(id));
+        if(!p)return;
+        if(confirm(`Draft ${p.name}?`)){
+          const result=executeDraftPickV0824(id);
+          if(result?.ok===false)alert(result.error||"Pick could not be completed.");
+          renderDraftRoom();
+        }
+      };
+    });
+  }
+  return r;
+};
+window.renderDraftRoom=renderDraftRoom;
+
+/* New-season legality: GM cannot carry an oversized roster into opening night. */
+const _v085BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  if(isHumanGMV084()){
+    const s=gmStageStatusV084();
+    if(s&&s.rosterCount>s.regularLimit){
+      alert(`${s.team.name} still has ${s.rosterCount} players. Cut the roster to ${s.regularLimit} before starting the season.`);
+      switchTab("frontoffice");return false;
+    }
+  }
+  return _v085BeginNextSeason.apply(this,arguments);
+};
+window.beginNextSeason=beginNextSeason;
+
+/* Keep controlled-team AI rotation refresh from becoming a transaction.
+   Rotation AI may organize existing players but cannot add/drop anyone. */
+const _v085RefreshAI=refreshAllAIRotations;
+refreshAllAIRotations=function(){
+  const team=gmTeamV084();
+  const ids=team?new Set(teamRoster(team.name).map(p=>p.id)):null;
+  const r=_v085RefreshAI.apply(this,arguments);
+  if(team&&ids){
+    state.players.forEach(p=>{
+      if(p.teamName===team.name&&!ids.has(p.id)){
+        p.teamName="Free Agent";
+        if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+      }
+    });
+  }
+  return r;
+};
+window.refreshAllAIRotations=refreshAllAIRotations;
+
+setTimeout(()=>{try{if(isHumanGMV084())renderFrontOffice();}catch(e){console.error("v0.85 GM center init",e);}},300);
 
 </script>
 </body>
