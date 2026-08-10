@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.83.3 · Re-Signings Position Fix</div>
+    <div class="pill">v0.84 · GM Control Foundation</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -16166,6 +16166,218 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.83.3 load repair",e);}
 },300);
+
+
+
+/* === v0.84 GM Control Foundation ===
+   Human GM owns the controlled team's basketball decisions. */
+
+function isHumanGMV084(){
+  return state?.role==="GM" && !!currentControlledTeam();
+}
+function gmTeamV084(){ return isHumanGMV084()?currentControlledTeam():null; }
+
+function gmStageStatusV084(){
+  const team=gmTeamV084();
+  if(!team)return null;
+  const roster=teamRoster(team.name);
+  const expiring=roster.filter(p=>(p.contract?.years||0)<=1||p.faEligible);
+  const status=rosterStatusForTeam(team.name,state.currentYear+1);
+  return {
+    team, roster, expiring,
+    payroll:teamPayroll(team.name),
+    cap:Number(state.frontOffice?.cap||100),
+    rosterCount:status.count, regularLimit:status.regularLimit, offseasonLimit:status.offseasonLimit
+  };
+}
+window.gmStageStatusV084=gmStageStatusV084;
+
+function gmTradeWindowOpenV084(){
+  if(!isHumanGMV084())return true;
+  if(state.offseason)return true;
+  // Trade deadline flag is set by the season engine once that checkpoint passes.
+  if(state.tradeDeadlinePassed || state.season?.tradeDeadlinePassed)return false;
+  const gp=Number(gmTeamV084()?.gp||0);
+  const games=Number(state.season?.gamesPerTeam||82);
+  return gp < Math.max(1,Math.floor(games*.72));
+}
+window.gmTradeWindowOpenV084=gmTradeWindowOpenV084;
+
+/* Human GM cannot accidentally have the controlled team processed by league AI. */
+const _v084ReSignAI=runLeagueReSigningsAI;
+runLeagueReSigningsAI=function(){
+  const team=gmTeamV084();
+  const before=team?teamRoster(team.name).map(p=>({id:p.id,teamName:p.teamName,contract:p.contract?{...p.contract}:null,faEligible:p.faEligible})):null;
+  const r=_v084ReSignAI.apply(this,arguments);
+  if(team&&before){
+    before.forEach(s=>{
+      const p=state.players.find(x=>x.id===s.id); if(!p)return;
+      p.teamName=s.teamName;p.contract=s.contract;p.faEligible=s.faEligible;
+      state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+    });
+  }
+  return r;
+};
+window.runLeagueReSigningsAI=runLeagueReSigningsAI;
+
+const _v084FreeAgencyAI=runFreeAgencyAI;
+runFreeAgencyAI=function(){
+  const team=gmTeamV084();
+  const before=team?new Set(teamRoster(team.name).map(p=>p.id)):null;
+  const r=_v084FreeAgencyAI.apply(this,arguments);
+  // AI may sign for every other team, never for the human GM.
+  if(team&&before){
+    state.players.forEach(p=>{
+      if(p.teamName===team.name&&!before.has(p.id)){
+        p.teamName="Free Agent";p.contract={years:0,salary:0};
+        if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+      }
+    });
+  }
+  return r;
+};
+window.runFreeAgencyAI=runFreeAgencyAI;
+
+const _v084RosterCutsAI=runRosterCutsAI;
+runRosterCutsAI=function(){
+  const team=gmTeamV084();
+  const before=team?teamRoster(team.name).map(p=>p.id):null;
+  const r=_v084RosterCutsAI.apply(this,arguments);
+  if(team&&before){
+    before.forEach(id=>{
+      const p=state.players.find(x=>x.id===id);
+      if(p&&p.teamName==="Free Agent"){
+        p.teamName=team.name;
+        state.freeAgents=(state.freeAgents||[]).filter(x=>x!==id);
+      }
+    });
+  }
+  return r;
+};
+window.runRosterCutsAI=runRosterCutsAI;
+
+/* A GM must actually choose the controlled team's draft pick. */
+const _v084ExecuteDraftPick=executeDraftPickV0824;
+executeDraftPickV0824=function(prospectId=null){
+  if(isHumanGMV084() && isUserDraftPick() && !prospectId){
+    return {ok:false,error:"This is your pick. Choose a prospect from the board."};
+  }
+  return _v084ExecuteDraftPick.apply(this,arguments);
+};
+window.executeDraftPickV0824=executeDraftPickV0824;
+
+/* Trade machine obeys the deadline and is GM-only for the controlled team. */
+const _v084ProposeTrade=proposeTradeMachine;
+proposeTradeMachine=function(){
+  if(!isHumanGMV084()){alert("Trade decisions require GM control of a team.");return;}
+  if(!gmTradeWindowOpenV084()){alert("The trade deadline has passed. Trading reopens in the offseason.");return;}
+  return _v084ProposeTrade.apply(this,arguments);
+};
+window.proposeTradeMachine=proposeTradeMachine;
+
+/* Resolve unsigned controlled-team contracts when the GM leaves Re-signings.
+   Accepted extensions remain. Everyone the GM chose not to retain enters FA. */
+function finishGMReSigningsV084(){
+  const s=gmStageStatusV084(); if(!s)return;
+  const unsigned=s.expiring.filter(p=>(p.contract?.years||0)<=1||p.faEligible);
+  unsigned.forEach(p=>{
+    p.previousTeamName=s.team.name;
+    p.teamName="Free Agent";
+    p.contract={years:0,salary:0};
+    p.faEligible=true;
+    if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${s.team.name} lets ${p.name} enter free agency.`});
+  });
+  saveState();
+}
+window.finishGMReSigningsV084=finishGMReSigningsV084;
+
+/* GM offseason advance: league AI runs around the user, but the user's
+   decisions are never simulated. */
+const _v084AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(!isHumanGMV084())return _v084AdvanceOffseason.apply(this,arguments);
+  initOffseason();
+  const phase=state.offseason.phase;
+  const s=gmStageStatusV084();
+
+  if(phase==="Re-signings"){
+    finishGMReSigningsV084();
+    // Now let other  teams resolve their own contracts.
+    runLeagueReSigningsAI();
+    state.offseason.phaseIndex++;
+    state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+    renderOffseason();renderAll();saveState();switchTab("frontoffice");
+    return;
+  }
+
+  if(phase==="Free Agency"){
+    runFreeAgencyAI(); // other teams only
+    state.offseason.phaseIndex++;
+    state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+    renderOffseason();renderAll();saveState();switchTab("frontoffice");
+    return;
+  }
+
+  if(phase==="Roster Cuts"){
+    if(s.rosterCount>s.regularLimit){
+      alert(`${s.team.name} has ${s.rosterCount} players. You must cut the roster to ${s.regularLimit} before continuing.`);
+      switchTab("frontoffice");return;
+    }
+    runRosterCutsAI(); // other teams only
+    refreshAllAIRotations();
+    state.offseason.phaseIndex++;
+    state.offseason.phase=state.offseason.phases[state.offseason.phaseIndex];
+    renderOffseason();renderAll();saveState();
+    return;
+  }
+
+  return _v084AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Front-office page gets a GM status card so the user knows exactly what
+   requires attention at the current stage. */
+const _v084RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v084RenderFrontOffice.apply(this,arguments);
+  if(!isHumanGMV084())return r;
+  const s=gmStageStatusV084();
+  const host=document.getElementById("frontOfficeDirection");
+  if(!host||!s)return r;
+  const phase=state.offseason?.phase||"Regular Season";
+  let task="Manage the roster and evaluate trades.";
+  if(phase==="Draft")task="Draft Room controls your selections. The AI cannot make your pick.";
+  if(phase==="Re-signings")task=`Decide which expiring players to retain. ${s.expiring.length} contract decision${s.expiring.length===1?"":"s"} remain.`;
+  if(phase==="Free Agency")task="Make offers to the free agents you want. Other teams will handle their own markets.";
+  if(phase==="Roster Cuts")task=`Trim to ${s.regularLimit} players. Current roster: ${s.rosterCount}.`;
+  if(phase==="Next Season")task="Final roster check before opening night.";
+  host.insertAdjacentHTML("afterbegin",`<div class="notice" style="margin-bottom:12px"><b>GM Desk · ${phase}</b><br><span class="small">${task}</span><br><span class="small muted">Payroll $${s.payroll.toFixed(0)}M / $${s.cap}M · Roster ${s.rosterCount}/${state.offseason?s.offseasonLimit:s.regularLimit}</span></div>`);
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* Make the offseason task button tell the GM what it actually does. */
+const _v084RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  const r=_v084RenderOffseason.apply(this,arguments);
+  if(!isHumanGMV084())return r;
+  const btn=document.getElementById("advanceOffseasonBtn");
+  const p=state.offseason?.phase;
+  if(btn){
+    if(p==="Re-signings")btn.textContent="Finish My Re-signings → Free Agency";
+    if(p==="Free Agency")btn.textContent="Finish My Free Agency → Roster Cuts";
+    if(p==="Roster Cuts")btn.textContent="Confirm Final Roster → Next Season";
+  }
+  return r;
+};
+window.renderOffseason=renderOffseason;
+
+setTimeout(()=>{
+  try{
+    if(isHumanGMV084()){renderOffseason();renderFrontOffice();saveState();}
+  }catch(e){console.error("v0.84 GM initialization",e);}
+},250);
 
 </script>
 </body>

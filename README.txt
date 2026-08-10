@@ -1,39 +1,24 @@
 Basketball Universe League
-v0.83.3 · Re-Signings Position Fix
+v0.84 · GM Control Foundation
 
-BUG FOUND
-The free-agency screenshot exposed a real function-name collision.
+FIRST GM COMPLETION PASS
 
-An older AI roster function used positionGroup() to return:
-- Guard
-- Wing
-- Big
+Human GM authority:
+- AI cannot re-sign players for your team.
+- AI cannot sign free agents for your team.
+- AI cannot make roster cuts for your team.
+- AI cannot make your draft selection.
+- Trade Machine closes after the trade deadline and reopens in the offseason.
 
-A later coaching/depth-chart system accidentally created another global function
-with the SAME name that returned:
-- PG
-- SG
-- SF
-- PF
-- C
+Offseason:
+- Re-signings: make the offers you want, then Finish My Re-signings. Players you do not retain enter free agency.
+- Free Agency: make your own offers; AI handles the other teams.
+- Roster Cuts: you must personally reach the legal regular-season roster limit.
+- Next Season remains blocked if your roster is too large.
 
-The second function overwrote the first one. Re-signings then tried to do:
-groups["PG"].push(...)
-but the groups object only had Guard/Wing/Big, causing:
-undefined is not an object (evaluating 'groups[positionGroup(p.pos)].push')
+GM Desk:
+The Front Office now shows the current GM task, payroll, roster count, and stage.
 
-FIX
-- Renamed the depth-chart helper so it no longer overwrites the AI roster helper.
-- Added defensive position grouping so an unknown position can never crash re-signings/free agency.
-- Added weakestGroup compatibility used by later AI systems.
-- Existing saves already sitting at Free Agency clear the stale Re-signings error on load.
-- The main offseason button is restored to "Complete Free Agency → Roster Cuts".
+This is the foundation build before the dedicated GM playtest. It is not yet the request to begin that playtest.
 
-TEST RESULT NOTED
-The user's Viewer test passed:
-regular-season simulation intervals, trade deadline, All-Star break, end regular
-season, playoff day, watch next game, finish series, and finish round.
-This build fixes the remaining offseason error shown in that test.
-
-INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root.
