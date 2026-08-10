@@ -370,7 +370,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.9 · New Season Newspaper Flow</div>
+    <div class="pill">v0.82.10 · Newspaper Timing Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -14305,6 +14305,152 @@ setTimeout(()=>{
     ensureSeasonNewspaperFlowV0829();
     bindNewspaperContinueV0829();
   }catch(e){console.warn("v0.82.9 newspaper repair warning",e);}
+},0);
+
+
+
+/* === v0.82.10 Newspaper Timing Fix ===
+   The previous build waited for a generic "Continue" button elsewhere in
+   the game. That could remain pending until the end of the NEXT season.
+   The newspaper now owns its own Continue button and only appears at the
+   start of the new season. */
+
+function ensureNewspaperTimingV08210(){
+  state.seasonNewspaper=state.seasonNewspaper||{};
+  if(typeof state.seasonNewspaper.pending!=="boolean")state.seasonNewspaper.pending=false;
+  state.seasonNewspaper.paperYear=state.seasonNewspaper.paperYear??null;
+  state.seasonNewspaper.seasonYear=state.seasonNewspaper.seasonYear??null;
+}
+
+function markNewspaperForNewSeasonV08210(){
+  ensureNewspaperTimingV08210();
+  const paper=state.latestSeasonNewspaper ||
+    (state.seasonNewspapers||[]).slice().sort((a,b)=>Number(b.year)-Number(a.year))[0] || null;
+  state.seasonNewspaper.pending=!!paper;
+  state.seasonNewspaper.paperYear=paper?.year??null;
+  state.seasonNewspaper.seasonYear=state.currentYear;
+}
+
+function pendingSeasonPaperV08210(){
+  ensureNewspaperTimingV08210();
+  if(!state.seasonNewspaper.pending)return null;
+  const wanted=Number(state.seasonNewspaper.paperYear);
+  return (state.seasonNewspapers||[]).find(p=>Number(p.year)===wanted) ||
+         state.latestSeasonNewspaper || null;
+}
+
+/* Newspaper appears ONLY while it is the opening transition for the new season. */
+renderSeasonNewspaper=function(){
+  const card=document.getElementById("seasonNewspaperCard");
+  const box=document.getElementById("seasonNewspaperBox");
+  const lab=document.getElementById("seasonNewspaperLabel");
+  if(!card||!box||!state)return;
+
+  ensureNewspaperTimingV08210();
+  const p=pendingSeasonPaperV08210();
+
+  if(!p){
+    card.style.display="none";
+    box.innerHTML="";
+    return;
+  }
+
+  card.style.display="";
+  if(lab)lab.textContent=`${p.seasonLabel} Final Edition`;
+  box.innerHTML=seasonNewspaperHTML(p)+`
+    <div style="margin-top:18px;padding-top:14px;border-top:2px solid #241f19;text-align:center">
+      <button id="seasonNewspaperContinueV08210" class="primary" type="button">Continue to ${state.currentYear}-${String((state.currentYear+1)%100).padStart(2,"0")} Season</button>
+    </div>`;
+
+  document.getElementById("seasonNewspaperContinueV08210")?.addEventListener("click",()=>{
+    finishNewSeasonNewspaperV08210();
+  });
+};
+window.renderSeasonNewspaper=renderSeasonNewspaper;
+
+function openNewSeasonPaperV08210(){
+  ensureNewspaperTimingV08210();
+  switchTab("season");
+  renderSeason();
+  setTimeout(()=>{
+    document.getElementById("seasonNewspaperCard")?.scrollIntoView?.({behavior:"smooth",block:"start"});
+  },20);
+}
+window.openNewSeasonPaperV08210=openNewSeasonPaperV08210;
+
+function finishNewSeasonNewspaperV08210(){
+  ensureNewspaperTimingV08210();
+  state.seasonNewspaper.pending=false;
+  state.seasonNewspaper.acknowledgedSeasonYear=state.currentYear;
+  try{saveState();}catch(_){}
+
+  // Stay on Season. Hiding the newspaper exposes the normal Game 1 controls
+  // immediately underneath it.
+  switchTab("season");
+  renderSeason();
+  const card=document.getElementById("seasonNewspaperCard");
+  if(card)card.style.display="none";
+  setTimeout(()=>{
+    document.getElementById("dateLabel")?.scrollIntoView?.({behavior:"smooth",block:"start"});
+  },20);
+}
+window.finishNewSeasonNewspaperV08210=finishNewSeasonNewspaperV08210;
+
+/* Disable the v0.82.9 generic page-wide Continue search. It was the source
+   of the delayed/end-of-next-season behavior. */
+bindNewspaperContinueV0829=function(){};
+window.bindNewspaperContinueV0829=bindNewspaperContinueV0829;
+
+/* Replace the v0.82.9 begin-next-season wrapper behavior.
+   The underlying transition still creates the just-completed season paper.
+   After it finishes, we mark THAT paper pending and show it immediately. */
+const _v08210BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  const beforeYear=Number(state.currentYear||0);
+  const result=_v08210BeginNextSeason.apply(this,arguments);
+
+  // If season creation was refused, do not show a newspaper.
+  if(Number(state.currentYear||0)<=beforeYear || state?.season?.phase==="Season Complete"){
+    return result;
+  }
+
+  markNewspaperForNewSeasonV08210();
+  try{saveState();}catch(_){}
+  openNewSeasonPaperV08210();
+  return result;
+};
+window.beginNextSeason=beginNextSeason;
+
+/* Existing-save cleanup:
+   v0.82.9 may have left a stale pending flag that survives until the end of
+   the following season. Only keep a pending paper if the new season has not
+   played a game yet. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    ensureNewspaperTimingV08210();
+
+    const noGamesYet=Number(state.season?.gamesPlayed||0)===0 &&
+                     Number(state.season?.leagueDay||0)===0 &&
+                     state.season?.phase==="Regular Season";
+
+    if(state.seasonNewspaper.pending && !noGamesYet){
+      state.seasonNewspaper.pending=false;
+      saveState();
+    }
+
+    // If we're at Game 1 and there is a freshly created paper from the prior
+    // season, restore the intended opening transition.
+    const latest=state.latestSeasonNewspaper;
+    if(noGamesYet && latest && Number(latest.year)===Number(state.currentYear)-1 &&
+       state.seasonNewspaper.acknowledgedSeasonYear!==state.currentYear){
+      state.seasonNewspaper.pending=true;
+      state.seasonNewspaper.paperYear=latest.year;
+      state.seasonNewspaper.seasonYear=state.currentYear;
+      saveState();
+      renderSeason();
+    }
+  }catch(e){console.error("v0.82.10 newspaper timing repair",e);}
 },0);
 
 </script>

@@ -1,19 +1,30 @@
 Basketball Universe
-v0.82.9 · New Season Newspaper Flow
+v0.82.10 · Newspaper Timing Fix
+
+WHAT WAS WRONG
+The previous newspaper build searched the whole page for any button named "Continue."
+The newspaper itself did not have its own Continue button. That could leave the
+newspaper marked as pending until a completely unrelated Continue button appeared
+at the end of the following season.
 
 FIX
-- Clicking Start Next Season now begins the new season and then automatically opens Season → Seasons, where the new-season newspaper lives.
-- The newspaper is now the transition screen between offseason and Game 1.
-- The Continue button at the bottom of the newspaper now sends the user to the normal Season screen for the first game.
-- Starting the next season no longer drops the user directly onto the regular-season page and skips the newspaper.
-- The newspaper Continue flow does not simulate a game by itself; it simply moves the user to Game 1.
+- The newspaper now has its OWN Continue button at the bottom.
+- It appears immediately after Start Next Season.
+- It displays the final edition for the season that just ended.
+- Continue hides the newspaper and leaves you on the Season screen at Game 1.
+- The newspaper does not remain pending through the season.
+- The old page-wide generic Continue-button search is disabled.
+- Existing saves with a stale pending-newspaper flag are repaired.
+- If a save is already at Game 1 and the prior-season paper has not been acknowledged,
+  it is restored as the opening screen.
 
 EXPECTED FLOW
-Offseason → Start Next Season
-→ Season / Seasons
-→ New-season newspaper
-→ Continue
-→ Season page at Game 1
+Finish offseason
+→ Start Next Season
+→ Season screen opens with prior-season newspaper
+→ Continue to [new season]
+→ newspaper closes
+→ Game 1 controls are immediately visible
 
 INSTALL
 Upload index.html and README.txt to the GitHub Pages repository root.
