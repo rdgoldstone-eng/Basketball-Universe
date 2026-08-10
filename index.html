@@ -385,8 +385,8 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.82.15 · Permanent Archive Store</div>
-    <h1 style="margin-top:10px">Create a Basketball Universe</h1>
+    <div class="pill">v0.83 · History Ledger Rebuild</div>
+    <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
   </div>
@@ -3070,7 +3070,7 @@ function currentSaveId(){
 function saveSummaryFromState(s){
  return {
    id:s.saveId,
-   name:s.name||"Basketball Universe",
+   name:s.name||"Basketball Universe League",
    season:(()=>{let y=Number(s.currentYear??s.startYear??1976);return `${y}-${String((y+1)%100).padStart(2,"0")}`})(),
    currentYear:Number(s.currentYear??s.startYear??1976),
    role:s.role||"Viewer",
@@ -3124,7 +3124,7 @@ function saveState(){
     renderSavedUniverseLists();
     return true;
   }catch(err){
-    console.error("Basketball Universe save failed:",err);
+    console.error("Basketball Universe League save failed:",err);
     const status=document.getElementById("saveStatus");
     if(status)status.textContent="Running · browser save unavailable";
     return false;
@@ -3287,7 +3287,7 @@ document.querySelectorAll(".role").forEach(el=>{
 
 document.getElementById("createBtn").onclick=()=>{
  const year=+document.getElementById("startYear").value;
- const name=document.getElementById("universeName").value.trim()||"Basketball Universe";
+ const name=document.getElementById("universeName").value.trim()||"Basketball Universe League";
  const teamId=(selectedRole==="Commissioner"||selectedRole==="Viewer")?null:document.getElementById("teamChoice").value;
  const careerPlayerId=selectedRole==="Player"?document.getElementById("playerChoice").value:null;
  if(selectedRole==="Player"&&!careerPlayerId){alert("Choose a player.");return;}
@@ -6606,7 +6606,7 @@ function seasonNewspaperHTML(p){
  let team=state.teams.find(t=>t.name===p.champion)||(state.teams.find(t=>(t.identityHistory||[]).some(h=>h.name===p.champion)))||{name:p.champion};
  let changes=p.changes?.length?p.changes.map(x=>`<div style="margin-bottom:7px">• ${x}</div>`).join(""):`<span class="muted">No major franchise changes this season.</span>`;
  return `<div class="newspaper">
-   <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel} Final Edition · ${p.era||eraInfoForYear(p.year).name}</div><h2>Basketball Universe Chronicle</h2></div>
+   <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel} Final Edition · ${p.era||eraInfoForYear(p.year).name}</div><h2>Basketball Universe League Chronicle</h2></div>
    <div class="newspaperHeadline">${p.champion} Rule the Basketball World</div>
    <div class="newspaperDeck">${p.runnerUp?`${p.champion} defeat ${p.runnerUp} for the championship.`:"A new champion is crowned."}${p.finalsMvp?` ${p.finalsMvp} earns Finals MVP.`:""}</div>
    <div class="newspaperChampion">${logoHTML(team)}<div><b style="font-size:20px">${p.champion}</b><div>${p.seasonLabel} League Champions</div></div></div>
@@ -14576,7 +14576,7 @@ seasonNewspaperHTML=function(p){
   }
 
   return `<div class="newspaperPaper">
-    <div class="newspaperMasthead">BASKETBALL UNIVERSE</div>
+    <div class="newspaperMasthead">BASKETBALL UNIVERSE LEAGUE</div>
     <div class="newspaperDate">${p?.seasonLabel||p?.year||""} FINAL EDITION</div>
     <h1>${p?.headline||"A New Season Begins"}</h1>
     <div class="newspaperColumns">
@@ -14686,12 +14686,12 @@ function paperForSeasonOpeningV08212(seasonYear){
 }
 
 function openingPaperHTMLV08212(p){
-  if(!p)return `<div class="newspaper"><div class="newspaperMast"><h2>Basketball Universe Chronicle</h2></div><div class="newspaperHeadline">A New Season Begins</div></div>`;
+  if(!p)return `<div class="newspaper"><div class="newspaperMast"><h2>Basketball Universe League Chronicle</h2></div><div class="newspaperHeadline">A New Season Begins</div></div>`;
   try{
     return seasonNewspaperHTML(p);
   }catch(e){
     return `<div class="newspaper">
-      <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel||p.year||""} Final Edition</div><h2>Basketball Universe Chronicle</h2></div>
+      <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel||p.year||""} Final Edition</div><h2>Basketball Universe League Chronicle</h2></div>
       <div class="newspaperHeadline">${p.champion||"League Champion"} Rule the Basketball World</div>
       <div class="newspaperDeck">The completed season is in the books. A new season is ready to begin.</div>
       <div class="newspaperGrid">
@@ -15319,6 +15319,366 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.82.15 archive initialization",e);}
 },250);
+
+
+
+/* === v0.83 Canonical History Ledger Rebuild ===
+   One source of truth for ALL league history.
+   The previous app had many separate history arrays created by different
+   features at different times. This ledger is initialized on every load,
+   written at real milestones, and can rebuild from the universe itself. */
+
+function ensureHistoryLedgerV083(){
+  if(!state)return;
+  state.history=state.history||{};
+  state.history.seasons=Array.isArray(state.history.seasons)?state.history.seasons:[];
+  state.history.champions=Array.isArray(state.history.champions)?state.history.champions:[];
+  state.history.allStars=Array.isArray(state.history.allStars)?state.history.allStars:[];
+  state.history.records=Array.isArray(state.history.records)?state.history.records:[];
+  state.draftHistory=Array.isArray(state.draftHistory)?state.draftHistory:[];
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  state.historyLedger=state.historyLedger||{};
+  state.historyLedger.seasons=state.history.seasons;
+  state.historyLedger.champions=state.history.champions;
+  state.historyLedger.allStars=state.history.allStars;
+  state.historyLedger.records=state.history.records;
+  state.historyLedger.drafts=state.draftHistory;
+  state.historyLedger.newspapers=state.seasonNewspapers;
+  state.historyLedger.lastUpdated=Date.now();
+}
+window.ensureHistoryLedgerV083=ensureHistoryLedgerV083;
+
+function historyLedgerKeyV083(){
+  return `basketball_universe_history_ledger_v1_${state?.saveId||"default"}`;
+}
+function writeHistoryLedgerV083(){
+  if(!state)return false;
+  ensureHistoryLedgerV083();
+  const payload={
+    seasons:state.history.seasons,
+    champions:state.history.champions,
+    allStars:state.history.allStars,
+    records:state.history.records,
+    drafts:state.draftHistory,
+    newspapers:state.seasonNewspapers,
+    lastUpdated:Date.now()
+  };
+  try{
+    localStorage.setItem(historyLedgerKeyV083(),JSON.stringify(payload));
+    return true;
+  }catch(e){
+    console.error("History ledger save failed",e);
+    return false;
+  }
+}
+function readHistoryLedgerV083(){
+  try{
+    const raw=localStorage.getItem(historyLedgerKeyV083());
+    if(!raw)return null;
+    return JSON.parse(raw);
+  }catch(e){return null;}
+}
+function mergeHistoryLedgerV083(){
+  ensureHistoryLedgerV083();
+  const saved=readHistoryLedgerV083();
+  if(!saved)return;
+
+  const mergeYearRows=(target,source)=>{
+    (source||[]).forEach(row=>{
+      if(!row||!Number.isFinite(Number(row.year)))return;
+      const i=target.findIndex(x=>Number(x.year)===Number(row.year));
+      if(i>=0)target[i]={...target[i],...row};
+      else target.push(row);
+    });
+    target.sort((a,b)=>Number(a.year)-Number(b.year));
+  };
+
+  mergeYearRows(state.history.seasons,saved.seasons);
+  mergeYearRows(state.history.champions,saved.champions);
+  mergeYearRows(state.history.allStars,saved.allStars);
+  mergeYearRows(state.draftHistory,saved.drafts);
+  mergeYearRows(state.seasonNewspapers,saved.newspapers);
+
+  // Records are keyed by stat type instead of year.
+  (saved.records||[]).forEach(r=>{
+    if(!r?.type)return;
+    const i=state.history.records.findIndex(x=>x.type===r.type);
+    if(i>=0){
+      if(Number(r.value||0)>=Number(state.history.records[i].value||0))state.history.records[i]=r;
+    }else state.history.records.push(r);
+  });
+
+  state.latestSeasonNewspaper=state.seasonNewspapers.slice().sort((a,b)=>Number(b.year)-Number(a.year))[0]||state.latestSeasonNewspaper||null;
+}
+window.writeHistoryLedgerV083=writeHistoryLedgerV083;
+window.mergeHistoryLedgerV083=mergeHistoryLedgerV083;
+
+/* A completed-season snapshot that does not depend on one particular playoff
+   code path having fired. */
+function snapshotCompletedSeasonV083(year=state.currentYear){
+  ensureHistoryLedgerV083();
+  const y=Number(year);
+
+  let existing=state.history.seasons.find(s=>Number(s.year)===y)||{};
+  let champion=existing.champion||state.season?.champion||state.playoffs?.champion||null;
+  let runnerUp=existing.runnerUp||null;
+  try{runnerUp=runnerUp||determineFinalsRunnerUp();}catch(_){}
+
+  // Awards may already be in the Awards stage; only calculate missing values.
+  let mvpName=existing.mvp||null;
+  let rookieName=existing.rookie||null;
+  let dpoyName=existing.dpoy||null;
+  let sixthName=existing.sixth||null;
+  let finalsMvp=existing.finalsMvp||state.finalsMvp?.name||state.finalsMvp||null;
+
+  try{
+    if(!mvpName)mvpName=chooseSeasonAwardWinner()?.name||null;
+    if(!rookieName)rookieName=chooseRookieOfYear(y)?.name||null;
+    if(!dpoyName)dpoyName=qualifiedStatPlayers().slice().sort((a,b)=>defensiveAwardScore(b)-defensiveAwardScore(a))[0]?.name||null;
+    if(!sixthName)sixthName=chooseSeasonAwardWinner(p=>sixthManEligible(p))?.name||null;
+    if(!finalsMvp)finalsMvp=chooseFinalsMvp()?.name||null;
+  }catch(e){console.warn("Season snapshot award fallback",e);}
+
+  const row={
+    ...existing,year:y,mvp:mvpName,rookie:rookieName,dpoy:dpoyName,sixth:sixthName,
+    champion,runnerUp,finalsMvp
+  };
+  const idx=state.history.seasons.findIndex(s=>Number(s.year)===y);
+  if(idx>=0)state.history.seasons[idx]=row;
+  else state.history.seasons.push(row);
+
+  if(champion){
+    const team=state.teams.find(t=>t.name===champion);
+    const c={
+      year:y,team:champion,teamId:team?.id||null,runnerUp,finalsMvp
+    };
+    const ci=state.history.champions.findIndex(x=>Number(x.year)===y);
+    if(ci>=0)state.history.champions[ci]={...state.history.champions[ci],...c};
+    else state.history.champions.push(c);
+  }
+
+  state.history.seasons.sort((a,b)=>a.year-b.year);
+  state.history.champions.sort((a,b)=>a.year-b.year);
+  try{updateLeagueRecords(y);}catch(_){}
+  writeHistoryLedgerV083();
+  return row;
+}
+window.snapshotCompletedSeasonV083=snapshotCompletedSeasonV083;
+
+/* Draft snapshot from whichever permanent source still exists. */
+function snapshotDraftHistoryV083(year=null){
+  ensureHistoryLedgerV083();
+  const dr=state.draftRoom;
+  const y=Number(year??dr?.year);
+  if(!Number.isFinite(y))return null;
+
+  let entry=state.draftHistory.find(d=>Number(d.year)===y)||null;
+  if((dr?.results||[]).length && Number(dr.year)===y){
+    entry={
+      year:y,
+      results:dr.results.map((r,i)=>({
+        pick:Number(r.pick||i+1),round:Number(r.round||1),
+        pickInRound:Number(r.pickInRound||r.pick||i+1),
+        teamId:r.teamId||null,teamName:r.teamName||teamById(r.teamId)?.name||"Team",
+        playerName:r.playerName||"Player",pos:r.pos||"—",ovr:r.ovr??null,pot:r.pot??null
+      })),
+      undrafted:(dr.available||[]).map(p=>({name:p.name||"Player",pos:p.pos||"—",prospect:p.prospect??null,college:p.college||""}))
+    };
+  }
+
+  if(!entry?.results?.length){
+    const drafted=(state.players||[])
+      .filter(p=>Number(p.draftYear)===y)
+      .filter(p=>Number.isFinite(Number(p.draftPick||p.draftOverallPick||p.draftPickInRound)))
+      .sort((a,b)=>Number(a.draftOverallPick||a.draftPick||999)-Number(b.draftOverallPick||b.draftPick||999));
+    if(drafted.length){
+      entry={year:y,results:drafted.map((p,i)=>({
+        pick:Number(p.draftOverallPick||p.draftPick||i+1),
+        round:Number(p.draftRound||1),
+        pickInRound:Number(p.draftPickInRound||p.draftPick||i+1),
+        teamId:p.draftedByTeamId||p.draftRightsTeamId||null,
+        teamName:p.draftedBy||p.draftTeam||p.draftRightsTeam||p.teamName||"Team",
+        playerName:p.name,pos:p.pos||"—",ovr:p.ovr??null,pot:p.pot??null
+      })),undrafted:[]};
+    }
+  }
+
+  if(!entry)return null;
+  const i=state.draftHistory.findIndex(d=>Number(d.year)===y);
+  if(i>=0){
+    if((entry.results||[]).length >= (state.draftHistory[i].results||[]).length)state.draftHistory[i]=entry;
+  }else state.draftHistory.push(entry);
+  state.draftHistory.sort((a,b)=>a.year-b.year);
+  writeHistoryLedgerV083();
+  return entry;
+}
+window.snapshotDraftHistoryV083=snapshotDraftHistoryV083;
+
+/* Newspaper is created from canonical season + following draft history and
+   then written back into the same ledger. */
+function snapshotNewspaperV083(year){
+  ensureHistoryLedgerV083();
+  const y=Number(year);
+  const s=state.history.seasons.find(x=>Number(x.year)===y);
+  if(!s)return null;
+
+  const draft=state.draftHistory.find(d=>Number(d.year)===y+1);
+  const top=(draft?.results||[]).slice().sort((a,b)=>Number(a.pick)-Number(b.pick))[0]||null;
+
+  const paper={
+    year:y,
+    seasonLabel:`${y}-${String((y+1)%100).padStart(2,"0")}`,
+    champion:s.champion||"—",runnerUp:s.runnerUp||null,finalsMvp:s.finalsMvp||null,
+    awards:{mvp:s.mvp||null,rookie:s.rookie||null,dpoy:s.dpoy||null,sixth:s.sixth||null},
+    topPick:top?{player:top.playerName,team:top.teamName,pick:top.pick,round:top.round||1}:null,
+    changes:majorSeasonChangesForNewspaper?.(y)||[]
+  };
+
+  const i=state.seasonNewspapers.findIndex(p=>Number(p.year)===y);
+  if(i>=0)state.seasonNewspapers[i]=paper;
+  else state.seasonNewspapers.push(paper);
+  state.seasonNewspapers.sort((a,b)=>a.year-b.year);
+  state.latestSeasonNewspaper=paper;
+  writeHistoryLedgerV083();
+  return paper;
+}
+window.snapshotNewspaperV083=snapshotNewspaperV083;
+
+/* Rebuild the whole ledger from surviving universe facts. */
+function rebuildAllHistoryV083(){
+  ensureHistoryLedgerV083();
+  mergeHistoryLedgerV083();
+
+  // Current completed season.
+  if(state.season?.phase==="Season Complete"){
+    snapshotCompletedSeasonV083(state.currentYear);
+  }
+
+  // Every known draft year.
+  const draftYears=new Set((state.draftHistory||[]).map(x=>Number(x.year)).filter(Number.isFinite));
+  (state.players||[]).forEach(p=>{
+    const y=Number(p.draftYear);
+    if(Number.isFinite(y))draftYears.add(y);
+  });
+  if(Number.isFinite(Number(state.draftRoom?.year)))draftYears.add(Number(state.draftRoom.year));
+  draftYears.forEach(y=>snapshotDraftHistoryV083(y));
+
+  // Create a newspaper for every completed season row.
+  state.history.seasons.forEach(s=>snapshotNewspaperV083(s.year));
+
+  writeHistoryLedgerV083();
+}
+window.rebuildAllHistoryV083=rebuildAllHistoryV083;
+
+/* --- Milestone hooks --- */
+const _v083RecordSeasonHonors=recordSeasonHonors;
+recordSeasonHonors=function(){
+  ensureHistoryLedgerV083();
+  try{_v083RecordSeasonHonors.apply(this,arguments);}catch(e){console.warn("Legacy season honors warning",e);}
+  snapshotCompletedSeasonV083(state.currentYear);
+};
+window.recordSeasonHonors=recordSeasonHonors;
+
+const _v083SaveDraftHistory=saveCompletedDraftToHistory;
+saveCompletedDraftToHistory=function(){
+  let r=null;
+  try{r=_v083SaveDraftHistory.apply(this,arguments);}catch(e){console.warn("Legacy draft saver warning",e);}
+  snapshotDraftHistoryV083(state.draftRoom?.year);
+  return r;
+};
+window.saveCompletedDraftToHistory=saveCompletedDraftToHistory;
+
+const _v083ShowCompletedDraft=showCompletedDraftV0828;
+showCompletedDraftV0828=function(picksMade){
+  snapshotDraftHistoryV083(state.draftRoom?.year);
+  const r=_v083ShowCompletedDraft.apply(this,arguments);
+  // Draft belongs to the season that just ended; refresh that paper with #1 pick.
+  const oldSeason=Number(state.currentYear);
+  snapshotNewspaperV083(oldSeason);
+  writeHistoryLedgerV083();
+  return r;
+};
+window.showCompletedDraftV0828=showCompletedDraftV0828;
+
+const _v083BeginNextSeason=beginNextSeason;
+beginNextSeason=function(){
+  // BEFORE anything resets, lock the just-completed year into history.
+  if(state.season?.phase==="Season Complete"){
+    snapshotCompletedSeasonV083(state.currentYear);
+    snapshotDraftHistoryV083(state.draftRoom?.year);
+    snapshotNewspaperV083(state.currentYear);
+    writeHistoryLedgerV083();
+  }
+  const r=_v083BeginNextSeason.apply(this,arguments);
+  mergeHistoryLedgerV083();
+  writeHistoryLedgerV083();
+  return r;
+};
+window.beginNextSeason=beginNextSeason;
+
+/* History renderers always rebuild/merge first. */
+const _v083RenderLeagueHistory=renderLeagueHistory;
+renderLeagueHistory=function(){
+  ensureHistoryLedgerV083();
+  mergeHistoryLedgerV083();
+  if(state.season?.phase==="Season Complete")snapshotCompletedSeasonV083(state.currentYear);
+  return _v083RenderLeagueHistory.apply(this,arguments);
+};
+window.renderLeagueHistory=renderLeagueHistory;
+
+const _v083RenderDraftHistory=renderDraftHistory;
+renderDraftHistory=function(){
+  ensureHistoryLedgerV083();
+  mergeHistoryLedgerV083();
+  rebuildAllHistoryV083();
+  return _v083RenderDraftHistory.apply(this,arguments);
+};
+window.renderDraftHistory=renderDraftHistory;
+
+const _v083RenderNewspaperArchive=renderNewspaperArchive;
+renderNewspaperArchive=function(){
+  ensureHistoryLedgerV083();
+  mergeHistoryLedgerV083();
+  state.history.seasons.forEach(s=>snapshotNewspaperV083(s.year));
+  return _v083RenderNewspaperArchive.apply(this,arguments);
+};
+window.renderNewspaperArchive=renderNewspaperArchive;
+
+/* Save/load also preserve the canonical ledger. */
+const _v083SaveState=saveState;
+saveState=function(){
+  if(state){
+    try{ensureHistoryLedgerV083();writeHistoryLedgerV083();}catch(_){}
+  }
+  return _v083SaveState.apply(this,arguments);
+};
+window.saveState=saveState;
+
+const _v083LoadState=loadState;
+loadState=function(saveId=null){
+  const s=_v083LoadState(saveId);
+  if(s){
+    const original=state;
+    state=s;
+    try{ensureHistoryLedgerV083();mergeHistoryLedgerV083();rebuildAllHistoryV083();}catch(e){console.warn("History load rebuild warning",e);}
+    state=original;
+  }
+  return s;
+};
+window.loadState=loadState;
+
+/* Initial/new-universe initialization and repair. */
+setTimeout(()=>{
+  try{
+    if(!state)return;
+    ensureHistoryLedgerV083();
+    rebuildAllHistoryV083();
+    renderLeagueHistory();
+    renderDraftHistory();
+    renderNewspaperArchive();
+    saveState();
+  }catch(e){console.error("v0.83 history ledger initialization",e);}
+},300);
 
 </script>
 </body>
