@@ -383,6 +383,30 @@ pre{white-space:pre-wrap}
 #bulProgressV0883 .bar:after{content:"";display:block;width:35%;height:100%;background:#f1c40f;animation:bulMoveV0883 1s linear infinite}
 @keyframes bulMoveV0883{from{transform:translateX(-110%)}to{transform:translateX(320%)}}
 
+
+/* v0.89 dedicated offseason activity tabs */
+#offseasonActivityTabsV089{
+  display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;margin-bottom:10px;
+  scrollbar-width:thin;
+}
+#offseasonActivityTabsV089 button{
+  flex:0 0 auto;white-space:nowrap;
+}
+#offseasonActivityTabsV089 button.current{
+  background:var(--accent);color:#111;font-weight:800;
+  border-color:var(--accent);
+}
+#offseasonActivityTabsV089 button.done{
+  opacity:.78;
+}
+#offseasonActivityTabsV089 button.future{
+  opacity:.55;
+}
+#offseasonActivityPanelV089 .offseasonTabHeader{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:10px;
+}
+
 </style>
 </head>
 <body>
@@ -397,7 +421,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88.7 · GM Readiness Init Fix</div>
+    <div class="pill">v0.89 · Offseason Activity Tabs</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17591,6 +17615,187 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.88.7 GM state initialization",e);}
 },150);
+
+
+
+/* === v0.89 Dedicated Offseason Activity Tabs ===
+   Each offseason activity now has its own dedicated tab inside Offseason. */
+
+const OFFSEASON_TABS_V089=[
+  "Awards","Retirements","Development","Draft Order","Draft",
+  "Re-signings","Free Agency","Roster Cuts","Next Season"
+];
+
+function offseasonTabStateV089(step){
+  if(!state?.offseason)return "future";
+  const phases=state.offseason.phases||OFFSEASON_TABS_V089;
+  const idx=phases.indexOf(step);
+  const current=Number(state.offseason.phaseIndex||0);
+  if(idx<current)return "done";
+  if(idx===current)return "current";
+  return "future";
+}
+
+function openOffseasonActivityV089(step){
+  if(!state?.offseason)return;
+
+  const stateName=offseasonTabStateV089(step);
+
+  // Completed/current activities are fully reviewable.
+  // Future activities can still be previewed without changing progression.
+  state.offseason.uiSelectedActivity=step;
+
+  const title=document.getElementById("offseasonActivityTitleV089");
+  const body=document.getElementById("offseasonActivityBodyV089");
+  if(title)title.textContent=step;
+
+  if(body){
+    try{
+      // Current task should run its normal preparation path once.
+      if(stateName==="current" && typeof prepareCurrentOffseasonStageV0822==="function"){
+        prepareCurrentOffseasonStageV0822();
+      }
+      if(typeof offseasonStageDetailV0822==="function"){
+        body.innerHTML=offseasonStageDetailV0822(step);
+      }else{
+        body.innerHTML=`<div class="notice">${step}</div>`;
+      }
+    }catch(e){
+      body.innerHTML=`<div class="notice danger"><b>${step} error:</b><br>${String(e?.message||e)}</div>`;
+    }
+  }
+
+  document.querySelectorAll("#offseasonActivityTabsV089 button").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.activity===step);
+  });
+
+  try{saveState();}catch(_){}
+}
+window.openOffseasonActivityV089=openOffseasonActivityV089;
+
+function renderOffseasonActivityTabsV089(){
+  const nav=document.getElementById("offseasonActivityTabsV089");
+  const panel=document.getElementById("offseasonActivityPanelV089");
+  if(!nav||!panel||!state?.offseason)return;
+
+  const current=state.offseason.phase;
+  const selected=state.offseason.uiSelectedActivity||current;
+
+  nav.innerHTML=OFFSEASON_TABS_V089.map(step=>{
+    const s=offseasonTabStateV089(step);
+    const icon=s==="done"?"✓":s==="current"?"→":"○";
+    return `<button type="button"
+      class="${s} ${selected===step?"active":""}"
+      data-activity="${step}"
+      onclick="openOffseasonActivityV089('${step.replace(/'/g,"\\'")}')">
+      ${icon} ${step}
+    </button>`;
+  }).join("");
+
+  const title=document.getElementById("offseasonActivityTitleV089");
+  if(title)title.textContent=selected;
+  openOffseasonActivityV089(selected);
+}
+
+function ensureOffseasonActivityUIV089(){
+  const off=document.getElementById("offseason");
+  if(!off)return;
+
+  if(!document.getElementById("offseasonActivityTabsV089")){
+    const wrapper=document.createElement("div");
+    wrapper.id="offseasonActivityWrapperV089";
+    wrapper.innerHTML=`
+      <div class="card">
+        <div class="sectionTitle">Offseason Hub</div>
+        <div class="small muted" style="margin-bottom:8px">
+          Each offseason activity has its own tab. The highlighted tab is the current task.
+        </div>
+        <div id="offseasonActivityTabsV089"></div>
+      </div>
+
+      <div class="card" id="offseasonActivityPanelV089">
+        <div class="offseasonTabHeader">
+          <div>
+            <div class="small muted">Offseason Activity</div>
+            <h2 id="offseasonActivityTitleV089" style="margin:0"></h2>
+          </div>
+        </div>
+        <div id="offseasonActivityBodyV089"></div>
+      </div>`;
+    off.insertBefore(wrapper,off.firstChild);
+  }
+}
+
+/* Keep the current task selected when progression advances. */
+const _v089RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  const r=_v089RenderOffseason.apply(this,arguments);
+  try{
+    ensureOffseasonActivityUIV089();
+
+    if(state?.offseason){
+      const selected=state.offseason.uiSelectedActivity;
+      const selectedState=selected?offseasonTabStateV089(selected):null;
+
+      // If the user was looking at the task that just completed,
+      // move the tab selection forward automatically.
+      if(!selected || (selectedState==="done" && selected!==state.offseason.phase)){
+        state.offseason.uiSelectedActivity=state.offseason.phase;
+      }
+
+      renderOffseasonActivityTabsV089();
+    }
+  }catch(e){console.error("v0.89 offseason tabs render",e);}
+  return r;
+};
+window.renderOffseason=renderOffseason;
+
+/* When entering Offseason, render the dedicated activity tabs immediately. */
+const _v089SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v089SwitchTab.apply(this,arguments);
+  if(tab==="offseason"){
+    setTimeout(()=>{
+      try{
+        ensureOffseasonActivityUIV089();
+        renderOffseasonActivityTabsV089();
+      }catch(e){console.error("v0.89 offseason tab open",e);}
+    },0);
+  }
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Direct Draft tab opens the real Draft Room, while the Offseason Draft tab
+   still works as the draft-stage overview. */
+function openDraftRoomFromOffseasonV089(){
+  if(typeof openScheduledDraftRoom==="function"){
+    openScheduledDraftRoom();
+  }else{
+    switchTab("draftroom");
+  }
+}
+window.openDraftRoomFromOffseasonV089=openDraftRoomFromOffseasonV089;
+
+/* Add a direct Draft Room action when viewing the Draft activity. */
+const _v089OffseasonStageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  let content=_v089OffseasonStageDetail.apply(this,arguments);
+  if(step==="Draft" && !/openDraftRoomFromOffseasonV089/.test(String(content))){
+    content=String(content)+`<div style="margin-top:10px"><button class="primary" onclick="openDraftRoomFromOffseasonV089()">Open Draft Room</button></div>`;
+  }
+  return content;
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+setTimeout(()=>{
+  try{
+    if(state?.offseason && state.season?.phase==="Season Complete"){
+      ensureOffseasonActivityUIV089();
+      renderOffseasonActivityTabsV089();
+    }
+  }catch(e){console.error("v0.89 offseason activity init",e);}
+},250);
 
 </script>
 </body>

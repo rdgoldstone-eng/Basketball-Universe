@@ -1,24 +1,27 @@
 Basketball Universe League
-v0.88.7 · GM Readiness Init Fix
+v0.89 · Offseason Activity Tabs
 
-BUG
-Fresh GM universes could throw:
-TypeError: undefined is not an object
-(evaluating 'state.gmReadiness.checks=checks')
+NAVIGATION CHANGE
+The Offseason screen now has a dedicated activity tab for every offseason stage:
 
-CAUSE
-The GM readiness checker could run before state.gmReadiness had been initialized.
+- Awards
+- Retirements
+- Development
+- Draft Order
+- Draft
+- Re-signings
+- Free Agency
+- Roster Cuts
+- Next Season
 
-FIX
-- gmCoreChecksV088() now always initializes state.gmReadiness first.
-- Fresh GM universes initialize readiness, objectives, and transaction storage
-  before the first full render.
-- Older saves are also repaired on load.
+BEHAVIOR
+- Current activity is highlighted.
+- Completed activities remain reviewable.
+- Future activities can be previewed without advancing the offseason.
+- When the current activity is completed, the selected tab follows progression forward.
+- Draft activity includes a direct Open Draft Room button.
+- Existing offseason progression logic remains unchanged.
 
-SAVE NOTE
-Replacing index.html on GitHub Pages should not erase browser saves.
-If the game says "Autosaved" in the header, browser saving is currently working.
-Creating a brand-new universe each time intentionally starts from a new state;
-you can continue the same saved GM universe across these code updates.
+This is an Offseason UI/navigation change only; it does not replace the simulation engine.
 
 Upload index.html and README.txt to the GitHub Pages repository root.
