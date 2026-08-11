@@ -397,7 +397,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88.3 · Safe Progress Feedback</div>
+    <div class="pill">v0.88.4 · Trade Machine Subtab</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17432,6 +17432,130 @@ window.addEventListener("error",function(ev){
 
 /* Always start clean after loading a page/save. */
 setTimeout(()=>hideProgressV0883(),50);
+
+
+
+/* === v0.88.4 Trade Machine subtab ===
+   Add Trade Machine as a real Front Office subtab instead of only embedding it
+   inside the general Front Office page. */
+
+function ensureTradeMachineSubtabV0884(){
+  const sub=document.getElementById("subNav");
+  if(!sub)return;
+
+  // Only add inside Front Office nav context, and avoid duplicates.
+  const existing=sub.querySelector('button[data-subtab="trademachine"]');
+  if(existing)return;
+
+  // Insert after Front Office when possible.
+  const foBtn=sub.querySelector('button[data-subtab="frontoffice"]');
+  const btn=document.createElement("button");
+  btn.type="button";
+  btn.dataset.subtab="trademachine";
+  btn.textContent="Trade Machine";
+  btn.onclick=()=>switchTab("trademachine");
+
+  if(foBtn?.nextSibling)sub.insertBefore(btn,foBtn.nextSibling);
+  else sub.appendChild(btn);
+}
+
+function ensureTradeMachinePageV0884(){
+  let page=document.getElementById("trademachine");
+  if(page)return page;
+
+  page=document.createElement("section");
+  page.id="trademachine";
+  page.className="page";
+  page.innerHTML=`
+    <div class="pageHeader">
+      <div>
+        <h1>Trade Machine</h1>
+        <div class="small muted">Build and submit trades for your controlled team.</div>
+      </div>
+    </div>
+    <div id="tradeMachinePageBodyV0884"></div>`;
+  const main=document.querySelector("main")||document.body;
+  main.appendChild(page);
+  return page;
+}
+
+function renderTradeMachinePageV0884(){
+  const page=ensureTradeMachinePageV0884();
+  const body=page.querySelector("#tradeMachinePageBodyV0884");
+  if(!body)return;
+
+  if(!isHumanGMV084()){
+    body.innerHTML=`<div class="card"><div class="notice">Trade Machine is available when controlling a team as GM.</div></div>`;
+    return;
+  }
+
+  body.innerHTML=`<div id="gmTradeBuilderV0884"></div>`;
+  const old=document.getElementById("gmTradeBuilderV086");
+  if(old && old.parentElement!==body){
+    // Reuse the existing builder logic without duplicating state.
+    old.remove();
+  }
+
+  const host=document.createElement("div");
+  host.id="gmTradeBuilderV086";
+  body.querySelector("#gmTradeBuilderV0884").appendChild(host);
+  renderGMTradeBuilderV086();
+}
+window.renderTradeMachinePageV0884=renderTradeMachinePageV0884;
+
+const _v0884SwitchTab=switchTab;
+switchTab=function(tab){
+  if(tab==="trademachine"){
+    ensureTradeMachineSubtabV0884();
+    ensureTradeMachinePageV0884();
+
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById("trademachine")?.classList.add("active");
+
+    document.querySelectorAll("#subNav button").forEach(b=>b.classList.remove("active"));
+    document.querySelector('#subNav button[data-subtab="trademachine"]')?.classList.add("active");
+
+    renderTradeMachinePageV0884();
+    return;
+  }
+
+  const r=_v0884SwitchTab.apply(this,arguments);
+
+  // When Front Office nav is active, make sure Trade Machine appears.
+  if(["frontoffice","scouting","draftroom","ownership"].includes(tab)){
+    setTimeout(()=>ensureTradeMachineSubtabV0884(),0);
+  }
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Front Office no longer needs the full embedded trade builder. Keep the GM
+   Transaction Center, but replace the embedded builder with a compact link. */
+const _v0884RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v0884RenderFrontOffice.apply(this,arguments);
+
+  if(isHumanGMV084()){
+    ensureTradeMachineSubtabV0884();
+
+    const embedded=document.getElementById("gmTradeBuilderV086");
+    if(embedded && embedded.closest("#frontoffice")){
+      embedded.innerHTML=`<div class="card">
+        <div class="sectionTitle">Trade Machine</div>
+        <div class="small muted" style="margin-bottom:10px">Open the dedicated Trade Machine subtab to build and submit trades.</div>
+        <button class="primary" onclick="switchTab('trademachine')">Open Trade Machine</button>
+      </div>`;
+    }
+  }
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+setTimeout(()=>{
+  try{
+    ensureTradeMachineSubtabV0884();
+  }catch(e){console.error("v0.88.4 trade subtab init",e);}
+},300);
 
 </script>
 </body>
