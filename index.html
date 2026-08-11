@@ -371,6 +371,23 @@ pre{white-space:pre-wrap}
   display:block;width:min(100%,520px);margin:20px auto 4px;padding:14px 18px;font-size:17px
 }
 
+
+/* v0.88.2 processing feedback */
+#bulProcessingV0882{
+  position:fixed;inset:0;z-index:100000;background:rgba(4,6,10,.76);
+  display:none;align-items:center;justify-content:center;padding:18px;
+}
+#bulProcessingV0882 .processingCard{
+  width:min(92vw,430px);background:#171a20;border:2px solid #f1c40f;border-radius:16px;
+  padding:20px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.6)
+}
+#bulProcessingV0882 .processingSpinner{
+  width:36px;height:36px;border:4px solid rgba(255,255,255,.18);border-top-color:#f1c40f;
+  border-radius:50%;margin:0 auto 12px;animation:bulSpinV0882 .8s linear infinite
+}
+@keyframes bulSpinV0882{to{transform:rotate(360deg)}}
+body.bul-processing-v0882 button{pointer-events:none}
+
 </style>
 </head>
 <body>
@@ -385,7 +402,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88.1 · GM Draft & Trade Feedback Fix</div>
+    <div class="pill">v0.88.2 · Progress Feedback</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17317,6 +17334,141 @@ renderGMTradeBuilderV086=function(){
 window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
 
 setTimeout(()=>{try{if(isHumanGMV084()){renderFrontOffice();if(state.draftRoom?.active)renderDraftRoom();}}catch(e){console.error("v0.88.1 init",e);}},350);
+
+
+
+/* === v0.88.2 Progress / busy feedback ===
+   Long simulation actions now visibly enter a processing state before doing work.
+   Repeated taps are ignored until the current action finishes. */
+
+window._bulBusyV0882=false;
+
+function ensureProcessingOverlayV0882(){
+  let el=document.getElementById("bulProcessingV0882");
+  if(!el){
+    el=document.createElement("div");
+    el.id="bulProcessingV0882";
+    el.innerHTML=`<div class="processingCard">
+      <div class="processingSpinner"></div>
+      <div id="bulProcessingTitleV0882" style="font-size:18px;font-weight:800">Working…</div>
+      <div id="bulProcessingTextV0882" class="small muted" style="margin-top:7px">Please wait. You only need to tap once.</div>
+    </div>`;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function showProcessingV0882(title,text){
+  const el=ensureProcessingOverlayV0882();
+  document.getElementById("bulProcessingTitleV0882").textContent=title||"Working…";
+  document.getElementById("bulProcessingTextV0882").textContent=text||"Please wait. You only need to tap once.";
+  el.style.display="flex";
+  document.body.classList.add("bul-processing-v0882");
+}
+function hideProcessingV0882(){
+  const el=document.getElementById("bulProcessingV0882");
+  if(el)el.style.display="none";
+  document.body.classList.remove("bul-processing-v0882");
+}
+window.showProcessingV0882=showProcessingV0882;
+window.hideProcessingV0882=hideProcessingV0882;
+
+function runBusyActionV0882(title,text,fn){
+  if(window._bulBusyV0882){
+    const msg=document.getElementById("bulProcessingTextV0882");
+    if(msg)msg.textContent="Still working on the first tap — no need to press it again.";
+    return false;
+  }
+  window._bulBusyV0882=true;
+  showProcessingV0882(title,text);
+
+  // Yield once so mobile Safari paints the overlay before synchronous simulation starts.
+  setTimeout(()=>{
+    try{
+      fn();
+    }catch(e){
+      console.error("BUL action failed",e);
+      try{gmToastV0881?.("Action stopped",String(e?.message||e));}catch(_){}
+    }finally{
+      window._bulBusyV0882=false;
+      hideProcessingV0882();
+    }
+  },40);
+  return true;
+}
+window.runBusyActionV0882=runBusyActionV0882;
+
+/* Keep references to the fully integrated game functions, then expose
+   visible async wrappers to all existing buttons/inline handlers. */
+const _v0882SimulateUntil=simulateUntil;
+simulateUntil=function(target){
+  const labels={
+    game:["Simulating next game…","This normally finishes quickly."],
+    week:["Simulating one week…","Processing games, injuries, standings, and league events."],
+    month:["Simulating one month…","This can take a little longer on a phone."],
+    half:["Simulating half season…","Processing a large block of games. Tap only once."],
+    deadline:["Simulating to trade deadline…","Processing the schedule and league activity."],
+    allstar:["Simulating to All-Star break…","Processing the schedule and league activity."],
+    end:["Finishing regular season…","This is one of the longer simulation actions."]
+  };
+  const l=labels[target]||["Advancing season…","Processing league activity. Tap only once."];
+  return runBusyActionV0882(l[0],l[1],()=>_v0882SimulateUntil(target));
+};
+window.simulateUntil=simulateUntil;
+
+const _v0882AdvancePlayoffs=advancePlayoffs;
+advancePlayoffs=function(mode){
+  const labels={
+    game:["Simulating playoff game…","Resolving the next scheduled playoff game."],
+    day:["Advancing playoff day…","Resolving every game on the next playoff date."],
+    series:["Finishing current series…","This may simulate several playoff games."],
+    round:["Finishing playoff round…","This may take a little longer on a phone."]
+  };
+  const l=labels[mode]||["Advancing playoffs…","Processing playoff games."];
+  return runBusyActionV0882(l[0],l[1],()=>_v0882AdvancePlayoffs(mode));
+};
+window.advancePlayoffs=advancePlayoffs;
+
+const _v0882AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  const phase=state?.offseason?.phase||"Offseason";
+  const long=["Re-signings","Free Agency","Roster Cuts","Next Season"].includes(phase);
+  return runBusyActionV0882(
+    `${phase}…`,
+    long?"Processing league-wide offseason moves. On a phone this can take a moment; tap only once.":"Completing the current offseason task.",
+    ()=>_v0882AdvanceOffseason()
+  );
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Draft sim actions get the same protection. */
+if(typeof simRestDraftV0828==="function"){
+  const _v0882SimRestDraft=simRestDraftV0828;
+  simRestDraftV0828=function(){
+    return runBusyActionV0882("Simulating rest of draft…","Completing all remaining selections. Tap only once.",()=>_v0882SimRestDraft());
+  };
+  window.simRestDraftV0828=simRestDraftV0828;
+}
+if(typeof simOneDraftPickV0828==="function"){
+  const _v0882SimOneDraft=simOneDraftPickV0828;
+  simOneDraftPickV0828=function(){
+    return runBusyActionV0882("Simulating draft pick…","Resolving the current selection.",()=>_v0882SimOneDraft());
+  };
+  window.simOneDraftPickV0828=simOneDraftPickV0828;
+}
+
+/* Rebind the static main buttons to the latest wrappers. */
+setTimeout(()=>{
+  try{
+    const seasonBtn=document.getElementById("advanceBtn");
+    if(seasonBtn)seasonBtn.onclick=()=>simulateUntil(document.getElementById("advanceChoice")?.value||"game");
+    const offBtn=document.getElementById("advanceOffseasonBtn");
+    if(offBtn)offBtn.onclick=()=>advanceOffseason();
+  }catch(e){console.warn("v0.88.2 button binding",e);}
+},250);
+
+/* If an action somehow leaves the page in a stale busy state after a reload,
+   always clear it on startup. */
+setTimeout(()=>{window._bulBusyV0882=false;hideProcessingV0882();},50);
 
 </script>
 </body>
