@@ -397,7 +397,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88.5 · Stable Trade Machine Subtab</div>
+    <div class="pill">v0.88.6 · Roster Limits Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17507,6 +17507,39 @@ renderFrontOffice=function(){
   return r;
 };
 window.renderFrontOffice=renderFrontOffice;
+
+
+
+/* === v0.88.6 rosterLimits compatibility fix ===
+   Several older GM systems call rosterLimits(), but the core game currently
+   exposes rosterLimitForYear() / offseasonRosterLimitForYear() instead.
+   Restore the compatibility helper so regular-season progression cannot crash. */
+
+function rosterLimits(year=null){
+  const y=Number(year??state?.currentYear??1976);
+  const activeMax=typeof rosterLimitForYear==="function" ? rosterLimitForYear(y) : (y<=1980?12:15);
+  const offseasonMax=typeof offseasonRosterLimitForYear==="function" ? offseasonRosterLimitForYear(y) : activeMax+3;
+  return {
+    activeMax,
+    offseasonMax,
+    regularMax:activeMax,
+    regularLimit:activeMax,
+    offseasonLimit:offseasonMax
+  };
+}
+window.rosterLimits=rosterLimits;
+
+/* If a stale error card is still visible from the previous build, clear it
+   after the compatibility helper is installed. */
+setTimeout(()=>{
+  try{
+    document.querySelectorAll(".notice,.danger").forEach(el=>{
+      if(/rosterLimits/i.test(el.textContent||"") && /ReferenceError|Game error|can't find variable/i.test(el.textContent||"")){
+        el.remove();
+      }
+    });
+  }catch(_){}
+},100);
 
 </script>
 </body>

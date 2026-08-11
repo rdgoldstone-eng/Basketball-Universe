@@ -1,24 +1,21 @@
 Basketball Universe League
-v0.88.5 · Stable Trade Machine Subtab
+v0.88.6 · Roster Limits Fix
+
+BUG
+The screenshot showed:
+ReferenceError: Can't find variable: rosterLimits
+
+CAUSE
+Older GM/offseason systems still call rosterLimits(), while the current core
+game uses rosterLimitForYear() and offseasonRosterLimitForYear().
 
 FIX
-The previous v0.88.4 Trade Machine subtab used a second custom navigation/page system.
-That was unnecessary and could trigger a ReferenceError.
+- Restored a rosterLimits() compatibility helper.
+- Maps activeMax / regularLimit to rosterLimitForYear().
+- Maps offseasonMax / offseasonLimit to offseasonRosterLimitForYear().
+- Keeps older GM checklist/readiness code compatible with the newer roster-limit engine.
+- Clears stale rosterLimits error cards after load.
 
-This version starts from the known-working v0.88.3 build and adds Trade Machine
-directly to the game's existing Front Office navigation group.
-
-Front Office subtabs:
-- Scouting
-- Draft Room
-- Front Office
-- Trade Machine
-- Ownership
-
-The Trade Machine is a normal .section just like every other game tab.
-No dynamic page creation. No replacement navigation engine.
-
-The existing GM trade builder and accepted/rejected feedback from v0.88.1 are retained.
-The safe progress feedback from v0.88.3 is retained.
+This is a targeted compatibility fix; it does not replace the working simulation engine.
 
 Upload index.html and README.txt to the GitHub Pages repository root.
