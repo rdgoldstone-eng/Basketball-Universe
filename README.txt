@@ -1,33 +1,14 @@
 Basketball Universe League
-v0.88 · GM Readiness Integration
+v0.88.1 · GM Draft & Trade Feedback Fix
 
-FINAL GM INTEGRATION PASS
-
-This build ties together the GM systems already added:
-- Human-controlled transactions remain protected from AI.
-- Trade Machine / deadline rules
-- Contracts and re-signings
-- Free-agent offers
-- Manual cuts and roster legality
-- Manual draft selections
-- Draft assets
-- Owner objectives
-- Job security and firing
-- Career continuation after firing
-- History compatibility
-
-NEW
-- GM Role Readiness panel in Front Office
-- Live checklist of every core GM system
-- Context warnings when you still have contract, draft, or roster work
-- Roster legality gate before offseason completion / opening night
-- Owner objectives refresh after trades, signings, and cuts
-- Firing handoff explicitly detaches team control and returns the GM to the job market
-- Front Office / Draft Room force-refresh when opened
-
-STATUS
-This is the last integration build before the first dedicated GM playtest.
-If the role opens cleanly and the readiness panel has no true system blockers,
-the next step is to play a real GM career.
+GM PLAYTEST FIXES
+- Human GM Draft Room now has a dedicated Make Your Selection panel.
+- Every available prospect gets a visible Draft button when your team is on the clock.
+- Draft selection no longer depends on prospect rows being clickable.
+- Successful picks show a visible confirmation.
+- Trade offers now always show a visible result.
+- Accepted trades show TRADE ACCEPTED plus the package summary.
+- Rejections and close offers show clear visible feedback.
+- Submit button now says Submit Trade Offer.
 
 Upload index.html and README.txt to the GitHub Pages repository root.

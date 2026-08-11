@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88 · GM Readiness Integration</div>
+    <div class="pill">v0.88.1 · GM Draft & Trade Feedback Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17233,6 +17233,90 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.88 GM readiness init",e);}
 },400);
+
+
+
+/* === v0.88.1 GM playtest fixes === */
+function gmToastV0881(title,message){
+  let box=document.getElementById("gmToastV0881");
+  if(!box){box=document.createElement("div");box.id="gmToastV0881";
+    box.style.cssText="position:fixed;left:12px;right:12px;bottom:18px;z-index:99999;max-width:620px;margin:auto;padding:14px 16px;border-radius:12px;background:#171a20;border:2px solid #f1c40f;box-shadow:0 8px 28px rgba(0,0,0,.55);";
+    document.body.appendChild(box);}
+  box.innerHTML=`<div style="font-weight:800;font-size:16px;margin-bottom:4px">${title}</div><div>${message}</div>`;
+  box.style.display="block";clearTimeout(window._gmToastTimerV0881);
+  window._gmToastTimerV0881=setTimeout(()=>{if(box)box.style.display="none";},5000);
+}
+window.gmToastV0881=gmToastV0881;
+
+function gmDraftSelectionPanelV0881(){
+  if(!isHumanGMV084()||!state.draftRoom?.active||!isUserDraftPick())return "";
+  const available=(state.draftRoom.available||[]).slice(0,30);
+  return `<div class="card" id="gmDraftSelectionV0881" style="margin-top:12px">
+    <div class="sectionTitle">Make Your Selection</div>
+    <div class="notice" style="margin-bottom:10px"><b>${gmTeamV084()?.name||"Your team"} is on the clock.</b><br><span class="small">Tap Draft next to the player you want.</span></div>
+    ${available.length?available.map(p=>`<div class="teamrow">
+      <div class="teammeta"><b>${p.name||"Prospect"}</b><span class="small muted">${p.pos||"—"} · Age ${p.age??"—"} · Rating ${p.ovr??p.rating??p.prospect??"—"} · Potential ${p.pot??p.ceiling??"—"}${p.college?` · ${p.college}`:""}</span></div>
+      <button class="primary" style="min-width:78px" onclick="gmDraftPlayerV0881('${String(p.draftId||p.id).replace(/'/g,"\\'")}')">Draft</button>
+    </div>`).join(""):`<div class="notice">No prospects are currently available.</div>`}
+  </div>`;
+}
+window.gmDraftSelectionPanelV0881=gmDraftSelectionPanelV0881;
+
+function gmDraftPlayerV0881(id){
+  if(!isHumanGMV084()||!state.draftRoom?.active||!isUserDraftPick()){gmToastV0881("Draft unavailable","Your team is not currently on the clock.");return;}
+  const p=(state.draftRoom.available||[]).find(x=>String(x.draftId||x.id)===String(id));
+  if(!p){gmToastV0881("Draft error","That prospect is no longer available.");return;}
+  if(!confirm(`Draft ${p.name}?`))return;
+  const result=executeDraftPickV0824(p.draftId||p.id);
+  if(result?.ok===false){gmToastV0881("Pick not completed",result.error||"The selection could not be completed.");return;}
+  gmToastV0881("Pick submitted",`${gmTeamV084()?.name||"Your team"} selected ${p.name}.`);
+  try{saveState();renderDraftRoom();}catch(_){}
+}
+window.gmDraftPlayerV0881=gmDraftPlayerV0881;
+
+const _v0881RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  const r=_v0881RenderDraftRoom.apply(this,arguments);
+  document.getElementById("gmDraftSelectionV0881")?.remove();
+  if(isHumanGMV084()&&state.draftRoom?.active&&isUserDraftPick()){
+    const host=document.getElementById("draftRoomPanel")||document.getElementById("draftProspectBoard")?.parentElement||document.querySelector('[data-tab="draftroom"]')||document.querySelector("#draftroom")||document.querySelector(".draftRoom")||document.querySelector("main")||document.body;
+    host.insertAdjacentHTML("beforeend",gmDraftSelectionPanelV0881());
+  }
+  return r;
+};
+window.renderDraftRoom=renderDraftRoom;
+
+function gmTradeResultTextV0881(team,b){
+  const names=ids=>(ids||[]).map(id=>state.players.find(p=>p.id===id)?.name).filter(Boolean);
+  const picks=ids=>(ids||[]).map(id=>{const p=(state.draftPicks||[]).find(x=>x.id===id);return p?`${p.year} R${p.round||1}`:null;}).filter(Boolean);
+  const sent=[...names(b.myPlayers),...picks(b.myPicks)].join(", ")||"—";
+  const got=[...names(b.theirPlayers),...picks(b.theirPicks)].join(", ")||"—";
+  return `${team.name} sends: ${sent}<br>${team.name} receives: ${got}`;
+}
+const _v0881CompleteTrade=gmCompleteTradeV086;
+gmCompleteTradeV086=function(){
+  const team=gmTeamV084(),b=gmTradeBuilderStateV086(),other=state.teams.find(t=>t.id===b.otherTeamId);
+  if(!team||!other){gmToastV0881("Trade not submitted","Choose another team first.");return false;}
+  const e=gmEvaluateTradeV086();
+  if(!e.ok){gmToastV0881(e.counter?"Trade needs more":"Trade rejected",`${other.name}: ${e.msg}${e.counter?" Add value or change the package and try again.":""}`);return false;}
+  const snapshot={myPlayers:[...(b.myPlayers||[])],theirPlayers:[...(b.theirPlayers||[])],myPicks:[...(b.myPicks||[])],theirPicks:[...(b.theirPicks||[])]};
+  const details=gmTradeResultTextV0881(team,snapshot);
+  const r=_v0881CompleteTrade.apply(this,arguments);
+  gmToastV0881("TRADE ACCEPTED",`${other.name} accepted your offer.<br><br>${details}`);
+  return r;
+};
+window.gmCompleteTradeV086=gmCompleteTradeV086;
+
+const _v0881RenderTrade=renderGMTradeBuilderV086;
+renderGMTradeBuilderV086=function(){
+  const r=_v0881RenderTrade.apply(this,arguments);
+  const host=document.getElementById("gmTradeBuilderV086");
+  if(host){const btn=[...host.querySelectorAll("button")].find(b=>/Propose Trade/i.test(b.textContent||""));if(btn)btn.textContent="Submit Trade Offer";}
+  return r;
+};
+window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+
+setTimeout(()=>{try{if(isHumanGMV084()){renderFrontOffice();if(state.draftRoom?.active)renderDraftRoom();}}catch(e){console.error("v0.88.1 init",e);}},350);
 
 </script>
 </body>
