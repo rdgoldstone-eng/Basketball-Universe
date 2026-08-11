@@ -1,25 +1,27 @@
-Basketball Universe League
-v0.89.1 · Next Season Readiness
+Basketballverse
+v0.89.2 · Next Season Hard Fix
 
-FIX
-The GM offseason could reach Next Season but refuse to continue without making
-the reason obvious.
+OFFICIAL NAME
+The game is now Basketballverse.
+Internal browser-storage keys remain unchanged so existing saves remain compatible.
 
-NEW NEXT SEASON TAB
-The dedicated Next Season activity now shows an Opening-Night Checklist:
-- Minimum roster (8 players)
-- Opening-night maximum roster limit for the current era
-- Rookie contracts
+NEXT SEASON HARD FIX
+The accumulated legacy beginNextSeason wrapper chain is no longer used by the final
+offseason button.
 
-If something blocks the new season, the exact item is shown on screen with
-shortcuts to Front Office, Free Agency, and Roster Cuts.
+Start Next Season now uses one direct transition that:
+- verifies only the real opening-night roster minimum/maximum
+- automatically gives drafted rookies their rookie contracts
+- saves outgoing season/draft/history/newspaper data
+- advances the year
+- processes expansion/realignment
+- initializes the new regular season
+- uses a guaranteed fallback initializer if a secondary system fails
+- resets GM yearly workflow/objectives
+- saves, renders, and opens the Season tab
+- attempts to show the opening newspaper, but newspaper failure cannot block the season
 
-START NEXT SEASON
-- The Start Next Season button now uses one explicit final-stage path.
-- If the checklist passes, it calls the existing beginNextSeason() transition.
-- If the transition throws an error, the actual error is shown in the Next Season tab.
-- Other offseason stages keep the existing progression logic unchanged.
-
-This build includes the dedicated offseason tabs from v0.89.
+Any secondary-system error is recorded as a warning instead of trapping the user in
+the offseason.
 
 Upload index.html and README.txt to the GitHub Pages repository root.

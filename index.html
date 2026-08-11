@@ -421,7 +421,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.89.1 · Next Season Readiness</div>
+    <div class="pill">v0.89.2 · Next Season Hard Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -6651,7 +6651,7 @@ function seasonNewspaperHTML(p){
  let team=state.teams.find(t=>t.name===p.champion)||(state.teams.find(t=>(t.identityHistory||[]).some(h=>h.name===p.champion)))||{name:p.champion};
  let changes=p.changes?.length?p.changes.map(x=>`<div style="margin-bottom:7px">• ${x}</div>`).join(""):`<span class="muted">No major franchise changes this season.</span>`;
  return `<div class="newspaper">
-   <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel} Final Edition · ${p.era||eraInfoForYear(p.year).name}</div><h2>Basketball Universe League Chronicle</h2></div>
+   <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel} Final Edition · ${p.era||eraInfoForYear(p.year).name}</div><h2>Basketballverse Chronicle</h2></div>
    <div class="newspaperHeadline">${p.champion} Rule the Basketball World</div>
    <div class="newspaperDeck">${p.runnerUp?`${p.champion} defeat ${p.runnerUp} for the championship.`:"A new champion is crowned."}${p.finalsMvp?` ${p.finalsMvp} earns Finals MVP.`:""}</div>
    <div class="newspaperChampion">${logoHTML(team)}<div><b style="font-size:20px">${p.champion}</b><div>${p.seasonLabel} League Champions</div></div></div>
@@ -14621,7 +14621,7 @@ seasonNewspaperHTML=function(p){
   }
 
   return `<div class="newspaperPaper">
-    <div class="newspaperMasthead">BASKETBALL UNIVERSE LEAGUE</div>
+    <div class="newspaperMasthead">BASKETBALLVERSE</div>
     <div class="newspaperDate">${p?.seasonLabel||p?.year||""} FINAL EDITION</div>
     <h1>${p?.headline||"A New Season Begins"}</h1>
     <div class="newspaperColumns">
@@ -14731,12 +14731,12 @@ function paperForSeasonOpeningV08212(seasonYear){
 }
 
 function openingPaperHTMLV08212(p){
-  if(!p)return `<div class="newspaper"><div class="newspaperMast"><h2>Basketball Universe League Chronicle</h2></div><div class="newspaperHeadline">A New Season Begins</div></div>`;
+  if(!p)return `<div class="newspaper"><div class="newspaperMast"><h2>Basketballverse Chronicle</h2></div><div class="newspaperHeadline">A New Season Begins</div></div>`;
   try{
     return seasonNewspaperHTML(p);
   }catch(e){
     return `<div class="newspaper">
-      <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel||p.year||""} Final Edition</div><h2>Basketball Universe League Chronicle</h2></div>
+      <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel||p.year||""} Final Edition</div><h2>Basketballverse Chronicle</h2></div>
       <div class="newspaperHeadline">${p.champion||"League Champion"} Rule the Basketball World</div>
       <div class="newspaperDeck">The completed season is in the books. A new season is ready to begin.</div>
       <div class="newspaperGrid">
@@ -17958,6 +17958,233 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.89.1 next-season repair",e);}
 },250);
+
+
+
+/* === v0.89.2 Next Season hard fix ===
+   Do not route the final offseason transition through the accumulated legacy
+   beginNextSeason wrapper chain. Use one clean, direct transition. */
+
+function autoSignDraftedRookiesV0892(team){
+  if(!team)return;
+  const roster=teamRoster(team.name);
+  roster.forEach(p=>{
+    const rookieish=Number(p.draftYear)===Number(state.currentYear+1) || p.rookie===true || p.isRookie===true;
+    if(!rookieish)return;
+    if(p.contract && Number(p.contract.years||0)>0)return;
+    const round=Number(p.draftRound||1);
+    const pick=Number(p.draftPickInRound||p.draftPick||15);
+    const salary=round===1?Math.max(1,Math.round((7-Math.min(6,pick/5))*10)/10):1;
+    p.contract={years:round===1?3:2,salary};
+    p.faEligible=false;
+    p.contractStatus="Under Contract";
+  });
+}
+
+function nextSeasonReadinessV0892(){
+  const result={ok:true,items:[],team:null};
+  if(state?.role!=="GM" || typeof currentControlledTeam!=="function")return result;
+  const team=currentControlledTeam();
+  if(!team)return result;
+  result.team=team;
+
+  autoSignDraftedRookiesV0892(team);
+
+  const roster=teamRoster(team.name);
+  const year=Number(state.currentYear)+1;
+  const max=typeof rosterLimitForYear==="function"?Number(rosterLimitForYear(year)):15;
+  const min=8;
+
+  result.items=[
+    {key:"minimum",label:"Minimum roster",ok:roster.length>=min,detail:`${roster.length} players · need at least ${min}`},
+    {key:"maximum",label:"Opening-night roster limit",ok:roster.length<=max,detail:`${roster.length}/${max} players`}
+  ];
+  result.ok=result.items.every(x=>x.ok);
+  return result;
+}
+window.nextSeasonReadinessV0892=nextSeasonReadinessV0892;
+
+function nextSeasonReadinessHTMLV0892(){
+  const r=nextSeasonReadinessV0892();
+  if(state?.role!=="GM"){
+    return `<div class="notice"><b>✓ Ready for the next season.</b></div>`;
+  }
+  if(!r.team)return `<div class="notice danger"><b>No controlled GM team found.</b></div>`;
+
+  return `<div class="card">
+    <div class="sectionTitle">Opening-Night Checklist</div>
+    <div class="notice"><b>${r.ok?"✓ Ready to start the next season":"Opening night is blocked"}</b></div>
+    ${r.items.map(x=>`<div class="staffCard"><b>${x.ok?"✓":"○"} ${x.label}</b><div class="small muted">${x.detail}</div></div>`).join("")}
+    ${!r.ok?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button onclick="switchTab('frontoffice')">Open Front Office</button>
+      <button onclick="openOffseasonActivityV089('Free Agency')">Free Agency</button>
+      <button onclick="openOffseasonActivityV089('Roster Cuts')">Roster Cuts</button>
+    </div>`:""}
+  </div>`;
+}
+window.nextSeasonReadinessHTMLV0892=nextSeasonReadinessHTMLV0892;
+
+/* Clean transition copied from the stable core season transition.
+   Secondary systems are best-effort and cannot prevent the new season. */
+function beginNextSeasonDirectV0892(){
+  const oldYear=Number(state.currentYear||state.startYear||1976);
+  const newYear=oldYear+1;
+  const warnings=[];
+
+  const safe=(label,fn)=>{
+    try{ if(typeof fn==="function")fn(); }
+    catch(e){ warnings.push(`${label}: ${e?.message||e}`); console.warn(`Next season warning: ${label}`,e); }
+  };
+
+  const readiness=nextSeasonReadinessV0892();
+  if(!readiness.ok)return {ok:false,error:"Opening-night roster requirements are not satisfied."};
+
+  // Lock the outgoing year down before anything resets.
+  safe("player history",()=>archiveCompletedPlayerSeason?.(oldYear));
+  safe("franchise history",()=>archiveCompletedFranchiseSeason?.(oldYear));
+  safe("league history",()=>snapshotCompletedSeasonV083?.(oldYear));
+  safe("draft history",()=>snapshotDraftHistoryV083?.(state.draftRoom?.year));
+  safe("newspaper archive",()=>snapshotNewspaperV083?.(oldYear));
+  safe("hall of fame",()=>ensureHallOfFame?.());
+  safe("retired numbers",()=>ensureRetiredNumbers?.());
+  safe("draft pick horizon",()=>extendDraftPickHorizon?.());
+  safe("development",()=>applyAdvancedDevelopment?.());
+  safe("staff security",()=>{updateStaffSecurity?.();maybeAutoFireStaff?.();});
+  safe("owner economics",()=>updateOwnerEconomics?.());
+  safe("coach development",()=>applyCoachDevelopment?.());
+
+  // Essential year flip.
+  state.currentYear=newYear;
+  safe("historical expansion",()=>processPendingHistoricalExpansions?.());
+  if(state.role!=="Commissioner")safe("realignment",()=>autoRealignLeague?.());
+
+  safe("newspaper",()=>createSeasonNewspaper?.(oldYear));
+
+  state.regularBoxScores=[];
+  state.offseason=null;
+  state.draftRoom={active:false,year:null,pickIndex:0,order:[],available:[],results:[],tradeOffers:[],completed:false};
+
+  // Handle deferred entrants safely.
+  (state.players||[]).forEach(p=>{
+    if(!(p.deferredEntry && p.rightsOnlyUntil && state.currentYear>=p.rightsOnlyUntil))return;
+    p.deferredEntry=false;p.rotationMinutes=8;p.rookieYear=state.currentYear;
+    const rightsTeam=p.draftRightsTeamId?state.teams.find(t=>t.id===p.draftRightsTeamId):state.teams.find(t=>t.name===p.draftRightsTeam);
+    if(rightsTeam){
+      p.teamName=rightsTeam.name;p.draftRightsTeam=rightsTeam.name;p.preEntryStatus=null;p.faEligible=false;
+      if(!p.contract||Number(p.contract.years||0)<=0)p.contract={years:3,salary:Math.max(1,Math.round(((p.ovr||60)-50)*.22))};
+    }else{
+      p.teamName="Free Agent";p.preEntryStatus=null;p.faEligible=true;p.contract={years:0,salary:0};
+      state.freeAgents=Array.isArray(state.freeAgents)?state.freeAgents:[];
+      if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+    }
+  });
+
+  state.season=null;
+  safe("season initialization",()=>initSeasonIfNeeded?.());
+
+  // Guaranteed fallback playable season.
+  if(!state.season || Number(state.season.year)!==Number(state.currentYear)){
+    (state.players||[]).forEach(p=>p.sim={gp:0,min:0,pts:0,reb:0,ast:0});
+    (state.teams||[]).forEach(t=>{t.w=0;t.l=0;t.gp=0;if(!Number.isFinite(t.power))t.power=65;});
+    state.season={
+      year:state.currentYear,phase:"Regular Season",leagueDay:0,gamesPlayed:0,
+      totalGames:Math.round((state.teams||[]).length*82/2),recent:[],postseason:[],champion:null,
+      markers:{half:false,allstar:false,deadline:false}
+    };
+    warnings.push("Fallback season initializer used.");
+  }
+
+  safe("team directions",()=>updateTeamDirections?.());
+
+  // New GM year state.
+  if(state.role==="GM"){
+    try{
+      state.gmWorkflow={year:state.currentYear,completed:{},notes:[],lastStage:null,freeAgencyDay:0};
+      state.gmIntegration={year:state.currentYear,aiStageRuns:{},contractDecisions:{},transitionLog:[]};
+      state.gmCareer=state.gmCareer||{};
+      state.gmCareer.objectives=[];
+      state.gmCareer.lastObjectiveYear=null;
+      createGMObjectivesV087?.(true);
+      ensureGMReadinessV088?.();
+    }catch(e){warnings.push(`GM reset: ${e?.message||e}`);}
+  }
+
+  state.news=Array.isArray(state.news)?state.news:[];
+  state.news.push({
+    year:state.currentYear,
+    title:`${typeof seasonName==="function"?seasonName():state.currentYear+" season"} begins`,
+    text:warnings.length?`The new season began with ${warnings.length} background warning${warnings.length===1?"":"s"} bypassed.`:"A new season begins."
+  });
+
+  state.transitionErrors=Array.isArray(state.transitionErrors)?state.transitionErrors:[];
+  if(warnings.length)state.transitionErrors.push({from:oldYear,to:newYear,errors:warnings});
+
+  safe("header",()=>refreshUniverseHeader?.());
+  safe("save",()=>saveState?.());
+  safe("render",()=>renderAll?.());
+  safe("season tab",()=>switchTab?.("season"));
+
+  // Opening newspaper is a visual layer only; failure cannot undo the season.
+  safe("opening newspaper",()=>showSeasonOpeningPaperV08212?.(true));
+
+  return {ok:true,warnings};
+}
+window.beginNextSeasonDirectV0892=beginNextSeasonDirectV0892;
+
+function startNextSeasonV0892(){
+  if(!state?.offseason || state.offseason.phase!=="Next Season"){
+    openOffseasonActivityV089?.("Next Season");
+    return false;
+  }
+
+  const rdy=nextSeasonReadinessV0892();
+  if(!rdy.ok){
+    const body=document.getElementById("offseasonActivityBodyV089")||document.getElementById("offseasonDetailBox");
+    if(body)body.innerHTML=nextSeasonReadinessHTMLV0892();
+    gmToastV0881?.("Opening night blocked","Fix the roster items shown in the Next Season tab.");
+    return false;
+  }
+
+  const btn=document.getElementById("advanceOffseasonBtn");
+  if(btn){btn.disabled=true;btn.textContent="Starting Next Season…";}
+
+  const result=beginNextSeasonDirectV0892();
+  if(!result.ok){
+    if(btn){btn.disabled=false;btn.textContent="Start Next Season";}
+    const body=document.getElementById("offseasonActivityBodyV089")||document.getElementById("offseasonDetailBox");
+    if(body)body.innerHTML=`${nextSeasonReadinessHTMLV0892()}<div class="notice danger"><b>Next Season error:</b><br>${result.error}</div>`;
+    return false;
+  }
+  return true;
+}
+window.startNextSeasonV0892=startNextSeasonV0892;
+
+/* Override only the final stage. All earlier offseason progression remains unchanged. */
+const _v0892AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(state?.offseason?.phase==="Next Season")return startNextSeasonV0892();
+  return _v0892AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Make the dedicated Next Season tab use the new readiness display. */
+const _v0892StageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  if(step==="Next Season")return nextSeasonReadinessHTMLV0892();
+  return _v0892StageDetail.apply(this,arguments);
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+const _v0892RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  const r=_v0892RenderOffseason.apply(this,arguments);
+  if(state?.offseason?.phase==="Next Season"){
+    const btn=document.getElementById("advanceOffseasonBtn");
+    if(btn){btn.classList.remove("hidden");btn.disabled=false;btn.textContent="Start Next Season";btn.onclick=()=>startNextSeasonV0892();}
+  }
+  return r;
+};
+window.renderOffseason=renderOffseason;
 
 </script>
 </body>
