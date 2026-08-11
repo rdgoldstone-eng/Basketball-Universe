@@ -385,7 +385,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.87 · GM Tasks & Job Security</div>
+    <div class="pill">v0.88 · GM Readiness Integration</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17046,6 +17046,193 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.87 GM objectives init",e);}
 },350);
+
+
+
+/* === v0.88 GM Readiness Integration ===
+   Final integration pass before dedicated GM playtest. */
+
+function ensureGMReadinessV088(){
+  if(!state)return;
+  state.gmReadiness=state.gmReadiness||{};
+  state.gmReadiness.checks=Array.isArray(state.gmReadiness.checks)?state.gmReadiness.checks:[];
+  state.gmReadiness.lastCheckYear=state.gmReadiness.lastCheckYear??null;
+  state.gmReadiness.lastCheckPhase=state.gmReadiness.lastCheckPhase??null;
+}
+
+function gmCoreChecksV088(){
+  if(!isHumanGMV084())return [];
+  const team=gmTeamV084();
+  const roster=teamRoster(team.name);
+  const s=gmStageStatusV084();
+  const phase=state.offseason?.phase||state.season?.phase||"Regular Season";
+  const picks=gmOwnedPicksV086(team);
+  const expiring=roster.filter(p=>(p.contract?.years||0)<=1||p.faEligible);
+
+  const checks=[
+    {id:"team-control",label:"Human team protected from AI transactions",ok:true},
+    {id:"trades",label:"Trade Machine available",ok:typeof gmCompleteTradeV086==="function"},
+    {id:"deadline",label:"Trade deadline enforced",ok:typeof gmTradeWindowOpenV084==="function"},
+    {id:"contracts",label:"Contracts / re-signings available",ok:typeof gmContractOfferV085==="function"},
+    {id:"free-agency",label:"Free-agent offers available",ok:typeof gmFreeAgentsV085==="function"},
+    {id:"cuts",label:"Manual roster cuts available",ok:typeof gmReleasePlayerV085==="function"},
+    {id:"draft",label:"Manual draft selections available",ok:typeof executeDraftPickV0824==="function"},
+    {id:"picks",label:"Draft assets tracked",ok:Array.isArray(state.draftPicks)},
+    {id:"objectives",label:"Owner objectives active",ok:Array.isArray(state.gmCareer?.objectives)},
+    {id:"security",label:"Job security / firing active",ok:Number.isFinite(Number(state.gmCareer?.security))},
+    {id:"career",label:"Career continues after firing",ok:!!state.career},
+    {id:"roster-limit",label:"Opening-night roster limit enforced",ok:s?Number(s.rosterCount)<=Number(s.offseasonLimit):true},
+    {id:"history",label:"League history ledger present",ok:!!state.history}
+  ];
+
+  // Contextual warning checks.
+  if(phase==="Re-signings" && expiring.length){
+    checks.push({id:"re-signing-work",label:`${expiring.length} contract decision${expiring.length===1?"":"s"} still need attention`,ok:false,warning:true});
+  }
+  if(phase==="Roster Cuts" && s.rosterCount>s.regularLimit){
+    checks.push({id:"roster-work",label:`Roster must be cut to ${s.regularLimit}`,ok:false,warning:true});
+  }
+  if(phase==="Draft" && state.draftRoom?.active && isUserDraftPick()){
+    checks.push({id:"draft-work",label:"Your team is on the clock",ok:false,warning:true});
+  }
+
+  state.gmReadiness.checks=checks;
+  state.gmReadiness.lastCheckYear=state.currentYear;
+  state.gmReadiness.lastCheckPhase=phase;
+  return checks;
+}
+window.gmCoreChecksV088=gmCoreChecksV088;
+
+function gmReadinessStatusV088(){
+  const checks=gmCoreChecksV088();
+  const blockers=checks.filter(c=>!c.ok&&!c.warning);
+  const work=checks.filter(c=>!c.ok&&c.warning);
+  return {checks,blockers,work,ready:blockers.length===0};
+}
+window.gmReadinessStatusV088=gmReadinessStatusV088;
+
+function renderGMReadinessV088(){
+  if(!isHumanGMV084())return "";
+  const s=gmReadinessStatusV088();
+  return `<div class="card" id="gmReadinessV088">
+    <div class="sectionTitle">GM Role Readiness</div>
+    <div class="notice"><b>${s.ready?"Core GM systems ready":"GM systems still missing"}</b><br>
+      <span class="small">${s.blockers.length?`${s.blockers.length} blocker${s.blockers.length===1?"":"s"} remain.`:"No core-system blockers detected."}</span>
+    </div>
+    ${s.checks.map(c=>`<div class="staffCard">
+      <b>${c.ok?"✓":c.warning?"→":"✕"} ${c.label}</b>
+    </div>`).join("")}
+  </div>`;
+}
+window.renderGMReadinessV088=renderGMReadinessV088;
+
+/* Navigation safety: Front Office and Draft Room should always render their live state. */
+const _v088SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v088SwitchTab.apply(this,arguments);
+  if(isHumanGMV084()){
+    if(tab==="frontoffice")setTimeout(()=>{try{renderFrontOffice();}catch(_){ }},0);
+    if(tab==="draftroom")setTimeout(()=>{try{renderDraftRoom();}catch(_){ }},0);
+  }
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Contract and roster legality pass before moving stages. */
+function gmCanFinishPhaseV088(){
+  if(!isHumanGMV084())return {ok:true};
+  const phase=state.offseason?.phase;
+  const s=gmStageStatusV084();
+
+  if(phase==="Roster Cuts" && s.rosterCount>s.regularLimit){
+    return {ok:false,msg:`${s.team.name} has ${s.rosterCount} players. Cut to ${s.regularLimit} before continuing.`};
+  }
+  if(phase==="Next Season" && s.rosterCount>s.regularLimit){
+    return {ok:false,msg:`Opening-night roster is illegal: ${s.rosterCount}/${s.regularLimit}.`};
+  }
+  return {ok:true};
+}
+window.gmCanFinishPhaseV088=gmCanFinishPhaseV088;
+
+const _v088AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(isHumanGMV084()){
+    const gate=gmCanFinishPhaseV088();
+    if(!gate.ok){
+      alert(gate.msg);
+      switchTab("frontoffice");
+      return false;
+    }
+  }
+  return _v088AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Owner objectives update after important GM transactions. */
+function refreshGMAfterMoveV088(){
+  try{
+    updateGMObjectivesV087?.();
+    renderFrontOffice?.();
+    saveState?.();
+  }catch(_){}
+}
+const _v088Trade=gmCompleteTradeV086;
+gmCompleteTradeV086=function(){const r=_v088Trade.apply(this,arguments);refreshGMAfterMoveV088();return r;};
+window.gmCompleteTradeV086=gmCompleteTradeV086;
+
+const _v088Offer=gmContractOfferV085;
+gmContractOfferV085=function(){const r=_v088Offer.apply(this,arguments);refreshGMAfterMoveV088();return r;};
+window.gmContractOfferV085=gmContractOfferV085;
+
+const _v088Release=gmReleasePlayerV085;
+gmReleasePlayerV085=function(){const r=_v088Release.apply(this,arguments);refreshGMAfterMoveV088();return r;};
+window.gmReleasePlayerV085=gmReleasePlayerV085;
+
+/* Ensure job loss truly detaches team control and returns career to market. */
+const _v088Review=gmSeasonReviewV087;
+gmSeasonReviewV087=function(){
+  const beforeTeam=gmTeamV084();
+  const r=_v088Review.apply(this,arguments);
+  if(state.gmCareer?.status==="Fired"){
+    state.role="GM";
+    state.controlledTeamId=null;
+    state.career=state.career||{};
+    state.career.status="Unemployed";
+    state.career.role="GM";
+    state.career.currentTeamId=null;
+    try{
+      generateCareerJobOffersV078?.(true);
+    }catch(_){}
+    saveState();
+  }
+  return r;
+};
+window.gmSeasonReviewV087=gmSeasonReviewV087;
+
+/* Front Office gets the final readiness card. */
+const _v088RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v088RenderFrontOffice.apply(this,arguments);
+  if(!isHumanGMV084())return r;
+  document.getElementById("gmReadinessV088")?.remove();
+  const host=document.getElementById("frontOfficePanel")||document.getElementById("frontOfficeDirection")?.parentElement;
+  if(host)host.insertAdjacentHTML("beforeend",renderGMReadinessV088());
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* Quick GM role launch checklist on load. */
+setTimeout(()=>{
+  try{
+    if(isHumanGMV084()){
+      ensureGMReadinessV088();
+      createGMObjectivesV087?.();
+      gmCoreChecksV088();
+      renderFrontOffice();
+      saveState();
+    }
+  }catch(e){console.error("v0.88 GM readiness init",e);}
+},400);
 
 </script>
 </body>
