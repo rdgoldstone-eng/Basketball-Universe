@@ -397,7 +397,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88.6 · Roster Limits Fix</div>
+    <div class="pill">v0.88.7 · GM Readiness Init Fix</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17540,6 +17540,57 @@ setTimeout(()=>{
     });
   }catch(_){}
 },100);
+
+
+
+/* === v0.88.7 GM readiness initialization fix ===
+   New universes can hit gmCoreChecksV088() before state.gmReadiness exists.
+   Always initialize it at the top of the readiness checker. */
+
+const _v0887GMCoreChecks=gmCoreChecksV088;
+gmCoreChecksV088=function(){
+  if(typeof ensureGMReadinessV088==="function"){
+    ensureGMReadinessV088();
+  }else{
+    state.gmReadiness=state.gmReadiness||{};
+    state.gmReadiness.checks=Array.isArray(state.gmReadiness.checks)?state.gmReadiness.checks:[];
+    state.gmReadiness.lastCheckYear=state.gmReadiness.lastCheckYear??null;
+    state.gmReadiness.lastCheckPhase=state.gmReadiness.lastCheckPhase??null;
+  }
+  return _v0887GMCoreChecks.apply(this,arguments);
+};
+window.gmCoreChecksV088=gmCoreChecksV088;
+
+/* Also initialize GM career/readiness immediately when a new GM universe
+   is rendered, so starting over never leaves partial role state. */
+function ensureGMRoleStateV0887(){
+  if(!state)return;
+  try{ensureGMReadinessV088?.();}catch(_){
+    state.gmReadiness=state.gmReadiness||{checks:[]};
+  }
+  try{ensureGMObjectivesV087?.();}catch(_){}
+  state.frontOffice=state.frontOffice||{};
+  state.frontOffice.transactions=Array.isArray(state.frontOffice.transactions)?state.frontOffice.transactions:[];
+}
+window.ensureGMRoleStateV0887=ensureGMRoleStateV0887;
+
+const _v0887RenderAll=renderAll;
+renderAll=function(){
+  if(state?.role==="GM")ensureGMRoleStateV0887();
+  return _v0887RenderAll.apply(this,arguments);
+};
+window.renderAll=renderAll;
+
+/* Load/create safety for fresh universes and older saves. */
+setTimeout(()=>{
+  try{
+    if(state?.role==="GM"){
+      ensureGMRoleStateV0887();
+      gmCoreChecksV088();
+      saveState();
+    }
+  }catch(e){console.error("v0.88.7 GM state initialization",e);}
+},150);
 
 </script>
 </body>
