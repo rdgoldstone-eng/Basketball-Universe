@@ -1,45 +1,27 @@
 Basketballverse
-v0.89.3 · Objectives & Decision Cleanup
+v0.89.4 · Basketballverse Full Rename
 
-FIXES FROM GM PLAYTEST
+NAME CHANGE
+All user-facing references to:
+- Basketball Universe
+- Basketball Universe League
 
-1. OBJECTIVES TAB
-Season navigation now includes:
-- Season
-- Decisions
-- Objectives
-- Playoffs
-- Offseason
+have been replaced with:
+- Basketballverse
 
-GM Objectives shows:
-- owner objectives
-- live progress
-- job security
-- reputation
+This includes the header, page title, generated text, history/newspaper labels,
+and other visible game text.
 
-Other roles have an Objectives placeholder ready for their role-specific goal systems.
+SAVE COMPATIBILITY
+Legacy internal browser-storage/save keys are intentionally left unchanged.
+They are not visible to the player and changing them would risk making existing
+browser saves disappear.
 
-2. FREE AGENCY RECAP
-Free Agency recap/summary is informational, not a decision.
-- It no longer counts in Decisions.
-- Existing recap items from older saves are auto-resolved.
-- Recaps remain appropriate for News / Offseason review.
-
-3. SAFE TRANSITION ERROR
-The screenshot showed:
-ReferenceError: Can't find variable: safeTransitionStep
-
-Cause:
-safeTransitionStep existed only inside beginNextSeason(), while regular-season
-milestones also called it.
-
-Fix:
-A global compatibility safeTransitionStep() is now available for regular-season
-trade-deadline and other milestone maintenance. A secondary subsystem error is
-logged instead of stopping the game.
-
-4. BASKETBALLVERSE BRAND
-Visible header/title branding is forced to Basketballverse.
-Old browser-storage keys remain unchanged so saves stay compatible.
+This build also includes the v0.89.3 fixes:
+- Objectives tab
+- Free Agency recap removed from actionable Decisions
+- global safeTransitionStep compatibility fix
+- dedicated offseason activity tabs
+- Next Season transition fixes
 
 Upload index.html and README.txt to the GitHub Pages repository root.

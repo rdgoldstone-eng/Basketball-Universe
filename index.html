@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Basketball Universe v0.68.1</title>
+<title>Basketballverse</title>
 <style>
 :root{
   --bg:#0b0d12;--panel:#151922;--panel2:#1d2330;--line:#2a3242;
@@ -421,8 +421,8 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.89.3 · Objectives & Decision Cleanup</div>
-    <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
+    <div class="pill">v0.89.4 · Basketballverse Full Rename</div>
+    <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
   </div>
@@ -458,7 +458,7 @@ pre{white-space:pre-wrap}
       </div><div id="modernStartNote" class="small muted" style="margin-top:6px">2026 Current Day loads the real 30-team alignment and a current core-roster snapshot.</div>
       <div>
         <label>Universe name</label>
-        <input id="universeName" type="text" value="My Basketball Universe">
+        <input id="universeName" type="text" value="My Basketballverse">
       </div>
     </div>
     <p class="small muted" style="margin-top:10px">Choose a historical starting point. 1976 remains the full long-form historical simulation; 2026 now uses a dedicated current-day 30-team roster snapshot. Additional era snapshots will continue to be expanded.</p>
@@ -492,7 +492,7 @@ pre{white-space:pre-wrap}
 
   <div class="card">
     <h2>Custom League File</h2>
-    <p class="small muted">Import a Basketball Universe league file to replace the built-in starting league with custom teams, players, rules, identities, and draft classes.</p>
+    <p class="small muted">Import a Basketballverse league file to replace the built-in starting league with custom teams, players, rules, identities, and draft classes.</p>
     <input id="leagueFileInput" type="file" accept=".json,application/json">
     <div id="leagueFileStatus" class="small muted" style="margin-top:8px">No custom league file loaded.</div>
     <div class="choicebar" style="margin-top:10px">
@@ -738,7 +738,7 @@ pre{white-space:pre-wrap}
     <div class="card">
       <h2 id="scoutingDraftClassTitle">Upcoming Draft Class</h2>
       <div class="small muted" style="margin-bottom:8px">Prospect grades reflect draft-time expectations and uncertainty, not knowledge of the player's eventual NBA career.</div>
-      <div class="small muted" style="margin-bottom:8px"><b>Future-class rule:</b> 2027–2030 use current projection snapshots. 2031+ use fictional generated prospects so Basketball Universe can continue indefinitely without pretending distant real-world mocks are reliable.</div>
+      <div class="small muted" style="margin-bottom:8px"><b>Future-class rule:</b> 2027–2030 use current projection snapshots. 2031+ use fictional generated prospects so Basketballverse can continue indefinitely without pretending distant real-world mocks are reliable.</div>
       <div id="scoutingProspectBox" class="muted">No draft class available.</div>
     </div>
 
@@ -823,7 +823,7 @@ pre{white-space:pre-wrap}
       <div class="calendarline">
         <div>
           <h2 style="margin:0">Draft History</h2>
-          <div class="small muted">The actual selections made in this basketball universe.</div>
+          <div class="small muted">The actual selections made in this basketballverse.</div>
         </div>
         <select id="draftHistoryYearSelect" onchange="renderDraftHistory()"></select>
       </div>
@@ -1338,7 +1338,7 @@ pre{white-space:pre-wrap}
 
     <div class="card">
       <h2>Universe Management</h2>
-      <p class="small muted">Return to the Basketball Universe start screen without deleting this save. From there you can create another universe or reopen any saved game.</p>
+      <p class="small muted">Return to the Basketballverse start screen without deleting this save. From there you can create another universe or reopen any saved game.</p>
       <div class="choicebar">
         <button id="homeScreenBtn">Back to Start Screen</button>
         <button class="danger" id="deleteCurrentSaveBtn">Delete Current Save</button>
@@ -3122,7 +3122,7 @@ function currentSaveId(){
 function saveSummaryFromState(s){
  return {
    id:s.saveId,
-   name:s.name||"Basketball Universe League",
+   name:s.name||"Basketballverse",
    season:(()=>{let y=Number(s.currentYear??s.startYear??1976);return `${y}-${String((y+1)%100).padStart(2,"0")}`})(),
    currentYear:Number(s.currentYear??s.startYear??1976),
    role:s.role||"Viewer",
@@ -3176,7 +3176,7 @@ function saveState(){
     renderSavedUniverseLists();
     return true;
   }catch(err){
-    console.error("Basketball Universe League save failed:",err);
+    console.error("Basketballverse save failed:",err);
     const status=document.getElementById("saveStatus");
     if(status)status.textContent="Running · browser save unavailable";
     return false;
@@ -3233,7 +3233,7 @@ function savedUniverseRowHTML(x){
  const when=x.updatedAt?new Date(x.updatedAt).toLocaleString():"Unknown";
  return `<div class="savedUniverseRow">
    <div class="savedUniverseMeta">
-     <div class="savedUniverseTitle">${x.name||"Basketball Universe"}</div>
+     <div class="savedUniverseTitle">${x.name||"Basketballverse"}</div>
      <div class="small muted">${x.season||""} · ${x.role||"Viewer"} · ${x.phase||"Season"}<br>Last saved ${when}</div>
    </div>
    <div class="savedUniverseActions">
@@ -3260,7 +3260,7 @@ function renderSavedUniverseLists(){
 window.renameUniverseFromList=function(id){
  const item=saveIndex().find(x=>x.id===id);
  if(!item)return;
- const name=prompt("Rename this saved universe:",item.name||"Basketball Universe");
+ const name=prompt("Rename this saved universe:",item.name||"Basketballverse");
  if(name==null)return;
  if(renameSavedUniverse(id,name)){renderSavedUniverseLists();if(state?.saveId===id){document.getElementById("gameTitle").textContent=state.name;saveState();}}
 };
@@ -3339,7 +3339,7 @@ document.querySelectorAll(".role").forEach(el=>{
 
 document.getElementById("createBtn").onclick=()=>{
  const year=+document.getElementById("startYear").value;
- const name=document.getElementById("universeName").value.trim()||"Basketball Universe League";
+ const name=document.getElementById("universeName").value.trim()||"Basketballverse";
  const teamId=(selectedRole==="Commissioner"||selectedRole==="Viewer")?null:document.getElementById("teamChoice").value;
  const careerPlayerId=selectedRole==="Player"?document.getElementById("playerChoice").value:null;
  if(selectedRole==="Player"&&!careerPlayerId){alert("Choose a player.");return;}
@@ -3410,7 +3410,7 @@ document.getElementById("createBtn").onclick=()=>{
  const savedOK=saveState();
  showGame();
  if(!savedOK){
-   setTimeout(()=>alert("Universe created successfully, but this browser could not save it locally. Basketball Universe will keep running in this tab. The mobile-save system has been reduced to avoid this on future saves."),50);
+   setTimeout(()=>alert("Universe created successfully, but this browser could not save it locally. Basketballverse will keep running in this tab. The mobile-save system has been reduced to avoid this on future saves."),50);
  }
 };
 
@@ -4588,7 +4588,7 @@ const historicalCrossroadDefinitions=[
  },
  {
    id:"bullets_1997_wizards",historicalYear:1997,title:"1997 Washington Identity Change",franchiseNames:["Washington Bullets"],
-   description:"Washington reaches the historical point when ownership changed the Bullets nickname to a non-violent identity. The basketball universe can follow that rebrand or retain its established name.",
+   description:"Washington reaches the historical point when ownership changed the Bullets nickname to a non-violent identity. The basketballverse can follow that rebrand or retain its established name.",
    choices:["Rebrand as the Washington Wizards","Retain the Washington Bullets"]
  },
  {
@@ -6012,7 +6012,7 @@ document.getElementById("importFile").onchange=(e)=>{
   try{
     state=rehydrateLoadedState(JSON.parse(reader.result));
     state.saveId=makeSaveId();
-    state.name=(state.name||"Imported Basketball Universe")+" (Imported)";
+    state.name=(state.name||"Imported Basketballverse")+" (Imported)";
     saveState();showGame();
   }
   catch(err){alert("That save file could not be read.");}
@@ -7692,9 +7692,9 @@ var pendingLeagueFile=null;
 function leagueFileFromState(){
  ensureLeagueRules();ensureIdentityLogos();
  return {
-   format:"Basketball Universe League File",
+   format:"Basketballverse File",
    formatVersion:1,
-   name:state.name||"Basketball Universe",
+   name:state.name||"Basketballverse",
    startYear:state.startYear,
    teams:JSON.parse(JSON.stringify(state.teams||[])),
    players:JSON.parse(JSON.stringify(state.players||[])).map(p=>{
@@ -7708,7 +7708,7 @@ function leagueFileFromState(){
    leagueRules:JSON.parse(JSON.stringify(state.leagueRules||{})),
    metadata:{
      exportedYear:state.currentYear,
-     source:"Basketball Universe v0.33"
+     source:"Basketballverse v0.33"
    }
  };
 }
@@ -7741,9 +7741,9 @@ function validateLeagueFile(data){
 
 function normalizeLeagueFile(data){
  let file=JSON.parse(JSON.stringify(data));
- file.format=file.format||"Basketball Universe League File";
+ file.format=file.format||"Basketballverse File";
  file.formatVersion=file.formatVersion||1;
- file.name=file.name||"Custom Basketball Universe";
+ file.name=file.name||"Custom Basketballverse";
  file.startYear=+file.startYear;
  file.teams=file.teams||[];
  file.players=file.players||[];
@@ -7836,7 +7836,7 @@ function downloadJsonFile(obj,filename){
 
 function downloadLeagueTemplate(){
  let template={
-   format:"Basketball Universe League File",
+   format:"Basketballverse File",
    formatVersion:1,
    name:"My Custom League",
    startYear:2026,
@@ -7871,7 +7871,7 @@ function createUniverseFromLeagueFile(file,role,teamId,nameOverride){
  state={
    version:1,
    saveId:makeSaveId(),
-   name:nameOverride||file.name||"Custom Basketball Universe",
+   name:nameOverride||file.name||"Custom Basketballverse",
    startYear:year,
    currentYear:year,
    role,
@@ -7900,7 +7900,7 @@ function renderLeagueFiles(){
  if(!document.getElementById("leagueFileSummaryBox"))return;
  renderLeagueFileSummary(pendingLeagueFile||null);
  let r=document.getElementById("leagueFileRulesBox");
- if(r)r.innerHTML=`<p><b>League File</b> = starting teams, players, draft classes, identities and rules.</p><p><b>Save Game</b> = standings, trades, injuries, awards, finances, staff changes, relocations and every other event after play begins.</p><p class="small muted">This lets the same Basketball Universe engine run your historical league, fictional public leagues, or community-created universes.</p>`;
+ if(r)r.innerHTML=`<p><b>League File</b> = starting teams, players, draft classes, identities and rules.</p><p><b>Save Game</b> = standings, trades, injuries, awards, finances, staff changes, relocations and every other event after play begins.</p><p class="small muted">This lets the same Basketballverse engine run your historical league, fictional public leagues, or community-created universes.</p>`;
 }
 
 // ----- League Rules & Era Evolution v0.32 -----
@@ -18372,9 +18372,9 @@ function applyBasketballverseBrandV0893(){
   document.querySelectorAll("body *").forEach(el=>{
     if(el.children.length)return;
     const t=(el.textContent||"").trim();
-    if(t==="BASKETBALL UNIVERSE"||t==="BASKETBALL UNIVERSE LEAGUE"){
+    if(t==="BASKETBALLVERSE"||t==="BASKETBALLVERSE"){
       el.textContent="BASKETBALLVERSE";
-    }else if(t==="Basketball Universe"||t==="Basketball Universe League"){
+    }else if(t==="Basketballverse"||t==="Basketballverse"){
       el.textContent="Basketballverse";
     }
   });
@@ -18392,6 +18392,38 @@ setTimeout(()=>{
     saveState?.();
   }catch(e){console.error("v0.89.3 initialization",e);}
 },150);
+
+
+
+/* === v0.89.4 Basketballverse full visible rename ===
+   All user-facing references use Basketballverse. Legacy browser-storage keys
+   remain unchanged only for save compatibility. */
+function enforceBasketballverseNameV0894(root=document){
+  try{
+    document.title="Basketballverse";
+    const walker=document.createTreeWalker(root.body||root,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      if(!n.parentElement || ["SCRIPT","STYLE"].includes(n.parentElement.tagName))return;
+      let t=n.nodeValue;
+      t=t.replace(/Basketball Universe League/gi,"Basketballverse");
+      t=t.replace(/Basketball Universe/gi,"Basketballverse");
+      if(t!==n.nodeValue)n.nodeValue=t;
+    });
+  }catch(e){console.warn("Basketballverse rename pass",e);}
+}
+window.enforceBasketballverseNameV0894=enforceBasketballverseNameV0894;
+
+const _v0894RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0894RenderAll.apply(this,arguments);
+  setTimeout(()=>enforceBasketballverseNameV0894(),0);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(()=>enforceBasketballverseNameV0894(),100);
 
 </script>
 </body>
