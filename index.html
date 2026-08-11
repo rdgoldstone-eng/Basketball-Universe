@@ -421,7 +421,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.89 · Offseason Activity Tabs</div>
+    <div class="pill">v0.89.1 · Next Season Readiness</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17795,6 +17795,168 @@ setTimeout(()=>{
       renderOffseasonActivityTabsV089();
     }
   }catch(e){console.error("v0.89 offseason activity init",e);}
+},250);
+
+
+
+/* === v0.89.1 Next Season Readiness ===
+   Make the final offseason gate explicit instead of silently refusing to advance. */
+
+function nextSeasonReadinessV0891(){
+  const result={ok:true,items:[],team:null};
+  if(state?.role!=="GM" || typeof currentControlledTeam!=="function")return result;
+
+  const team=currentControlledTeam();
+  if(!team)return result;
+  result.team=team;
+
+  const roster=teamRoster(team.name);
+  const limits=typeof rosterLimits==="function"
+    ? rosterLimits(state.currentYear+1)
+    : {
+        activeMax:typeof rosterLimitForYear==="function"?rosterLimitForYear(state.currentYear+1):15,
+        offseasonMax:typeof offseasonRosterLimitForYear==="function"?offseasonRosterLimitForYear(state.currentYear+1):18
+      };
+
+  const minimum=8;
+  const unsignedRookies=roster.filter(p=>p.isRookie && (!p.contract || Number(p.contract.years||0)<=0));
+
+  result.items=[
+    {
+      key:"minimum",
+      label:"Minimum roster",
+      ok:roster.length>=minimum,
+      detail:`${roster.length} players · need at least ${minimum}`
+    },
+    {
+      key:"maximum",
+      label:"Opening-night roster limit",
+      ok:roster.length<=limits.activeMax,
+      detail:`${roster.length}/${limits.activeMax} players`
+    },
+    {
+      key:"rookies",
+      label:"Rookie contracts",
+      ok:unsignedRookies.length===0,
+      detail:unsignedRookies.length?`${unsignedRookies.length} rookie contract${unsignedRookies.length===1?"":"s"} unresolved`:"All drafted rookies under contract"
+    }
+  ];
+
+  result.ok=result.items.every(x=>x.ok);
+  return result;
+}
+window.nextSeasonReadinessV0891=nextSeasonReadinessV0891;
+
+function nextSeasonReadinessHTMLV0891(){
+  const r=nextSeasonReadinessV0891();
+  if(state?.role!=="GM"){
+    return `<div class="notice"><b>Ready for the next season.</b><br><span class="small">Start the next season when you are ready.</span></div>`;
+  }
+  if(!r.team){
+    return `<div class="notice danger"><b>No controlled GM team found.</b></div>`;
+  }
+
+  return `<div class="card">
+    <div class="sectionTitle">Opening-Night Checklist</div>
+    <div class="notice" style="margin-bottom:10px">
+      <b>${r.ok?"✓ Ready to start the next season":"Complete these items before the season can begin"}</b>
+    </div>
+    ${r.items.map(x=>`
+      <div class="staffCard">
+        <b>${x.ok?"✓":"○"} ${x.label}</b>
+        <div class="small muted">${x.detail}</div>
+      </div>`).join("")}
+    ${!r.ok?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button onclick="switchTab('frontoffice')">Open Front Office</button>
+      <button onclick="openOffseasonActivityV089('Free Agency')">Review Free Agency</button>
+      <button onclick="openOffseasonActivityV089('Roster Cuts')">Review Roster Cuts</button>
+    </div>`:""}
+  </div>`;
+}
+window.nextSeasonReadinessHTMLV0891=nextSeasonReadinessHTMLV0891;
+
+/* Make the dedicated Next Season tab explain exactly why progression is blocked. */
+const _v0891OffseasonStageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  let content=_v0891OffseasonStageDetail.apply(this,arguments);
+  if(step==="Next Season"){
+    content=nextSeasonReadinessHTMLV0891()+String(content||"");
+  }
+  return content;
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+function startNextSeasonV0891(){
+  if(!state?.offseason || state.offseason.phase!=="Next Season"){
+    if(typeof openOffseasonActivityV089==="function")openOffseasonActivityV089("Next Season");
+    return false;
+  }
+
+  const readiness=nextSeasonReadinessV0891();
+  if(!readiness.ok){
+    const body=document.getElementById("offseasonActivityBodyV089")||document.getElementById("offseasonDetailBox");
+    if(body)body.innerHTML=nextSeasonReadinessHTMLV0891();
+    if(typeof gmToastV0881==="function"){
+      gmToastV0881("Not ready for opening night","Complete the items in the Next Season checklist first.");
+    }
+    return false;
+  }
+
+  const btn=document.getElementById("advanceOffseasonBtn");
+  if(btn){btn.disabled=true;btn.textContent="Starting Next Season…";}
+
+  try{
+    beginNextSeason();
+    return true;
+  }catch(e){
+    console.error("Start Next Season error",e);
+    if(btn){btn.disabled=false;btn.textContent="Start Next Season";}
+    const body=document.getElementById("offseasonActivityBodyV089")||document.getElementById("offseasonDetailBox");
+    if(body)body.innerHTML=`${nextSeasonReadinessHTMLV0891()}<div class="notice danger"><b>Next Season error:</b><br>${String(e?.message||e)}</div>`;
+    return false;
+  }
+}
+window.startNextSeasonV0891=startNextSeasonV0891;
+
+/* Final wrapper: at Next Season use the explicit readiness/start path.
+   Other offseason stages keep the existing v0.89 progression engine untouched. */
+const _v0891AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(state?.offseason?.phase==="Next Season"){
+    return startNextSeasonV0891();
+  }
+  return _v0891AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* Button text/action always match the actual final stage. */
+const _v0891RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  const r=_v0891RenderOffseason.apply(this,arguments);
+  if(state?.offseason?.phase==="Next Season"){
+    const btn=document.getElementById("advanceOffseasonBtn");
+    if(btn){
+      btn.classList.remove("hidden");
+      btn.disabled=false;
+      btn.textContent="Start Next Season";
+      btn.onclick=()=>startNextSeasonV0891();
+    }
+    if(typeof renderOffseasonActivityTabsV089==="function"){
+      state.offseason.uiSelectedActivity="Next Season";
+      renderOffseasonActivityTabsV089();
+    }
+  }
+  return r;
+};
+window.renderOffseason=renderOffseason;
+
+setTimeout(()=>{
+  try{
+    if(state?.offseason?.phase==="Next Season"){
+      state.offseason.uiSelectedActivity="Next Season";
+      renderOffseason();
+    }
+  }catch(e){console.error("v0.89.1 next-season repair",e);}
 },250);
 
 </script>

@@ -1,27 +1,25 @@
 Basketball Universe League
-v0.89 · Offseason Activity Tabs
+v0.89.1 · Next Season Readiness
 
-NAVIGATION CHANGE
-The Offseason screen now has a dedicated activity tab for every offseason stage:
+FIX
+The GM offseason could reach Next Season but refuse to continue without making
+the reason obvious.
 
-- Awards
-- Retirements
-- Development
-- Draft Order
-- Draft
-- Re-signings
-- Free Agency
-- Roster Cuts
-- Next Season
+NEW NEXT SEASON TAB
+The dedicated Next Season activity now shows an Opening-Night Checklist:
+- Minimum roster (8 players)
+- Opening-night maximum roster limit for the current era
+- Rookie contracts
 
-BEHAVIOR
-- Current activity is highlighted.
-- Completed activities remain reviewable.
-- Future activities can be previewed without advancing the offseason.
-- When the current activity is completed, the selected tab follows progression forward.
-- Draft activity includes a direct Open Draft Room button.
-- Existing offseason progression logic remains unchanged.
+If something blocks the new season, the exact item is shown on screen with
+shortcuts to Front Office, Free Agency, and Roster Cuts.
 
-This is an Offseason UI/navigation change only; it does not replace the simulation engine.
+START NEXT SEASON
+- The Start Next Season button now uses one explicit final-stage path.
+- If the checklist passes, it calls the existing beginNextSeason() transition.
+- If the transition throws an error, the actual error is shown in the Next Season tab.
+- Other offseason stages keep the existing progression logic unchanged.
+
+This build includes the dedicated offseason tabs from v0.89.
 
 Upload index.html and README.txt to the GitHub Pages repository root.
