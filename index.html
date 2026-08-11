@@ -372,21 +372,16 @@ pre{white-space:pre-wrap}
 }
 
 
-/* v0.88.2 processing feedback */
-#bulProcessingV0882{
-  position:fixed;inset:0;z-index:100000;background:rgba(4,6,10,.76);
-  display:none;align-items:center;justify-content:center;padding:18px;
+/* v0.88.3 safe processing feedback */
+#bulProgressV0883{
+ position:fixed;left:12px;right:12px;bottom:16px;z-index:100000;
+ max-width:620px;margin:auto;background:#171a20;border:2px solid #f1c40f;
+ border-radius:12px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.55);
+ display:none
 }
-#bulProcessingV0882 .processingCard{
-  width:min(92vw,430px);background:#171a20;border:2px solid #f1c40f;border-radius:16px;
-  padding:20px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.6)
-}
-#bulProcessingV0882 .processingSpinner{
-  width:36px;height:36px;border:4px solid rgba(255,255,255,.18);border-top-color:#f1c40f;
-  border-radius:50%;margin:0 auto 12px;animation:bulSpinV0882 .8s linear infinite
-}
-@keyframes bulSpinV0882{to{transform:rotate(360deg)}}
-body.bul-processing-v0882 button{pointer-events:none}
+#bulProgressV0883 .bar{height:4px;background:rgba(255,255,255,.15);overflow:hidden;border-radius:4px;margin-top:8px}
+#bulProgressV0883 .bar:after{content:"";display:block;width:35%;height:100%;background:#f1c40f;animation:bulMoveV0883 1s linear infinite}
+@keyframes bulMoveV0883{from{transform:translateX(-110%)}to{transform:translateX(320%)}}
 
 </style>
 </head>
@@ -402,7 +397,7 @@ body.bul-processing-v0882 button{pointer-events:none}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.88.2 · Progress Feedback</div>
+    <div class="pill">v0.88.3 · Safe Progress Feedback</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -17337,138 +17332,106 @@ setTimeout(()=>{try{if(isHumanGMV084()){renderFrontOffice();if(state.draftRoom?.
 
 
 
-/* === v0.88.2 Progress / busy feedback ===
-   Long simulation actions now visibly enter a processing state before doing work.
-   Repeated taps are ignored until the current action finishes. */
+/* === v0.88.3 Safe Progress Feedback ===
+   This version DOES NOT replace simulation/offseason/playoff engine functions.
+   It only adds UI feedback around button taps, so it cannot change the call
+   path or introduce missing-variable errors. */
 
-window._bulBusyV0882=false;
+window._bulProgressBusyV0883=false;
 
-function ensureProcessingOverlayV0882(){
-  let el=document.getElementById("bulProcessingV0882");
+function ensureProgressV0883(){
+  let el=document.getElementById("bulProgressV0883");
   if(!el){
     el=document.createElement("div");
-    el.id="bulProcessingV0882";
-    el.innerHTML=`<div class="processingCard">
-      <div class="processingSpinner"></div>
-      <div id="bulProcessingTitleV0882" style="font-size:18px;font-weight:800">Working…</div>
-      <div id="bulProcessingTextV0882" class="small muted" style="margin-top:7px">Please wait. You only need to tap once.</div>
-    </div>`;
+    el.id="bulProgressV0883";
+    el.innerHTML=`<div id="bulProgressTitleV0883" style="font-weight:800">Working…</div>
+      <div id="bulProgressTextV0883" class="small muted">Please wait. One tap is enough.</div>
+      <div class="bar"></div>`;
     document.body.appendChild(el);
   }
   return el;
 }
-function showProcessingV0882(title,text){
-  const el=ensureProcessingOverlayV0882();
-  document.getElementById("bulProcessingTitleV0882").textContent=title||"Working…";
-  document.getElementById("bulProcessingTextV0882").textContent=text||"Please wait. You only need to tap once.";
-  el.style.display="flex";
-  document.body.classList.add("bul-processing-v0882");
+function showProgressV0883(title,text){
+  const el=ensureProgressV0883();
+  document.getElementById("bulProgressTitleV0883").textContent=title||"Working…";
+  document.getElementById("bulProgressTextV0883").textContent=text||"Please wait. One tap is enough.";
+  el.style.display="block";
 }
-function hideProcessingV0882(){
-  const el=document.getElementById("bulProcessingV0882");
+function hideProgressV0883(){
+  const el=document.getElementById("bulProgressV0883");
   if(el)el.style.display="none";
-  document.body.classList.remove("bul-processing-v0882");
+  window._bulProgressBusyV0883=false;
 }
-window.showProcessingV0882=showProcessingV0882;
-window.hideProcessingV0882=hideProcessingV0882;
+window.showProgressV0883=showProgressV0883;
+window.hideProgressV0883=hideProgressV0883;
 
-function runBusyActionV0882(title,text,fn){
-  if(window._bulBusyV0882){
-    const msg=document.getElementById("bulProcessingTextV0882");
-    if(msg)msg.textContent="Still working on the first tap — no need to press it again.";
+function progressLabelForButtonV0883(btn){
+  const t=(btn.textContent||"").trim().toLowerCase();
+  if(t.includes("half season"))return ["Simulating half season…","This can take a little while on a phone."];
+  if(t.includes("end of regular")||t.includes("finish regular"))return ["Finishing regular season…","Processing a large block of games."];
+  if(t.includes("month"))return ["Simulating one month…","Processing games and league events."];
+  if(t.includes("week"))return ["Simulating one week…","Processing games and league events."];
+  if(t.includes("trade deadline"))return ["Simulating to trade deadline…","Processing games and transactions."];
+  if(t.includes("all-star")||t.includes("allstar"))return ["Simulating to All-Star break…","Processing league activity."];
+  if(t.includes("finish round"))return ["Finishing playoff round…","Several playoff games may be simulated."];
+  if(t.includes("finish current series")||t.includes("finish series"))return ["Finishing playoff series…","Several playoff games may be simulated."];
+  if(t.includes("next playoff day"))return ["Advancing playoff day…","Resolving the next playoff date."];
+  if(t.includes("sim rest of draft"))return ["Simulating rest of draft…","Completing the remaining selections."];
+  if(t.includes("complete free agency"))return ["Processing free agency…","League-wide signings can take a moment."];
+  if(t.includes("re-sign"))return ["Processing re-signings…","League contract decisions are being processed."];
+  if(t.includes("roster cuts"))return ["Processing roster cuts…","Finalizing league rosters."];
+  if(t.includes("next season")||t.includes("start next"))return ["Starting next season…","Saving history and preparing the new season."];
+  if(t.includes("sim")||t.includes("advance")||t.includes("next game"))return ["Working…","Processing the requested simulation."];
+  return null;
+}
+
+/* Capture-phase listener gives instant feedback without replacing onclicks.
+   The ORIGINAL event handler still executes exactly as it did in v0.88.1. */
+document.addEventListener("click",function(e){
+  const btn=e.target?.closest?.("button");
+  if(!btn)return;
+  const label=progressLabelForButtonV0883(btn);
+  if(!label)return;
+
+  if(window._bulProgressBusyV0883){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    showProgressV0883("Still working…","The first tap is still processing. You do not need to press it again.");
     return false;
   }
-  window._bulBusyV0882=true;
-  showProcessingV0882(title,text);
 
-  // Yield once so mobile Safari paints the overlay before synchronous simulation starts.
-  setTimeout(()=>{
-    try{
-      fn();
-    }catch(e){
-      console.error("BUL action failed",e);
-      try{gmToastV0881?.("Action stopped",String(e?.message||e));}catch(_){}
-    }finally{
-      window._bulBusyV0882=false;
-      hideProcessingV0882();
-    }
-  },40);
-  return true;
-}
-window.runBusyActionV0882=runBusyActionV0882;
+  window._bulProgressBusyV0883=true;
+  showProgressV0883(label[0],label[1]);
 
-/* Keep references to the fully integrated game functions, then expose
-   visible async wrappers to all existing buttons/inline handlers. */
-const _v0882SimulateUntil=simulateUntil;
-simulateUntil=function(target){
-  const labels={
-    game:["Simulating next game…","This normally finishes quickly."],
-    week:["Simulating one week…","Processing games, injuries, standings, and league events."],
-    month:["Simulating one month…","This can take a little longer on a phone."],
-    half:["Simulating half season…","Processing a large block of games. Tap only once."],
-    deadline:["Simulating to trade deadline…","Processing the schedule and league activity."],
-    allstar:["Simulating to All-Star break…","Processing the schedule and league activity."],
-    end:["Finishing regular season…","This is one of the longer simulation actions."]
-  };
-  const l=labels[target]||["Advancing season…","Processing league activity. Tap only once."];
-  return runBusyActionV0882(l[0],l[1],()=>_v0882SimulateUntil(target));
+  /* Do not interfere with the original button action. Clear after the event
+     loop/UI has had time to settle. Heavy synchronous work blocks this timer,
+     which is useful: the message stays visible until the work returns. */
+  setTimeout(()=>hideProgressV0883(),1200);
+},true);
+
+/* Any major render means the action returned successfully; clear feedback. */
+const _v0883RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0883RenderAll.apply(this,arguments);
+  setTimeout(()=>hideProgressV0883(),0);
+  return r;
 };
-window.simulateUntil=simulateUntil;
+window.renderAll=renderAll;
 
-const _v0882AdvancePlayoffs=advancePlayoffs;
-advancePlayoffs=function(mode){
-  const labels={
-    game:["Simulating playoff game…","Resolving the next scheduled playoff game."],
-    day:["Advancing playoff day…","Resolving every game on the next playoff date."],
-    series:["Finishing current series…","This may simulate several playoff games."],
-    round:["Finishing playoff round…","This may take a little longer on a phone."]
-  };
-  const l=labels[mode]||["Advancing playoffs…","Processing playoff games."];
-  return runBusyActionV0882(l[0],l[1],()=>_v0882AdvancePlayoffs(mode));
-};
-window.advancePlayoffs=advancePlayoffs;
-
-const _v0882AdvanceOffseason=advanceOffseason;
-advanceOffseason=function(){
-  const phase=state?.offseason?.phase||"Offseason";
-  const long=["Re-signings","Free Agency","Roster Cuts","Next Season"].includes(phase);
-  return runBusyActionV0882(
-    `${phase}…`,
-    long?"Processing league-wide offseason moves. On a phone this can take a moment; tap only once.":"Completing the current offseason task.",
-    ()=>_v0882AdvanceOffseason()
-  );
-};
-window.advanceOffseason=advanceOffseason;
-
-/* Draft sim actions get the same protection. */
-if(typeof simRestDraftV0828==="function"){
-  const _v0882SimRestDraft=simRestDraftV0828;
-  simRestDraftV0828=function(){
-    return runBusyActionV0882("Simulating rest of draft…","Completing all remaining selections. Tap only once.",()=>_v0882SimRestDraft());
-  };
-  window.simRestDraftV0828=simRestDraftV0828;
-}
-if(typeof simOneDraftPickV0828==="function"){
-  const _v0882SimOneDraft=simOneDraftPickV0828;
-  simOneDraftPickV0828=function(){
-    return runBusyActionV0882("Simulating draft pick…","Resolving the current selection.",()=>_v0882SimOneDraft());
-  };
-  window.simOneDraftPickV0828=simOneDraftPickV0828;
-}
-
-/* Rebind the static main buttons to the latest wrappers. */
-setTimeout(()=>{
+/* Give runtime errors a useful message instead of "Action stopped" with no clue.
+   This is diagnostic only and does not swallow the browser error. */
+window.addEventListener("error",function(ev){
   try{
-    const seasonBtn=document.getElementById("advanceBtn");
-    if(seasonBtn)seasonBtn.onclick=()=>simulateUntil(document.getElementById("advanceChoice")?.value||"game");
-    const offBtn=document.getElementById("advanceOffseasonBtn");
-    if(offBtn)offBtn.onclick=()=>advanceOffseason();
-  }catch(e){console.warn("v0.88.2 button binding",e);}
-},250);
+    hideProgressV0883();
+    const msg=ev?.message||"Unknown error";
+    if(typeof gmToastV0881==="function"){
+      gmToastV0881("Game error",msg);
+    }
+  }catch(_){}
+});
 
-/* If an action somehow leaves the page in a stale busy state after a reload,
-   always clear it on startup. */
-setTimeout(()=>{window._bulBusyV0882=false;hideProcessingV0882();},50);
+/* Always start clean after loading a page/save. */
+setTimeout(()=>hideProgressV0883(),50);
 
 </script>
 </body>

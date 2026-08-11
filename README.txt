@@ -1,20 +1,24 @@
 Basketball Universe League
-v0.88.2 · Progress Feedback
+v0.88.3 · Safe Progress Feedback
 
-PLAYTEST USABILITY FIX
+WHY THIS REPLACES v0.88.2
+v0.88.2 wrapped core simulation functions. On the user's phone that introduced
+runtime "Can't find variable" errors.
 
-The user reported that progression could feel like the button did nothing, causing repeated taps.
+v0.88.3 starts again from the known-working v0.88.1 code and adds feedback WITHOUT
+replacing or rerouting the simulation engine.
 
-Changes:
-- Long simulation actions now show a full-screen Working / Processing indicator BEFORE simulation begins.
-- Mobile Safari gets a short render yield so the indicator is actually visible.
-- While an action is processing, all buttons are temporarily locked.
-- Repeated taps are ignored rather than starting the action again.
-- The message changes to say the first tap is still processing.
-- Regular-season sim intervals, playoff simulation, offseason progression, and draft simulation all use the processing state.
-- Longer actions such as end regular season, finish playoff round, re-signings, free agency, and roster cuts specifically warn that they can take longer on a phone.
-- The overlay disappears automatically when processing finishes or errors.
+CHANGES
+- Progress message appears immediately when a long simulation/progression button is tapped.
+- Original button onclick/function remains untouched.
+- Repeated taps are blocked while the first tap is processing.
+- The feedback message stays on screen while synchronous work blocks the browser.
+- It clears when the game renders the updated state.
+- Runtime errors now show the actual browser error message instead of the vague
+  "Action stopped" message.
 
-This does not change simulation results; it makes progression responsive and prevents accidental repeated actions.
+IMPORTANT
+This build intentionally discards the v0.88.2 wrapper implementation while keeping
+the v0.88.1 GM draft-selection and trade-feedback fixes.
 
 Upload index.html and README.txt to the GitHub Pages repository root.
