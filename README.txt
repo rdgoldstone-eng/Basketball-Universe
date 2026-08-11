@@ -1,27 +1,45 @@
 Basketballverse
-v0.89.2 · Next Season Hard Fix
+v0.89.3 · Objectives & Decision Cleanup
 
-OFFICIAL NAME
-The game is now Basketballverse.
-Internal browser-storage keys remain unchanged so existing saves remain compatible.
+FIXES FROM GM PLAYTEST
 
-NEXT SEASON HARD FIX
-The accumulated legacy beginNextSeason wrapper chain is no longer used by the final
-offseason button.
+1. OBJECTIVES TAB
+Season navigation now includes:
+- Season
+- Decisions
+- Objectives
+- Playoffs
+- Offseason
 
-Start Next Season now uses one direct transition that:
-- verifies only the real opening-night roster minimum/maximum
-- automatically gives drafted rookies their rookie contracts
-- saves outgoing season/draft/history/newspaper data
-- advances the year
-- processes expansion/realignment
-- initializes the new regular season
-- uses a guaranteed fallback initializer if a secondary system fails
-- resets GM yearly workflow/objectives
-- saves, renders, and opens the Season tab
-- attempts to show the opening newspaper, but newspaper failure cannot block the season
+GM Objectives shows:
+- owner objectives
+- live progress
+- job security
+- reputation
 
-Any secondary-system error is recorded as a warning instead of trapping the user in
-the offseason.
+Other roles have an Objectives placeholder ready for their role-specific goal systems.
+
+2. FREE AGENCY RECAP
+Free Agency recap/summary is informational, not a decision.
+- It no longer counts in Decisions.
+- Existing recap items from older saves are auto-resolved.
+- Recaps remain appropriate for News / Offseason review.
+
+3. SAFE TRANSITION ERROR
+The screenshot showed:
+ReferenceError: Can't find variable: safeTransitionStep
+
+Cause:
+safeTransitionStep existed only inside beginNextSeason(), while regular-season
+milestones also called it.
+
+Fix:
+A global compatibility safeTransitionStep() is now available for regular-season
+trade-deadline and other milestone maintenance. A secondary subsystem error is
+logged instead of stopping the game.
+
+4. BASKETBALLVERSE BRAND
+Visible header/title branding is forced to Basketballverse.
+Old browser-storage keys remain unchanged so saves stay compatible.
 
 Upload index.html and README.txt to the GitHub Pages repository root.

@@ -421,7 +421,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.89.2 · Next Season Hard Fix</div>
+    <div class="pill">v0.89.3 · Objectives & Decision Cleanup</div>
     <h1 style="margin-top:10px">Create a Basketball Universe League</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1197,6 +1197,14 @@ pre{white-space:pre-wrap}
         <select id="franchiseHistorySelect" onchange="renderFranchiseHistory()"></select>
         <div id="franchiseHistoryProfile" style="margin-top:12px"></div>
       </div>
+    </div>
+  </section>
+
+  <section id="objectives" class="section">
+    <div class="card">
+      <h2>Objectives</h2>
+      <p class="small muted">Your current role goals, progress, job security, and season expectations.</p>
+      <div id="objectivesPageV0893"></div>
     </div>
   </section>
 
@@ -5910,6 +5918,7 @@ const navigationGroups={
  season:[
   ["season","Season"],
   ["decisions","Decisions"],
+  ["objectives","Objectives"],
   ["playoffs","Playoffs"],
   ["offseason","Offseason"]
  ],
@@ -18185,6 +18194,204 @@ renderOffseason=function(){
   return r;
 };
 window.renderOffseason=renderOffseason;
+
+
+
+/* === v0.89.3 Objectives tab + Decisions cleanup + safeTransitionStep fix === */
+
+/* Global compatibility helper.
+   Older regular-season milestone code calls safeTransitionStep(), while the
+   original helper was accidentally scoped only inside beginNextSeason(). */
+if(typeof window.safeTransitionStep!=="function"){
+  window.safeTransitionStep=function(label,fn){
+    try{
+      return fn();
+    }catch(err){
+      console.error(`Safe transition step failed: ${label}`,err);
+      state.transitionErrors=Array.isArray(state.transitionErrors)?state.transitionErrors:[];
+      state.transitionErrors.push({
+        year:state.currentYear,
+        label,
+        error:String(err?.message||err)
+      });
+      return null;
+    }
+  };
+}
+var safeTransitionStep=window.safeTransitionStep;
+
+/* Free-agency recap/summary items are information, not decisions.
+   Keep them in News / Offseason recap, but do not count or display them as
+   things the user must resolve. */
+function informationalDecisionV0893(d){
+  const title=String(d?.title||"").toLowerCase();
+  const text=String(d?.text||"").toLowerCase();
+  const kind=String(d?.kind||"").toLowerCase();
+
+  if(kind==="informational"||kind==="recap"||kind==="summary")return true;
+  if(title.includes("free agency recap")||title.includes("free agency summary"))return true;
+  if(title==="free agency" && (
+      text.includes("recap") ||
+      text.includes("summary") ||
+      text.includes("signed new contracts") ||
+      text.includes("free agents signed")
+    ))return true;
+  return false;
+}
+window.informationalDecisionV0893=informationalDecisionV0893;
+
+function actionableDecisionsV0893(){
+  return (state?.decisions||[]).filter(d=>!d.resolved&&!informationalDecisionV0893(d));
+}
+window.actionableDecisionsV0893=actionableDecisionsV0893;
+
+/* Existing recap decisions from older builds are silently resolved so they
+   cannot stop a long simulation. */
+function cleanInformationalDecisionsV0893(){
+  (state?.decisions||[]).forEach(d=>{
+    if(!d.resolved&&informationalDecisionV0893(d)){
+      d.resolved=true;
+      d.resolution="Informational recap — no decision required.";
+    }
+  });
+}
+window.cleanInformationalDecisionsV0893=cleanInformationalDecisionsV0893;
+
+/* Replace the "open decision" helpers/counts with actionable-only versions. */
+const _v0893HasOpenRoleDecision = typeof hasOpenRoleDecision==="function" ? hasOpenRoleDecision : null;
+if(_v0893HasOpenRoleDecision){
+  hasOpenRoleDecision=function(){
+    cleanInformationalDecisionsV0893();
+    return actionableDecisionsV0893().length>0;
+  };
+  window.hasOpenRoleDecision=hasOpenRoleDecision;
+}
+
+/* Objectives page */
+function renderObjectivesPageV0893(){
+  const host=document.getElementById("objectivesPageV0893");
+  if(!host||!state)return;
+
+  if(state.role==="GM" && typeof renderGMObjectivesV087==="function"){
+    try{
+      ensureGMObjectivesV087?.();
+      createGMObjectivesV087?.();
+      updateGMObjectivesV087?.();
+      host.innerHTML=renderGMObjectivesV087();
+      return;
+    }catch(e){
+      host.innerHTML=`<div class="notice danger"><b>Objectives error:</b><br>${String(e?.message||e)}</div>`;
+      return;
+    }
+  }
+
+  if(state.role==="Owner"){
+    host.innerHTML=`<div class="notice"><b>Ownership objectives</b><br>
+      <span class="small">Ownership goals will track franchise value, finances, attendance, and basketball expectations as the Owner role is completed.</span></div>`;
+    return;
+  }
+  if(state.role==="Coach"){
+    host.innerHTML=`<div class="notice"><b>Coaching objectives</b><br>
+      <span class="small">Coaching goals will track team performance, player development, rotation expectations, and job security as the Coach role is completed.</span></div>`;
+    return;
+  }
+  if(state.role==="Player"){
+    host.innerHTML=`<div class="notice"><b>Career objectives</b><br>
+      <span class="small">Player goals will track role, performance, development, contracts, and career milestones as the Player role is completed.</span></div>`;
+    return;
+  }
+  if(state.role==="Commissioner"){
+    host.innerHTML=`<div class="notice"><b>League objectives</b><br>
+      <span class="small">Commissioner objectives will track league health, expansion, franchise stability, and rule-era responsibilities as the role is completed.</span></div>`;
+    return;
+  }
+
+  host.innerHTML=`<div class="notice"><b>Viewer mode</b><br><span class="small">Viewer mode has no required objectives.</span></div>`;
+}
+window.renderObjectivesPageV0893=renderObjectivesPageV0893;
+
+/* Normal tab navigation renders Objectives immediately. */
+const _v0893SwitchTab=switchTab;
+switchTab=function(tab){
+  cleanInformationalDecisionsV0893();
+  const r=_v0893SwitchTab.apply(this,arguments);
+  if(tab==="objectives")setTimeout(()=>renderObjectivesPageV0893(),0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Re-render Decisions without informational recap items. */
+function renderDecisionsV0893(){
+  const sec=document.getElementById("decisions");
+  if(!sec)return;
+  cleanInformationalDecisionsV0893();
+
+  const open=actionableDecisionsV0893();
+  const body=sec.querySelector("#decisionList") ||
+             sec.querySelector(".decisionList") ||
+             sec.querySelector(".card");
+
+  // Prefer existing renderer first if there is one.
+  try{
+    if(typeof renderDecisions==="function" && renderDecisions!==renderDecisionsV0893){
+      renderDecisions();
+    }
+  }catch(_){}
+
+  // Remove any visible free-agency recap cards that an older renderer added.
+  sec.querySelectorAll(".ownerDecision,.decisionCard,.teamrow").forEach(el=>{
+    const txt=(el.textContent||"").toLowerCase();
+    if(txt.includes("free agency recap")||txt.includes("free agency summary")){
+      el.remove();
+    }
+  });
+
+  const badge=document.getElementById("decisionKpi");
+  if(badge)badge.textContent=viewerMode()?0:open.length;
+}
+window.renderDecisionsV0893=renderDecisionsV0893;
+
+/* Keep decision badge correct after every full render. */
+const _v0893RenderAll=renderAll;
+renderAll=function(){
+  cleanInformationalDecisionsV0893();
+  const r=_v0893RenderAll.apply(this,arguments);
+  const badge=document.getElementById("decisionKpi");
+  if(badge)badge.textContent=viewerMode()?0:actionableDecisionsV0893().length;
+  if(document.getElementById("objectives")?.classList.contains("active")){
+    try{renderObjectivesPageV0893();}catch(_){}
+  }
+  return r;
+};
+window.renderAll=renderAll;
+
+/* Make all visible product branding Basketballverse without touching the old
+   storage keys that preserve save compatibility. */
+function applyBasketballverseBrandV0893(){
+  document.title="Basketballverse";
+  document.querySelectorAll("body *").forEach(el=>{
+    if(el.children.length)return;
+    const t=(el.textContent||"").trim();
+    if(t==="BASKETBALL UNIVERSE"||t==="BASKETBALL UNIVERSE LEAGUE"){
+      el.textContent="BASKETBALLVERSE";
+    }else if(t==="Basketball Universe"||t==="Basketball Universe League"){
+      el.textContent="Basketballverse";
+    }
+  });
+}
+window.applyBasketballverseBrandV0893=applyBasketballverseBrandV0893;
+
+setTimeout(()=>{
+  try{
+    cleanInformationalDecisionsV0893();
+    applyBasketballverseBrandV0893();
+    if(state?.role==="GM"){
+      ensureGMRoleStateV0887?.();
+      renderObjectivesPageV0893();
+    }
+    saveState?.();
+  }catch(e){console.error("v0.89.3 initialization",e);}
+},150);
 
 </script>
 </body>
