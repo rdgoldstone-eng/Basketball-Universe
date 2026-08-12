@@ -490,7 +490,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.9 · Header & Startup Logo</div>
+    <div class="pill">v0.91 · Gameplay UX & History Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1510,7 +1510,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.90.9";
+window.BASKETBALLVERSE_BUILD = "v0.91";
 </script>
 
 <script>
@@ -6089,7 +6089,7 @@ const navigationGroups={
  team:[
   ["players","Roster"],
   ["coaching","Depth Chart"],
-  ["health","Health"],
+  ["healthcenter","Health"],
   ["stats","Stats"]
  ],
  league:[
@@ -6097,6 +6097,7 @@ const navigationGroups={
   ["teams","Teams"],
   ["leagueplayers","Players"],
   ["leaguestats","League Stats"],
+  ["health","Franchise Health"],
   ["leaguerules","Rules"]
  ],
  frontoffice:[
@@ -19034,7 +19035,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.90.9";
+      badge.textContent="Basketballverse v0.91";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19178,7 +19179,7 @@ function placeStartupLogoV0909(){
   });
 
   if(heading){
-    heading.textContent="Create a League or Universe";
+    heading.textContent="Create Your Universe";
     const card=heading.closest(".card,.panel,.setupCard")||heading.parentElement;
     if(card && !card.querySelector("#startupBasketballverseLogoV0909")){
       const img=document.createElement("img");
@@ -19212,6 +19213,278 @@ setTimeout(()=>{
   enforceTopTextBrandV0909();
   placeStartupLogoV0909();
 },100);
+
+
+
+/* === v0.91 Gameplay UX, Health, and Champion History fixes === */
+
+/* Decisions: no count in the subtab label. The dashboard KPI can still show
+   open decisions, but the navigation simply says "Decisions". */
+const _v091RenderSubNavigation=renderSubNavigation;
+renderSubNavigation=function(group,activeTab){
+  _v091RenderSubNavigation.apply(this,arguments);
+  const sub=document.getElementById("subNav");
+  if(!sub)return;
+  const btn=sub.querySelector('button[data-subtab="decisions"]');
+  if(btn)btn.textContent="Decisions";
+};
+window.renderSubNavigation=renderSubNavigation;
+
+/* When simulation pauses because a real decision appears, switch to the
+   Decisions screen automatically using the normal navigation system. */
+openDecisionCenter=function(){
+  try{
+    cleanInformationalDecisionsV0893?.();
+    switchTab("decisions");
+    renderDecisions?.();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }catch(e){
+    console.warn("Decision center navigation",e);
+  }
+};
+window.openDecisionCenter=openDecisionCenter;
+
+/* Make blocking-decision logic ignore informational recap items too. */
+hasBlockingDecisions=function(){
+  if(viewerMode())return false;
+  if(typeof actionableDecisionsV0893==="function")return actionableDecisionsV0893().length>0;
+  return (state?.decisions||[]).some(d=>!d.resolved);
+};
+window.hasBlockingDecisions=hasBlockingDecisions;
+
+/* TEAM > HEALTH: controlled-team injury report first, full league injury report second.
+   Franchise health now lives under League > Franchise Health. */
+function rebuildTeamHealthLayoutV091(){
+  const sec=document.getElementById("healthcenter");
+  if(!sec)return;
+  sec.innerHTML=`
+    <div class="card">
+      <h2>Controlled Team Injury Report</h2>
+      <div id="controlledTeamHealth" class="muted">Choose a team-based role to view injuries.</div>
+    </div>
+    <div class="card">
+      <h2>League Injury Report</h2>
+      <div id="leagueInjuryReport" class="muted">No injuries reported.</div>
+    </div>
+    <div id="fatigueWatch" style="display:none"></div>`;
+}
+window.rebuildTeamHealthLayoutV091=rebuildTeamHealthLayoutV091;
+
+renderHealthCenter=function(){
+  if(!state)return;
+  ensureHealthSystem();
+
+  const league=document.getElementById("leagueInjuryReport");
+  const controlled=document.getElementById("controlledTeamHealth");
+  if(!league||!controlled)return;
+
+  const row=p=>`<div class="healthRow">
+    <div><b>${p.name}</b><div class="small muted">${p.teamName} · ${p.pos||"—"} · OVR ${p.ovr??"—"}</div></div>
+    <div class="${p.healthStatus==="Out"?"statusOut":"statusRisk"}">${p.healthStatus}</div>
+    <div>${p.injuryGames||0} G</div>
+    <div class="healthHide small muted">${p.injuryType||"Injured"}${(p.fatigue||0)>=55?` · Fatigue ${p.fatigue}`:""}</div>
+  </div>`;
+
+  const injured=(state.players||[])
+    .filter(p=>!p.retired&&p.healthStatus!=="Healthy")
+    .sort((a,b)=>(b.injuryGames||0)-(a.injuryGames||0));
+
+  league.innerHTML=injured.length
+    ? injured.map(row).join("")
+    : `<span class="muted">No injuries reported around the league.</span>`;
+
+  if(!state.controlledTeamId){
+    controlled.innerHTML=`<span class="muted">This role does not control a team.</span>`;
+    return;
+  }
+
+  const team=teamById(state.controlledTeamId);
+  const teamInjured=injured.filter(p=>p.teamName===team?.name);
+  controlled.innerHTML=teamInjured.length
+    ? teamInjured.map(row).join("")
+    : `<span class="muted">${team?.name||"Controlled team"} has no injuries.</span>`;
+};
+window.renderHealthCenter=renderHealthCenter;
+
+/* ---------- Champion persistence ---------- */
+function recoverChampionForYearV091(year){
+  const y=Number(year);
+  if(!Number.isFinite(y))return null;
+
+  // Existing canonical records first.
+  const champRow=(state.history?.champions||[]).find(c=>Number(c.year)===y);
+  if(champRow?.team && champRow.team!=="—")return {
+    champion:champRow.team,
+    runnerUp:champRow.runnerUp||null,
+    finalsMvp:champRow.finalsMvp||null
+  };
+
+  const seasonRow=(state.history?.seasons||[]).find(s=>Number(s.year)===y);
+  if(seasonRow?.champion && seasonRow.champion!=="—")return {
+    champion:seasonRow.champion,
+    runnerUp:seasonRow.runnerUp||null,
+    finalsMvp:seasonRow.finalsMvp||null
+  };
+
+  // Franchise archive retains champion/runner-up flags even if league history failed.
+  try{ensureFranchiseHistory?.();}catch(_){}
+  let champion=null,runnerUp=null;
+  for(const t of (state.teams||[])){
+    const s=state.franchiseHistory?.[t.id]?.seasons?.find(x=>Number(x.year)===y);
+    if(s?.champion)champion=s.name||t.name;
+    if(s?.runnerUp)runnerUp=s.name||t.name;
+  }
+
+  // News is a final fallback for older saves.
+  if(!champion){
+    const n=(state.news||[]).find(n=>Number(n.year)===y && /are champions/i.test(n.title||""));
+    if(n?.title)champion=n.title.replace(/\s+are champions.*$/i,"").trim();
+  }
+
+  return champion?{champion,runnerUp,finalsMvp:seasonRow?.finalsMvp||champRow?.finalsMvp||null}:null;
+}
+window.recoverChampionForYearV091=recoverChampionForYearV091;
+
+function commitChampionV091(year,champion=null,runnerUp=null,finalsMvp=null){
+  if(!state)return null;
+  ensureLeagueHistory?.();
+  const y=Number(year);
+  if(!Number.isFinite(y))return null;
+
+  champion=champion||state.season?.champion||null;
+  runnerUp=runnerUp||determineFinalsRunnerUp?.()||null;
+  finalsMvp=finalsMvp||state.finalsMvp?.name||state.finalsMvp||null;
+  if(!champion)return null;
+
+  state.history=state.history||{};
+  state.history.seasons=Array.isArray(state.history.seasons)?state.history.seasons:[];
+  state.history.champions=Array.isArray(state.history.champions)?state.history.champions:[];
+
+  let s=state.history.seasons.find(x=>Number(x.year)===y);
+  if(!s){
+    s={year:y,mvp:null,rookie:null,dpoy:null,sixth:null};
+    state.history.seasons.push(s);
+  }
+  s.champion=champion;
+  if(runnerUp)s.runnerUp=runnerUp;
+  if(finalsMvp)s.finalsMvp=finalsMvp;
+
+  const team=(state.teams||[]).find(t=>t.name===champion);
+  let c=state.history.champions.find(x=>Number(x.year)===y);
+  const data={year:y,team:champion,teamId:team?.id||c?.teamId||null,runnerUp:runnerUp||c?.runnerUp||null,finalsMvp:finalsMvp||c?.finalsMvp||null};
+  if(c)Object.assign(c,data);
+  else state.history.champions.push(data);
+
+  state.history.seasons.sort((a,b)=>Number(a.year)-Number(b.year));
+  state.history.champions.sort((a,b)=>Number(a.year)-Number(b.year));
+
+  try{writeHistoryLedgerV083?.();}catch(_){}
+  try{saveState?.();}catch(_){}
+  return data;
+}
+window.commitChampionV091=commitChampionV091;
+
+function repairChampionHistoryV091(){
+  if(!state)return;
+  ensureLeagueHistory?.();
+
+  const years=new Set();
+  (state.history?.seasons||[]).forEach(s=>years.add(Number(s.year)));
+  (state.history?.champions||[]).forEach(c=>years.add(Number(c.year)));
+  Object.values(state.franchiseHistory||{}).forEach(f=>(f.seasons||[]).forEach(s=>years.add(Number(s.year))));
+  (state.news||[]).forEach(n=>{if(/are champions/i.test(n.title||""))years.add(Number(n.year));});
+
+  [...years].filter(Number.isFinite).forEach(y=>{
+    const recovered=recoverChampionForYearV091(y);
+    if(recovered?.champion){
+      commitChampionV091(y,recovered.champion,recovered.runnerUp,recovered.finalsMvp);
+    }
+  });
+
+  // Refresh newspapers only AFTER champions have been repaired.
+  try{repairAllNewspapersV0902?.();}catch(_){}
+}
+window.repairChampionHistoryV091=repairChampionHistoryV091;
+
+/* Capture the champion immediately whenever the Finals make the season complete. */
+const _v091AdvancePlayoffs=advancePlayoffs;
+advancePlayoffs=function(mode){
+  const r=_v091AdvancePlayoffs.apply(this,arguments);
+  if(state?.season?.phase==="Season Complete" && state.season.champion){
+    try{
+      commitChampionV091(state.currentYear,state.season.champion,determineFinalsRunnerUp?.(),state.finalsMvp?.name||state.finalsMvp||null);
+      archiveCompletedFranchiseSeason?.(state.currentYear);
+      repairAllNewspapersV0902?.();
+    }catch(e){console.warn("Champion finalization",e);}
+  }
+  return r;
+};
+window.advancePlayoffs=advancePlayoffs;
+
+/* History and newspaper screens self-repair before rendering. */
+const _v091RenderLeagueHistory=renderLeagueHistory;
+renderLeagueHistory=function(){
+  try{repairChampionHistoryV091();}catch(_){}
+  return _v091RenderLeagueHistory.apply(this,arguments);
+};
+window.renderLeagueHistory=renderLeagueHistory;
+
+if(typeof renderNewspapersPageV0902==="function"){
+  const _v091RenderNewspapers=renderNewspapersPageV0902;
+  renderNewspapersPageV0902=function(){
+    try{repairChampionHistoryV091();}catch(_){}
+    return _v091RenderNewspapers.apply(this,arguments);
+  };
+  window.renderNewspapersPageV0902=renderNewspapersPageV0902;
+}
+
+/* Before starting a new season, lock the champion into canonical history. */
+if(typeof beginNextSeasonDirectV0892==="function"){
+  const _v091BeginNextSeason=beginNextSeasonDirectV0892;
+  beginNextSeasonDirectV0892=function(){
+    if(state?.season?.champion){
+      try{commitChampionV091(state.currentYear,state.season.champion,determineFinalsRunnerUp?.(),state.finalsMvp?.name||state.finalsMvp||null);}catch(_){}
+    }
+    return _v091BeginNextSeason.apply(this,arguments);
+  };
+  window.beginNextSeasonDirectV0892=beginNextSeasonDirectV0892;
+}
+
+/* Startup/create-screen wording. */
+function enforceCreateYourUniverseV091(){
+  const setup=document.getElementById("setupView");
+  if(!setup)return;
+  [...setup.querySelectorAll("h1,h2,h3,.sectionTitle,.cardTitle,*")].forEach(el=>{
+    if(el.children.length)return;
+    const t=(el.textContent||"").trim();
+    if(/create a basketballverse|create a league or universe|create your universe/i.test(t)){
+      el.textContent="Create Your Universe";
+    }
+  });
+}
+window.enforceCreateYourUniverseV091=enforceCreateYourUniverseV091;
+
+setTimeout(()=>{
+  try{
+    rebuildTeamHealthLayoutV091();
+    if(state)repairChampionHistoryV091();
+    enforceCreateYourUniverseV091();
+  }catch(e){console.error("v0.91 initialization",e);}
+},150);
+
+const _v091RenderAll=renderAll;
+renderAll=function(){
+  const r=_v091RenderAll.apply(this,arguments);
+  setTimeout(()=>{
+    try{
+      rebuildTeamHealthLayoutV091();
+      if(document.getElementById("healthcenter")?.classList.contains("active"))renderHealthCenter();
+      enforceCreateYourUniverseV091();
+    }catch(_){}
+  },0);
+  return r;
+};
+window.renderAll=renderAll;
 
 </script>
 </body>
