@@ -1,16 +1,19 @@
 Basketballverse
-v0.91.6 · Saved Game Play Fix
+v0.91.7 · Play Button Hard Fix
 
-FIX
-- Rebuilt the saved-game Play action so dynamically rendered Play buttons always work.
-- Added a repair pass for older saves before opening them.
-- Missing/invalid controlled-team references are repaired when possible.
-- Missing arrays/history/offseason fields from older versions are initialized safely.
-- The game screen now opens even if a secondary page-render function throws an error.
-- If a specific screen fails after load, Basketballverse reports that error instead of making the Play button look dead.
-- Loaded saves open at their current simulation stage (season/playoffs/offseason/draft) when possible.
+WHY THE PREVIOUS FIX WASN'T ENOUGH
+The saved-game list was still built from HTML strings with click behavior layered on afterward.
+On mobile Safari, that path was still not reliably triggering the saved-game loader.
 
-This does NOT delete or recreate the user's existing save.
+HARD FIX
+- Saved Universe rows are now built as real DOM elements.
+- The Play button gets a direct addEventListener() when the row is created.
+- Tapping Play immediately changes the button to "Opening…" so there is visible feedback.
+- The game view is revealed before the rest of the save rendering runs.
+- The old playSavedUniverse() public function now routes through the same hard-fix loader.
+- Rename and Delete buttons are also attached with direct listeners.
+
+Existing saves are preserved.
 
 FILES TO UPLOAD
 - index.html

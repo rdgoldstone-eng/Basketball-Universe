@@ -489,7 +489,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.6 · Saved Game Play Fix</div>
+    <div class="pill">v0.91.7 · Play Button Hard Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1487,7 +1487,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.6";
+window.BASKETBALLVERSE_BUILD = "v0.91.7";
 </script>
 
 <script>
@@ -19012,7 +19012,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.6";
+      badge.textContent="Basketballverse v0.91.7";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20338,6 +20338,136 @@ savedUniverseRowHTML=function(x){
 window.savedUniverseRowHTML=savedUniverseRowHTML;
 
 setTimeout(()=>{try{renderSavedUniverseLists?.();}catch(e){console.warn("saved list refresh",e);}},100);
+
+
+
+/* === v0.91.7 Saved-game Play button hard fix ===
+   Rebuild the saved-universe list with real DOM buttons and direct listeners.
+   This avoids relying on inline onclick or a delegated selector. */
+
+function openSavedUniverseV0917(saveId){
+  try{
+    const loaded=loadState(saveId);
+    if(!loaded){
+      alert("That saved universe could not be read from browser storage.");
+      return false;
+    }
+
+    state=repairLoadedUniverseV0916(loaded);
+
+    /* Open the game view FIRST so the button visibly does something immediately. */
+    document.getElementById("setupView")?.classList.add("hidden");
+    document.getElementById("gameView")?.classList.remove("hidden");
+
+    try{
+      showGameSafeV0916();
+    }catch(e){
+      console.error("Saved universe open error",e);
+      alert(`The save opened, but Basketballverse hit an error while drawing the game screen: ${String(e?.message||e)}`);
+    }
+
+    return true;
+  }catch(e){
+    console.error("Saved universe Play failure",e);
+    alert(`Could not open this saved universe: ${String(e?.message||e)}`);
+    return false;
+  }
+}
+window.openSavedUniverseV0917=openSavedUniverseV0917;
+
+function buildSavedUniverseRowV0917(x){
+  const row=document.createElement("div");
+  row.className="savedUniverseRow";
+
+  const meta=document.createElement("div");
+  meta.className="savedUniverseMeta";
+
+  const title=document.createElement("div");
+  title.className="savedUniverseTitle";
+  title.textContent=x.name||"Basketballverse";
+
+  const detail=document.createElement("div");
+  detail.className="small muted";
+  const when=x.updatedAt?new Date(x.updatedAt).toLocaleString():"Unknown";
+  detail.innerHTML=`${x.season||""} · ${x.role||"Viewer"} · ${x.phase||"Season"}<br>Last saved ${when}`;
+
+  meta.append(title,detail);
+
+  const actions=document.createElement("div");
+  actions.className="savedUniverseActions";
+
+  const play=document.createElement("button");
+  play.className="primary";
+  play.type="button";
+  play.textContent="Play";
+  play.addEventListener("click",()=>{
+    play.disabled=true;
+    const old=play.textContent;
+    play.textContent="Opening…";
+    setTimeout(()=>{
+      const ok=openSavedUniverseV0917(x.id);
+      if(!ok){
+        play.disabled=false;
+        play.textContent=old;
+      }
+    },0);
+  });
+
+  const rename=document.createElement("button");
+  rename.type="button";
+  rename.textContent="Rename";
+  rename.addEventListener("click",()=>renameUniverseFromList(x.id));
+
+  const del=document.createElement("button");
+  del.type="button";
+  del.className="danger";
+  del.textContent="Delete";
+  del.addEventListener("click",()=>deleteUniverseFromList(x.id));
+
+  actions.append(play,rename,del);
+  row.append(meta,actions);
+  return row;
+}
+window.buildSavedUniverseRowV0917=buildSavedUniverseRowV0917;
+
+renderSavedUniverseLists=function(){
+  migrateLegacySaveIfNeeded();
+  const index=saveIndex();
+
+  ["savedUniverseList","setupSavedUniverseList"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+
+    el.innerHTML="";
+    if(!index.length){
+      const empty=document.createElement("span");
+      empty.className="muted";
+      empty.textContent="No saved universes yet.";
+      el.appendChild(empty);
+      return;
+    }
+
+    index.forEach(x=>el.appendChild(buildSavedUniverseRowV0917(x)));
+  });
+
+  const current=document.getElementById("currentUniverseSaveBox");
+  if(current){
+    if(!state){
+      current.innerHTML=`<span class="muted">No universe loaded.</span>`;
+    }else{
+      current.innerHTML=`<b>${state.name}</b><div class="small muted">${seasonName()} · ${state.role} · ${state.season?.phase||"Season"}<br>Autosave is active for this universe.</div>`;
+    }
+  }
+};
+window.renderSavedUniverseLists=renderSavedUniverseLists;
+
+/* Keep the old public function pointing to the hard-fix loader too. */
+playSavedUniverse=function(saveId){ return openSavedUniverseV0917(saveId); };
+window.playSavedUniverse=playSavedUniverse;
+
+setTimeout(()=>{
+  try{renderSavedUniverseLists();}catch(e){console.error("Saved list hard-fix render",e);}
+},0);
 
 </script>
 </body>
