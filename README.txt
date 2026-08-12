@@ -1,27 +1,16 @@
 Basketballverse
-v0.90 · Menu Reorganization
+v0.90.1 · Menu Fix
+
+FIXES
+- League now opens Standings instead of the old League Office.
+- Teams now opens the actual Teams/Franchises page and forces renderTeams().
+- Team > Roster uses the real Players/Roster page instead of a nonexistent "team" page.
+- League > Players has its own unique league-wide player page, avoiding tab-ID conflicts with Team > Roster.
+- League > Rules uses the existing League Rules page.
+- Career top-level menu is restored.
+- History mobile layout is constrained so wide history rows/newspaper content cannot shrink the entire screen.
 
 TOP LEVEL
-Season · Team · Front Office · League · History · Career
-
-SEASON
-Season · Decisions · Objectives · Playoffs · Offseason
-
-TEAM
-Roster · Depth Chart · Health · Stats
-
-FRONT OFFICE
-Scouting · Draft Room · Trade Machine · Free Agency · Re-sign Players · Roster Cuts
-
-LEAGUE
-Standings · Teams · Players · League Stats · Rules
-
-HISTORY
-Season History · Draft History · Records · Newspapers · Hall of Fame
-
-CAREER
-Profile · Job Market · Career History
-
-This reorganizes navigation around how the player uses Basketballverse rather than the order features were built.
+Season · Team · Front Office · League · History · Career · Save
 
 Upload index.html and README.txt to the GitHub Pages repository root.

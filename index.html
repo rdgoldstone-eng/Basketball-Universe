@@ -407,6 +407,17 @@ pre{white-space:pre-wrap}
   margin-bottom:10px;
 }
 
+
+/* v0.90.1 history mobile width fix */
+#history,#drafthistory,#records,#newspapers,#halloffame{max-width:100%;overflow-x:hidden}
+#history .card,#history .grid2,#history .historyRow,#newspaperArchiveBox,.newspaper{min-width:0;max-width:100%}
+#history *{overflow-wrap:anywhere}
+@media(max-width:700px){
+  #history .historyRow{grid-template-columns:1fr;gap:6px}
+  #history .calendarline{align-items:flex-start;flex-direction:column}
+  #history select,#newspaperArchiveSeason{max-width:100%;width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -421,7 +432,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90 · Menu Reorganization</div>
+    <div class="pill">v0.90.1 · Menu Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -531,9 +542,10 @@ pre{white-space:pre-wrap}
   <div class="nav mainNav" id="mainNav">
     <button class="active" data-group="season" data-tab="season">Season</button>
     <button data-group="team" data-tab="players">Team</button>
-    <button data-group="league" data-tab="leagueoffice">League</button>
+    <button data-group="league" data-tab="standings">League</button>
     <button data-group="frontoffice" data-tab="scouting">Front Office</button>
     <button data-group="history" data-tab="history">History</button>
+    <button data-group="career" data-tab="career">Career</button>
     <button data-group="save" data-tab="save">Save</button>
   </div>
   <div class="subNavWrap">
@@ -614,6 +626,21 @@ pre{white-space:pre-wrap}
       <h2>Career History</h2>
       <p class="small muted">Your complete career timeline, jobs, and results.</p>
       <div id="careerhistoryBodyV090"></div>
+    </div>
+  </section>
+
+  <section id="standings" class="section">
+    <div class="grid2">
+      <div class="card"><h2>Eastern Conference</h2><div id="leagueEastStandingsV0901"></div></div>
+      <div class="card"><h2>Western Conference</h2><div id="leagueWestStandingsV0901"></div></div>
+    </div>
+  </section>
+
+  <section id="leagueplayers" class="section">
+    <div class="card">
+      <h2>League Players</h2>
+      <p class="small muted">League-wide player directory.</p>
+      <div id="leaguePlayersBodyV0901"></div>
     </div>
   </section>
 
@@ -5988,17 +6015,17 @@ const navigationGroups={
   ["offseason","Offseason"]
  ],
  team:[
-  ["team","Roster"],
+  ["players","Roster"],
   ["coaching","Depth Chart"],
   ["health","Health"],
   ["stats","Stats"]
  ],
  league:[
-  ["league","Standings"],
+  ["standings","Standings"],
   ["teams","Teams"],
-  ["players","Players"],
+  ["leagueplayers","Players"],
   ["leaguestats","League Stats"],
-  ["rules","Rules"]
+  ["leaguerules","Rules"]
  ],
  frontoffice:[
   ["scouting","Scouting"],
@@ -6014,6 +6041,11 @@ const navigationGroups={
   ["records","Records"],
   ["newspapers","Newspapers"],
   ["halloffame","Hall of Fame"]
+ ],
+ career:[
+  ["career","Profile"],
+  ["jobmarket","Job Market"],
+  ["careerhistory","Career History"]
  ],
  save:[
   ["save","Save"]
@@ -18602,6 +18634,69 @@ switchTab=function(tab){
   return r;
 };
 window.switchTab=switchTab;
+
+
+
+/* === v0.90.1 Menu behavior fix === */
+function renderStandingsV0901(){
+  const e=document.getElementById("leagueEastStandingsV0901");
+  const w=document.getElementById("leagueWestStandingsV0901");
+  if(e)e.innerHTML=typeof standingsTable==="function"?standingsTable("East"):`<div class="muted">Standings unavailable.</div>`;
+  if(w)w.innerHTML=typeof standingsTable==="function"?standingsTable("West"):`<div class="muted">Standings unavailable.</div>`;
+}
+window.renderStandingsV0901=renderStandingsV0901;
+
+function renderLeaguePlayersV0901(){
+  const host=document.getElementById("leaguePlayersBodyV0901");
+  if(!host)return;
+  const rows=(state.players||[]).filter(p=>!p.retired).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  host.innerHTML=rows.length?rows.map(p=>`
+    <div class="teamrow">
+      <div class="teammeta"><b>${p.name}</b><span class="small muted">${p.teamName||"Free Agent"} · ${p.pos||"—"} · OVR ${p.ovr??"—"}</span></div>
+    </div>`).join(""):`<div class="muted">No players available.</div>`;
+}
+window.renderLeaguePlayersV0901=renderLeaguePlayersV0901;
+
+const _v0901SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v0901SwitchTab.apply(this,arguments);
+  try{
+    if(tab==="teams")renderTeams?.();
+    if(tab==="standings")renderStandingsV0901();
+    if(tab==="leagueplayers")renderLeaguePlayersV0901();
+    if(tab==="leaguestats")renderStats?.();
+    if(tab==="leaguerules")renderLeagueRules?.();
+    if(tab==="history"){
+      renderLeagueHistoryV0831?.();
+      document.body.style.zoom="";
+      document.documentElement.style.zoom="";
+    }
+  }catch(e){console.error("v0.90.1 tab render",tab,e);}
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Make main menu entries always open the first REAL tab in their group. */
+setTimeout(()=>{
+  try{
+    const map={
+      season:"season",
+      team:"players",
+      frontoffice:"scouting",
+      league:"standings",
+      history:"history",
+      career:"career",
+      save:"save"
+    };
+    document.querySelectorAll(".mainNav button").forEach(btn=>{
+      const g=btn.dataset.group;
+      if(map[g]){
+        btn.dataset.tab=map[g];
+        btn.onclick=()=>switchTab(map[g]);
+      }
+    });
+  }catch(e){console.error("v0.90.1 main nav repair",e);}
+},100);
 
 </script>
 </body>
