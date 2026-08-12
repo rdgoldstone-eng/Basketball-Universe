@@ -432,25 +432,13 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.2 · Newspaper Archive Fix</div>
+    <div class="pill">v0.90.3 · Startup Cleanup</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
   </div>
 
-  <div class="card">
-    <h2>Era Guide</h2>
-    <label>Basketball era</label>
-    <select id="eraGuideSelect" onchange="renderEraArchitecture()">
-      <option value="founding">The Founding Era</option>
-      <option value="aba">ABA Rivalry Era</option>
-      <option value="merger" selected>Merger Era</option>
-      <option value="expansion">Expansion Era</option>
-      <option value="realignment">Realignment Era</option>
-      <option value="playin">Play-In Era</option>
-    </select>
-    <div id="eraArchitectureBox" style="margin-top:10px"></div>
-  </div>
+  
 
   <div class="card">
     <h2>1. Starting Era</h2>
@@ -528,7 +516,7 @@ pre{white-space:pre-wrap}
 <section id="gameView" class="hidden">
   <div class="card hero">
     <div class="pill" id="rolePill"></div>
-    <h1 id="gameTitle" style="margin-top:10px"></h1>
+    
     <p class="muted" id="gameSubtitle"></p>
     <div id="universeStatusLine" class="small muted" style="margin-top:6px"></div>
     <div class="kpis">
@@ -17822,7 +17810,7 @@ function ensureOffseasonActivityUIV089(){
         <div class="offseasonTabHeader">
           <div>
             <div class="small muted">Offseason Activity</div>
-            <h2 id="offseasonActivityTitleV089" style="margin:0"></h2>
+            
           </div>
         </div>
         <div id="offseasonActivityBodyV089"></div>
@@ -18917,6 +18905,34 @@ setTimeout(()=>{
     if(document.getElementById("newspapers")?.classList.contains("active"))renderNewspapersPageV0902();
   }catch(e){console.error("v0.90.2 newspaper repair",e);}
 },250);
+
+
+
+/* === v0.90.3 Startup cleanup ===
+   Remove the startup Era Guide and any dynamically rendered remnants. */
+function removeStartupEraGuideV0903(){
+  const setup=document.getElementById("setupView")||document.querySelector(".setupView")||document.body;
+  if(!setup)return;
+
+  [...setup.querySelectorAll("h1,h2,h3,h4,h5,h6,b,strong,button,div,p,span")].forEach(el=>{
+    const txt=(el.textContent||"").trim().toLowerCase();
+    if(txt==="era guide" || txt.startsWith("era guide ")){
+      const card=el.closest(".card,section,.panel,.setupCard")||el;
+      card.remove();
+    }
+  });
+}
+window.removeStartupEraGuideV0903=removeStartupEraGuideV0903;
+
+const _v0903RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0903RenderAll.apply(this,arguments);
+  setTimeout(removeStartupEraGuideV0903,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(removeStartupEraGuideV0903,100);
 
 </script>
 </body>
