@@ -1,19 +1,29 @@
 Basketballverse
-v0.91.7 · Play Button Hard Fix
+v0.91.8 · Saved Game Native Link Fix
 
-WHY THE PREVIOUS FIX WASN'T ENOUGH
-The saved-game list was still built from HTML strings with click behavior layered on afterward.
-On mobile Safari, that path was still not reliably triggering the saved-game loader.
+WHAT CHANGED
+The Saved Universes Play control is no longer dependent on a JavaScript click
+listener. It is now a real browser link.
 
-HARD FIX
-- Saved Universe rows are now built as real DOM elements.
-- The Play button gets a direct addEventListener() when the row is created.
-- Tapping Play immediately changes the button to "Opening…" so there is visible feedback.
-- The game view is revealed before the rest of the save rendering runs.
-- The old playSavedUniverse() public function now routes through the same hard-fix loader.
-- Rename and Delete buttons are also attached with direct listeners.
+Tapping Play:
+1. navigates to the same Basketballverse page with the save ID in the URL,
+2. reloads the page normally,
+3. reads that save directly from browser storage,
+4. restores it,
+5. opens the game screen.
 
-Existing saves are preserved.
+This is intentionally different from v0.91.6 and v0.91.7. Those builds kept
+trying to repair the same click-handler approach. This build removes that
+approach from the critical Play path.
+
+DIAGNOSTICS
+If the save still cannot open, the start screen will now show the actual reason:
+- stored save data missing
+- browser storage unavailable
+- save data could not be restored
+- game screen failed while opening
+
+Existing saves are not deleted or recreated.
 
 FILES TO UPLOAD
 - index.html
