@@ -1,18 +1,27 @@
 Basketballverse
-v0.89.5 · Front Office Subtabs
+v0.90 · Menu Reorganization
 
-Front Office subtabs are now exactly:
-- Scouting
-- Draft Room
-- Trade Machine
-- Free Agency
-- Re-sign Players
-- Roster Cuts
+TOP LEVEL
+Season · Team · Front Office · League · History · Career
 
-Draft Room opens the real Draft Room.
-Free Agency opens the Free Agency management page.
-Re-sign Players opens the Re-signings management page.
-Roster Cuts opens the Roster Cuts management page.
-Trade Machine remains its dedicated page.
+SEASON
+Season · Decisions · Objectives · Playoffs · Offseason
+
+TEAM
+Roster · Depth Chart · Health · Stats
+
+FRONT OFFICE
+Scouting · Draft Room · Trade Machine · Free Agency · Re-sign Players · Roster Cuts
+
+LEAGUE
+Standings · Teams · Players · League Stats · Rules
+
+HISTORY
+Season History · Draft History · Records · Newspapers · Hall of Fame
+
+CAREER
+Profile · Job Market · Career History
+
+This reorganizes navigation around how the player uses Basketballverse rather than the order features were built.
 
 Upload index.html and README.txt to the GitHub Pages repository root.

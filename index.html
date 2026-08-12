@@ -421,7 +421,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.89.5 · Front Office Subtabs</div>
+    <div class="pill">v0.90 · Menu Reorganization</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -574,6 +574,46 @@ pre{white-space:pre-wrap}
       <h2>Trade Machine</h2>
       <p class="small muted">Build and submit trades for your controlled team.</p>
       <div id="tradeMachineStandaloneV0885"></div>
+    </div>
+  </section>
+
+  <section id="leaguestats" class="section">
+    <div class="card">
+      <h2>League Stats</h2>
+      <p class="small muted">League-wide leaders and statistical summaries.</p>
+      <div id="leaguestatsBodyV090"></div>
+    </div>
+  </section>
+
+  <section id="records" class="section">
+    <div class="card">
+      <h2>Records</h2>
+      <p class="small muted">League records and historical statistical marks.</p>
+      <div id="recordsBodyV090"></div>
+    </div>
+  </section>
+
+  <section id="newspapers" class="section">
+    <div class="card">
+      <h2>Newspapers</h2>
+      <p class="small muted">Saved Basketballverse newspaper editions.</p>
+      <div id="newspapersBodyV090"></div>
+    </div>
+  </section>
+
+  <section id="jobmarket" class="section">
+    <div class="card">
+      <h2>Job Market</h2>
+      <p class="small muted">Available jobs and career opportunities.</p>
+      <div id="jobmarketBodyV090"></div>
+    </div>
+  </section>
+
+  <section id="careerhistory" class="section">
+    <div class="card">
+      <h2>Career History</h2>
+      <p class="small muted">Your complete career timeline, jobs, and results.</p>
+      <div id="careerhistoryBodyV090"></div>
     </div>
   </section>
 
@@ -5948,20 +5988,17 @@ const navigationGroups={
   ["offseason","Offseason"]
  ],
  team:[
-  ["players","Players"],
-  ["stats","Stats"],
-  ["healthcenter","Health"],
-  ["coaching","Coaching"],
-  ["staff","Staff"],
-  ["career","Career"]
+  ["team","Roster"],
+  ["coaching","Depth Chart"],
+  ["health","Health"],
+  ["stats","Stats"]
  ],
  league:[
-  ["leagueoffice","League Office"],
-  ["leaguerules","Rules"],
-  ["bids","Expansion Bids"],
-  ["health","Franchise Health"],
+  ["league","Standings"],
   ["teams","Teams"],
-  ["identities","Identities"]
+  ["players","Players"],
+  ["leaguestats","League Stats"],
+  ["rules","Rules"]
  ],
  frontoffice:[
   ["scouting","Scouting"],
@@ -5972,10 +6009,11 @@ const navigationGroups={
   ["rostercuts","Roster Cuts"]
  ],
  history:[
-  ["history","History"],
-  ["alltime","All-Time"],
-  ["halloffame","Hall of Fame"],
-  ["drafthistory","Draft History"]
+  ["history","Season History"],
+  ["drafthistory","Draft History"],
+  ["records","Records"],
+  ["newspapers","Newspapers"],
+  ["halloffame","Hall of Fame"]
  ],
  save:[
   ["save","Save"]
@@ -18509,6 +18547,61 @@ renderAll=function(){
 window.renderAll=renderAll;
 
 setTimeout(()=>{try{normalizeFrontOfficeSubnavV0895();}catch(e){console.error("v0.89.5 nav init",e);}},200);
+
+
+
+/* === v0.90 Menu Reorganization === */
+function renderReorganizedPageV090(tab){
+  try{
+    if(tab==="records"){
+      const host=document.getElementById("recordsBodyV090");
+      if(host){
+        try{renderLeagueHistoryV0831?.();}catch(_){}
+        const src=document.getElementById("recordsHistoryBox");
+        host.innerHTML=src?.innerHTML||`<div class="notice">No league records recorded yet.</div>`;
+      }
+    }
+    if(tab==="newspapers"){
+      const host=document.getElementById("newspapersBodyV090");
+      if(host){
+        try{renderNewspaperArchive?.();}catch(_){}
+        const src=document.getElementById("newspaperArchiveBox");
+        host.innerHTML=src?.innerHTML||`<div class="notice">No newspaper editions saved yet.</div>`;
+      }
+    }
+    if(tab==="halloffame"){
+      const host=document.getElementById("halloffameBodyV090");
+      if(host){
+        try{renderHallOfFame?.();}catch(_){}
+        const src=document.getElementById("hallOfFameBox");
+        host.innerHTML=src?.innerHTML||`<div class="notice">No Hall of Fame inductees yet.</div>`;
+      }
+    }
+    if(tab==="jobmarket"){
+      const host=document.getElementById("jobmarketBodyV090");
+      if(host){
+        const jobs=state?.career?.jobOffers||state?.jobOffers||[];
+        host.innerHTML=jobs.length?jobs.map(j=>`<div class="teamrow"><div class="teammeta"><b>${j.teamName||j.team||"Team"}</b><span class="small muted">${j.role||state.role||"Role"}</span></div></div>`).join(""):`<div class="notice">No job offers are currently available.</div>`;
+      }
+    }
+    if(tab==="careerhistory"){
+      const host=document.getElementById("careerhistoryBodyV090");
+      if(host){
+        const rows=state?.career?.history||state?.gmCareer?.history||[];
+        host.innerHTML=rows.length?rows.map(r=>`<div class="teamrow"><div class="teammeta"><b>${r.year||"—"} · ${r.teamName||r.team||"Career"}</b><span class="small muted">${r.role||state.role||""}${r.record?` · ${r.record}`:""}</span></div></div>`).join(""):`<div class="notice">Career history will appear here as you take jobs and move through the league.</div>`;
+      }
+    }
+  }catch(e){console.error("v0.90 page render",tab,e);}
+}
+window.renderReorganizedPageV090=renderReorganizedPageV090;
+
+const _v090SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v090SwitchTab.apply(this,arguments);
+  setTimeout(()=>renderReorganizedPageV090(tab),0);
+  return r;
+};
+window.switchTab=switchTab;
 
 </script>
 </body>
