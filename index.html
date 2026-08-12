@@ -490,7 +490,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.3 · Free Agency & Roster Cuts Fix</div>
+    <div class="pill">v0.91.4 · Trade, Age & Layout Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1170,29 +1170,7 @@ pre{white-space:pre-wrap}
     </div>
   </section>
 
-  <section id="offseason" class="section">
-    <div class="grid2">
-      <div class="card">
-        <h2>Offseason</h2>
-        <div id="offseasonStatus" class="muted">Finish the regular season and playoffs to begin.</div>
-        <div id="offseasonSteps" style="margin-top:12px"></div>
-        <button class="primary hidden" id="advanceOffseasonBtn">Advance Offseason</button>
-      </div>
-    </div>
-    <div class="card">
-      <h2 id="offseasonDetailTitle">Offseason Details</h2>
-      <div id="offseasonDetailBox" class="muted">Use a View button next to any offseason step.</div>
-    </div>
-    <div class="card">
-      <h2>Draft Results</h2>
-      <div id="draftResults" class="muted">The draft has not started.</div>
-    </div>
-    </div>
-    <div class="card">
-      <h2>Free Agency</h2>
-      <div id="freeAgencyBox" class="muted">Free agency opens after the draft.</div>
-    </div>
-  </section>
+  <section id="offseason" class="section"></section>
 
 
   
@@ -1510,7 +1488,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.3";
+window.BASKETBALLVERSE_BUILD = "v0.91.4";
 </script>
 
 <script>
@@ -19035,7 +19013,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.3";
+      badge.textContent="Basketballverse v0.91.4";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20010,6 +19988,183 @@ switchTab=function(tab){
   return r;
 };
 window.switchTab=switchTab;
+
+
+
+/* === v0.91.4 Trade safety, age tracking, and page-layout cleanup === */
+
+/* -------- Stable season-age tracking --------
+   Basketballverse tracks a season-age anchor (birthYear) so ages do not get lost
+   or double-incremented when saves are loaded or offseason functions rerun. */
+function ensurePlayerAgeTrackingV0914(){
+  if(!state?.players)return;
+  const year=Number(state.currentYear||1976);
+  state.players.forEach(p=>{
+    if(!Number.isFinite(Number(p.birthYear))){
+      const currentAge=Number(p.age);
+      if(Number.isFinite(currentAge)) p.birthYear=year-currentAge;
+    }
+    if(Number.isFinite(Number(p.birthYear))){
+      p.age=Math.max(18,year-Number(p.birthYear));
+    }
+  });
+}
+window.ensurePlayerAgeTrackingV0914=ensurePlayerAgeTrackingV0914;
+
+function playerAgeV0914(p,year=state?.currentYear){
+  if(!p)return null;
+  const y=Number(year);
+  if(Number.isFinite(Number(p.birthYear))&&Number.isFinite(y)) return Math.max(18,y-Number(p.birthYear));
+  return Number.isFinite(Number(p.age))?Number(p.age):null;
+}
+window.playerAgeV0914=playerAgeV0914;
+
+/* Any newly created player that already has an age gets a permanent season-age anchor. */
+function anchorPlayerAgeV0914(p,year=state?.currentYear){
+  if(!p)return p;
+  if(!Number.isFinite(Number(p.birthYear)) && Number.isFinite(Number(p.age)) && Number.isFinite(Number(year))){
+    p.birthYear=Number(year)-Number(p.age);
+  }
+  return p;
+}
+window.anchorPlayerAgeV0914=anchorPlayerAgeV0914;
+
+/* -------- Trade Machine robustness -------- */
+gmPickValueV086=function(pk){
+  if(!pk)return 0;
+  const round=Number(pk.round||1);
+  const year=Number(pk.year||state.currentYear+1);
+  const distance=Math.max(0,year-state.currentYear);
+  return Math.max(2,Math.round((round===1?28:9)-distance*2));
+};
+window.gmPickValueV086=gmPickValueV086;
+
+gmOwnedPicksV086=function(team){
+  if(!team)return [];
+  return (state.draftPicks||[])
+    .filter(Boolean)
+    .filter(pk=>pk && (
+      pk.ownerTeamId===team.id||
+      pk.teamId===team.id||
+      pk.owner===team.name||
+      pk.ownerTeam===team.name
+    ))
+    .sort((a,b)=>Number(a?.year||9999)-Number(b?.year||9999)||Number(a?.round||1)-Number(b?.round||1));
+};
+window.gmOwnedPicksV086=gmOwnedPicksV086;
+
+gmTradeSideValueV086=function(playerIds,pickIds){
+  let v=0;
+  (playerIds||[]).forEach(id=>{
+    const p=(state.players||[]).find(x=>x?.id===id);
+    if(p)v+=gmTradeValueV086(p);
+  });
+  (pickIds||[]).forEach(id=>{
+    const pk=(state.draftPicks||[]).find(x=>x?.id===id);
+    if(pk)v+=gmPickValueV086(pk);
+  });
+  return v;
+};
+window.gmTradeSideValueV086=gmTradeSideValueV086;
+
+function cleanTradeBuilderStateV0914(){
+  const b=gmTradeBuilderStateV086();
+  const playerIds=new Set((state.players||[]).filter(Boolean).map(p=>p.id));
+  const pickIds=new Set((state.draftPicks||[]).filter(Boolean).map(pk=>pk.id));
+  b.myPlayers=(b.myPlayers||[]).filter(id=>playerIds.has(id));
+  b.theirPlayers=(b.theirPlayers||[]).filter(id=>playerIds.has(id));
+  b.myPicks=(b.myPicks||[]).filter(id=>pickIds.has(id));
+  b.theirPicks=(b.theirPicks||[]).filter(id=>pickIds.has(id));
+  if(!state.teams?.some(t=>t.id===b.otherTeamId))b.otherTeamId=null;
+  return b;
+}
+window.cleanTradeBuilderStateV0914=cleanTradeBuilderStateV0914;
+
+const _v0914TradeRender=renderGMTradeBuilderV086;
+renderGMTradeBuilderV086=function(){
+  cleanTradeBuilderStateV0914();
+  ensurePlayerAgeTrackingV0914();
+  return _v0914TradeRender.apply(this,arguments);
+};
+window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+
+/* If an old malformed pick is encountered, omit it rather than crash Trade Machine. */
+const _v0914StableTrade=renderStableTradeMachineV0885;
+renderStableTradeMachineV0885=function(){
+  try{
+    cleanTradeBuilderStateV0914();
+    return _v0914StableTrade.apply(this,arguments);
+  }catch(e){
+    console.error("Trade Machine recovery",e);
+    const b=state.gmTradeBuilder;
+    if(b){
+      b.myPicks=[]; b.theirPicks=[];
+    }
+    try{
+      return _v0914StableTrade.apply(this,arguments);
+    }catch(e2){
+      const host=document.getElementById("tradeMachineStandaloneV0885");
+      if(host)host.innerHTML=`<div class="notice danger"><b>Trade Machine error:</b><br>${String(e2?.message||e2)}</div>`;
+    }
+  }
+};
+window.renderStableTradeMachineV0885=renderStableTradeMachineV0885;
+
+/* -------- Show ages in the GM pages where roster decisions happen -------- */
+const _v0914SimpleFA=renderSimpleFreeAgencyV0913;
+renderSimpleFreeAgencyV0913=function(){
+  ensurePlayerAgeTrackingV0914();
+  const r=_v0914SimpleFA.apply(this,arguments);
+  const host=document.getElementById("frontOfficeFreeAgencyV0895");
+  if(host){
+    host.querySelectorAll(".teamrow").forEach(row=>{
+      const name=row.querySelector("b")?.textContent?.trim();
+      const p=(state.players||[]).find(x=>x.name===name && x.teamName==="Free Agent");
+      const meta=row.querySelector(".small.muted");
+      if(p&&meta&&!/\bAge\b/.test(meta.textContent)){
+        const age=playerAgeV0914(p);
+        meta.textContent=meta.textContent.replace(" · OVR",` · Age ${age??"—"} · OVR`);
+      }
+    });
+  }
+  return r;
+};
+window.renderSimpleFreeAgencyV0913=renderSimpleFreeAgencyV0913;
+
+const _v0914Cuts=renderSimpleRosterCutsV0913;
+renderSimpleRosterCutsV0913=function(){
+  ensurePlayerAgeTrackingV0914();
+  const r=_v0914Cuts.apply(this,arguments);
+  const host=document.getElementById("frontOfficeRosterCutsV0895");
+  if(host){
+    host.querySelectorAll(".teamrow").forEach(row=>{
+      const name=row.querySelector("b")?.textContent?.trim();
+      const p=(state.players||[]).find(x=>x.name===name);
+      const meta=row.querySelector(".small.muted");
+      if(p&&meta&&!/\bAge\b/.test(meta.textContent)){
+        const age=playerAgeV0914(p);
+        meta.textContent=meta.textContent.replace(" · OVR",` · Age ${age??"—"} · OVR`);
+      }
+    });
+  }
+  return r;
+};
+window.renderSimpleRosterCutsV0913=renderSimpleRosterCutsV0913;
+
+/* Keep ages synchronized after every full render/load/season transition. */
+const _v0914RenderAll=renderAll;
+renderAll=function(){
+  ensurePlayerAgeTrackingV0914();
+  return _v0914RenderAll.apply(this,arguments);
+};
+window.renderAll=renderAll;
+
+setTimeout(()=>{
+  try{
+    ensurePlayerAgeTrackingV0914();
+    saveState?.();
+  }catch(e){console.warn("Age tracking init",e);}
+},200);
 
 </script>
 </body>

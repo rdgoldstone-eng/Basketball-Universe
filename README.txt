@@ -1,21 +1,24 @@
 Basketballverse
-v0.91.3 · Free Agency & Roster Cuts Fix
+v0.91.4 · Trade, Age & Layout Fix
 
-ROSTER CUTS
-- Fixed the checkpoint that would not let a GM move past Roster Cuts.
-- A legal roster now gets a clear "Confirm Final Roster → Next Season" button.
-- If the roster is below the 8-player minimum, Roster Cuts sends you directly back to Free Agency.
-- Free Agency stays usable during Roster Cuts when you need players.
-- Release buttons disable at the minimum so you cannot accidentally make the problem worse.
+LAYOUT
+- Removed the old static Offseason HTML that contained leftover Draft Results and Free Agency cards.
+- Free Agency no longer appears underneath unrelated screens such as Trade Machine.
+- The main Offseason page remains the compact checklist + selected-task box from v0.91.1/v0.91.2.
 
-FREE AGENCY
-- Rebuilt the GM Free Agency page to be much simpler.
-- Roster count and number of players needed are shown at the top.
-- Each free agent has a one-tap "Sign at Ask" button.
-- "Custom" still opens the salary/years offer flow.
-- Added "Quick Fill to Minimum (8)" for emergency roster building.
-- Only the top 40 available free agents are shown at once to keep scrolling under control.
-- Fixed the Re-sign Players navigation route typo from v0.91.2.
+TRADE MACHINE
+- Fixed malformed / missing draft-pick data causing:
+  undefined is not an object (evaluating 'pk.round')
+- Missing draft-pick records are ignored rather than crashing the page.
+- Stale player/pick IDs in an old saved trade builder are cleaned automatically.
+- If a save contains a bad selected pick, the Trade Machine retries with those bad pick selections cleared.
+
+PLAYER AGES
+- Added stable season-age tracking using a birthYear anchor.
+- Existing players get a birthYear derived from their current saved age.
+- Ages are synchronized to the current season after load/render so they cannot be lost or double-aged by repeated offseason operations.
+- Free Agency and Roster Cuts now explicitly show player age alongside position/OVR/contract information.
+- Existing player pages and rosters continue showing age as before.
 
 FILES TO UPLOAD
 - index.html
