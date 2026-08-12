@@ -490,7 +490,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91 · Gameplay UX & History Fix</div>
+    <div class="pill">v0.91.1 · Offseason Checklist Cleanup</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1510,7 +1510,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91";
+window.BASKETBALLVERSE_BUILD = "v0.91.1";
 </script>
 
 <script>
@@ -19035,7 +19035,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91";
+      badge.textContent="Basketballverse v0.91.1";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19485,6 +19485,170 @@ renderAll=function(){
   return r;
 };
 window.renderAll=renderAll;
+
+
+
+/* === v0.91.1 Offseason checklist-only screen === */
+function renderOffseasonChecklistOnlyV0911(){
+  const off=document.getElementById("offseason");
+  if(!off||!state?.offseason)return;
+
+  const phases=state.offseason.phases||[
+    "Awards","Retirements","Development","Draft Order","Draft",
+    "Re-signings","Free Agency","Roster Cuts","Next Season"
+  ];
+  const current=state.offseason.phase;
+  const selected=state.offseason.uiSelectedActivity||current;
+  const currentIndex=phases.indexOf(current);
+
+  const itemState=step=>{
+    const i=phases.indexOf(step);
+    if(i<currentIndex)return "done";
+    if(i===currentIndex)return "current";
+    return "future";
+  };
+
+  off.innerHTML=`
+    <div class="card">
+      <div class="sectionTitle">Offseason Checklist</div>
+      <div class="small muted" style="margin-bottom:10px">
+        Work through the offseason in order. Completed steps remain reviewable.
+      </div>
+      <div id="offseasonChecklistV0911" style="display:flex;flex-direction:column;gap:8px">
+        ${phases.map(step=>{
+          const s=itemState(step);
+          const icon=s==="done"?"✓":s==="current"?"→":"○";
+          return `<button type="button"
+            class="${s} ${selected===step?"active":""}"
+            style="text-align:left"
+            onclick="selectOffseasonChecklistItemV0911('${step.replace(/'/g,"\\'")}')">
+            ${icon} ${step}
+          </button>`;
+        }).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="small muted">Selected Offseason Task</div>
+      <h2 id="offseasonSelectedTitleV0911" style="margin-top:4px">${selected}</h2>
+      <div id="offseasonSelectedDetailV0911"></div>
+      <div id="offseasonPrimaryActionV0911" style="margin-top:12px"></div>
+    </div>
+  `;
+
+  renderOffseasonSelectedDetailV0911(selected);
+}
+window.renderOffseasonChecklistOnlyV0911=renderOffseasonChecklistOnlyV0911;
+
+function selectOffseasonChecklistItemV0911(step){
+  if(!state?.offseason)return;
+  state.offseason.uiSelectedActivity=step;
+  try{saveState();}catch(_){}
+  renderOffseasonChecklistOnlyV0911();
+}
+window.selectOffseasonChecklistItemV0911=selectOffseasonChecklistItemV0911;
+
+function cleanStageDetailForMainOffseasonV0911(html){
+  const wrap=document.createElement("div");
+  wrap.innerHTML=String(html||"");
+
+  [...wrap.querySelectorAll(".card,.notice,.teamrow,section,div")].forEach(el=>{
+    const t=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+    if(
+      t.startsWith("offseason hub") ||
+      t.includes("opening-night checklist") ||
+      t.includes("opening night checklist") ||
+      t.startsWith("draft results") ||
+      t.startsWith("free agency recap") ||
+      t.startsWith("free agency summary")
+    ){
+      el.remove();
+    }
+  });
+
+  return wrap.innerHTML;
+}
+
+function renderOffseasonSelectedDetailV0911(step){
+  const title=document.getElementById("offseasonSelectedTitleV0911");
+  const body=document.getElementById("offseasonSelectedDetailV0911");
+  const action=document.getElementById("offseasonPrimaryActionV0911");
+  if(!body||!action)return;
+  if(title)title.textContent=step;
+
+  let detail="";
+  try{
+    if(typeof offseasonStageDetailV0822==="function"){
+      detail=offseasonStageDetailV0822(step);
+    }
+  }catch(e){
+    detail=`<div class="notice danger"><b>${step} error:</b><br>${String(e?.message||e)}</div>`;
+  }
+
+  body.innerHTML=cleanStageDetailForMainOffseasonV0911(detail);
+
+  const isCurrent=step===state.offseason.phase;
+  if(!isCurrent){
+    action.innerHTML=`<div class="small muted">Review only. Current task: <b>${state.offseason.phase}</b>.</div>`;
+    return;
+  }
+
+  const labelMap={
+    "Awards":"Complete Awards → Retirements",
+    "Retirements":"Complete Retirements → Development",
+    "Development":"Complete Development → Draft Order",
+    "Draft Order":"Complete Draft Order → Draft",
+    "Draft":"Complete Draft → Re-signings",
+    "Re-signings":"Complete Re-signings → Free Agency",
+    "Free Agency":"Complete Free Agency → Roster Cuts",
+    "Roster Cuts":"Complete Roster Cuts → Next Season",
+    "Next Season":"Start Next Season"
+  };
+
+  action.innerHTML=`<button id="offseasonMainActionV0911" class="primary">${labelMap[step]||"Continue Offseason"}</button>`;
+  document.getElementById("offseasonMainActionV0911")?.addEventListener("click",()=>{
+    if(step==="Next Season" && typeof startNextSeasonV0892==="function"){
+      startNextSeasonV0892();
+    }else{
+      advanceOffseason();
+    }
+  });
+}
+window.renderOffseasonSelectedDetailV0911=renderOffseasonSelectedDetailV0911;
+
+const _v0911RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  try{_v0911RenderOffseason.apply(this,arguments);}catch(e){console.warn("Legacy offseason render warning",e);}
+  if(state?.offseason){
+    const phases=state.offseason.phases||[];
+    const selected=state.offseason.uiSelectedActivity;
+    const selIdx=phases.indexOf(selected);
+    const curIdx=phases.indexOf(state.offseason.phase);
+    if(!selected || (selIdx>=0 && selIdx<curIdx)){
+      state.offseason.uiSelectedActivity=state.offseason.phase;
+    }
+    renderOffseasonChecklistOnlyV0911();
+  }
+};
+window.renderOffseason=renderOffseason;
+
+const _v0911SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v0911SwitchTab.apply(this,arguments);
+  if(tab==="offseason"){
+    setTimeout(()=>{if(state?.offseason)renderOffseasonChecklistOnlyV0911();},0);
+  }
+  return r;
+};
+window.switchTab=switchTab;
+
+setTimeout(()=>{
+  try{
+    if(state?.offseason && document.getElementById("offseason")?.classList.contains("active")){
+      renderOffseasonChecklistOnlyV0911();
+    }
+  }catch(e){console.error("v0.91.1 offseason cleanup init",e);}
+},150);
 
 </script>
 </body>
