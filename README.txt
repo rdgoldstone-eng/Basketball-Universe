@@ -1,24 +1,27 @@
 Basketballverse
-v0.91.4 · Trade, Age & Layout Fix
+v0.91.5 · Start Menu Restore
 
-LAYOUT
-- Removed the old static Offseason HTML that contained leftover Draft Results and Free Agency cards.
-- Free Agency no longer appears underneath unrelated screens such as Trade Machine.
-- The main Offseason page remains the compact checklist + selected-task box from v0.91.1/v0.91.2.
+WHY THIS HAPPENED
+The prior builds never permanently changed the startup heading/logo in the base HTML.
+They relied on JavaScript after the page loaded to turn:
+"Create a Basketballverse"
+into:
+"Create Your Universe"
+and then insert the logo.
 
-TRADE MACHINE
-- Fixed malformed / missing draft-pick data causing:
-  undefined is not an object (evaluating 'pk.round')
-- Missing draft-pick records are ignored rather than crashing the page.
-- Stale player/pick IDs in an old saved trade builder are cleaned automatically.
-- If a save contains a bad selected pick, the Trade Machine retries with those bad pick selections cleared.
+That meant if startup rendering happened before that patch, the old heading and no logo
+could appear again.
 
-PLAYER AGES
-- Added stable season-age tracking using a birthYear anchor.
-- Existing players get a birthYear derived from their current saved age.
-- Ages are synchronized to the current season after load/render so they cannot be lost or double-aged by repeated offseason operations.
-- Free Agency and Roster Cuts now explicitly show player age alongside position/OVR/contract information.
-- Existing player pages and rosters continue showing age as before.
+FIX
+- The startup logo is now written directly into the HTML.
+- The heading is now written directly into the HTML as:
+  Create Your Universe
+- The runtime helper remains only as a backup and will not duplicate the logo.
+- Removed the CSS rule that added its own white background behind the logo.
+
+NOTE
+The supplied logo file in this build is still the existing JPEG. A JPEG itself cannot
+contain transparency; replacing it with a transparent PNG can be done separately.
 
 FILES TO UPLOAD
 - index.html
