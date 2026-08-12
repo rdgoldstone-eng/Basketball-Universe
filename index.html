@@ -490,7 +490,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.2 · Offseason Navigation Fix</div>
+    <div class="pill">v0.91.3 · Free Agency & Roster Cuts Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1510,7 +1510,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.2";
+window.BASKETBALLVERSE_BUILD = "v0.91.3";
 </script>
 
 <script>
@@ -19035,7 +19035,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.2";
+      badge.textContent="Basketballverse v0.91.3";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19754,6 +19754,262 @@ document.addEventListener("click",e=>{
   if(t.includes("open re-sign")||t.includes("open resign")){e.preventDefault();e.stopImmediatePropagation();goFrontOfficeV0912("Re-signings");}
   if(t==="open roster cuts"){e.preventDefault();e.stopImmediatePropagation();goFrontOfficeV0912("Roster Cuts");}
 },true);
+
+
+
+/* === v0.91.3 Easier Free Agency + Roster Cuts progression === */
+
+function gmMinimumRosterV0913(){ return 8; }
+window.gmMinimumRosterV0913=gmMinimumRosterV0913;
+
+function gmQuickSignV0913(playerId,years=2){
+  if(!isHumanGMV084())return false;
+  const p=state.players.find(x=>x.id===playerId);
+  const team=gmTeamV084();
+  if(!p||!team||p.teamName!=="Free Agent")return false;
+
+  const limit=rosterLimitForYear(state.currentYear+1);
+  if(teamRoster(team.name).length>=limit){
+    alert(`${team.name} already has ${limit} players, the current roster limit.`);
+    return false;
+  }
+
+  const salary=Math.max(1,gmFairSalaryV085(p));
+  const payroll=teamPayroll(team.name);
+  const cap=Number(state.frontOffice?.cap||100);
+
+  // Below the minimum roster, allow a 1-year minimum-contract safety valve
+  // so the GM can never become trapped with too few players.
+  let finalSalary=salary, finalYears=Math.max(1,Math.min(4,Number(years)||2));
+  if(payroll+finalSalary>cap*1.18 && teamRoster(team.name).length<gmMinimumRosterV0913()){
+    finalSalary=1;
+    finalYears=1;
+  }else if(payroll+finalSalary>cap*1.18){
+    alert(`${p.name}'s asking price would push ${team.name} beyond the current payroll limit.`);
+    return false;
+  }
+
+  p.teamName=team.name;
+  p.contract={years:finalYears,salary:finalSalary};
+  p.faEligible=false;
+  state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+  state.frontOffice.transactions=state.frontOffice.transactions||[];
+  state.frontOffice.transactions.unshift({
+    year:state.currentYear,
+    text:`${team.name} signs ${p.name} for ${finalYears} year${finalYears===1?"":"s"}, $${finalSalary.toFixed(1)}M annually.`
+  });
+  try{saveState();}catch(_){}
+  renderSimpleFreeAgencyV0913();
+  if(state.offseason?.phase==="Roster Cuts")renderSimpleRosterCutsV0913();
+  return true;
+}
+window.gmQuickSignV0913=gmQuickSignV0913;
+
+function gmAutoFillMinimumV0913(){
+  if(!isHumanGMV084())return;
+  const team=gmTeamV084();
+  if(!team)return;
+  const min=gmMinimumRosterV0913();
+  const max=rosterLimitForYear(state.currentYear+1);
+  let roster=teamRoster(team.name);
+
+  if(roster.length>=min){
+    alert(`${team.name} already has ${roster.length} players. The minimum is ${min}.`);
+    return;
+  }
+
+  const needed=Math.min(min-roster.length,max-roster.length);
+  const available=gmFreeAgentsV085().slice().sort((a,b)=>{
+    // Favor useful players without automatically grabbing expensive stars.
+    const av=(a.ovr||0)+(a.pot||0)*.15-Math.max(0,gmFairSalaryV085(a)-8)*1.2;
+    const bv=(b.ovr||0)+(b.pot||0)*.15-Math.max(0,gmFairSalaryV085(b)-8)*1.2;
+    return bv-av;
+  });
+
+  let signed=0;
+  for(const p of available){
+    if(signed>=needed)break;
+    if(gmQuickSignV0913(p.id,1))signed++;
+  }
+
+  roster=teamRoster(team.name);
+  if(roster.length<min){
+    alert(`Basketballverse could only add ${signed} player${signed===1?"":"s"}. You still need ${min-roster.length} more.`);
+  }else{
+    alert(`${signed} player${signed===1?"":"s"} added. ${team.name} now has ${roster.length} players.`);
+  }
+  renderSimpleFreeAgencyV0913();
+}
+window.gmAutoFillMinimumV0913=gmAutoFillMinimumV0913;
+
+function faNeedLabelV0913(){
+  const team=gmTeamV084();
+  if(!team)return "";
+  const roster=teamRoster(team.name);
+  const min=gmMinimumRosterV0913();
+  const max=rosterLimitForYear(state.currentYear+1);
+  if(roster.length<min)return `<b class="statusOut">Need ${min-roster.length} more player${min-roster.length===1?"":"s"} to reach the minimum.</b>`;
+  if(roster.length<max)return `<b>${max-roster.length} roster spot${max-roster.length===1?"":"s"} available.</b>`;
+  return `<b>Roster is full.</b>`;
+}
+
+function renderSimpleFreeAgencyV0913(){
+  const host=document.getElementById("frontOfficeFreeAgencyV0895");
+  if(!host||!isHumanGMV084())return;
+  const team=gmTeamV084();
+  const roster=teamRoster(team.name);
+  const min=gmMinimumRosterV0913();
+  const max=rosterLimitForYear(state.currentYear+1);
+  const fas=gmFreeAgentsV085();
+
+  host.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team.name} · ${roster.length}/${max} players</b><br>
+      <span class="small">${faNeedLabelV0913()}</span>
+    </div>
+
+    ${roster.length<min?`
+      <button class="primary" style="width:100%;margin-bottom:12px" onclick="gmAutoFillMinimumV0913()">
+        Quick Fill to Minimum (${min})
+      </button>
+      <div class="small muted" style="margin:-5px 0 12px">
+        Adds value free agents on short contracts so you cannot get trapped with too few players.
+      </div>`:""}
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button onclick="renderSimpleFreeAgencyV0913()">Best Available</button>
+      ${state.offseason?.phase==="Roster Cuts"?`<button onclick="switchTab('rostercuts')">Back to Roster Cuts</button>`:""}
+    </div>
+
+    <div id="faCompactListV0913">
+      ${fas.slice(0,40).map(p=>`
+        <div class="teamrow" style="align-items:center">
+          <div class="teammeta">
+            <b>${p.name}</b>
+            <span class="small muted">${p.pos||"—"} · OVR ${p.ovr??"—"} · POT ${p.pot??"—"} · Ask ~$${gmFairSalaryV085(p).toFixed(1)}M</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="primary" onclick="gmQuickSignV0913('${String(p.id).replace(/'/g,"\\'")}',2)">Sign at Ask</button>
+            <button onclick="gmContractOfferV085('${String(p.id).replace(/'/g,"\\'")}','fa')">Custom</button>
+          </div>
+        </div>`).join("") || `<span class="muted">No free agents available.</span>`}
+    </div>
+  `;
+}
+window.renderSimpleFreeAgencyV0913=renderSimpleFreeAgencyV0913;
+
+function finishRosterCutsV0913(){
+  if(!isHumanGMV084())return;
+  const team=gmTeamV084();
+  const roster=teamRoster(team.name);
+  const min=gmMinimumRosterV0913();
+  const max=rosterLimitForYear(state.currentYear+1);
+
+  if(roster.length<min){
+    alert(`${team.name} has only ${roster.length} players. You need at least ${min} before continuing.`);
+    switchTab("freeagency");
+    return;
+  }
+  if(roster.length>max){
+    alert(`${team.name} has ${roster.length} players. Cut to ${max} before continuing.`);
+    return;
+  }
+
+  // We are legally through Roster Cuts. Advance exactly one stage.
+  if(state.offseason?.phase==="Roster Cuts"){
+    runRosterCutsAI();
+    refreshAllAIRotations();
+    const phases=state.offseason.phases||[];
+    const idx=phases.indexOf("Roster Cuts");
+    state.offseason.phaseIndex=idx>=0?idx+1:(state.offseason.phaseIndex+1);
+    state.offseason.phase=phases[state.offseason.phaseIndex]||"Next Season";
+    state.offseason.uiSelectedActivity=state.offseason.phase;
+    try{saveState();}catch(_){}
+    renderOffseason();
+    switchTab("offseason");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+}
+window.finishRosterCutsV0913=finishRosterCutsV0913;
+
+function renderSimpleRosterCutsV0913(){
+  const host=document.getElementById("frontOfficeRosterCutsV0895");
+  if(!host||!isHumanGMV084())return;
+  const team=gmTeamV084();
+  const roster=gmRosterSortedV085();
+  const min=gmMinimumRosterV0913();
+  const max=rosterLimitForYear(state.currentYear+1);
+
+  host.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team.name} · ${roster.length}/${max} players</b><br>
+      <span class="small">${roster.length<min
+        ? `You need ${min-roster.length} more player${min-roster.length===1?"":"s"} before opening night.`
+        : roster.length>max
+          ? `Cut ${roster.length-max} player${roster.length-max===1?"":"s"}.`
+          : `Roster is legal. You can continue to Next Season.`}</span>
+    </div>
+
+    ${roster.length<min?`
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="primary" onclick="switchTab('freeagency')">Return to Free Agency</button>
+        <button onclick="gmAutoFillMinimumV0913()">Quick Fill to Minimum (${min})</button>
+      </div>`:""}
+
+    ${roster.length>=min && roster.length<=max?`
+      <button class="primary" style="width:100%;margin-bottom:12px" onclick="finishRosterCutsV0913()">
+        Confirm Final Roster → Next Season
+      </button>`:""}
+
+    <div>
+      ${roster.map(p=>`
+        <div class="teamrow">
+          <div class="teammeta">
+            <b>${p.name}</b>
+            <span class="small muted">${p.pos||"—"} · OVR ${p.ovr??"—"} · ${gmPlayerContractTextV085(p)}</span>
+          </div>
+          <button ${roster.length<=min?"disabled":""} onclick="gmReleasePlayerV085('${String(p.id).replace(/'/g,"\\'")}');setTimeout(renderSimpleRosterCutsV0913,0)">Release</button>
+        </div>`).join("")}
+    </div>
+  `;
+}
+window.renderSimpleRosterCutsV0913=renderSimpleRosterCutsV0913;
+
+/* Dedicated Front Office pages now use the compact task-specific UI. */
+const _v0913StagePage=renderFrontOfficeStagePageV0895;
+renderFrontOfficeStagePageV0895=function(step,hostId){
+  if(step==="Free Agency" && state?.role==="GM"){
+    setTimeout(renderSimpleFreeAgencyV0913,0);
+    return;
+  }
+  if(step==="Roster Cuts" && state?.role==="GM"){
+    setTimeout(renderSimpleRosterCutsV0913,0);
+    return;
+  }
+  return _v0913StagePage.apply(this,arguments);
+};
+window.renderFrontOfficeStagePageV0895=renderFrontOfficeStagePageV0895;
+
+/* Fix the Re-sign Players route typo from the previous navigation patch. */
+goFrontOfficeV0912=function(step){
+  const map={"Draft":"draftroom","Free Agency":"freeagency","Re-signings":"resignplayers","Roster Cuts":"rostercuts"};
+  const tab=map[step];
+  if(!tab)return;
+  switchTab(tab);
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+window.goFrontOfficeV0912=goFrontOfficeV0912;
+
+/* Keep direct free-agency access available during Roster Cuts because a team
+   below the minimum roster must be able to sign players before it can advance. */
+const _v0913SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v0913SwitchTab.apply(this,arguments);
+  if(tab==="freeagency")setTimeout(renderSimpleFreeAgencyV0913,0);
+  if(tab==="rostercuts")setTimeout(renderSimpleRosterCutsV0913,0);
+  return r;
+};
+window.switchTab=switchTab;
 
 </script>
 </body>
