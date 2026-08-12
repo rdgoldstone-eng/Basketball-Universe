@@ -1,27 +1,18 @@
 Basketballverse
-v0.89.4 · Basketballverse Full Rename
+v0.89.5 · Front Office Subtabs
 
-NAME CHANGE
-All user-facing references to:
-- Basketball Universe
-- Basketball Universe League
+Front Office subtabs are now exactly:
+- Scouting
+- Draft Room
+- Trade Machine
+- Free Agency
+- Re-sign Players
+- Roster Cuts
 
-have been replaced with:
-- Basketballverse
-
-This includes the header, page title, generated text, history/newspaper labels,
-and other visible game text.
-
-SAVE COMPATIBILITY
-Legacy internal browser-storage/save keys are intentionally left unchanged.
-They are not visible to the player and changing them would risk making existing
-browser saves disappear.
-
-This build also includes the v0.89.3 fixes:
-- Objectives tab
-- Free Agency recap removed from actionable Decisions
-- global safeTransitionStep compatibility fix
-- dedicated offseason activity tabs
-- Next Season transition fixes
+Draft Room opens the real Draft Room.
+Free Agency opens the Free Agency management page.
+Re-sign Players opens the Re-signings management page.
+Roster Cuts opens the Roster Cuts management page.
+Trade Machine remains its dedicated page.
 
 Upload index.html and README.txt to the GitHub Pages repository root.
