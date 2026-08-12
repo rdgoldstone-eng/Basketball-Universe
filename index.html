@@ -466,7 +466,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.6 · Official Logo</div>
+    <div class="pill">v0.90.7 · Injury Decision Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1486,7 +1486,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.90.6";
+window.BASKETBALLVERSE_BUILD = "v0.90.7";
 </script>
 
 <script>
@@ -10307,7 +10307,7 @@ function maybeCreateRoleInjuryDecision(){
    text=`${hurt.name}'s injury could affect the season. What direction do you give basketball operations?`;
    choices=["Stay the course","Spend for help","Protect the long-term plan"];
  }
- if(choices.length)addRoleDecision(title,text,choices,{injuryEventId,playerId:hurt.id||null,decisionType:"injury"});
+ if(choices.length)addRoleDecision(title,text,choices,{injuryEventId:injuryKey,playerId:hurt.id||null,decisionType:"injury"});
 }
 function renderHealthCenter(){
  if(!state)return;ensureHealthSystem();
@@ -19010,7 +19010,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.90.6";
+      badge.textContent="Basketballverse v0.90.7";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19038,6 +19038,56 @@ document.addEventListener("click",function(){
 },true);
 
 setTimeout(enforceBuildIdentityV0904,50);
+
+
+
+/* === v0.90.7 Injury decision safety ===
+   Keep injury decisions from ever failing the season sim because of malformed
+   older injury state. */
+const _v0907MaybeCreateRoleInjuryDecision=maybeCreateRoleInjuryDecision;
+maybeCreateRoleInjuryDecision=function(){
+  try{
+    return _v0907MaybeCreateRoleInjuryDecision.apply(this,arguments);
+  }catch(e){
+    console.error("Injury decision creation warning",e);
+    try{
+      state.transitionErrors=Array.isArray(state.transitionErrors)?state.transitionErrors:[];
+      state.transitionErrors.push({
+        year:state.currentYear,
+        label:"injury decision",
+        error:String(e?.message||e)
+      });
+      saveState?.();
+    }catch(_){}
+    return null;
+  }
+};
+window.maybeCreateRoleInjuryDecision=maybeCreateRoleInjuryDecision;
+
+/* Keep the top dashboard role labels synchronized after a fresh universe is
+   created or loaded. */
+function syncRoleHeaderV0907(){
+  if(!state)return;
+  const role=state.role||"Viewer";
+  const team=state.controlledTeamId?teamById(state.controlledTeamId):null;
+  const rolePill=document.getElementById("rolePill");
+  const roleKpi=document.getElementById("roleKpi");
+  const teamKpi=document.getElementById("teamKpi");
+  if(rolePill)rolePill.textContent=role;
+  if(roleKpi)roleKpi.textContent=role;
+  if(teamKpi)teamKpi.textContent=team?.name||(role==="Viewer"||role==="Commissioner"?"Entire League":"No Team");
+}
+window.syncRoleHeaderV0907=syncRoleHeaderV0907;
+
+const _v0907RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0907RenderAll.apply(this,arguments);
+  setTimeout(syncRoleHeaderV0907,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(syncRoleHeaderV0907,100);
 
 </script>
 </body>
