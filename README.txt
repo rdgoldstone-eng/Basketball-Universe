@@ -1,27 +1,16 @@
 Basketballverse
-v0.91.5 · Start Menu Restore
-
-WHY THIS HAPPENED
-The prior builds never permanently changed the startup heading/logo in the base HTML.
-They relied on JavaScript after the page loaded to turn:
-"Create a Basketballverse"
-into:
-"Create Your Universe"
-and then insert the logo.
-
-That meant if startup rendering happened before that patch, the old heading and no logo
-could appear again.
+v0.91.6 · Saved Game Play Fix
 
 FIX
-- The startup logo is now written directly into the HTML.
-- The heading is now written directly into the HTML as:
-  Create Your Universe
-- The runtime helper remains only as a backup and will not duplicate the logo.
-- Removed the CSS rule that added its own white background behind the logo.
+- Rebuilt the saved-game Play action so dynamically rendered Play buttons always work.
+- Added a repair pass for older saves before opening them.
+- Missing/invalid controlled-team references are repaired when possible.
+- Missing arrays/history/offseason fields from older versions are initialized safely.
+- The game screen now opens even if a secondary page-render function throws an error.
+- If a specific screen fails after load, Basketballverse reports that error instead of making the Play button look dead.
+- Loaded saves open at their current simulation stage (season/playoffs/offseason/draft) when possible.
 
-NOTE
-The supplied logo file in this build is still the existing JPEG. A JPEG itself cannot
-contain transparency; replacing it with a transparent PNG can be done separately.
+This does NOT delete or recreate the user's existing save.
 
 FILES TO UPLOAD
 - index.html

@@ -489,7 +489,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.5 · Start Menu Restore</div>
+    <div class="pill">v0.91.6 · Saved Game Play Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1487,7 +1487,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.5";
+window.BASKETBALLVERSE_BUILD = "v0.91.6";
 </script>
 
 <script>
@@ -19012,7 +19012,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.5";
+      badge.textContent="Basketballverse v0.91.6";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20164,6 +20164,180 @@ setTimeout(()=>{
     saveState?.();
   }catch(e){console.warn("Age tracking init",e);}
 },200);
+
+
+
+/* === v0.91.6 Saved-game Play button/load hardening === */
+
+function repairLoadedUniverseV0916(s){
+  if(!s)return null;
+  s.teams=Array.isArray(s.teams)?s.teams:[];
+  s.players=Array.isArray(s.players)?s.players:[];
+  s.decisions=Array.isArray(s.decisions)?s.decisions:[];
+  s.news=Array.isArray(s.news)?s.news:[];
+  s.draftPicks=Array.isArray(s.draftPicks)?s.draftPicks:[];
+  s.currentYear=Number(s.currentYear||s.startYear||1976);
+  s.startYear=Number(s.startYear||s.currentYear||1976);
+  s.role=s.role||"Viewer";
+
+  if(!s.season)s.season={phase:"Regular Season",gamesPlayed:0};
+  if(!s.history)s.history={seasons:[],champions:[]};
+  if(!Array.isArray(s.history.seasons))s.history.seasons=[];
+  if(!Array.isArray(s.history.champions))s.history.champions=[];
+
+  if(s.controlledTeamId && !s.teams.some(t=>t?.id===s.controlledTeamId)){
+    const byName=s.controlledTeamName
+      ? s.teams.find(t=>t?.name===s.controlledTeamName)
+      : null;
+    s.controlledTeamId=byName?.id||null;
+  }
+
+  if(["GM","Coach","Owner","Player"].includes(s.role) && !s.controlledTeamId){
+    const viable=s.teams.find(t=>t?.id);
+    if(viable)s.controlledTeamId=viable.id;
+  }
+
+  if(s.offseason){
+    s.offseason.phases=Array.isArray(s.offseason.phases)?s.offseason.phases:[
+      "Awards","Retirements","Development","Draft Order","Draft",
+      "Re-signings","Free Agency","Roster Cuts","Next Season"
+    ];
+    if(!s.offseason.phase){
+      s.offseason.phase=s.offseason.phases[Math.max(0,Number(s.offseason.phaseIndex)||0)]||"Awards";
+    }
+  }
+
+  return s;
+}
+window.repairLoadedUniverseV0916=repairLoadedUniverseV0916;
+
+function showGameSafeV0916(){
+  /* Repair common old-save fields before any render path touches them. */
+  state=repairLoadedUniverseV0916(state);
+
+  try{repairHistoricalCrossroadIdentities?.();}catch(e){console.warn("crossroad repair",e);}
+  try{ensureLeagueRules?.();}catch(e){console.warn("rules repair",e);}
+  try{repairBrokenPlayerNames?.();}catch(e){console.warn("player-name repair",e);}
+  try{ensureSeasonNewspaperArchive?.();}catch(e){console.warn("newspaper repair",e);}
+  try{if(state.role!=="Commissioner")autoRealignLeague?.();}catch(e){console.warn("realignment repair",e);}
+  try{renderEraArchitecture?.();}catch(e){console.warn("era render",e);}
+  try{applyHistoricalIdentityAssets?.();}catch(e){console.warn("identity repair",e);}
+  try{initPlayersIfNeeded?.();}catch(e){console.warn("player init",e);}
+  try{initManagementIfNeeded?.();}catch(e){console.warn("management init",e);}
+  try{initFranchiseHealth?.();}catch(e){console.warn("franchise health init",e);}
+  try{ensureHistoricalCrossroads?.();}catch(e){console.warn("crossroads init",e);}
+  try{initExpansionBids?.();}catch(e){console.warn("expansion init",e);}
+  try{processPendingHistoricalExpansions?.();applyHistoricalIdentityAssets?.();}catch(e){console.warn("expansion repair",e);}
+
+  const setup=document.getElementById("setupView");
+  const game=document.getElementById("gameView");
+  if(setup)setup.classList.add("hidden");
+  if(game)game.classList.remove("hidden");
+
+  const controlled=state.controlledTeamId
+    ? state.teams.find(t=>t?.id===state.controlledTeamId)
+    : null;
+
+  const setText=(id,val)=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=val??"";
+  };
+
+  setText("rolePill",state.role);
+  setText("gameTitle",state.name||"Basketballverse");
+  setText("gameSubtitle",`A branching basketball timeline beginning with the ${eraInfoForYear(state.startYear)?.name||"Basketballverse era"} (${seasonLabelFromYear(state.startYear)}).`);
+  setText("yearKpi",seasonName());
+  setText("roleKpi",state.role);
+  setText("teamKpi",controlled?.name||(state.role==="Viewer"||state.role==="Commissioner"?"Entire League":"No Team"));
+  setText("decisionKpi",viewerMode()?0:(state.decisions||[]).filter(d=>!d?.resolved).length);
+
+  const assignmentEl=document.getElementById("assignmentText");
+  if(assignmentEl){
+    if(state.role==="Viewer"){
+      assignmentEl.innerHTML=`<b>League Viewer</b><div class="muted small">Spectate the entire universe using the normal simulation controls without decision stops.</div>`;
+    }else if(controlled){
+      assignmentEl.innerHTML=`${logoHTML(controlled)}<div style="margin-top:10px"><b>${controlled.name}</b><div class="muted small">${state.role}</div></div>`;
+    }else{
+      assignmentEl.innerHTML=`<b>League Office</b><div class="muted small">League-level control.</div>`;
+    }
+  }
+
+  const permissionsEl=document.getElementById("permissionsText");
+  if(permissionsEl){
+    const perms=(window.rolePermissions?.[state.role]||[]);
+    permissionsEl.innerHTML="<ul>"+perms.map(x=>`<li>${x}</li>`).join("")+"</ul>";
+  }
+
+  try{updateDraftRoomNav?.();}catch(e){console.warn("draft nav",e);}
+  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+
+  let target="season";
+  try{target=simulationLocationTab?.()||"season";}catch(_){}
+  const targetEl=document.getElementById(target)||document.getElementById("season");
+  targetEl?.classList.add("active");
+
+  try{updateNavigationForTab?.(targetEl?.id||"season");}catch(e){console.warn("navigation",e);}
+  try{refreshUniverseHeader?.();}catch(e){console.warn("header",e);}
+  try{updateSimulationLocationNav?.();}catch(e){console.warn("location nav",e);}
+
+  /* A secondary page-render bug should not make the Play button appear dead. */
+  try{
+    renderAll?.();
+  }catch(e){
+    console.error("Loaded universe render warning",e);
+    setTimeout(()=>{
+      alert(`Your universe loaded, but one screen hit an error: ${String(e?.message||e)}. The save itself is still open.`);
+    },50);
+  }
+
+  try{saveState?.();}catch(e){console.warn("post-load autosave",e);}
+  window.scrollTo({top:0,behavior:"auto"});
+}
+window.showGameSafeV0916=showGameSafeV0916;
+
+playSavedUniverse=function(saveId){
+  try{
+    const s=loadState(saveId);
+    if(!s){
+      alert("That saved universe could not be loaded. The save entry exists, but its stored game data could not be read.");
+      return;
+    }
+    state=repairLoadedUniverseV0916(s);
+    showGameSafeV0916();
+  }catch(e){
+    console.error("Saved universe Play error",e);
+    alert(`Could not open this saved universe: ${String(e?.message||e)}`);
+  }
+};
+window.playSavedUniverse=playSavedUniverse;
+
+/* Use delegated handlers too, so the Play buttons keep working after the
+   saved-game list is dynamically rebuilt. */
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-play-save-v0916]");
+  if(!btn)return;
+  e.preventDefault();
+  playSavedUniverse(btn.dataset.playSaveV0916);
+},true);
+
+savedUniverseRowHTML=function(x){
+  const when=x.updatedAt?new Date(x.updatedAt).toLocaleString():"Unknown";
+  const safeId=String(x.id||"").replace(/"/g,"&quot;");
+  return `<div class="savedUniverseRow">
+    <div class="savedUniverseMeta">
+      <div class="savedUniverseTitle">${x.name||"Basketballverse"}</div>
+      <div class="small muted">${x.season||""} · ${x.role||"Viewer"} · ${x.phase||"Season"}<br>Last saved ${when}</div>
+    </div>
+    <div class="savedUniverseActions">
+      <button class="primary" data-play-save-v0916="${safeId}">Play</button>
+      <button onclick="renameUniverseFromList('${String(x.id||"").replace(/'/g,"\\'")}')">Rename</button>
+      <button class="danger" onclick="deleteUniverseFromList('${String(x.id||"").replace(/'/g,"\\'")}')">Delete</button>
+    </div>
+  </div>`;
+};
+window.savedUniverseRowHTML=savedUniverseRowHTML;
+
+setTimeout(()=>{try{renderSavedUniverseLists?.();}catch(e){console.warn("saved list refresh",e);}},100);
 
 </script>
 </body>
