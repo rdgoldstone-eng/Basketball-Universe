@@ -452,12 +452,36 @@ pre{white-space:pre-wrap}
   }
 }
 
+
+/* v0.90.9 header text + startup logo */
+.basketballverseTextBrand{
+  font-weight:900;
+  letter-spacing:.04em;
+  font-size:24px;
+  line-height:1;
+  white-space:nowrap;
+}
+#startupBasketballverseLogoV0909{
+  display:block;
+  width:min(220px,58vw);
+  height:auto;
+  margin:0 auto 14px;
+  border-radius:18px;
+  background:#fff;
+}
+@media(max-width:700px){
+  .basketballverseTextBrand{font-size:20px}
+  #startupBasketballverseLogoV0909{width:min(190px,52vw)}
+}
+
 </style>
 </head>
 <body>
+<div id="gameTitle" style="display:none">Basketballverse</div>
+
 <div class="topbar">
   <div class="topinner">
-    <div class="brand basketballverseBrand"><img src="basketballverse-logo.jpg" alt="Basketballverse"></div>
+    <div class="brand basketballverseTextBrand">BASKETBALLVERSE</div>
     <div id="saveStatus" class="small muted">No universe loaded</div>
   </div>
 </div>
@@ -466,7 +490,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.7 · Injury Decision Fix</div>
+    <div class="pill">v0.90.9 · Header & Startup Logo</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1486,7 +1510,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.90.7";
+window.BASKETBALLVERSE_BUILD = "v0.90.9";
 </script>
 
 <script>
@@ -3402,7 +3426,7 @@ window.renameUniverseFromList=function(id){
  if(!item)return;
  const name=prompt("Rename this saved universe:",item.name||"Basketballverse");
  if(name==null)return;
- if(renameSavedUniverse(id,name)){renderSavedUniverseLists();if(state?.saveId===id){document.getElementById("gameTitle").textContent=state.name;saveState();}}
+ if(renameSavedUniverse(id,name)){renderSavedUniverseLists();if(state?.saveId===id){(document.getElementById("gameTitle")||{textContent:""}).textContent=state.name;saveState();}}
 };
 window.deleteUniverseFromList=function(id){
  const item=saveIndex().find(x=>x.id===id);
@@ -3708,7 +3732,7 @@ function showGame(){
  document.getElementById("setupView").classList.add("hidden");
  document.getElementById("gameView").classList.remove("hidden");
  document.getElementById("rolePill").textContent=state.role;
- document.getElementById("gameTitle").textContent=state.name;
+ (document.getElementById("gameTitle")||{textContent:""}).textContent=state.name;
  document.getElementById("gameSubtitle").textContent=`A branching basketball timeline beginning with the ${eraInfoForYear(state.startYear).name} (${seasonLabelFromYear(state.startYear)}).`;
  document.getElementById("yearKpi").textContent=seasonName();
  document.getElementById("roleKpi").textContent=state.role;
@@ -6182,7 +6206,7 @@ document.getElementById("renameSaveBtn")?.addEventListener("click",()=>{
  const name=prompt("Rename this universe:",state.name);
  if(name==null)return;
  state.name=name.trim()||state.name;
- document.getElementById("gameTitle").textContent=state.name;
+ (document.getElementById("gameTitle")||{textContent:""}).textContent=state.name;
  saveState();renderSavedUniverseLists();
 });
 document.getElementById("refreshSaveListBtn")?.addEventListener("click",renderSavedUniverseLists);
@@ -19010,7 +19034,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.90.7";
+      badge.textContent="Basketballverse v0.90.9";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19088,6 +19112,106 @@ renderAll=function(){
 window.renderAll=renderAll;
 
 setTimeout(syncRoleHeaderV0907,100);
+
+
+
+/* === v0.90.8 startup/header compatibility === */
+function ensureGameTitleCompatV0908(){
+  let el=document.getElementById("gameTitle");
+  if(!el){
+    el=document.createElement("div");
+    el.id="gameTitle";
+    el.style.display="none";
+    el.textContent="Basketballverse";
+    document.body.prepend(el);
+  }
+  return el;
+}
+window.ensureGameTitleCompatV0908=ensureGameTitleCompatV0908;
+
+function safeRefreshUniverseHeaderV0908(){
+  ensureGameTitleCompatV0908();
+  try{
+    if(typeof refreshUniverseHeader==="function"){
+      return refreshUniverseHeader();
+    }
+  }catch(e){
+    console.warn("Header refresh warning",e);
+    const status=document.getElementById("saveStatus");
+    if(status){
+      status.textContent=state
+        ? `Autosaved · ${state.name||"Basketballverse"}`
+        : "No universe loaded";
+    }
+  }
+}
+window.safeRefreshUniverseHeaderV0908=safeRefreshUniverseHeaderV0908;
+
+window.addEventListener("DOMContentLoaded",()=>{
+  try{
+    ensureGameTitleCompatV0908();
+    safeRefreshUniverseHeaderV0908();
+  }catch(e){
+    console.warn("Basketballverse startup compatibility",e);
+  }
+});
+
+setTimeout(()=>{
+  try{
+    ensureGameTitleCompatV0908();
+    if(typeof syncRoleHeaderV0907==="function")syncRoleHeaderV0907();
+  }catch(e){console.warn("v0.90.8 startup repair",e);}
+},50);
+
+
+
+/* === v0.90.9 Header & startup logo placement === */
+function placeStartupLogoV0909(){
+  const setup=document.getElementById("setupView")||document.querySelector(".setupView");
+  if(!setup)return;
+
+  const all=[...setup.querySelectorAll("h1,h2,h3,.sectionTitle,.cardTitle,*")];
+  let heading=all.find(el=>{
+    if(el.children.length)return false;
+    const t=(el.textContent||"").trim();
+    return /create a basketballverse|create a basketball universe/i.test(t);
+  });
+
+  if(heading){
+    heading.textContent="Create a League or Universe";
+    const card=heading.closest(".card,.panel,.setupCard")||heading.parentElement;
+    if(card && !card.querySelector("#startupBasketballverseLogoV0909")){
+      const img=document.createElement("img");
+      img.id="startupBasketballverseLogoV0909";
+      img.src="basketballverse-logo.jpg";
+      img.alt="Basketballverse";
+      card.insertBefore(img,heading);
+    }
+  }
+}
+window.placeStartupLogoV0909=placeStartupLogoV0909;
+
+function enforceTopTextBrandV0909(){
+  const brand=document.querySelector(".basketballverseTextBrand");
+  if(brand)brand.textContent="BASKETBALLVERSE";
+}
+window.enforceTopTextBrandV0909=enforceTopTextBrandV0909;
+
+const _v0909RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0909RenderAll.apply(this,arguments);
+  setTimeout(()=>{
+    enforceTopTextBrandV0909();
+    placeStartupLogoV0909();
+  },0);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(()=>{
+  enforceTopTextBrandV0909();
+  placeStartupLogoV0909();
+},100);
 
 </script>
 </body>

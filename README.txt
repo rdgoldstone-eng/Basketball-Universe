@@ -1,23 +1,12 @@
 Basketballverse
-v0.90.7 · Injury Decision Fix
+v0.90.9 · Header & Startup Logo
 
-BUG FROM SCREENSHOT
-ReferenceError: Can't find variable: injuryEventId
-
-CAUSE
-The injury decision system correctly created an injuryKey variable, but the
-final addRoleDecision() call accidentally referenced a nonexistent variable
-named injuryEventId instead of passing injuryKey into the injuryEventId field.
-
-FIX
-- Corrected injury decision metadata to:
-  injuryEventId: injuryKey
-- Added a safety wrapper so an injury-decision issue can be logged without
-  stopping the regular-season simulation.
-- Added a dashboard role sync so Role / Control labels cannot disagree after
-  a fresh universe or load.
-
-This build keeps the official Basketballverse logo.
+CHANGES
+- Top banner is text only again: BASKETBALLVERSE
+- Official Basketballverse logo moved to the startup/create-universe area
+- "Create a Basketballverse" becomes "Create a League or Universe"
+- Logo appears directly above that heading
+- Existing hidden gameTitle compatibility remains for older startup code
 
 FILES TO UPLOAD
 - index.html
