@@ -432,7 +432,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.1 · Menu Fix</div>
+    <div class="pill">v0.90.2 · Newspaper Archive Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -18697,6 +18697,226 @@ setTimeout(()=>{
     });
   }catch(e){console.error("v0.90.1 main nav repair",e);}
 },100);
+
+
+
+/* === v0.90.2 Newspaper completeness + archive repair ===
+   One completed season = one permanent Final Edition.
+   The paper is refreshed after the following offseason so draft, free agency,
+   retirements and franchise news are included before the new season begins. */
+
+function newspaperOffseasonNewsV0902(seasonYear){
+  const y=Number(seasonYear);
+  const next=y+1;
+  const news=(state.news||[]).filter(n=>Number(n.year)===y||Number(n.year)===next);
+
+  const pick=(rx,limit=6)=>news
+    .filter(n=>rx.test(`${n.title||""} ${n.text||""}`))
+    .map(n=>`${n.title||""}${n.text?`: ${n.text}`:""}`)
+    .filter(Boolean)
+    .filter((v,i,a)=>a.indexOf(v)===i)
+    .slice(0,limit);
+
+  return {
+    transactions:pick(/trade|sign|free agent|free agency|contract|re-sign/i,8),
+    retirements:pick(/retir/i,6),
+    franchise:pick(/relocat|expansion|rebrand|identity|arena|ownership|franchise|realign/i,8)
+  };
+}
+
+function buildCompleteNewspaperV0902(year){
+  const y=Number(year);
+  try{ensureLeagueHistory?.();ensureDraftHistory?.();ensureHistoryLedgerV083?.();}catch(_){}
+
+  const season=(state.history?.seasons||[]).find(s=>Number(s.year)===y);
+  if(!season)return null;
+
+  const draft=(state.draftHistory||[]).find(d=>Number(d.year)===y+1);
+  const results=(draft?.results||[]).slice().sort((a,b)=>Number(a.pick)-Number(b.pick));
+  const topPick=results[0]||null;
+  const topFive=results.slice(0,5).map(r=>({
+    pick:Number(r.pick)||0,
+    player:r.playerName||r.player||"Unknown",
+    team:r.teamName||r.team||"Unknown"
+  }));
+
+  const off=newspaperOffseasonNewsV0902(y);
+  const changes=[
+    ...(majorSeasonChangesForNewspaper?.(y)||[]),
+    ...off.franchise
+  ].filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,10);
+
+  return {
+    year:y,
+    seasonLabel:`${y}-${String((y+1)%100).padStart(2,"0")}`,
+    era:eraInfoForYear?.(y)?.name||"",
+    champion:season.champion||"—",
+    runnerUp:season.runnerUp||null,
+    finalsMvp:season.finalsMvp||null,
+    awards:{
+      mvp:season.mvp||null,
+      rookie:season.rookie||null,
+      dpoy:season.dpoy||null,
+      sixth:season.sixth||null
+    },
+    topPick:topPick?{
+      player:topPick.playerName||topPick.player||"Unknown",
+      team:topPick.teamName||topPick.team||"Unknown",
+      pick:Number(topPick.pick)||1,
+      round:Number(topPick.round)||1
+    }:null,
+    topFive,
+    changes,
+    transactions:off.transactions,
+    retirements:off.retirements,
+    standings:(state.historyLedger?.franchises||[])
+      .filter(r=>Number(r.year)===y)
+      .sort((a,b)=>Number(b.w||b.wins||0)-Number(a.w||a.wins||0))
+      .slice(0,5)
+      .map(r=>`${r.teamName||r.team||"Team"} ${r.w??r.wins??0}-${r.l??r.losses??0}`)
+  };
+}
+window.buildCompleteNewspaperV0902=buildCompleteNewspaperV0902;
+
+function storeCompleteNewspaperV0902(year){
+  const p=buildCompleteNewspaperV0902(year);
+  if(!p)return null;
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  const i=state.seasonNewspapers.findIndex(x=>Number(x.year)===Number(p.year));
+  if(i>=0)state.seasonNewspapers[i]=p; else state.seasonNewspapers.push(p);
+  state.seasonNewspapers.sort((a,b)=>Number(a.year)-Number(b.year));
+  state.latestSeasonNewspaper=state.seasonNewspapers[state.seasonNewspapers.length-1]||p;
+  try{permanentlyStoreNewspaperV08215?.(p);}catch(_){}
+  try{writeHistoryLedgerV083?.();}catch(_){}
+  return p;
+}
+window.storeCompleteNewspaperV0902=storeCompleteNewspaperV0902;
+
+/* Rebuild EVERY completed season, not only the latest one. This repairs saves
+   where an earlier paper disappeared. */
+function repairAllNewspapersV0902(){
+  try{mergeHistoryLedgerV083?.();ensureLeagueHistory?.();}catch(_){}
+  state.seasonNewspapers=Array.isArray(state.seasonNewspapers)?state.seasonNewspapers:[];
+  const years=[...(state.history?.seasons||[])]
+    .map(s=>Number(s.year))
+    .filter(Number.isFinite)
+    .sort((a,b)=>a-b);
+
+  years.forEach(y=>storeCompleteNewspaperV0902(y));
+  try{saveState?.();}catch(_){}
+  return years.length;
+}
+window.repairAllNewspapersV0902=repairAllNewspapersV0902;
+
+/* Richer newspaper layout. */
+const _v0902SeasonNewspaperHTML=seasonNewspaperHTML;
+seasonNewspaperHTML=function(p){
+  if(!p)return "";
+  // Upgrade old archived paper objects from canonical history when possible.
+  const full=buildCompleteNewspaperV0902(p.year);
+  if(full)p={...p,...full};
+
+  const team=state.teams.find(t=>t.name===p.champion)||
+    state.teams.find(t=>(t.identityHistory||[]).some(h=>h.name===p.champion))||
+    {name:p.champion};
+
+  const story=(title,items,empty)=>`<div class="newspaperStory"><h3>${title}</h3>${
+    items?.length?items.map(x=>`<div style="margin-bottom:7px">• ${x}</div>`).join(""):`<span class="muted">${empty}</span>`
+  }</div>`;
+
+  const draftLines=(p.topFive||[]).map(x=>`#${x.pick} ${x.player} — ${x.team}`);
+  const changes=p.changes||[];
+
+  return `<div class="newspaper">
+    <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel} Final Edition · ${p.era||eraInfoForYear(p.year).name}</div><h2>Basketballverse Chronicle</h2></div>
+    <div class="newspaperHeadline">${p.champion} Rule the Basketball World</div>
+    <div class="newspaperDeck">${p.runnerUp?`${p.champion} defeat ${p.runnerUp} for the championship.`:"A new champion is crowned."}${p.finalsMvp?` ${p.finalsMvp} earns Finals MVP.`:""} The offseason is complete and the league is ready for ${Number(p.year)+1}-${String((Number(p.year)+2)%100).padStart(2,"0")}.</div>
+    <div class="newspaperChampion">${logoHTML(team)}<div><b style="font-size:20px">${p.champion}</b><div>${p.seasonLabel} League Champions</div></div></div>
+    <div class="newspaperGrid" style="margin-top:16px">
+      <div class="newspaperStory"><h3>Awards Desk</h3>
+        <div><b>MVP:</b> ${p.awards?.mvp||"—"}</div>
+        <div><b>Rookie of the Year:</b> ${p.awards?.rookie||"—"}</div>
+        <div><b>Defensive Player:</b> ${p.awards?.dpoy||"—"}</div>
+        <div><b>Sixth Man:</b> ${p.awards?.sixth||"—"}</div>
+      </div>
+      ${story("Draft Board",draftLines,"Draft results were not available when this edition was printed.")}
+      ${story("Free Agency & Transactions",p.transactions,"No major player movement was recorded.")}
+      ${story("Retirement Desk",p.retirements,"No major retirements were recorded.")}
+      ${story("Franchise Desk",changes,"No major franchise changes this season.")}
+      ${story("Top Regular-Season Records",p.standings,"Final team records are available in Season History.")}
+      <div class="newspaperStory"><h3>League Alignment</h3>${conferenceBalanceText()}<br><span class="small">Playoff field: ${playoffFormatForYear(p.year).teamsPerConference*2} teams · First round best-of-${playoffFormatForYear(p.year).firstRoundBestOf}${playInFormatForYear(p.year).type!=="none"?" · Play-In determines final seeds":""}</span></div>
+    </div>
+  </div>`;
+};
+window.seasonNewspaperHTML=seasonNewspaperHTML;
+
+/* Archive page now renders directly into the new History > Newspapers page
+   instead of copying a possibly stale/empty hidden archive. */
+function renderNewspapersPageV0902(){
+  repairAllNewspapersV0902();
+  const host=document.getElementById("newspapersBodyV090");
+  if(!host)return;
+
+  const papers=(state.seasonNewspapers||[]).slice().sort((a,b)=>Number(b.year)-Number(a.year));
+  if(!papers.length){
+    host.innerHTML=`<div class="notice">No completed-season newspapers yet.</div>`;
+    return;
+  }
+
+  const selected=Number(state.uiNewspaperYearV0902||papers[0].year);
+  const paper=papers.find(p=>Number(p.year)===selected)||papers[0];
+  state.uiNewspaperYearV0902=paper.year;
+
+  host.innerHTML=`
+    <div class="card">
+      <div class="calendarline">
+        <div><b>Newspaper Archive</b><div class="small muted">${papers.length} saved edition${papers.length===1?"":"s"}</div></div>
+        <select id="newspaperSelectV0902" onchange="state.uiNewspaperYearV0902=Number(this.value);renderNewspapersPageV0902()">
+          ${papers.map(p=>`<option value="${p.year}" ${Number(p.year)===Number(paper.year)?"selected":""}>${p.seasonLabel}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    ${seasonNewspaperHTML(paper)}`;
+}
+window.renderNewspapersPageV0902=renderNewspapersPageV0902;
+
+const _v0902SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v0902SwitchTab.apply(this,arguments);
+  if(tab==="newspapers")setTimeout(()=>renderNewspapersPageV0902(),0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Refresh the outgoing season's paper AFTER the draft/free-agency offseason,
+   immediately before the new season transition. */
+const _v0902BeginNextSeason=beginNextSeasonDirectV0892;
+beginNextSeasonDirectV0892=function(){
+  const outgoing=Number(state.currentYear);
+  try{storeCompleteNewspaperV0902(outgoing);}catch(e){console.warn("Final newspaper refresh",e);}
+  const r=_v0902BeginNextSeason.apply(this,arguments);
+  try{
+    repairAllNewspapersV0902();
+    // Preserve the outgoing paper as the opening paper for the new year.
+    const p=(state.seasonNewspapers||[]).find(x=>Number(x.year)===outgoing);
+    if(p){
+      state.latestSeasonNewspaper=p;
+      state.seasonNewspaper=state.seasonNewspaper||{};
+      state.seasonNewspaper.paperYear=outgoing;
+    }
+    saveState?.();
+  }catch(e){console.warn("Post-transition newspaper repair",e);}
+  return r;
+};
+window.beginNextSeasonDirectV0892=beginNextSeasonDirectV0892;
+
+/* Repair immediately on load, including existing two-season test saves. */
+setTimeout(()=>{
+  try{
+    repairAllNewspapersV0902();
+    if(document.getElementById("newspapers")?.classList.contains("active"))renderNewspapersPageV0902();
+  }catch(e){console.error("v0.90.2 newspaper repair",e);}
+},250);
 
 </script>
 </body>
