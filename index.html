@@ -489,7 +489,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.10 · Clean Save Loader</div>
+    <div class="pill">v0.91.11 · Startup Script Crash Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1487,7 +1487,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.10";
+window.BASKETBALLVERSE_BUILD = "v0.91.11";
 </script>
 
 <script>
@@ -4081,12 +4081,12 @@ function renderPlayerCareer(){
  if(state.role!=="Player"){card.classList.add("hidden");return}
  card.classList.remove("hidden");initPlayerCareer();
  let pc=state.playerCareer,p=playerCareerPlayer();
- document.getElementById("playerCareerName").textContent=p?.name||"Player Career";
- document.getElementById("playerCareerTeam").textContent=p?.teamName||"Free Agent";
- document.getElementById("pcDevelopment").textContent=pc.development;
- document.getElementById("pcEnergy").textContent=pc.energy;
- document.getElementById("pcChemistry").textContent=pc.chemistry;
- document.getElementById("pcReputation").textContent=pc.reputation;
+ if(document.getElementById("playerCareerName"))document.getElementById("playerCareerName").textContent=p?.name||"Player Career";
+ if(document.getElementById("playerCareerTeam"))document.getElementById("playerCareerTeam").textContent=p?.teamName||"Free Agent";
+ if(document.getElementById("pcDevelopment"))document.getElementById("pcDevelopment").textContent=pc.development;
+ if(document.getElementById("pcEnergy"))document.getElementById("pcEnergy").textContent=pc.energy;
+ if(document.getElementById("pcChemistry"))document.getElementById("pcChemistry").textContent=pc.chemistry;
+ if(document.getElementById("pcReputation"))document.getElementById("pcReputation").textContent=pc.reputation;
  let d=createPlayerDecision(),box=document.getElementById("playerDecisionBox");
  box.innerHTML=d?`<div class="decision"><h3>${d.title}</h3><p class="muted">${d.text}</p><div class="choicebar">${d.options.map(o=>`<button onclick="choosePlayerDecision('${o.id}')">${o.label}</button>`).join("")}</div>${pc.lastChoice?`<div class="small muted" style="margin-top:8px">Last choice: ${pc.lastChoice.label}</div>`:""}</div>`:"";
 }
@@ -7049,14 +7049,14 @@ function renderOffseason(){
  let rs=state.offseason?.reSignResults||[];
  if(state.offseason?.phase==="Re-signings"&&document.getElementById("offseasonDetailBox"))document.getElementById("offseasonDetailBox").innerHTML=rs.length?rs.map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join(""):`<span class="muted">Re-signing decisions are being handled by each front office.</span>`;
  let dr=state.offseason?.draftResults||[];
- document.getElementById("draftResults").innerHTML=dr.length?dr.map(r=>`<div class="teamrow"><div class="teammeta"><b>#${r.pick} ${r.player}</b><span class="small muted">${r.team} · ${r.pos}</span></div></div>`).join(""):"The draft has not started.";
+ if(document.getElementById("draftResults"))document.getElementById("draftResults").innerHTML=dr.length?dr.map(r=>`<div class="teamrow"><div class="teammeta"><b>#${r.pick} ${r.player}</b><span class="small muted">${r.team} · ${r.pos}</span></div></div>`).join(""):"The draft has not started.";
  let fa=state.offseason?.freeAgents||[];
  let far=state.offseason?.faResults||[];
- if(far.length)document.getElementById("freeAgencyBox").innerHTML=far.map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join("");
- else if(fa.length)document.getElementById("freeAgencyBox").innerHTML=fa.map(id=>{let p=playerById(id);return p?`<div class="teamrow"><div class="teammeta"><b>${p.name}</b><span class="small muted">${p.teamName} · ${p.faStatus||"Free Agent"}</span></div></div>`:""}).join("");
- else document.getElementById("freeAgencyBox").textContent="Free agency opens after the draft.";
+ if(far.length&&document.getElementById("freeAgencyBox"))document.getElementById("freeAgencyBox").innerHTML=far.map(x=>`<div class="teamrow"><div class="teammeta">${x}</div></div>`).join("");
+ else if(fa.length&&document.getElementById("freeAgencyBox"))document.getElementById("freeAgencyBox").innerHTML=fa.map(id=>{let p=playerById(id);return p?`<div class="teamrow"><div class="teammeta"><b>${p.name}</b><span class="small muted">${p.teamName} · ${p.faStatus||"Free Agent"}</span></div></div>`:""}).join("");
+ else if(document.getElementById("freeAgencyBox"))document.getElementById("freeAgencyBox").textContent="Free agency opens after the draft.";
 }
-document.getElementById("advanceOffseasonBtn").onclick=advanceOffseason;
+if(document.getElementById("advanceOffseasonBtn"))document.getElementById("advanceOffseasonBtn").onclick=advanceOffseason;
 
 
 
@@ -19012,7 +19012,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.10";
+      badge.textContent="Basketballverse v0.91.11";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20333,6 +20333,28 @@ setTimeout(()=>{
     console.error("Clean saved list init",e);
   }
 },0);
+
+
+
+/* === v0.91.11 startup proof-of-life ===
+   If this runs, the complete script reached the end successfully. */
+window.BASKETBALLVERSE_SCRIPT_READY=true;
+
+function markScriptReadyV09111(){
+  try{
+    const badge=document.getElementById("buildBadgeV0904");
+    if(badge){
+      badge.textContent="Basketballverse v0.91.11";
+      badge.title="Game script loaded completely";
+    }
+    const load=document.getElementById("loadBtn");
+    const create=document.getElementById("createBtn");
+    if(load)load.dataset.scriptReady="true";
+    if(create)create.dataset.scriptReady="true";
+  }catch(e){console.warn("script ready marker",e);}
+}
+window.markScriptReadyV09111=markScriptReadyV09111;
+setTimeout(markScriptReadyV09111,0);
 
 </script>
 </body>
