@@ -490,7 +490,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.1 · Offseason Checklist Cleanup</div>
+    <div class="pill">v0.91.2 · Offseason Navigation Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1510,7 +1510,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.1";
+window.BASKETBALLVERSE_BUILD = "v0.91.2";
 </script>
 
 <script>
@@ -19035,7 +19035,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.1";
+      badge.textContent="Basketballverse v0.91.2";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19649,6 +19649,111 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.91.1 offseason cleanup init",e);}
 },150);
+
+
+
+/* === v0.91.2 Offseason navigation cleanup === */
+function goFrontOfficeV0912(step){
+  const map={"Draft":"draftroom","Free Agency":"freeagency","Re-signings":"resign","Roster Cuts":"rostercuts"};
+  const tab=map[step];
+  if(!tab)return;
+  switchTab(tab);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+window.goFrontOfficeV0912=goFrontOfficeV0912;
+
+renderOffseasonSelectedDetailV0911=function(step){
+  const title=document.getElementById("offseasonSelectedTitleV0911");
+  const body=document.getElementById("offseasonSelectedDetailV0911");
+  const action=document.getElementById("offseasonPrimaryActionV0911");
+  if(!body||!action)return;
+  if(title)title.textContent=step;
+
+  let detail="";
+  try{ if(typeof offseasonStageDetailV0822==="function")detail=offseasonStageDetailV0822(step); }
+  catch(e){ detail=`<div class="notice danger">${String(e?.message||e)}</div>`; }
+
+  const wrap=document.createElement("div");
+  wrap.innerHTML=String(detail||"");
+
+  [...wrap.querySelectorAll("button,a")].forEach(el=>{
+    const t=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+    if(t.includes("open draft room")||t.includes("open free agency")||t.includes("open re-sign")||t.includes("open resign")||t.includes("open roster cuts")) el.remove();
+  });
+
+  [...wrap.querySelectorAll(".card,.notice,section")].forEach(el=>{
+    const t=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+    if(t.startsWith("offseason hub")||t.includes("opening-night checklist")||t.includes("opening night checklist")||t.startsWith("draft results")||t.startsWith("free agency recap")||t.startsWith("free agency summary")) el.remove();
+  });
+
+  [...wrap.querySelectorAll("table")].forEach(table=>{
+    const holder=document.createElement("div");
+    holder.style.cssText="max-height:260px;overflow:auto;-webkit-overflow-scrolling:touch";
+    table.parentNode.insertBefore(holder,table);
+    holder.appendChild(table);
+  });
+
+  body.innerHTML=wrap.innerHTML;
+
+  const current=state.offseason.phase;
+  if(step!==current){
+    action.innerHTML=`<div class="small muted">Review only. Current task: <b>${current}</b>.</div>`;
+    return;
+  }
+
+  const launch={"Draft":"Open Draft Room","Free Agency":"Open Free Agency","Re-signings":"Open Re-sign Players","Roster Cuts":"Open Roster Cuts"};
+  if(launch[step]){
+    const btn=`<button class="primary" id="offseasonTaskLaunchV0912">${launch[step]}</button>`;
+    action.innerHTML=btn;
+    const top=document.createElement("div");
+    top.id="offseasonTopActionV0912";
+    top.style.marginBottom="10px";
+    top.innerHTML=btn.replace('id="offseasonTaskLaunchV0912"','id="offseasonTopLaunchV0912"');
+    body.parentNode.insertBefore(top,body);
+    const go=()=>goFrontOfficeV0912(step);
+    document.getElementById("offseasonTaskLaunchV0912")?.addEventListener("click",go);
+    document.getElementById("offseasonTopLaunchV0912")?.addEventListener("click",go);
+    return;
+  }
+
+  const labels={
+    "Awards":"Complete Awards → Retirements",
+    "Retirements":"Complete Retirements → Development",
+    "Development":"Complete Development → Draft Order",
+    "Draft Order":"Complete Draft Order → Draft",
+    "Next Season":"Start Next Season"
+  };
+  action.innerHTML=`<button class="primary" id="offseasonAdvanceV0912">${labels[step]||"Continue Offseason"}</button>`;
+  document.getElementById("offseasonAdvanceV0912")?.addEventListener("click",()=>{
+    if(step==="Next Season" && typeof startNextSeasonV0892==="function") startNextSeasonV0892();
+    else advanceOffseason();
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+};
+window.renderOffseasonSelectedDetailV0911=renderOffseasonSelectedDetailV0911;
+
+const _v0912Checklist=renderOffseasonChecklistOnlyV0911;
+renderOffseasonChecklistOnlyV0911=function(){
+  document.querySelectorAll("#offseasonTopActionV0912").forEach(n=>n.remove());
+  _v0912Checklist.apply(this,arguments);
+  const list=document.getElementById("offseasonChecklistV0911");
+  if(list){
+    list.style.display="grid";
+    list.style.gridTemplateColumns="repeat(auto-fit,minmax(120px,1fr))";
+    list.style.gap="6px";
+  }
+};
+window.renderOffseasonChecklistOnlyV0911=renderOffseasonChecklistOnlyV0911;
+
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("button,a");
+  if(!btn)return;
+  const t=(btn.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+  if(t==="open free agency"){e.preventDefault();e.stopImmediatePropagation();goFrontOfficeV0912("Free Agency");}
+  if(t==="open draft room"){e.preventDefault();e.stopImmediatePropagation();goFrontOfficeV0912("Draft");}
+  if(t.includes("open re-sign")||t.includes("open resign")){e.preventDefault();e.stopImmediatePropagation();goFrontOfficeV0912("Re-signings");}
+  if(t==="open roster cuts"){e.preventDefault();e.stopImmediatePropagation();goFrontOfficeV0912("Roster Cuts");}
+},true);
 
 </script>
 </body>
