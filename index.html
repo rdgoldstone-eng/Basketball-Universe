@@ -422,10 +422,42 @@ pre{white-space:pre-wrap}
   #history select,#newspaperArchiveSeason{max-width:100%;width:100%}
 }
 
+
+
+/* v0.90.6 official Basketballverse logo */
+.basketballverseBrand{
+  display:flex;
+  align-items:center;
+  flex:0 0 auto;
+}
+.basketballverseBrand img{
+  display:block;
+  width:auto;
+  height:72px;
+  max-width:190px;
+  object-fit:contain;
+  background:#fff;
+  border-radius:10px;
+}
+@media(max-width:700px){
+  .topinner{padding:8px 12px}
+  .basketballverseBrand img{
+    height:58px;
+    max-width:145px;
+    border-radius:8px;
+  }
+  #saveStatus{
+    text-align:right;
+    max-width:55%;
+  }
+}
+
 </style>
 </head>
 <body>
-<div class="topbar">BASKETBALLVERSE</div>
+<div class="topbar">
+  <div class="topinner">
+    <div class="brand basketballverseBrand"><img src="basketballverse-logo.jpg" alt="Basketballverse"></div>
     <div id="saveStatus" class="small muted">No universe loaded</div>
   </div>
 </div>
@@ -434,7 +466,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.5 · Header Rename Fix</div>
+    <div class="pill">v0.90.6 · Official Logo</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1454,7 +1486,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.90.4";
+window.BASKETBALLVERSE_BUILD = "v0.90.6";
 </script>
 
 <script>
@@ -18971,15 +19003,14 @@ function enforceBuildIdentityV0904(){
     document.querySelectorAll("body *").forEach(el=>{
       if(el.children.length)return;
       const t=(el.textContent||"").trim();
-      if(/^BASKETBALL UNIVERSE(?: LEAGUE)?$/i.test(t))el.textContent="BASKETBALLVERSE";
-      if(/^Basketball Universe(?: League)?$/i.test(t))el.textContent="Basketballverse";
+      
     });
 
     let badge=document.getElementById("buildBadgeV0904");
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.90.4";
+      badge.textContent="Basketballverse v0.90.6";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -19007,49 +19038,6 @@ document.addEventListener("click",function(){
 },true);
 
 setTimeout(enforceBuildIdentityV0904,50);
-
-
-
-/* === v0.90.5 Header rename fix ===
-   The old header was split across multiple elements ("BASKETBALL" and "UNIVERSE"),
-   so previous whole-string replacements could not see it. */
-function fixBasketballverseHeaderV0905(){
-  try{
-    document.title="Basketballverse";
-
-    // Find compact header/logo containers whose combined visible text is the old brand.
-    const candidates=[...document.querySelectorAll("header, .header, .brand, .logo, .masthead, #header, #appHeader, body > div")];
-    candidates.forEach(el=>{
-      const text=(el.innerText||el.textContent||"").replace(/\s+/g," ").trim().toUpperCase();
-      if(text==="BASKETBALL UNIVERSE" || text==="BASKETBALL UNIVERSE LEAGUE"){
-        el.innerHTML='<span>BASKETBALLVERSE</span>';
-      }
-    });
-
-    // Also handle the exact split sibling case without destroying surrounding header UI.
-    const leaves=[...document.querySelectorAll("span,div,strong,b,h1,h2")].filter(el=>el.children.length===0);
-    leaves.forEach(el=>{
-      const t=(el.textContent||"").trim().toUpperCase();
-      if(t!=="BASKETBALL")return;
-      let next=el.nextElementSibling;
-      if(next && /^(UNIVERSE|UNIVERSE LEAGUE)$/.test((next.textContent||"").trim().toUpperCase())){
-        el.textContent="BASKETBALLVERSE";
-        next.remove();
-      }
-    });
-  }catch(e){console.warn("Header rename fix",e);}
-}
-window.fixBasketballverseHeaderV0905=fixBasketballverseHeaderV0905;
-
-const _v0905RenderAll=renderAll;
-renderAll=function(){
-  const r=_v0905RenderAll.apply(this,arguments);
-  setTimeout(fixBasketballverseHeaderV0905,0);
-  return r;
-};
-window.renderAll=renderAll;
-
-setTimeout(fixBasketballverseHeaderV0905,50);
 
 </script>
 </body>
