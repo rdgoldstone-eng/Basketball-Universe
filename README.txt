@@ -1,10 +1,17 @@
 Basketballverse
-v0.90.3 · Startup Cleanup
+v0.90.5 · Header Rename Fix
 
-CHANGE
-- Removed the Era Guide from the startup/create-universe screen.
-- Added a cleanup pass so dynamically rendered Era Guide remnants are removed too.
+FIX
+The top game logo/banner was built as separate elements:
+BASKETBALL
+UNIVERSE
 
-No gameplay systems were changed.
+That is why earlier replacements of the phrase "Basketball Universe" did not
+change the visible header.
 
-Upload index.html and README.txt to the GitHub Pages repository root.
+This build explicitly handles the split header markup and changes it to:
+BASKETBALLVERSE
+
+The document title and dynamic rerenders are also corrected.
+
+Legacy internal save keys remain unchanged for compatibility.

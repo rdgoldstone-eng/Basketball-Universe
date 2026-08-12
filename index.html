@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Basketballverse</title>
@@ -421,9 +425,7 @@ pre{white-space:pre-wrap}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topinner">
-    <div class="brand">BASKETBALL <span>UNIVERSE</span></div>
+<div class="topbar">BASKETBALLVERSE</div>
     <div id="saveStatus" class="small muted">No universe loaded</div>
   </div>
 </div>
@@ -432,7 +434,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.90.3 · Startup Cleanup</div>
+    <div class="pill">v0.90.5 · Header Rename Fix</div>
     <h1 style="margin-top:10px">Create a Basketballverse</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
 
@@ -1428,6 +1430,32 @@ pre{white-space:pre-wrap}
 </section>
 
 </div>
+
+
+<script id="basketballverseBootstrapV0904">
+/* Basketballverse v0.90.4 bootstrap compatibility layer.
+   This executes before the main game script so legacy code can safely call
+   safeTransitionStep during any later season milestone. */
+window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
+  try{
+    return (typeof fn==="function") ? fn() : null;
+  }catch(err){
+    try{
+      window.__basketballverseBootstrapErrors = window.__basketballverseBootstrapErrors || [];
+      window.__basketballverseBootstrapErrors.push({
+        label:String(label||"transition"),
+        error:String(err && err.message ? err.message : err),
+        time:Date.now()
+      });
+      console.warn("Basketballverse safe step failed:",label,err);
+    }catch(_){}
+    return null;
+  }
+};
+/* Global-var compatibility for older non-window references. */
+var safeTransitionStep = window.safeTransitionStep;
+window.BASKETBALLVERSE_BUILD = "v0.90.4";
+</script>
 
 <script>
 const historical1976 = [
@@ -18933,6 +18961,95 @@ renderAll=function(){
 window.renderAll=renderAll;
 
 setTimeout(removeStartupEraGuideV0903,100);
+
+
+
+/* === v0.90.4 Visible build / stale-cache detection === */
+function enforceBuildIdentityV0904(){
+  try{
+    document.title="Basketballverse";
+    document.querySelectorAll("body *").forEach(el=>{
+      if(el.children.length)return;
+      const t=(el.textContent||"").trim();
+      if(/^BASKETBALL UNIVERSE(?: LEAGUE)?$/i.test(t))el.textContent="BASKETBALLVERSE";
+      if(/^Basketball Universe(?: League)?$/i.test(t))el.textContent="Basketballverse";
+    });
+
+    let badge=document.getElementById("buildBadgeV0904");
+    if(!badge){
+      badge=document.createElement("div");
+      badge.id="buildBadgeV0904";
+      badge.textContent="Basketballverse v0.90.4";
+      badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
+      document.body.appendChild(badge);
+    }
+  }catch(e){console.warn("Build identity error",e);}
+}
+window.enforceBuildIdentityV0904=enforceBuildIdentityV0904;
+
+/* Redefine the helper again after the game loads, so no later local wrapper can
+   remove the global compatibility function. */
+window.safeTransitionStep=window.safeTransitionStep||function(label,fn){
+  try{return typeof fn==="function"?fn():null;}
+  catch(err){console.warn("Basketballverse safe step:",label,err);return null;}
+};
+try{safeTransitionStep=window.safeTransitionStep;}catch(_){}
+
+/* If the page somehow reaches a season action without the helper, self-heal. */
+document.addEventListener("click",function(){
+  if(typeof window.safeTransitionStep!=="function"){
+    window.safeTransitionStep=function(label,fn){
+      try{return typeof fn==="function"?fn():null;}
+      catch(err){console.warn(label,err);return null;}
+    };
+    try{safeTransitionStep=window.safeTransitionStep;}catch(_){}
+  }
+},true);
+
+setTimeout(enforceBuildIdentityV0904,50);
+
+
+
+/* === v0.90.5 Header rename fix ===
+   The old header was split across multiple elements ("BASKETBALL" and "UNIVERSE"),
+   so previous whole-string replacements could not see it. */
+function fixBasketballverseHeaderV0905(){
+  try{
+    document.title="Basketballverse";
+
+    // Find compact header/logo containers whose combined visible text is the old brand.
+    const candidates=[...document.querySelectorAll("header, .header, .brand, .logo, .masthead, #header, #appHeader, body > div")];
+    candidates.forEach(el=>{
+      const text=(el.innerText||el.textContent||"").replace(/\s+/g," ").trim().toUpperCase();
+      if(text==="BASKETBALL UNIVERSE" || text==="BASKETBALL UNIVERSE LEAGUE"){
+        el.innerHTML='<span>BASKETBALLVERSE</span>';
+      }
+    });
+
+    // Also handle the exact split sibling case without destroying surrounding header UI.
+    const leaves=[...document.querySelectorAll("span,div,strong,b,h1,h2")].filter(el=>el.children.length===0);
+    leaves.forEach(el=>{
+      const t=(el.textContent||"").trim().toUpperCase();
+      if(t!=="BASKETBALL")return;
+      let next=el.nextElementSibling;
+      if(next && /^(UNIVERSE|UNIVERSE LEAGUE)$/.test((next.textContent||"").trim().toUpperCase())){
+        el.textContent="BASKETBALLVERSE";
+        next.remove();
+      }
+    });
+  }catch(e){console.warn("Header rename fix",e);}
+}
+window.fixBasketballverseHeaderV0905=fixBasketballverseHeaderV0905;
+
+const _v0905RenderAll=renderAll;
+renderAll=function(){
+  const r=_v0905RenderAll.apply(this,arguments);
+  setTimeout(fixBasketballverseHeaderV0905,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(fixBasketballverseHeaderV0905,50);
 
 </script>
 </body>
