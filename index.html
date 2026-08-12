@@ -490,6 +490,20 @@ pre{white-space:pre-wrap}
   .savedUniverseActions a.primary{flex:1 1 auto}
 }
 
+
+/* v0.91.9 startup interaction hardening */
+#setupView button,
+#setupView a,
+#setupView select,
+#setupView input,
+#setupView .role{
+  position:relative;
+  z-index:200002;
+  pointer-events:auto !important;
+  touch-action:manipulation;
+}
+#setupView{position:relative;z-index:2}
+
 </style>
 </head>
 <body>
@@ -506,7 +520,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.8 · Saved Game Native Link Fix</div>
+    <div class="pill">v0.91.9 · Startup Interaction Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1504,7 +1518,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.8";
+window.BASKETBALLVERSE_BUILD = "v0.91.9";
 </script>
 
 <script>
@@ -19029,7 +19043,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.8";
+      badge.textContent="Basketballverse v0.91.9";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20638,6 +20652,166 @@ setTimeout(()=>{
     showSavedGameLaunchErrorV0918(e.message||e);
   }
 },50);
+
+
+
+/* === v0.91.9 Startup interaction hardening ===
+   The saved list was rendering, which proves the script loaded. If EVERY startup
+   control is inert, the remaining likely failure is hit-testing/interception.
+   This pass repairs hit targets and adds direct startup actions at window-capture
+   level so a stray overlay cannot swallow taps. */
+
+function startupVisibleV0919(){
+  const setup=document.getElementById("setupView");
+  return !!setup && !setup.classList.contains("hidden");
+}
+
+function removeStartupBlockersV0919(){
+  if(!startupVisibleV0919())return;
+
+  const allowed=new Set([
+    document.getElementById("setupView"),
+    document.querySelector(".topbar"),
+    document.getElementById("buildBadgeV0904")
+  ].filter(Boolean));
+
+  /* Known game overlays must never remain over the start screen. */
+  ["seasonOpeningPaperV08212","bulProcessingV0882","bulProgressV0883"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      if(id==="seasonOpeningPaperV08212")el.remove();
+      else el.style.display="none";
+    }
+  });
+
+  /* If a fixed full-screen element is covering the startup page, disable only
+     its pointer handling. This does not alter normal game-screen overlays. */
+  [...document.body.children].forEach(el=>{
+    if(allowed.has(el) || el.id==="setupView" || el.classList?.contains("topbar"))return;
+    const cs=getComputedStyle(el);
+    if(cs.position!=="fixed")return;
+    const r=el.getBoundingClientRect();
+    const covers=r.width>=window.innerWidth*.85 && r.height>=window.innerHeight*.85;
+    if(covers && Number(cs.zIndex||0)>10){
+      el.style.pointerEvents="none";
+    }
+  });
+}
+window.removeStartupBlockersV0919=removeStartupBlockersV0919;
+
+function underlyingStartupControlV0919(x,y){
+  const els=document.elementsFromPoint(x,y);
+  return els.find(el=>{
+    const c=el.closest?.("#setupView button,#setupView a,#setupView .role");
+    return !!c;
+  })?.closest?.("#setupView button,#setupView a,#setupView .role")||null;
+}
+
+function invokeStartupControlV0919(control){
+  if(!control)return false;
+
+  if(control.classList.contains("role")){
+    document.querySelectorAll(".role").forEach(x=>x.classList.remove("active"));
+    control.classList.add("active");
+    selectedRole=control.dataset.role;
+    document.getElementById("teamChooserCard")?.classList.toggle("hidden",selectedRole==="Commissioner"||selectedRole==="Viewer");
+    try{fillPlayerChoices();}catch(_){}
+    return true;
+  }
+
+  if(control.id==="createBtn"){
+    /* Use the control's already-assigned onclick if available. */
+    if(typeof control.onclick==="function"){
+      control.onclick.call(control,new MouseEvent("click"));
+      return true;
+    }
+  }
+
+  if(control.id==="loadBtn"){
+    const index=saveIndex();
+    if(!index.length){alert("No saved universe found in this browser.");return true;}
+    if(index.length===1){
+      window.location.href=savedUniversePlayURLV0918(index[0].id);
+      return true;
+    }
+    document.getElementById("setupSavedUniverseList")?.scrollIntoView({behavior:"smooth",block:"center"});
+    return true;
+  }
+
+  if(control.matches('a[href*="playSave="]')){
+    window.location.href=control.href;
+    return true;
+  }
+
+  const row=control.closest(".savedUniverseRow");
+  if(row){
+    const title=row.querySelector(".savedUniverseTitle")?.textContent||"";
+    const item=saveIndex().find(x=>(x.name||"Basketballverse")===title) || saveIndex()[0];
+    if(control.textContent.trim()==="Play" && item){
+      window.location.href=savedUniversePlayURLV0918(item.id);
+      return true;
+    }
+    if(control.textContent.trim()==="Rename" && item){
+      renameUniverseFromList(item.id);return true;
+    }
+    if(control.textContent.trim()==="Delete" && item){
+      deleteUniverseFromList(item.id);return true;
+    }
+  }
+
+  if(control.id==="clearLeagueFileBtn"){
+    pendingLeagueFile=null;
+    const status=document.getElementById("leagueFileStatus");
+    if(status){status.className="small muted";status.textContent="No custom league file loaded.";}
+    fillTeams(); return true;
+  }
+
+  return false;
+}
+
+/* Capture touch/pointer before any page overlay can consume it. */
+window.addEventListener("pointerup",e=>{
+  if(!startupVisibleV0919())return;
+  removeStartupBlockersV0919();
+
+  let control=e.target.closest?.("#setupView button,#setupView a,#setupView .role");
+  if(!control)control=underlyingStartupControlV0919(e.clientX,e.clientY);
+  if(!control)return;
+
+  /* Native select/file inputs are left to Safari. */
+  if(invokeStartupControlV0919(control)){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+},true);
+
+/* Verify hit targets after rendering saved rows. */
+function verifyStartupHitTargetsV0919(){
+  if(!startupVisibleV0919())return;
+  removeStartupBlockersV0919();
+
+  document.querySelectorAll("#setupView button,#setupView a.primary,#setupView .role").forEach(el=>{
+    const r=el.getBoundingClientRect();
+    if(!r.width||!r.height)return;
+    const x=r.left+r.width/2,y=r.top+r.height/2;
+    const top=document.elementFromPoint(x,y);
+    if(top && top!==el && !el.contains(top) && !top.closest?.("#setupView button,#setupView a,#setupView .role")){
+      const blocker=top.closest?.("div,section")||top;
+      if(blocker && !blocker.closest("#setupView")){
+        blocker.style.pointerEvents="none";
+      }
+    }
+  });
+}
+window.verifyStartupHitTargetsV0919=verifyStartupHitTargetsV0919;
+
+setTimeout(()=>{
+  try{
+    removeStartupBlockersV0919();
+    renderSavedUniverseLists();
+    verifyStartupHitTargetsV0919();
+  }catch(e){console.error("v0.91.9 startup interaction repair",e);}
+},75);
 
 </script>
 </body>

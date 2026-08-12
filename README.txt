@@ -1,29 +1,22 @@
 Basketballverse
-v0.91.8 · Saved Game Native Link Fix
+v0.91.9 · Startup Interaction Fix
 
-WHAT CHANGED
-The Saved Universes Play control is no longer dependent on a JavaScript click
-listener. It is now a real browser link.
+WHAT WE LEARNED
+The Saved Universes list itself is rendering, which proves Basketballverse's
+JavaScript is loading. Since Play, Load Existing Universe, Create Universe and
+other startup controls are all inert, this is broader than the saved-game loader.
 
-Tapping Play:
-1. navigates to the same Basketballverse page with the save ID in the URL,
-2. reloads the page normally,
-3. reads that save directly from browser storage,
-4. restores it,
-5. opens the game screen.
+THIS BUILD FIXES THE START SCREEN INPUT LAYER
+- All startup buttons, links, selects and role cards are explicitly restored to
+  pointer-events:auto and raised above accidental overlays.
+- Known game overlays are forcibly cleared when the startup screen is visible.
+- A hit-target repair checks whether another element is physically covering a control.
+- A window-level pointer handler catches taps before a stray overlay can swallow them.
+- Play and Load Existing Universe use the native saved-game URL launcher.
+- Role selection, Rename and Delete also have startup-level fallback actions.
 
-This is intentionally different from v0.91.6 and v0.91.7. Those builds kept
-trying to repair the same click-handler approach. This build removes that
-approach from the critical Play path.
-
-DIAGNOSTICS
-If the save still cannot open, the start screen will now show the actual reason:
-- stored save data missing
-- browser storage unavailable
-- save data could not be restored
-- game screen failed while opening
-
-Existing saves are not deleted or recreated.
+This is intentionally a start-screen interaction fix, not another saved-game
+loader rewrite.
 
 FILES TO UPLOAD
 - index.html
