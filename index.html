@@ -487,6 +487,11 @@ pre{white-space:pre-wrap}
 #tradeFinderV09115 .offerCard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
 #tradeFinderV09115 .offerActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 
+
+/* v0.91.17 trade package clarity */
+.tradePackageHintV09117{margin:6px 0 10px}
+.tradeSelectedV09117{border-left:3px solid var(--gold);padding-left:8px}
+
 </style>
 </head>
 <body>
@@ -503,7 +508,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.16 · Trade Finder Salary & Position</div>
+    <div class="pill">v0.91.17 · Multi-Asset Trades & Pick Projection</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1501,7 +1506,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.16";
+window.BASKETBALLVERSE_BUILD = "v0.91.17";
 </script>
 
 <script>
@@ -19026,7 +19031,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.16";
+      badge.textContent="Basketballverse v0.91.17";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20358,7 +20363,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.16";
+      badge.textContent="Basketballverse v0.91.17";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -21174,6 +21179,191 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.91.16 Trade Finder details init",e);}
 },100);
+
+
+
+/* === v0.91.17 Multi-asset trade clarity + projected draft-pick value === */
+
+/* Estimate where the ORIGINAL team is likely to draft.
+   Worst projected team = pick #1. Future years regress toward the middle because
+   those picks are less certain. */
+function projectedPickSlotV09117(pk){
+  if(!pk)return null;
+  const teams=(state.teams||[]).filter(t=>!t.defunct);
+  if(!teams.length)return null;
+
+  const originalId=pk.originalTeamId||pk.teamId||pk.ownerTeamId;
+  const original=teams.find(t=>t.id===originalId);
+  if(!original)return null;
+
+  /* If a real draft order already exists for this pick's year, use it. */
+  const dr=state.draftRoom;
+  if(dr?.year===Number(pk.year) && Array.isArray(dr.order) && dr.order.length){
+    const idx=dr.order.findIndex(x=>(x.originalTeamId||x.teamId)===original.id);
+    if(idx>=0)return idx+1;
+  }
+
+  const strength=t=>{
+    const gp=Number(t.w||0)+Number(t.l||0);
+    const pct=gp>0?Number(t.w||0)/gp:.5;
+    const power=Math.max(40,Math.min(95,Number(t.power||65)));
+    const powerPct=(power-40)/55;
+
+    /* Early in a season, power matters more; later, record matters more. */
+    const recordWeight=Math.min(.75,Math.max(.20,gp/82*.75));
+    let s=pct*recordWeight + powerPct*(1-recordWeight);
+
+    if(t.direction==="Contending")s+=.05;
+    if(t.direction==="Rebuilding")s-=.05;
+    return s;
+  };
+
+  const sorted=teams.slice().sort((a,b)=>strength(a)-strength(b)); // worst first
+  let projected=sorted.findIndex(t=>t.id===original.id)+1;
+  if(projected<=0)return null;
+
+  /* Far-future picks are harder to forecast, so regress toward league midpoint. */
+  const distance=Math.max(0,Number(pk.year||state.currentYear+1)-Number(state.currentYear));
+  const midpoint=(teams.length+1)/2;
+  const certainty=Math.max(.35,1-distance*.18);
+  projected=Math.round(projected*certainty + midpoint*(1-certainty));
+
+  return Math.max(1,Math.min(teams.length,projected));
+}
+window.projectedPickSlotV09117=projectedPickSlotV09117;
+
+function projectedPickBandV09117(pk){
+  const slot=projectedPickSlotV09117(pk);
+  if(!slot)return "Unknown";
+  const distance=Math.max(0,Number(pk.year||state.currentYear+1)-Number(state.currentYear));
+  const spread=Math.min(6,2+distance);
+  const teams=(state.teams||[]).filter(t=>!t.defunct).length||30;
+  const lo=Math.max(1,slot-spread),hi=Math.min(teams,slot+spread);
+  return lo===hi?`#${slot}`:`#${lo}–${hi}`;
+}
+window.projectedPickBandV09117=projectedPickBandV09117;
+
+/* Pick value now depends on projected draft position, round, and distance. */
+gmPickValueV086=function(pk){
+  if(!pk)return 0;
+  const round=Number(pk.round||1);
+  const year=Number(pk.year||state.currentYear+1);
+  const distance=Math.max(0,year-Number(state.currentYear));
+  const slot=projectedPickSlotV09117(pk);
+  const teams=(state.teams||[]).filter(t=>!t.defunct).length||30;
+  const s=slot||Math.round((teams+1)/2);
+
+  let base;
+  if(round===1){
+    if(s<=3)base=48;
+    else if(s<=5)base=43;
+    else if(s<=10)base=36;
+    else if(s<=14)base=30;
+    else if(s<=20)base=24;
+    else if(s<=25)base=20;
+    else base=16;
+  }else{
+    const pct=s/Math.max(1,teams);
+    if(pct<=.20)base=13;
+    else if(pct<=.45)base=10;
+    else if(pct<=.70)base=7;
+    else base=5;
+  }
+
+  /* Future uncertainty lowers present trade value without making all future
+     firsts identical. */
+  const discount=Math.max(.62,1-distance*.08);
+  return Math.max(2,Math.round(base*discount));
+};
+window.gmPickValueV086=gmPickValueV086;
+
+function pickProjectionTextV09117(pk){
+  const original=(state.teams||[]).find(t=>t.id===(pk.originalTeamId||pk.teamId));
+  return `Proj. ${projectedPickBandV09117(pk)}${original?` via ${original.name}`:""}`;
+}
+window.pickProjectionTextV09117=pickProjectionTextV09117;
+
+/* Rebuild Trade Machine UI with explicit multi-selection messaging.
+   The underlying builder already stores arrays, so checkboxes can select ANY
+   combination of players and picks from both teams. */
+const _v09117RenderTradeBase=renderGMTradeBuilderV086;
+renderGMTradeBuilderV086=function(){
+  const r=_v09117RenderTradeBase.apply(this,arguments);
+  const host=document.getElementById("gmTradeBuilderV086");
+  if(!host)return r;
+
+  /* Explain multiple selections right above the two trade columns. */
+  const card=host.querySelector(".card");
+  if(card && !card.querySelector(".tradePackageHintV09117")){
+    const hint=document.createElement("div");
+    hint.className="notice tradePackageHintV09117";
+    hint.innerHTML=`<b>Build a multi-asset package.</b><br><span class="small">Select as many players and draft picks as you want on either side. Every checked box is included in the proposed trade.</span>`;
+    const grid=card.querySelector(".grid2");
+    if(grid)card.insertBefore(hint,grid);
+  }
+
+  /* Replace pick metadata with projected slot + dynamic value. */
+  host.querySelectorAll("label.teamrow").forEach(row=>{
+    const input=row.querySelector('input[type="checkbox"]');
+    if(!input)return;
+    row.classList.toggle("tradeSelectedV09117",input.checked);
+
+    const bold=row.querySelector("b");
+    const meta=row.querySelector(".small.muted");
+    if(!bold||!meta)return;
+
+    const title=(bold.textContent||"").trim();
+    const m=title.match(/^(\d{4})\s+Round\s+(\d+)/i);
+    if(!m)return;
+
+    const year=Number(m[1]),round=Number(m[2]);
+    const b=gmTradeBuilderStateV086();
+    const side=row.closest(".grid2")?.children[0]?.contains(row)?"mine":"theirs";
+    const picks=side==="mine"?gmOwnedPicksV086(gmTeamV084()):gmOwnedPicksV086(state.teams.find(t=>t.id===b.otherTeamId));
+    const pk=(picks||[]).find(x=>Number(x.year)===year&&Number(x.round||1)===round && (
+      input.getAttribute("onchange")||""
+    ).includes(String(x.id)));
+
+    if(pk){
+      meta.textContent=`${pickProjectionTextV09117(pk)} · Trade value ${gmPickValueV086(pk)}`;
+    }
+  });
+
+  return r;
+};
+window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+
+/* Trade Finder pick descriptions use the same projected value system. */
+if(typeof tradeFinderAssetTextV09116==="function"){
+  tradeFinderAssetTextV09116=function(asset){
+    if(asset.type==="player"){
+      const p=(state.players||[]).find(x=>x.id===asset.id);
+      return p
+        ? `${p.name} · ${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · Salary ${tradeSalaryTextV09116(p)} · Value ${gmTradeValueV086(p)}`
+        : "Unknown player";
+    }
+    const pk=(state.draftPicks||[]).find(x=>x.id===asset.id);
+    return pk?`${pk.year} Round ${pk.round||1} pick · ${pickProjectionTextV09117(pk)} · Value ${gmPickValueV086(pk)}`:"Unknown pick";
+  };
+  window.tradeFinderAssetTextV09116=tradeFinderAssetTextV09116;
+}
+
+/* Keep stale builder assets clean and allow unlimited checked assets. */
+const _v09117Toggle=gmToggleTradeAssetV086;
+gmToggleTradeAssetV086=function(side,type,id){
+  const r=_v09117Toggle.apply(this,arguments);
+  return r;
+};
+window.gmToggleTradeAssetV086=gmToggleTradeAssetV086;
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("trademachine")?.classList.contains("active")){
+      renderGMTradeBuilderV086();
+      if(typeof renderTradeFinderV09115==="function")renderTradeFinderV09115();
+    }
+  }catch(e){console.error("v0.91.17 trade projection init",e);}
+},120);
 
 </script>
 </body>
