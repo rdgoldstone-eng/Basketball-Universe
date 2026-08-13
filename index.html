@@ -473,6 +473,20 @@ pre{white-space:pre-wrap}
   #startupBasketballverseLogoV0909{width:min(190px,52vw)}
 }
 
+
+/* v0.91.14 keep the Free Agency exit control visible */
+#freeAgencyFinishBarV09114{
+  position:sticky;
+  top:8px;
+  z-index:30;
+  margin-bottom:12px;
+}
+#freeAgencyFinishBarV09114 button{width:100%}
+
+
+#tradeFinderV09115 .offerCard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+#tradeFinderV09115 .offerActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -489,7 +503,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.13 · Free Agency Advance Fix</div>
+    <div class="pill">v0.91.15 · Trade Finder</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1487,7 +1501,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.13";
+window.BASKETBALLVERSE_BUILD = "v0.91.15";
 </script>
 
 <script>
@@ -19012,7 +19026,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.13";
+      badge.textContent="Basketballverse v0.91.15";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20344,7 +20358,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.13";
+      badge.textContent="Basketballverse v0.91.15";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -20701,6 +20715,391 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.91.13 FA init",e);}
 },150);
+
+
+
+/* === v0.91.14 Free Agency hard advance ===
+   A legal 9/12 roster must be able to leave Free Agency immediately. */
+
+function hardAdvanceFromFreeAgencyV09114(){
+  if(!state?.offseason){
+    alert("Offseason state is missing.");
+    return false;
+  }
+
+  const team=typeof gmTeamV084==="function"?gmTeamV084():currentControlledTeam?.();
+  const roster=team?teamRoster(team.name):[];
+  const min=typeof gmMinimumRosterV0913==="function"?gmMinimumRosterV0913():8;
+  const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(Number(state.currentYear)+1):15;
+
+  if(team && roster.length>max){
+    alert(`${team.name} has ${roster.length}/${max} players. Reduce the roster before continuing.`);
+    return false;
+  }
+
+  /* Free Agency does NOT require a full roster. Anything from minimum through
+     the maximum is legal to advance. */
+  if(team && roster.length<min){
+    const ok=confirm(`${team.name} has ${roster.length}/${max} players. Opening night requires at least ${min}.\n\nYou may still continue to Roster Cuts and return to Free Agency if needed. Continue?`);
+    if(!ok)return false;
+  }
+
+  /* Set the phase directly. Do not depend on whatever accumulated phaseIndex or
+     legacy wrapper currently says. */
+  const phases=Array.isArray(state.offseason.phases)?state.offseason.phases:[
+    "Awards","Retirements","Development","Draft Order","Draft",
+    "Re-signings","Free Agency","Roster Cuts","Next Season"
+  ];
+
+  let rosterCutsIndex=phases.indexOf("Roster Cuts");
+  if(rosterCutsIndex<0){
+    phases.push("Roster Cuts");
+    rosterCutsIndex=phases.length-1;
+  }
+
+  state.offseason.phases=phases;
+  state.offseason.phaseIndex=rosterCutsIndex;
+  state.offseason.phase="Roster Cuts";
+  state.offseason.uiSelectedActivity="Roster Cuts";
+
+  /* Save the successful transition BEFORE any league-AI work. */
+  try{saveState();}catch(e){console.warn("Free Agency transition save",e);}
+
+  /* Move the UI immediately. */
+  try{renderOffseason();}catch(e){console.warn("Offseason render after FA",e);}
+  try{switchTab("rostercuts");}catch(e){
+    console.warn("Roster Cuts tab open",e);
+    try{switchTab("offseason");}catch(_){}
+  }
+  window.scrollTo({top:0,behavior:"auto"});
+
+  /* Other teams' Free Agency is secondary. It must never block the GM. Run it
+     only after the phase and UI have already advanced. */
+  setTimeout(()=>{
+    try{
+      runFreeAgencyAI?.();
+      saveState?.();
+    }catch(e){
+      console.warn("Deferred league Free Agency warning",e);
+    }
+  },100);
+
+  return true;
+}
+window.hardAdvanceFromFreeAgencyV09114=hardAdvanceFromFreeAgencyV09114;
+
+/* Replace every current Free Agency finish function with the direct transition. */
+finishFreeAgencyV09113=function(){
+  return hardAdvanceFromFreeAgencyV09114();
+};
+window.finishFreeAgencyV09113=finishFreeAgencyV09113;
+
+function renderSimpleFreeAgencyV09114(){
+  const host=document.getElementById("frontOfficeFreeAgencyV0895");
+  if(!host)return;
+
+  const team=typeof gmTeamV084==="function"?gmTeamV084():currentControlledTeam?.();
+  if(!team){
+    host.innerHTML=`<div class="notice danger"><b>No controlled team found.</b></div>`;
+    return;
+  }
+
+  const roster=teamRoster(team.name);
+  const min=typeof gmMinimumRosterV0913==="function"?gmMinimumRosterV0913():8;
+  const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(Number(state.currentYear)+1):15;
+  const fas=typeof gmFreeAgentsV085==="function"?gmFreeAgentsV085():[];
+
+  const legal=roster.length>=min && roster.length<=max;
+  const status=roster.length<min
+    ? `Need ${min-roster.length} more player${min-roster.length===1?"":"s"} for opening night.`
+    : roster.length<max
+      ? `${max-roster.length} roster spot${max-roster.length===1?"":"s"} still available.`
+      : "Roster is at the current limit.";
+
+  host.innerHTML=`
+    <div id="freeAgencyFinishBarV09114" class="card">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px">
+        <div>
+          <b>${team.name} · ${roster.length}/${max} players</b>
+          <div class="small muted">${status}</div>
+        </div>
+        <span class="pill">${legal?"READY":"ROSTER"}</span>
+      </div>
+      <button id="finishFreeAgencyButtonV09114" class="primary" type="button">
+        Finish Free Agency → Roster Cuts
+      </button>
+    </div>
+
+    ${roster.length<min?`
+      <button class="primary" style="width:100%;margin-bottom:12px" onclick="gmAutoFillMinimumV0913()">
+        Quick Fill to Minimum (${min})
+      </button>`:""}
+
+    <div class="small muted" style="margin-bottom:10px">
+      A full ${max}-player roster is not required here. You can finish Free Agency with ${roster.length}/${max}.
+    </div>
+
+    <div id="faCompactListV09114">
+      ${fas.slice(0,40).map(p=>`
+        <div class="teamrow">
+          <div class="teammeta">
+            <b>${p.name}</b>
+            <span class="small muted">${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · POT ${p.pot??"—"} · Ask ~$${gmFairSalaryV085(p).toFixed(1)}M</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="primary" onclick="gmQuickSignV0913('${String(p.id).replace(/'/g,"\\'")}',2);setTimeout(renderSimpleFreeAgencyV09114,0)">Sign at Ask</button>
+            <button onclick="gmContractOfferV085('${String(p.id).replace(/'/g,"\\'")}','fa');setTimeout(renderSimpleFreeAgencyV09114,0)">Custom</button>
+          </div>
+        </div>`).join("") || `<span class="muted">No free agents available.</span>`}
+    </div>
+  `;
+
+  /* Direct DOM listener—no inline handler dependency for the critical exit. */
+  document.getElementById("finishFreeAgencyButtonV09114")?.addEventListener("click",()=>{
+    const btn=document.getElementById("finishFreeAgencyButtonV09114");
+    if(btn){btn.disabled=true;btn.textContent="Opening Roster Cuts…";}
+    const ok=hardAdvanceFromFreeAgencyV09114();
+    if(!ok && btn){btn.disabled=false;btn.textContent="Finish Free Agency → Roster Cuts";}
+  });
+}
+window.renderSimpleFreeAgencyV09114=renderSimpleFreeAgencyV09114;
+
+/* All Free Agency render entry points use the hard-advance page. */
+renderSimpleFreeAgencyV09113=function(){return renderSimpleFreeAgencyV09114();};
+window.renderSimpleFreeAgencyV09113=renderSimpleFreeAgencyV09113;
+renderSimpleFreeAgencyV0913=function(){return renderSimpleFreeAgencyV09114();};
+window.renderSimpleFreeAgencyV0913=renderSimpleFreeAgencyV0913;
+
+const _v09114SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09114SwitchTab.apply(this,arguments);
+  if(tab==="freeagency")setTimeout(renderSimpleFreeAgencyV09114,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("freeagency")?.classList.contains("active")){
+      renderSimpleFreeAgencyV09114();
+    }
+  }catch(e){console.error("v0.91.14 Free Agency init",e);}
+},100);
+
+
+
+/* === v0.91.15 Trade Finder === */
+
+function tradeFinderStateV09115(){
+  state.tradeFinder=state.tradeFinder||{playerId:null,offers:[]};
+  return state.tradeFinder;
+}
+window.tradeFinderStateV09115=tradeFinderStateV09115;
+
+function tradeFinderPartnerScoreV09115(other,player){
+  if(!other||!player)return -999;
+  const prof=teamRosterProfile(other);
+  let score=0;
+  if(positionGroup(player.pos)===prof.weakestGroup)score+=16;
+  if(other.direction==="Contending"){
+    score+=Number(player.ovr||0)>=76?18:4;
+    score-=Math.max(0,Number(player.age||27)-32)*2;
+  }else if(other.direction==="Rebuilding"){
+    score+=Number(player.age||27)<=25?12:0;
+    score+=Number(player.pot||player.ovr||0)>Number(player.ovr||0)?8:0;
+  }else score+=8;
+  return score;
+}
+
+function buildTradeFinderOfferV09115(other,player){
+  const target=gmTradeValueV086(player);
+  const theirRoster=teamRoster(other.name).filter(p=>!p.retired && p.id!==player.id)
+    .sort((a,b)=>gmTradeValueV086(a)-gmTradeValueV086(b));
+  const picks=gmOwnedPicksV086(other).slice().sort((a,b)=>gmPickValueV086(b)-gmPickValueV086(a));
+
+  let assets=[],value=0;
+  const one=theirRoster.find(p=>{
+    const v=gmTradeValueV086(p);
+    return v>=target*.72 && v<=target*1.18;
+  });
+
+  if(one){
+    assets.push({type:"player",id:one.id});
+    value+=gmTradeValueV086(one);
+  }else{
+    for(const p of theirRoster){
+      if(value>=target*.8)break;
+      const v=gmTradeValueV086(p);
+      if(v>target*.75)continue;
+      assets.push({type:"player",id:p.id});
+      value+=v;
+      if(assets.filter(a=>a.type==="player").length>=2)break;
+    }
+  }
+
+  for(const pk of picks){
+    if(value>=target*.92)break;
+    assets.push({type:"pick",id:pk.id});
+    value+=gmPickValueV086(pk);
+    if(assets.filter(a=>a.type==="pick").length>=2)break;
+  }
+
+  if(!assets.length || value<target*.72)return null;
+  return {teamId:other.id,playerId:player.id,assets,offeredValue:Math.round(value),targetValue:Math.round(target)};
+}
+
+function generateTradeFinderOffersV09115(playerId){
+  if(!isHumanGMV084())return [];
+  if(!gmTradeWindowOpenV084()){alert("The trade deadline has passed.");return [];}
+
+  const player=(state.players||[]).find(p=>p.id===playerId);
+  const team=gmTeamV084();
+  if(!player||!team)return [];
+
+  const offers=[];
+  const partners=(state.teams||[])
+    .filter(t=>!t.defunct && t.id!==team.id)
+    .map(t=>({team:t,score:tradeFinderPartnerScoreV09115(t,player)}))
+    .sort((a,b)=>b.score-a.score);
+
+  for(const {team:other} of partners){
+    const offer=buildTradeFinderOfferV09115(other,player);
+    if(offer)offers.push(offer);
+    if(offers.length>=6)break;
+  }
+
+  const tf=tradeFinderStateV09115();
+  tf.playerId=playerId;
+  tf.offers=offers;
+  saveState();
+  renderTradeFinderV09115();
+  return offers;
+}
+window.generateTradeFinderOffersV09115=generateTradeFinderOffersV09115;
+
+function tradeFinderAssetTextV09115(asset){
+  if(asset.type==="player"){
+    const p=(state.players||[]).find(x=>x.id===asset.id);
+    return p?`${p.name} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · Value ${gmTradeValueV086(p)}`:"Unknown player";
+  }
+  const pk=(state.draftPicks||[]).find(x=>x.id===asset.id);
+  return pk?`${pk.year} Round ${pk.round||1} pick · Value ${gmPickValueV086(pk)}`:"Unknown pick";
+}
+
+function acceptTradeFinderOfferV09115(index){
+  const tf=tradeFinderStateV09115();
+  const offer=tf.offers[index];
+  if(!offer)return;
+  const other=(state.teams||[]).find(t=>t.id===offer.teamId);
+  const player=(state.players||[]).find(p=>p.id===offer.playerId);
+  if(!other||!player)return;
+
+  state.gmTradeBuilder={
+    otherTeamId:other.id,
+    myPlayers:[player.id],
+    theirPlayers:offer.assets.filter(a=>a.type==="player").map(a=>a.id),
+    myPicks:[],
+    theirPicks:offer.assets.filter(a=>a.type==="pick").map(a=>a.id)
+  };
+
+  const e=gmEvaluateTradeV086();
+  if(!e.ok){
+    alert(`${other.name} no longer accepts this offer.`);
+    tf.offers.splice(index,1);
+    saveState();
+    renderTradeFinderV09115();
+    return;
+  }
+  gmCompleteTradeV086();
+  tf.playerId=null;
+  tf.offers=[];
+  saveState();
+  renderTradeFinderV09115();
+}
+window.acceptTradeFinderOfferV09115=acceptTradeFinderOfferV09115;
+
+function sendTradeFinderToMachineV09115(index){
+  const tf=tradeFinderStateV09115();
+  const offer=tf.offers[index];
+  if(!offer)return;
+  const other=(state.teams||[]).find(t=>t.id===offer.teamId);
+  const player=(state.players||[]).find(p=>p.id===offer.playerId);
+  if(!other||!player)return;
+
+  state.gmTradeBuilder={
+    otherTeamId:other.id,
+    myPlayers:[player.id],
+    theirPlayers:offer.assets.filter(a=>a.type==="player").map(a=>a.id),
+    myPicks:[],
+    theirPicks:offer.assets.filter(a=>a.type==="pick").map(a=>a.id)
+  };
+  saveState();
+  renderGMTradeBuilderV086();
+}
+window.sendTradeFinderToMachineV09115=sendTradeFinderToMachineV09115;
+
+function renderTradeFinderV09115(){
+  const host=document.getElementById("tradeFinderV09115");
+  if(!host||!isHumanGMV084())return;
+
+  const team=gmTeamV084();
+  const players=teamRoster(team.name).filter(p=>!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  const tf=tradeFinderStateV09115();
+  const selected=(state.players||[]).find(p=>p.id===tf.playerId);
+
+  host.innerHTML=`
+    <div class="card">
+      <div class="sectionTitle">Trade Finder</div>
+      <div class="small muted" style="margin-bottom:10px">Put one player on the trade block and see what the league offers.</div>
+      <select id="tradeFinderPlayerV09115" style="width:100%;margin-bottom:10px">
+        <option value="">Select a player</option>
+        ${players.map(p=>`<option value="${p.id}" ${p.id===tf.playerId?"selected":""}>${p.name} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · Value ${gmTradeValueV086(p)}</option>`).join("")}
+      </select>
+      <button class="primary" style="width:100%" onclick="
+        const id=document.getElementById('tradeFinderPlayerV09115').value;
+        if(id)generateTradeFinderOffersV09115(id);
+      ">Find Trade Offers</button>
+    </div>
+
+    ${selected?`<div class="card"><b>On the Block: ${selected.name}</b><div class="small muted">Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(selected):(selected.age??"—")} · OVR ${selected.ovr??"—"} · POT ${selected.pot??"—"} · Value ${gmTradeValueV086(selected)}</div></div>`:""}
+
+    ${tf.offers.length?tf.offers.map((o,i)=>{
+      const other=(state.teams||[]).find(t=>t.id===o.teamId);
+      return `<div class="offerCard">
+        <b>${other?.name||"Team"} offers:</b>
+        <div style="margin:8px 0">${o.assets.map(a=>`<div class="small">• ${tradeFinderAssetTextV09115(a)}</div>`).join("")}</div>
+        <div class="small muted">Package value ${o.offeredValue} · Your player's value ${o.targetValue}</div>
+        <div class="offerActions">
+          <button class="primary" onclick="acceptTradeFinderOfferV09115(${i})">Accept Offer</button>
+          <button onclick="sendTradeFinderToMachineV09115(${i})">Open in Trade Machine</button>
+        </div>
+      </div>`;
+    }).join(""):(tf.playerId?`<div class="notice">No acceptable offers found. Try another player or use the Trade Machine.</div>`:"")}
+  `;
+}
+window.renderTradeFinderV09115=renderTradeFinderV09115;
+
+const _v09115TradePage=renderStableTradeMachineV0885;
+renderStableTradeMachineV0885=function(){
+  const page=document.getElementById("trademachine");
+  if(page && !document.getElementById("tradeFinderV09115")){
+    const finder=document.createElement("div");
+    finder.id="tradeFinderV09115";
+    const body=document.getElementById("tradeMachineStandaloneV0885")?.parentElement||page;
+    body.insertBefore(finder,body.firstChild);
+  }
+  renderTradeFinderV09115();
+  return _v09115TradePage.apply(this,arguments);
+};
+window.renderStableTradeMachineV0885=renderStableTradeMachineV0885;
+
+const _v09115SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09115SwitchTab.apply(this,arguments);
+  if(tab==="trademachine")setTimeout(renderTradeFinderV09115,0);
+  return r;
+};
+window.switchTab=switchTab;
 
 </script>
 </body>

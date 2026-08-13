@@ -1,19 +1,17 @@
 Basketballverse
-v0.91.13 · Free Agency Advance Fix
+v0.91.15 · Trade Finder
 
-FREE AGENCY
-- Added a clear Finish Free Agency → Roster Cuts button.
-- Free Agency no longer depends on a hidden/legacy offseason button.
-- You may sign as many or as few players as you want, then finish the stage.
-- If you are below the 8-player minimum, Basketballverse warns you but allows
-  you to continue to Roster Cuts; Roster Cuts will send you back to Free Agency
-  until the roster is legal.
-- Quick Fill to Minimum remains available.
-- Player rows show Position · Age · OVR · POT · asking salary.
-- Sign at Ask and Custom offer remain available.
+NEW
+- Trade Finder added above the normal Trade Machine.
+- Select one of your players and click Find Trade Offers.
+- Up to 6 offers are generated from teams with interest.
+- Interest considers player value, age, OVR/POT, positional need, and team direction.
+- Offers can include players and draft picks.
+- Offer cards show ages, OVR, pick/player values, and total package value.
+- Accept Offer completes the trade.
+- Open in Trade Machine loads the package into the normal builder for editing.
 
-SAVE COMPATIBILITY
-A save already stuck on Free Agency can use this new Finish button immediately.
+This build includes the v0.91.14 Free Agency hard-advance fix.
 
 FILES TO UPLOAD
 - index.html
