@@ -1,17 +1,19 @@
 Basketballverse
-v0.91.15 · Trade Finder
+v0.91.16 · Trade Finder Salary & Position
 
-NEW
-- Trade Finder added above the normal Trade Machine.
-- Select one of your players and click Find Trade Offers.
-- Up to 6 offers are generated from teams with interest.
-- Interest considers player value, age, OVR/POT, positional need, and team direction.
-- Offers can include players and draft picks.
-- Offer cards show ages, OVR, pick/player values, and total package value.
-- Accept Offer completes the trade.
-- Open in Trade Machine loads the package into the normal builder for editing.
+TRADE FINDER
+Player information now includes both position and salary.
 
-This build includes the v0.91.14 Free Agency hard-advance fix.
+YOUR PLAYER
+Name · Position · Age · OVR · Salary · Value
+
+PLAYER ON THE BLOCK
+Position · Age · OVR · POT · Salary · Value
+
+INCOMING PLAYERS
+Name · Position · Age · OVR · Salary · Value
+
+Draft picks continue to show year, round and pick value.
 
 FILES TO UPLOAD
 - index.html

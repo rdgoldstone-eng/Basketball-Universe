@@ -503,7 +503,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.15 · Trade Finder</div>
+    <div class="pill">v0.91.16 · Trade Finder Salary & Position</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1501,7 +1501,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.15";
+window.BASKETBALLVERSE_BUILD = "v0.91.16";
 </script>
 
 <script>
@@ -19026,7 +19026,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.15";
+      badge.textContent="Basketballverse v0.91.16";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20358,7 +20358,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.15";
+      badge.textContent="Basketballverse v0.91.16";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -21100,6 +21100,80 @@ switchTab=function(tab){
   return r;
 };
 window.switchTab=switchTab;
+
+
+
+/* === v0.91.16 Trade Finder salary + position visibility === */
+function tradeSalaryTextV09116(p){
+  if(!p)return "—";
+  const c=p.contract||{};
+  const salary=Number(c.salary||0);
+  const years=Number(c.years||0);
+  if(years>0)return `$${salary.toFixed(1)}M · ${years} yr${years===1?"":"s"}`;
+  return p.faEligible?"Free Agent":"$0.0M";
+}
+window.tradeSalaryTextV09116=tradeSalaryTextV09116;
+
+function tradeFinderAssetTextV09116(asset){
+  if(asset.type==="player"){
+    const p=(state.players||[]).find(x=>x.id===asset.id);
+    return p
+      ? `${p.name} · ${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · Salary ${tradeSalaryTextV09116(p)} · Value ${gmTradeValueV086(p)}`
+      : "Unknown player";
+  }
+  const pk=(state.draftPicks||[]).find(x=>x.id===asset.id);
+  return pk?`${pk.year} Round ${pk.round||1} pick · Value ${gmPickValueV086(pk)}`:"Unknown pick";
+}
+window.tradeFinderAssetTextV09116=tradeFinderAssetTextV09116;
+
+renderTradeFinderV09115=function(){
+  const host=document.getElementById("tradeFinderV09115");
+  if(!host||!isHumanGMV084())return;
+
+  const team=gmTeamV084();
+  const players=teamRoster(team.name).filter(p=>!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  const tf=tradeFinderStateV09115();
+  const selected=(state.players||[]).find(p=>p.id===tf.playerId);
+
+  host.innerHTML=`
+    <div class="card">
+      <div class="sectionTitle">Trade Finder</div>
+      <div class="small muted" style="margin-bottom:10px">Put one player on the trade block and see what the league offers.</div>
+      <select id="tradeFinderPlayerV09115" style="width:100%;margin-bottom:10px">
+        <option value="">Select a player</option>
+        ${players.map(p=>`<option value="${p.id}" ${p.id===tf.playerId?"selected":""}>${p.name} · ${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · Salary ${tradeSalaryTextV09116(p)} · Value ${gmTradeValueV086(p)}</option>`).join("")}
+      </select>
+      <button class="primary" style="width:100%" onclick="
+        const id=document.getElementById('tradeFinderPlayerV09115').value;
+        if(id)generateTradeFinderOffersV09115(id);
+      ">Find Trade Offers</button>
+    </div>
+
+    ${selected?`<div class="card"><b>On the Block: ${selected.name}</b><div class="small muted">${selected.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(selected):(selected.age??"—")} · OVR ${selected.ovr??"—"} · POT ${selected.pot??"—"} · Salary ${tradeSalaryTextV09116(selected)} · Value ${gmTradeValueV086(selected)}</div></div>`:""}
+
+    ${tf.offers.length?tf.offers.map((o,i)=>{
+      const other=(state.teams||[]).find(t=>t.id===o.teamId);
+      return `<div class="offerCard">
+        <b>${other?.name||"Team"} offers:</b>
+        <div style="margin:8px 0">${o.assets.map(a=>`<div class="small">• ${tradeFinderAssetTextV09116(a)}</div>`).join("")}</div>
+        <div class="small muted">Package value ${o.offeredValue} · Your player's value ${o.targetValue}</div>
+        <div class="offerActions">
+          <button class="primary" onclick="acceptTradeFinderOfferV09115(${i})">Accept Offer</button>
+          <button onclick="sendTradeFinderToMachineV09115(${i})">Open in Trade Machine</button>
+        </div>
+      </div>`;
+    }).join(""):(tf.playerId?`<div class="notice">No acceptable offers found. Try another player or use the Trade Machine.</div>`:"")}
+  `;
+};
+window.renderTradeFinderV09115=renderTradeFinderV09115;
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("trademachine")?.classList.contains("active")){
+      renderTradeFinderV09115();
+    }
+  }catch(e){console.error("v0.91.16 Trade Finder details init",e);}
+},100);
 
 </script>
 </body>
