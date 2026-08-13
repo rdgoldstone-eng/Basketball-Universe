@@ -1,29 +1,29 @@
 Basketballverse
-v0.91.18 · Trade Finder With Picks
+v0.91.19 · Multi-Asset Trade Finder
 
 TRADE FINDER
-You can now put either:
-- one player
-- one owned draft pick
+You can now select ANY combination of:
+- multiple players
+- multiple draft picks
+- players + picks together
 
-on the trade block and ask the league for offers.
+The selected package shows:
+- every asset on the block
+- combined trade value
 
-DRAFT PICKS
-The Trade Finder shows:
-- year
-- round
-- projected pick range
-- original team
-- dynamic pick value
+Then click Find Trade Offers.
 
 OFFERS
-Offers can include:
-- players
-- draft picks
-- mixed packages
+- Other teams generate packages against the total value of everything you selected.
+- Offers can include multiple players, multiple picks, or mixed packages.
+- Accept Offer completes the full multi-asset trade.
+- Open in Trade Machine loads the entire package into the normal multi-asset builder.
 
-Accept Offer completes the trade.
-Open in Trade Machine loads the offer into the normal multi-asset builder for editing.
+PLAYER INFO
+Name · Position · Age · OVR · Salary · Value
+
+PICK INFO
+Year · Round · Projected range · Original team · Value
 
 FILES TO UPLOAD
 - index.html

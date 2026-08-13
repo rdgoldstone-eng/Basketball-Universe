@@ -492,6 +492,29 @@ pre{white-space:pre-wrap}
 .tradePackageHintV09117{margin:6px 0 10px}
 .tradeSelectedV09117{border-left:3px solid var(--gold);padding-left:8px}
 
+
+/* v0.91.19 multi-asset Trade Finder */
+#tradeFinderAssetListV09119{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:8px;
+  max-height:360px;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  margin-bottom:10px;
+}
+#tradeFinderAssetListV09119 label{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:9px;
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+}
+#tradeFinderAssetListV09119 label.selected{
+  border-color:var(--gold);
+}
+
 </style>
 </head>
 <body>
@@ -508,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.18 · Trade Finder With Picks</div>
+    <div class="pill">v0.91.19 · Multi-Asset Trade Finder</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1506,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.18";
+window.BASKETBALLVERSE_BUILD = "v0.91.19";
 </script>
 
 <script>
@@ -19031,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.18";
+      badge.textContent="Basketballverse v0.91.19";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20363,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.18";
+      badge.textContent="Basketballverse v0.91.19";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -21612,6 +21635,291 @@ setTimeout(()=>{
       renderTradeFinderV09118();
     }
   }catch(e){console.error("v0.91.18 Trade Finder picks init",e);}
+},100);
+
+
+
+/* === v0.91.19 Multi-Asset Trade Finder === */
+
+function tradeFinderBlockAssetsV09119(){
+  const tf=tradeFinderStateV09115();
+  tf.blockAssets=Array.isArray(tf.blockAssets)?tf.blockAssets:[];
+  return tf.blockAssets;
+}
+window.tradeFinderBlockAssetsV09119=tradeFinderBlockAssetsV09119;
+
+function tradeFinderTotalBlockValueV09119(assets){
+  return (assets||[]).reduce((sum,a)=>sum+tradeFinderAssetValueV09118(a),0);
+}
+window.tradeFinderTotalBlockValueV09119=tradeFinderTotalBlockValueV09119;
+
+function tradeFinderPartnerScoreForPackageV09119(other,assets){
+  let score=8;
+  for(const asset of assets){
+    if(asset.type==="player"){
+      const p=(state.players||[]).find(x=>x.id===asset.id);
+      if(p)score+=Math.max(0,tradeFinderPartnerScoreV09115(other,p));
+    }else{
+      if(other.direction==="Rebuilding")score+=6;
+      if(other.direction==="Contending")score-=1;
+    }
+  }
+  return score;
+}
+
+function buildTradeFinderOfferForPackageV09119(other,blockAssets){
+  const target=tradeFinderTotalBlockValueV09119(blockAssets);
+  if(target<=0)return null;
+
+  const theirRoster=teamRoster(other.name).filter(p=>!p.retired)
+    .sort((a,b)=>gmTradeValueV086(a)-gmTradeValueV086(b));
+  const picks=gmOwnedPicksV086(other).slice()
+    .sort((a,b)=>gmPickValueV086(b)-gmPickValueV086(a));
+
+  let assets=[],value=0;
+
+  // Try to build a package that lands near the user's total package value.
+  for(const p of theirRoster){
+    if(value>=target*.82)break;
+    const v=gmTradeValueV086(p);
+    if(v>target*1.10 && assets.length===0)continue;
+    if(v>target*.78 && assets.length>0)continue;
+    assets.push({type:"player",id:p.id});
+    value+=v;
+    if(assets.filter(a=>a.type==="player").length>=3)break;
+  }
+
+  for(const pk of picks){
+    if(value>=target*.95)break;
+    assets.push({type:"pick",id:pk.id});
+    value+=gmPickValueV086(pk);
+    if(assets.filter(a=>a.type==="pick").length>=3)break;
+  }
+
+  // If still too low, try one stronger player.
+  if(value<target*.72){
+    const stronger=theirRoster.find(p=>{
+      if(assets.some(a=>a.type==="player"&&a.id===p.id))return false;
+      const v=gmTradeValueV086(p);
+      return value+v>=target*.72 && value+v<=target*1.25;
+    });
+    if(stronger){
+      assets.push({type:"player",id:stronger.id});
+      value+=gmTradeValueV086(stronger);
+    }
+  }
+
+  if(!assets.length || value<target*.68)return null;
+
+  return {
+    teamId:other.id,
+    blockAssets:blockAssets.map(a=>({...a})),
+    assets,
+    offeredValue:Math.round(value),
+    targetValue:Math.round(target)
+  };
+}
+
+function generateTradeFinderOffersForPackageV09119(){
+  if(!isHumanGMV084())return [];
+  if(!gmTradeWindowOpenV084()){alert("The trade deadline has passed.");return [];}
+
+  const team=gmTeamV084();
+  if(!team)return [];
+
+  const assets=tradeFinderBlockAssetsV09119();
+  if(!assets.length){
+    alert("Select at least one player or draft pick.");
+    return [];
+  }
+
+  const partners=(state.teams||[])
+    .filter(t=>!t.defunct && t.id!==team.id)
+    .map(t=>({team:t,score:tradeFinderPartnerScoreForPackageV09119(t,assets)}))
+    .sort((a,b)=>b.score-a.score);
+
+  const offers=[];
+  for(const {team:other} of partners){
+    const offer=buildTradeFinderOfferForPackageV09119(other,assets);
+    if(offer)offers.push(offer);
+    if(offers.length>=6)break;
+  }
+
+  const tf=tradeFinderStateV09115();
+  tf.playerId=null;
+  tf.pickId=null;
+  tf.blockType="package";
+  tf.offers=offers;
+  saveState();
+  renderTradeFinderV09119();
+  return offers;
+}
+window.generateTradeFinderOffersForPackageV09119=generateTradeFinderOffersForPackageV09119;
+
+function toggleTradeFinderBlockAssetV09119(type,id,checked){
+  const tf=tradeFinderStateV09115();
+  tf.blockAssets=Array.isArray(tf.blockAssets)?tf.blockAssets:[];
+  const exists=tf.blockAssets.some(a=>a.type===type&&a.id===id);
+
+  if(checked && !exists)tf.blockAssets.push({type,id});
+  if(!checked && exists)tf.blockAssets=tf.blockAssets.filter(a=>!(a.type===type&&a.id===id));
+
+  tf.offers=[];
+  saveState();
+  renderTradeFinderV09119();
+}
+window.toggleTradeFinderBlockAssetV09119=toggleTradeFinderBlockAssetV09119;
+
+function clearTradeFinderBlockV09119(){
+  const tf=tradeFinderStateV09115();
+  tf.blockAssets=[];
+  tf.offers=[];
+  tf.blockType=null;
+  saveState();
+  renderTradeFinderV09119();
+}
+window.clearTradeFinderBlockV09119=clearTradeFinderBlockV09119;
+
+function acceptTradeFinderOfferV09119(index){
+  const tf=tradeFinderStateV09115();
+  const offer=tf.offers[index];
+  if(!offer)return;
+  const other=(state.teams||[]).find(t=>t.id===offer.teamId);
+  if(!other)return;
+
+  state.gmTradeBuilder={
+    otherTeamId:other.id,
+    myPlayers:offer.blockAssets.filter(a=>a.type==="player").map(a=>a.id),
+    theirPlayers:offer.assets.filter(a=>a.type==="player").map(a=>a.id),
+    myPicks:offer.blockAssets.filter(a=>a.type==="pick").map(a=>a.id),
+    theirPicks:offer.assets.filter(a=>a.type==="pick").map(a=>a.id)
+  };
+
+  const e=gmEvaluateTradeV086();
+  if(!e.ok){
+    alert(`${other.name} no longer accepts this offer.`);
+    tf.offers.splice(index,1);
+    saveState();
+    renderTradeFinderV09119();
+    return;
+  }
+
+  gmCompleteTradeV086();
+  tf.blockAssets=[];
+  tf.offers=[];
+  tf.blockType=null;
+  saveState();
+  renderTradeFinderV09119();
+}
+window.acceptTradeFinderOfferV09119=acceptTradeFinderOfferV09119;
+
+function sendTradeFinderToMachineV09119(index){
+  const tf=tradeFinderStateV09115();
+  const offer=tf.offers[index];
+  if(!offer)return;
+  const other=(state.teams||[]).find(t=>t.id===offer.teamId);
+  if(!other)return;
+
+  state.gmTradeBuilder={
+    otherTeamId:other.id,
+    myPlayers:offer.blockAssets.filter(a=>a.type==="player").map(a=>a.id),
+    theirPlayers:offer.assets.filter(a=>a.type==="player").map(a=>a.id),
+    myPicks:offer.blockAssets.filter(a=>a.type==="pick").map(a=>a.id),
+    theirPicks:offer.assets.filter(a=>a.type==="pick").map(a=>a.id)
+  };
+  saveState();
+  renderGMTradeBuilderV086();
+}
+window.sendTradeFinderToMachineV09119=sendTradeFinderToMachineV09119;
+
+function renderTradeFinderV09119(){
+  const host=document.getElementById("tradeFinderV09115");
+  if(!host||!isHumanGMV084())return;
+
+  const team=gmTeamV084();
+  const players=teamRoster(team.name).filter(p=>!p.retired).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  const picks=tradeFinderOwnedPicksV09118();
+  const tf=tradeFinderStateV09115();
+  const selected=tradeFinderBlockAssetsV09119();
+
+  const isSelected=(type,id)=>selected.some(a=>a.type===type&&a.id===id);
+  const selectedValue=tradeFinderTotalBlockValueV09119(selected);
+
+  host.innerHTML=`
+    <div class="card">
+      <div class="sectionTitle">Trade Finder</div>
+      <div class="small muted" style="margin-bottom:10px">
+        Select any combination of your players and draft picks, then ask the league for offers.
+      </div>
+
+      <div id="tradeFinderAssetListV09119">
+        ${players.map(p=>`
+          <label class="${isSelected("player",p.id)?"selected":""}">
+            <input type="checkbox" ${isSelected("player",p.id)?"checked":""}
+              onchange="toggleTradeFinderBlockAssetV09119('player','${String(p.id).replace(/'/g,"\\'")}',this.checked)">
+            <span class="small">
+              <b>${p.name}</b><br>
+              ${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · Salary ${typeof tradeSalaryTextV09116==="function"?tradeSalaryTextV09116(p):"—"} · Value ${gmTradeValueV086(p)}
+            </span>
+          </label>`).join("")}
+
+        ${picks.map(pk=>`
+          <label class="${isSelected("pick",pk.id)?"selected":""}">
+            <input type="checkbox" ${isSelected("pick",pk.id)?"checked":""}
+              onchange="toggleTradeFinderBlockAssetV09119('pick','${String(pk.id).replace(/'/g,"\\'")}',this.checked)">
+            <span class="small">
+              <b>${pk.year} Round ${pk.round||1}</b><br>
+              ${pickProjectionTextV09117(pk)} · Value ${gmPickValueV086(pk)}
+            </span>
+          </label>`).join("")}
+      </div>
+
+      <div class="notice" style="margin-bottom:10px">
+        <b>${selected.length} asset${selected.length===1?"":"s"} selected</b>
+        <div class="small muted">Combined trade value ${selectedValue}</div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="primary" style="flex:1" onclick="generateTradeFinderOffersForPackageV09119()">Find Trade Offers</button>
+        <button onclick="clearTradeFinderBlockV09119()">Clear</button>
+      </div>
+    </div>
+
+    ${selected.length?`<div class="card">
+      <b>On the Block</b>
+      <div style="margin-top:6px">
+        ${selected.map(a=>`<div class="small">• ${tradeFinderBlockLabelV09118(a)}</div>`).join("")}
+      </div>
+    </div>`:""}
+
+    ${tf.offers.length?tf.offers.map((o,i)=>{
+      const other=(state.teams||[]).find(t=>t.id===o.teamId);
+      return `<div class="offerCard">
+        <b>${other?.name||"Team"} offers:</b>
+        <div style="margin:8px 0">${o.assets.map(a=>`<div class="small">• ${typeof tradeFinderAssetTextV09116==="function"?tradeFinderAssetTextV09116(a):tradeFinderAssetTextV09115(a)}</div>`).join("")}</div>
+        <div class="small muted">Package value ${o.offeredValue} · Your package value ${o.targetValue}</div>
+        <div class="offerActions">
+          <button class="primary" onclick="acceptTradeFinderOfferV09119(${i})">Accept Offer</button>
+          <button onclick="sendTradeFinderToMachineV09119(${i})">Open in Trade Machine</button>
+        </div>
+      </div>`;
+    }).join(""):(selected.length?`<div class="notice">Select your package and press Find Trade Offers.</div>`:"")}
+  `;
+}
+window.renderTradeFinderV09119=renderTradeFinderV09119;
+
+/* Replace the previous single-asset renderer. */
+renderTradeFinderV09118=function(){return renderTradeFinderV09119();};
+window.renderTradeFinderV09118=renderTradeFinderV09118;
+renderTradeFinderV09115=function(){return renderTradeFinderV09119();};
+window.renderTradeFinderV09115=renderTradeFinderV09115;
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("trademachine")?.classList.contains("active")){
+      renderTradeFinderV09119();
+    }
+  }catch(e){console.error("v0.91.19 Trade Finder init",e);}
 },100);
 
 </script>
