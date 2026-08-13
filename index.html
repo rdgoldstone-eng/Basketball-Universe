@@ -489,7 +489,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.12 · Trade Age & Re-sign Fix</div>
+    <div class="pill">v0.91.13 · Free Agency Advance Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1487,7 +1487,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.12";
+window.BASKETBALLVERSE_BUILD = "v0.91.13";
 </script>
 
 <script>
@@ -19012,7 +19012,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.12";
+      badge.textContent="Basketballverse v0.91.13";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20344,7 +20344,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.12";
+      badge.textContent="Basketballverse v0.91.13";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -20551,6 +20551,155 @@ setTimeout(()=>{
     if(document.getElementById("resignplayers")?.classList.contains("active"))renderSimpleReSigningsV09112();
     if(document.getElementById("trademachine")?.classList.contains("active"))injectTradeAgesV09112();
   }catch(e){console.error("v0.91.12 init",e);}
+},150);
+
+
+
+/* === v0.91.13 Free Agency progression fix ===
+   Free Agency is a roster-building stage, not a dead-end. The GM can sign as
+   many or as few players as desired, then explicitly finish the stage. */
+
+function gmFreeAgencyRosterStatusV09113(){
+  const team=gmTeamV084();
+  if(!team)return null;
+  const roster=teamRoster(team.name);
+  const min=typeof gmMinimumRosterV0913==="function"?gmMinimumRosterV0913():8;
+  const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(state.currentYear+1):15;
+  return {team,roster,min,max,count:roster.length};
+}
+window.gmFreeAgencyRosterStatusV09113=gmFreeAgencyRosterStatusV09113;
+
+function finishFreeAgencyV09113(){
+  if(!isHumanGMV084())return false;
+  const s=gmFreeAgencyRosterStatusV09113();
+  if(!s)return false;
+
+  /* Do not require the final opening-night roster here. Free Agency may end
+     below the maximum. If below the minimum, warn and allow continuation to
+     Roster Cuts where the user gets an obvious return-to-FA path. */
+  if(s.count<s.min){
+    const ok=confirm(`${s.team.name} has only ${s.count} players. The opening-night minimum is ${s.min}.\n\nYou can still finish Free Agency, but Roster Cuts will require you to return and add players before starting the season.\n\nFinish Free Agency anyway?`);
+    if(!ok)return false;
+  }
+
+  try{
+    /* Other franchises finish their own market activity. Human team protection
+       in runFreeAgencyAI prevents the league AI from signing for the user. */
+    runFreeAgencyAI();
+  }catch(e){
+    console.warn("League free agency AI warning",e);
+  }
+
+  if(state.offseason?.phase==="Free Agency"){
+    const phases=state.offseason.phases||[];
+    let idx=phases.indexOf("Free Agency");
+    if(idx<0)idx=Number(state.offseason.phaseIndex||0);
+    state.offseason.phaseIndex=idx+1;
+    state.offseason.phase=phases[idx+1]||"Roster Cuts";
+    state.offseason.uiSelectedActivity=state.offseason.phase;
+  }
+
+  try{saveState();}catch(_){}
+  try{renderOffseason();}catch(_){}
+  try{switchTab("rostercuts");}catch(_){switchTab("offseason");}
+  window.scrollTo({top:0,behavior:"smooth"});
+  return true;
+}
+window.finishFreeAgencyV09113=finishFreeAgencyV09113;
+
+function renderSimpleFreeAgencyV09113(){
+  const host=document.getElementById("frontOfficeFreeAgencyV0895");
+  if(!host||!isHumanGMV084())return;
+
+  const team=gmTeamV084();
+  const roster=teamRoster(team.name);
+  const min=typeof gmMinimumRosterV0913==="function"?gmMinimumRosterV0913():8;
+  const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(state.currentYear+1):15;
+  const fas=gmFreeAgentsV085();
+
+  let status="";
+  if(roster.length<min)status=`Need ${min-roster.length} more player${min-roster.length===1?"":"s"} to reach the minimum.`;
+  else if(roster.length<max)status=`${max-roster.length} roster spot${max-roster.length===1?"":"s"} available.`;
+  else status="Roster is full.";
+
+  host.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team.name} · Free Agency</b><br>
+      <span class="small">${roster.length}/${max} players · ${status}</span>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      ${roster.length<min?`<button class="primary" onclick="gmAutoFillMinimumV0913()">Quick Fill to Minimum (${min})</button>`:""}
+      <button class="primary" onclick="finishFreeAgencyV09113()">Finish Free Agency → Roster Cuts</button>
+    </div>
+
+    <div class="small muted" style="margin-bottom:10px">
+      Sign players individually, use Custom to negotiate, or finish Free Agency when you are done.
+    </div>
+
+    <div id="faCompactListV09113">
+      ${fas.slice(0,40).map(p=>`
+        <div class="teamrow" style="align-items:center">
+          <div class="teammeta">
+            <b>${p.name}</b>
+            <span class="small muted">${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · POT ${p.pot??"—"} · Ask ~$${gmFairSalaryV085(p).toFixed(1)}M</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="primary" onclick="gmQuickSignV0913('${String(p.id).replace(/'/g,"\\'")}',2);setTimeout(renderSimpleFreeAgencyV09113,0)">Sign at Ask</button>
+            <button onclick="gmContractOfferV085('${String(p.id).replace(/'/g,"\\'")}','fa');setTimeout(renderSimpleFreeAgencyV09113,0)">Custom</button>
+          </div>
+        </div>`).join("") || `<span class="muted">No free agents available.</span>`}
+    </div>
+  `;
+}
+window.renderSimpleFreeAgencyV09113=renderSimpleFreeAgencyV09113;
+
+/* Override the previous simple FA renderer so all entry points use the new one. */
+renderSimpleFreeAgencyV0913=function(){ return renderSimpleFreeAgencyV09113(); };
+window.renderSimpleFreeAgencyV0913=renderSimpleFreeAgencyV0913;
+
+const _v09113StagePage=renderFrontOfficeStagePageV0895;
+renderFrontOfficeStagePageV0895=function(step,hostId){
+  if(step==="Free Agency" && state?.role==="GM"){
+    setTimeout(renderSimpleFreeAgencyV09113,0);
+    return;
+  }
+  return _v09113StagePage.apply(this,arguments);
+};
+window.renderFrontOfficeStagePageV0895=renderFrontOfficeStagePageV0895;
+
+/* Offseason checklist's Free Agency action should always open the dedicated FA page.
+   Once on that page, Finish Free Agency advances the actual phase. */
+if(typeof goFrontOfficeV0912==="function"){
+  const _v09113GoFO=goFrontOfficeV0912;
+  goFrontOfficeV0912=function(step){
+    if(step==="Free Agency"){
+      switchTab("freeagency");
+      setTimeout(renderSimpleFreeAgencyV09113,0);
+      window.scrollTo({top:0,behavior:"smooth"});
+      return;
+    }
+    return _v09113GoFO.apply(this,arguments);
+  };
+  window.goFrontOfficeV0912=goFrontOfficeV0912;
+}
+
+const _v09113SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09113SwitchTab.apply(this,arguments);
+  if(tab==="freeagency")setTimeout(renderSimpleFreeAgencyV09113,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* If the user loads a save already sitting on Free Agency, make the page usable
+   immediately without requiring a phase restart. */
+setTimeout(()=>{
+  try{
+    if(state?.offseason?.phase==="Free Agency" && document.getElementById("freeagency")?.classList.contains("active")){
+      renderSimpleFreeAgencyV09113();
+    }
+  }catch(e){console.error("v0.91.13 FA init",e);}
 },150);
 
 </script>

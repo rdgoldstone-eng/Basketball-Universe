@@ -1,17 +1,19 @@
 Basketballverse
-v0.91.12 · Trade Age & Re-sign Fix
+v0.91.13 · Free Agency Advance Fix
 
-TRADE MACHINE
-- Player age now appears anywhere the Trade Machine shows OVR / Value.
-- Trade rows read: Position · Age · OVR · Contract · Value.
+FREE AGENCY
+- Added a clear Finish Free Agency → Roster Cuts button.
+- Free Agency no longer depends on a hidden/legacy offseason button.
+- You may sign as many or as few players as you want, then finish the stage.
+- If you are below the 8-player minimum, Basketballverse warns you but allows
+  you to continue to Roster Cuts; Roster Cuts will send you back to Free Agency
+  until the roster is legal.
+- Quick Fill to Minimum remains available.
+- Player rows show Position · Age · OVR · POT · asking salary.
+- Sign at Ask and Custom offer remain available.
 
-RE-SIGN PLAYERS
-- Dedicated simple GM page.
-- Shows Position · Age · OVR · POT · contract · estimated ask.
-- Actions: Offer Contract / Let Walk.
-- Clear Finish Re-signings → Free Agency button.
-- Unresolved expiring players become free agents when Finish is pressed so the stage cannot dead-end.
-- Finishing advances to Free Agency and opens the dedicated Free Agency tab.
+SAVE COMPATIBILITY
+A save already stuck on Free Agency can use this new Finish button immediately.
 
 FILES TO UPLOAD
 - index.html
