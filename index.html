@@ -489,7 +489,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.11 · Startup Script Crash Fix</div>
+    <div class="pill">v0.91.12 · Trade Age & Re-sign Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1487,7 +1487,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.11";
+window.BASKETBALLVERSE_BUILD = "v0.91.12";
 </script>
 
 <script>
@@ -19012,7 +19012,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.11";
+      badge.textContent="Basketballverse v0.91.12";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20344,7 +20344,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.11";
+      badge.textContent="Basketballverse v0.91.12";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -20355,6 +20355,203 @@ function markScriptReadyV09111(){
 }
 window.markScriptReadyV09111=markScriptReadyV09111;
 setTimeout(markScriptReadyV09111,0);
+
+
+
+/* === v0.91.12 Trade detail + Re-sign Players unblock === */
+
+function tradeAgeV09112(p){
+  if(!p)return "—";
+  try{
+    if(typeof playerAgeV0914==="function"){
+      const a=playerAgeV0914(p);
+      if(a!==null&&a!==undefined)return a;
+    }
+  }catch(_){}
+  return Number.isFinite(Number(p.age))?Number(p.age):"—";
+}
+window.tradeAgeV09112=tradeAgeV09112;
+
+function injectTradeAgesV09112(){
+  const host=document.getElementById("gmTradeBuilderV086")||document.getElementById("tradeMachineStandaloneV0885");
+  if(!host)return;
+  host.querySelectorAll(".teamrow").forEach(row=>{
+    const name=row.querySelector("b")?.textContent?.trim();
+    if(!name)return;
+    const p=(state.players||[]).find(x=>x?.name===name);
+    if(!p)return;
+    const meta=row.querySelector(".small.muted");
+    if(!meta)return;
+    let t=meta.textContent||"";
+    if(/\bOVR\b/.test(t) && !/\bAge\b/.test(t)){
+      t=t.replace(/\s*·\s*OVR\b/,` · Age ${tradeAgeV09112(p)} · OVR`);
+    }
+    if(/\bValue\b/.test(t) && !/\bAge\b/.test(t)){
+      t=t.replace(/\s*·\s*Value\b/,` · Age ${tradeAgeV09112(p)} · Value`);
+    }
+    meta.textContent=t;
+  });
+}
+window.injectTradeAgesV09112=injectTradeAgesV09112;
+
+const _v09112RenderTrade=renderGMTradeBuilderV086;
+renderGMTradeBuilderV086=function(){
+  const r=_v09112RenderTrade.apply(this,arguments);
+  setTimeout(injectTradeAgesV09112,0);
+  return r;
+};
+window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+
+function gmExpiringPlayersV09112(){
+  if(!isHumanGMV084())return [];
+  const team=gmTeamV084();
+  return teamRoster(team.name)
+    .filter(p=>!p.retired && ((p.contract?.years||0)<=1 || p.faEligible))
+    .sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+}
+window.gmExpiringPlayersV09112=gmExpiringPlayersV09112;
+
+function gmReSignStatusTextV09112(p){
+  if(!p)return "";
+  const c=p.contract||{};
+  const yrs=Number(c.years||0);
+  const sal=Number(c.salary||0);
+  if(yrs>1 && !p.faEligible)return `${yrs} yrs · $${sal.toFixed(1)}M`;
+  return `Expiring · Current $${sal.toFixed(1)}M`;
+}
+
+function renderSimpleReSigningsV09112(){
+  const host=document.getElementById("frontOfficeReSigningsV0895");
+  if(!host||!isHumanGMV084())return;
+
+  const team=gmTeamV084();
+  const expiring=gmExpiringPlayersV09112();
+  const payroll=teamPayroll(team.name);
+  const cap=Number(state.frontOffice?.cap||100);
+
+  host.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team.name} · Re-sign Players</b><br>
+      <span class="small">Payroll $${payroll.toFixed(1)}M / $${cap.toFixed(0)}M · ${expiring.length} decision${expiring.length===1?"":"s"} remaining</span>
+    </div>
+
+    ${expiring.length?expiring.map(p=>`
+      <div class="teamrow">
+        <div class="teammeta">
+          <b>${p.name}</b>
+          <span class="small muted">${p.pos||"—"} · Age ${tradeAgeV09112(p)} · OVR ${p.ovr??"—"} · POT ${p.pot??"—"} · ${gmReSignStatusTextV09112(p)} · Ask ~$${gmFairSalaryV085(p).toFixed(1)}M</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="primary" onclick="gmContractOfferV085('${String(p.id).replace(/'/g,"\\'")}','extension');setTimeout(renderSimpleReSigningsV09112,0)">Offer Contract</button>
+          <button onclick="gmLetWalkV09112('${String(p.id).replace(/'/g,"\\'")}')">Let Walk</button>
+        </div>
+      </div>
+    `).join(""):`<div class="notice"><b>All contract decisions are complete.</b></div>`}
+
+    <div style="margin-top:12px">
+      <button class="primary" style="width:100%" onclick="finishReSigningsV09112()">
+        Finish Re-signings → Free Agency
+      </button>
+    </div>
+  `;
+}
+window.renderSimpleReSigningsV09112=renderSimpleReSigningsV09112;
+
+function gmLetWalkV09112(playerId){
+  if(!isHumanGMV084())return;
+  const p=(state.players||[]).find(x=>x.id===playerId);
+  const team=gmTeamV084();
+  if(!p||!team)return;
+
+  p.previousTeamName=team.name;
+  p.teamName="Free Agent";
+  p.contract={years:0,salary:0};
+  p.faEligible=true;
+  state.freeAgents=Array.isArray(state.freeAgents)?state.freeAgents:[];
+  if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+
+  state.frontOffice.transactions=state.frontOffice.transactions||[];
+  state.frontOffice.transactions.unshift({
+    year:state.currentYear,
+    text:`${team.name} lets ${p.name} enter free agency.`
+  });
+
+  try{saveState();}catch(_){}
+  renderSimpleReSigningsV09112();
+}
+window.gmLetWalkV09112=gmLetWalkV09112;
+
+function finishReSigningsV09112(){
+  if(!isHumanGMV084())return;
+
+  const remaining=gmExpiringPlayersV09112();
+  const team=gmTeamV084();
+  remaining.forEach(p=>{
+    p.previousTeamName=team.name;
+    p.teamName="Free Agent";
+    p.contract={years:0,salary:0};
+    p.faEligible=true;
+    state.freeAgents=Array.isArray(state.freeAgents)?state.freeAgents:[];
+    if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+  });
+
+  try{runLeagueReSigningsAI();}catch(e){console.warn("League re-signing AI",e);}
+
+  if(state.offseason?.phase==="Re-signings"){
+    const phases=state.offseason.phases||[];
+    let idx=phases.indexOf("Re-signings");
+    if(idx<0)idx=Number(state.offseason.phaseIndex||0);
+    state.offseason.phaseIndex=idx+1;
+    state.offseason.phase=phases[idx+1]||"Free Agency";
+    state.offseason.uiSelectedActivity=state.offseason.phase;
+  }
+
+  try{saveState();}catch(_){}
+  try{renderOffseason();}catch(_){}
+  try{switchTab("freeagency");}catch(_){switchTab("offseason");}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+window.finishReSigningsV09112=finishReSigningsV09112;
+
+const _v09112StagePage=renderFrontOfficeStagePageV0895;
+renderFrontOfficeStagePageV0895=function(step,hostId){
+  if(step==="Re-signings" && state?.role==="GM"){
+    setTimeout(renderSimpleReSigningsV09112,0);
+    return;
+  }
+  return _v09112StagePage.apply(this,arguments);
+};
+window.renderFrontOfficeStagePageV0895=renderFrontOfficeStagePageV0895;
+
+const _v09112SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09112SwitchTab.apply(this,arguments);
+  if(tab==="resignplayers")setTimeout(renderSimpleReSigningsV09112,0);
+  if(tab==="trademachine")setTimeout(injectTradeAgesV09112,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+if(typeof goFrontOfficeV0912==="function"){
+  const _v09112GoFO=goFrontOfficeV0912;
+  goFrontOfficeV0912=function(step){
+    if(step==="Re-signings"){
+      switchTab("resignplayers");
+      window.scrollTo({top:0,behavior:"smooth"});
+      return;
+    }
+    return _v09112GoFO.apply(this,arguments);
+  };
+  window.goFrontOfficeV0912=goFrontOfficeV0912;
+}
+
+setTimeout(()=>{
+  try{
+    if(typeof ensurePlayerAgeTrackingV0914==="function")ensurePlayerAgeTrackingV0914();
+    if(document.getElementById("resignplayers")?.classList.contains("active"))renderSimpleReSigningsV09112();
+    if(document.getElementById("trademachine")?.classList.contains("active"))injectTradeAgesV09112();
+  }catch(e){console.error("v0.91.12 init",e);}
+},150);
 
 </script>
 </body>
