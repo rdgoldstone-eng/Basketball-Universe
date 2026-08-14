@@ -1,32 +1,42 @@
 Basketballverse
-v0.91.25 · Job Market Accept Fix
+v0.91.26 · Trade Selection Ownership Fix
 
-YES — THE ITEMS ON JOB MARKET ARE OFFERS
-The Job Market tab was reading state.career.jobOffers, but its newer menu renderer
-only displayed team/role text. It accidentally omitted the Accept and Decline controls
-that existed in an older Career & Employment panel.
+BUG
+A draft pick was checked in the Trade Machine, then unchecked before submitting,
+but the pick still transferred to the other team.
+
+ROOT PROBLEM
+The Trade Machine checkbox used a blind toggle:
+- click = invert selected state
+
+It did not send the checkbox's actual checked/unchecked value. With repeated
+rerenders and accumulated trade wrappers, the visual checkbox and the internal
+trade package could become out of sync.
 
 FIX
-- Job Market now shows each open offer as a full card.
-- Each offer shows team, role, source (vacancy/approach), and fit score.
-- Added Accept Job and Decline buttons.
-- Added Check for New Openings while unemployed.
-- Dashboard shows number of currently open offers.
+- Checkboxes now explicitly send this.checked.
+- checked=true guarantees the asset is selected.
+- checked=false guarantees the asset is removed.
+- Player/pick IDs compare safely as strings for older saves.
+- Before submission, selected picks are validated against CURRENT ownership.
+- Trade submission snapshots the exact final package.
+- Draft-pick ownership is transactional:
+  - rejected/failed trade = ownership restored
+  - accepted trade = ONLY picks still selected in the final package transfer
+- Old trade wrappers cannot transfer a pick that was removed before Submit.
 
-IMPORTANT FIRED-MODE FIX
-v0.91.24 changes state.role to Viewer while unemployed.
-The older GM/Coach job acceptance function restored the team but not state.role.
-v0.91.25 fixes that:
-- Accepting a job restores state.role to GM/Coach.
-- controlledTeamId becomes the new team.
-- career status becomes Employed.
-- GM firing flags are cleared.
-- normal team decisions and controls resume.
-- user returns to the Season screen.
+NOTE
+This prevents the bug going forward. A pick that was already incorrectly moved
+in an older save cannot be safely guessed/reversed automatically because the
+game cannot know whether that historical transfer was intended.
 
-The existing offers in the user's current save should become actionable immediately.
-
-This build keeps IndexedDB saves from v0.91.23 and true Viewer mode while unemployed from v0.91.24.
+This build retains:
+- IndexedDB saving
+- Fired true Viewer mode
+- Job Market acceptance
+- Multi-asset Trade Finder
+- projected draft-pick values
+- traded-pick Draft Room ownership fix
 
 FILES TO UPLOAD
 - index.html

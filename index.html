@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.25 · Job Market Accept Fix</div>
+    <div class="pill">v0.91.26 · Trade Selection Ownership Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.25";
+window.BASKETBALLVERSE_BUILD = "v0.91.26";
 </script>
 
 <script>
@@ -16942,12 +16942,12 @@ function renderGMTradeBuilderV086(){
   const evaln=gmEvaluateTradeV086();
 
   const rows=(players,side)=>players.map(p=>`<label class="teamrow" style="cursor:pointer">
-    <input type="checkbox" ${((side==="mine"?b.myPlayers:b.theirPlayers)||[]).includes(p.id)?"checked":""} onchange="gmToggleTradeAssetV086('${side}','player','${p.id}')">
+    <input type="checkbox" ${((side==="mine"?b.myPlayers:b.theirPlayers)||[]).includes(p.id)?"checked":""} onchange="gmToggleTradeAssetV086('${side}','player','${p.id}',this.checked)">
     <div class="teammeta"><b>${p.name}</b><span class="small muted">${p.pos||"—"} · OVR ${p.ovr??"—"} · ${gmPlayerContractTextV085(p)} · Value ${gmTradeValueV086(p)}</span></div>
   </label>`).join("");
 
   const pickRows=(picks,side)=>picks.map(pk=>`<label class="teamrow" style="cursor:pointer">
-    <input type="checkbox" ${((side==="mine"?b.myPicks:b.theirPicks)||[]).includes(pk.id)?"checked":""} onchange="gmToggleTradeAssetV086('${side}','pick','${pk.id}')">
+    <input type="checkbox" ${((side==="mine"?b.myPicks:b.theirPicks)||[]).includes(pk.id)?"checked":""} onchange="gmToggleTradeAssetV086('${side}','pick','${pk.id}',this.checked)">
     <div class="teammeta"><b>${pk.year} Round ${pk.round||1}</b><span class="small muted">Trade value ${gmPickValueV086(pk)}</span></div>
   </label>`).join("");
 
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.25";
+      badge.textContent="Basketballverse v0.91.26";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.25";
+      badge.textContent="Basketballverse v0.91.26";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -23295,6 +23295,196 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.91.25 Job Market init",e);}
 },150);
+
+
+
+/* === v0.91.26 Trade checkbox / pick ownership transaction fix ===
+   A checkbox must set selected=true/false explicitly. It must NOT blindly toggle
+   an array, because rerenders/double change events can desynchronize the UI from
+   the trade package. Also, draft-pick ownership only changes after a successful,
+   validated transaction. */
+
+gmToggleTradeAssetV086=function(side,type,id,checked){
+  const b=gmTradeBuilderStateV086();
+  const key=side==="mine"
+    ? (type==="player"?"myPlayers":"myPicks")
+    : (type==="player"?"theirPlayers":"theirPicks");
+
+  b[key]=Array.isArray(b[key])?b[key]:[];
+
+  /* IDs in older saves may be numbers while checkbox values arrive as strings.
+     Compare as strings so add/remove is deterministic. */
+  const findIndex=()=>b[key].findIndex(x=>String(x)===String(id));
+  const i=findIndex();
+
+  if(typeof checked==="boolean"){
+    if(checked && i<0)b[key].push(id);
+    if(!checked && i>=0)b[key].splice(i,1);
+  }else{
+    /* Compatibility fallback for any old caller. */
+    if(i>=0)b[key].splice(i,1);
+    else b[key].push(id);
+  }
+
+  renderGMTradeBuilderV086();
+};
+window.gmToggleTradeAssetV086=gmToggleTradeAssetV086;
+
+function currentOwnerIdStrictV09126(pk){
+  if(!pk)return null;
+  return pk.ownerTeamId || pk.currentOwnerTeamId || pk.ownerId || pk.teamId || null;
+}
+window.currentOwnerIdStrictV09126=currentOwnerIdStrictV09126;
+
+function sanitizeTradeBuilderV09126(){
+  const b=gmTradeBuilderStateV086();
+  const mine=gmTeamV084();
+  const other=(state.teams||[]).find(t=>t.id===b.otherTeamId);
+
+  const playerExists=id=>(state.players||[]).some(p=>String(p.id)===String(id));
+  const pickById=id=>(state.draftPicks||[]).find(pk=>String(pk.id)===String(id));
+
+  b.myPlayers=(b.myPlayers||[]).filter(playerExists);
+  b.theirPlayers=(b.theirPlayers||[]).filter(playerExists);
+
+  /* Most important: a selected pick is valid only if that side CURRENTLY owns it. */
+  b.myPicks=(b.myPicks||[]).filter(id=>{
+    const pk=pickById(id);
+    return !!pk && !!mine && String(currentOwnerIdStrictV09126(pk))===String(mine.id);
+  });
+
+  b.theirPicks=(b.theirPicks||[]).filter(id=>{
+    const pk=pickById(id);
+    return !!pk && !!other && String(currentOwnerIdStrictV09126(pk))===String(other.id);
+  });
+
+  return b;
+}
+window.sanitizeTradeBuilderV09126=sanitizeTradeBuilderV09126;
+
+function capturePickOwnersV09126(){
+  const map={};
+  for(const pk of (state.draftPicks||[])){
+    if(!pk?.id)continue;
+    map[String(pk.id)]={
+      ownerTeamId:pk.ownerTeamId??null,
+      currentOwnerTeamId:pk.currentOwnerTeamId??null,
+      ownerId:pk.ownerId??null,
+      teamId:pk.teamId??null,
+      ownerTeam:pk.ownerTeam??null,
+      owner:pk.owner??null,
+      teamName:pk.teamName??null
+    };
+  }
+  return map;
+}
+
+function restorePickOwnersV09126(snapshot){
+  for(const pk of (state.draftPicks||[])){
+    const old=snapshot[String(pk?.id)];
+    if(!old)continue;
+    Object.assign(pk,old);
+  }
+}
+window.restorePickOwnersV09126=restorePickOwnersV09126;
+
+/* Wrap the FINAL accumulated trade function.
+   If the trade fails/rejects/throws, no pick ownership mutation is allowed.
+   If accepted, only the picks that are still in the sanitized package move. */
+const _v09126PreviousCompleteTrade=gmCompleteTradeV086;
+gmCompleteTradeV086=function(){
+  const b=sanitizeTradeBuilderV09126();
+  const mine=gmTeamV084();
+  const other=(state.teams||[]).find(t=>t.id===b.otherTeamId);
+
+  if(!mine||!other){
+    if(typeof gmToastV0881==="function")gmToastV0881("Trade not submitted","Choose another team first.");
+    return false;
+  }
+
+  const evaln=gmEvaluateTradeV086();
+  if(!evaln.ok){
+    if(typeof gmToastV0881==="function"){
+      gmToastV0881(evaln.counter?"Trade needs more":"Trade rejected",`${other.name}: ${evaln.msg}`);
+    }else alert(evaln.msg);
+    return false;
+  }
+
+  /* Snapshot EXACT package + all pick owners immediately before completion. */
+  const packageSnapshot={
+    myPlayers:[...(b.myPlayers||[])],
+    theirPlayers:[...(b.theirPlayers||[])],
+    myPicks:[...(b.myPicks||[])],
+    theirPicks:[...(b.theirPicks||[])]
+  };
+  const ownerSnapshot=capturePickOwnersV09126();
+
+  let result;
+  try{
+    result=_v09126PreviousCompleteTrade.apply(this,arguments);
+  }catch(e){
+    restorePickOwnersV09126(ownerSnapshot);
+    console.error("Trade transaction rolled back",e);
+    alert(`Trade failed and draft-pick ownership was restored: ${String(e?.message||e)}`);
+    return false;
+  }
+
+  /* Any explicit false means no completed transaction. Roll pick ownership back. */
+  if(result===false){
+    restorePickOwnersV09126(ownerSnapshot);
+    try{saveState?.();}catch(_){}
+    return false;
+  }
+
+  /* Re-assert ownership from the EXACT accepted package. This prevents an old
+     wrapper from transferring a pick that was selected earlier but removed. */
+  restorePickOwnersV09126(ownerSnapshot);
+
+  const findPick=id=>(state.draftPicks||[]).find(pk=>String(pk.id)===String(id));
+
+  for(const id of packageSnapshot.myPicks){
+    const pk=findPick(id);
+    if(!pk)continue;
+    if(!pk.originalTeamId)pk.originalTeamId=ownerSnapshot[String(pk.id)]?.teamId||mine.id;
+    Object.assign(pk,{
+      ownerTeamId:other.id,
+      currentOwnerTeamId:other.id,
+      ownerId:other.id,
+      teamId:other.id,
+      ownerTeam:other.name,
+      owner:other.name,
+      teamName:other.name
+    });
+  }
+
+  for(const id of packageSnapshot.theirPicks){
+    const pk=findPick(id);
+    if(!pk)continue;
+    if(!pk.originalTeamId)pk.originalTeamId=ownerSnapshot[String(pk.id)]?.teamId||other.id;
+    Object.assign(pk,{
+      ownerTeamId:mine.id,
+      currentOwnerTeamId:mine.id,
+      ownerId:mine.id,
+      teamId:mine.id,
+      ownerTeam:mine.name,
+      owner:mine.name,
+      teamName:mine.name
+    });
+  }
+
+  try{normalizeDraftPickOwnershipV09121?.();}catch(_){}
+  try{saveState?.();}catch(_){}
+  return result===undefined?true:result;
+};
+window.gmCompleteTradeV086=gmCompleteTradeV086;
+
+/* Every render sanitizes stale assets before evaluating/submitting. */
+const _v09126RenderTrade=renderGMTradeBuilderV086;
+renderGMTradeBuilderV086=function(){
+  sanitizeTradeBuilderV09126();
+  return _v09126RenderTrade.apply(this,arguments);
+};
+window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
 
 </script>
 </body>
