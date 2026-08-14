@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.20 · Fired View Mode</div>
+    <div class="pill">v0.91.21 · Traded Draft Pick Ownership Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.20";
+window.BASKETBALLVERSE_BUILD = "v0.91.21";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.20";
+      badge.textContent="Basketballverse v0.91.21";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.20";
+      badge.textContent="Basketballverse v0.91.21";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -22072,6 +22072,177 @@ setTimeout(()=>{
     syncUnemployedCareerUIV09120();
     saveState?.();
   }catch(e){console.error("v0.91.20 unemployed-state init",e);}
+},150);
+
+
+
+/* === v0.91.21 Draft pick ownership hard fix === */
+function currentPickOwnerIdV09121(pk){
+  if(!pk)return null;
+  return pk.ownerTeamId || pk.ownerId || pk.currentOwnerTeamId || pk.teamId || pk.originalTeamId || null;
+}
+window.currentPickOwnerIdV09121=currentPickOwnerIdV09121;
+
+function normalizeDraftPickOwnershipV09121(){
+  state.draftPicks=Array.isArray(state.draftPicks)?state.draftPicks:[];
+  for(const pk of state.draftPicks){
+    if(!pk)continue;
+    if(!pk.originalTeamId)pk.originalTeamId=pk.teamId || pk.ownerTeamId || null;
+    if(!pk.ownerTeamId)pk.ownerTeamId=pk.currentOwnerTeamId || pk.ownerId || pk.teamId || pk.originalTeamId || null;
+
+    /* Legacy draft code often reads teamId, so keep teamId pointed at CURRENT ownership. */
+    if(pk.ownerTeamId)pk.teamId=pk.ownerTeamId;
+
+    const owner=(state.teams||[]).find(t=>t.id===pk.ownerTeamId);
+    if(owner){
+      pk.currentOwnerTeamId=owner.id;
+      pk.ownerId=owner.id;
+      pk.ownerTeam=owner.name;
+      pk.owner=owner.name;
+      pk.teamName=owner.name;
+    }
+  }
+}
+window.normalizeDraftPickOwnershipV09121=normalizeDraftPickOwnershipV09121;
+
+if(typeof gmCompleteTradeV086==="function"){
+  const _v09121CompleteTrade=gmCompleteTradeV086;
+  gmCompleteTradeV086=function(){
+    const b=gmTradeBuilderStateV086();
+    const myTeam=gmTeamV084();
+    const other=(state.teams||[]).find(t=>t.id===b.otherTeamId);
+    const myPickIds=[...(b.myPicks||[])];
+    const theirPickIds=[...(b.theirPicks||[])];
+
+    const result=_v09121CompleteTrade.apply(this,arguments);
+
+    if(myTeam&&other){
+      for(const id of myPickIds){
+        const pk=(state.draftPicks||[]).find(x=>x?.id===id);
+        if(!pk)continue;
+        if(!pk.originalTeamId)pk.originalTeamId=myTeam.id;
+        Object.assign(pk,{
+          ownerTeamId:other.id,currentOwnerTeamId:other.id,ownerId:other.id,teamId:other.id,
+          ownerTeam:other.name,owner:other.name,teamName:other.name
+        });
+      }
+      for(const id of theirPickIds){
+        const pk=(state.draftPicks||[]).find(x=>x?.id===id);
+        if(!pk)continue;
+        if(!pk.originalTeamId)pk.originalTeamId=other.id;
+        Object.assign(pk,{
+          ownerTeamId:myTeam.id,currentOwnerTeamId:myTeam.id,ownerId:myTeam.id,teamId:myTeam.id,
+          ownerTeam:myTeam.name,owner:myTeam.name,teamName:myTeam.name
+        });
+      }
+    }
+
+    normalizeDraftPickOwnershipV09121();
+    try{saveState();}catch(_){}
+    return result;
+  };
+  window.gmCompleteTradeV086=gmCompleteTradeV086;
+}
+
+function repairDraftOrderOwnershipV09121(){
+  normalizeDraftPickOwnershipV09121();
+
+  const dr=state.draftRoom;
+  if(!dr||!Array.isArray(dr.order)||!dr.order.length)return;
+
+  const year=Number(dr.year||state.currentYear);
+  const picks=(state.draftPicks||[]).filter(pk=>Number(pk.year)===year);
+
+  dr.order=dr.order.map((slot,index)=>{
+    const pickNo=Number(slot.pick||slot.pickNumber||index+1);
+    const round=Number(slot.round||1);
+
+    let pk=picks.find(x=>
+      Number(x.round||1)===round &&
+      Number(x.pick||x.pickNumber||x.slot||0)===pickNo
+    );
+
+    if(!pk){
+      const originalId=slot.originalTeamId || slot.teamId || slot.ownerTeamId;
+      pk=picks.find(x=>Number(x.round||1)===round && x.originalTeamId===originalId);
+    }
+
+    if(!pk)return slot;
+
+    const ownerId=currentPickOwnerIdV09121(pk);
+    const owner=(state.teams||[]).find(t=>t.id===ownerId);
+    if(!owner)return slot;
+
+    return {
+      ...slot,
+      ownerTeamId:owner.id,
+      teamId:owner.id,
+      teamName:owner.name,
+      ownerTeam:owner.name,
+      originalTeamId:pk.originalTeamId || slot.originalTeamId || null,
+      pickId:pk.id
+    };
+  });
+}
+window.repairDraftOrderOwnershipV09121=repairDraftOrderOwnershipV09121;
+
+function repairCurrentDraftPickTeamV09121(){
+  const dr=state.draftRoom;
+  if(!dr?.active || !Array.isArray(dr.order))return;
+  const row=dr.order[Number(dr.pickIndex||0)];
+  if(!row)return;
+
+  let pk=(state.draftPicks||[]).find(x=>x?.id===row.pickId);
+  if(!pk){
+    const pickNo=Number(row.pick||row.pickNumber||Number(dr.pickIndex||0)+1);
+    pk=(state.draftPicks||[]).find(x=>
+      Number(x.year)===Number(dr.year||state.currentYear) &&
+      Number(x.round||1)===Number(row.round||1) &&
+      Number(x.pick||x.pickNumber||x.slot||0)===pickNo
+    );
+  }
+  if(!pk)return;
+
+  const ownerId=currentPickOwnerIdV09121(pk);
+  const owner=(state.teams||[]).find(t=>t.id===ownerId);
+  if(!owner)return;
+
+  Object.assign(row,{
+    ownerTeamId:owner.id,
+    teamId:owner.id,
+    teamName:owner.name,
+    ownerTeam:owner.name,
+    originalTeamId:pk.originalTeamId || row.originalTeamId || null,
+    pickId:pk.id
+  });
+}
+window.repairCurrentDraftPickTeamV09121=repairCurrentDraftPickTeamV09121;
+
+if(typeof renderDraftRoom==="function"){
+  const _v09121RenderDraftRoom=renderDraftRoom;
+  renderDraftRoom=function(){
+    repairDraftOrderOwnershipV09121();
+    return _v09121RenderDraftRoom.apply(this,arguments);
+  };
+  window.renderDraftRoom=renderDraftRoom;
+}
+
+for(const fnName of ["simDraftPick","simCurrentDraftPick","makeAIDraftPick","draftPlayer","selectDraftPlayer"]){
+  const fn=window[fnName];
+  if(typeof fn!=="function")continue;
+  window[fnName]=function(){
+    repairCurrentDraftPickTeamV09121();
+    return fn.apply(this,arguments);
+  };
+}
+
+setTimeout(()=>{
+  try{
+    normalizeDraftPickOwnershipV09121();
+    repairDraftOrderOwnershipV09121();
+    if(state?.draftRoom?.active)renderDraftRoom?.();
+    saveState?.();
+  }catch(e){console.error("v0.91.21 draft ownership repair",e);}
 },150);
 
 </script>

@@ -1,15 +1,24 @@
 Basketballverse
-v0.91.20 · Fired View Mode
+v0.91.21 · Traded Draft Pick Ownership Fix
 
-FIRED / UNEMPLOYED
-- After being fired, Basketballverse behaves like Viewer mode until another job is accepted.
-- Team-management decisions no longer stop simulation.
-- Existing unresolved team decisions are auto-resolved as inactive.
-- Injury decisions and other team-role decisions are not created while unemployed.
-- Dashboard shows the career role as unemployed, Viewer control, and No Team.
-- Decisions screen explains that team decisions resume after a new job is accepted.
-- Job Market stays available.
-- Career history is preserved; the underlying role is not erased.
+BUG
+A GM traded with Atlanta for the #1 pick, but Atlanta still made the selection.
+
+CAUSE
+Different systems were reading different draft-pick ownership fields. The trade
+could change ownerTeamId while the Draft Room still used teamId/original-team data.
+
+FIX
+- Draft-pick trades update all current-ownership fields together.
+- originalTeamId stays separate for history and pick projection.
+- Legacy teamId is synchronized to the CURRENT owner.
+- Draft order is repaired from current ownership before rendering.
+- The current selection is checked again immediately before a draft action.
+- Existing saves with an active draft are repaired on load.
+
+RESULT
+If Atlanta trades the #1 pick to your team before the selection, your team owns
+and uses the #1 pick. Atlanta remains only the pick's original franchise.
 
 FILES TO UPLOAD
 - index.html
