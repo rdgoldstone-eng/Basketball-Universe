@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.19 · Multi-Asset Trade Finder</div>
+    <div class="pill">v0.91.20 · Fired View Mode</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.19";
+window.BASKETBALLVERSE_BUILD = "v0.91.20";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.19";
+      badge.textContent="Basketballverse v0.91.20";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.19";
+      badge.textContent="Basketballverse v0.91.20";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -21921,6 +21921,158 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.91.19 Trade Finder init",e);}
 },100);
+
+
+
+/* === v0.91.20 Fired / unemployed state behaves like Viewer mode === */
+
+function isUnemployedCareerV09120(){
+  if(!state)return false;
+  const teamAssigned=!!state.controlledTeamId;
+  const teamRole=["GM","Coach","Owner","Player"].includes(state.role);
+  const fired=state.careerStatus==="Fired" ||
+              state.employmentStatus==="Fired" ||
+              state.jobStatus==="Fired" ||
+              state.gmCareer?.fired===true ||
+              state.career?.fired===true ||
+              state.wasFired===true ||
+              !!state.gmCareer?.firedYear ||
+              !!state.career?.firedYear;
+  return teamRole && !teamAssigned && fired;
+}
+window.isUnemployedCareerV09120=isUnemployedCareerV09120;
+
+const _v09120ViewerMode=viewerMode;
+viewerMode=function(){
+  if(isUnemployedCareerV09120())return true;
+  return _v09120ViewerMode.apply(this,arguments);
+};
+window.viewerMode=viewerMode;
+
+hasBlockingDecisions=function(){
+  if(viewerMode())return false;
+  if(typeof actionableDecisionsV0893==="function")return actionableDecisionsV0893().length>0;
+  return (state?.decisions||[]).some(d=>!d.resolved);
+};
+window.hasBlockingDecisions=hasBlockingDecisions;
+
+function clearTeamDecisionsAfterFiringV09120(){
+  if(!state||!isUnemployedCareerV09120())return;
+  state.decisions=Array.isArray(state.decisions)?state.decisions:[];
+  state.decisions.forEach(d=>{
+    if(!d.resolved){
+      d.resolved=true;
+      d.resolution="Career inactive — no team assigned.";
+      d.autoResolved=true;
+    }
+  });
+}
+window.clearTeamDecisionsAfterFiringV09120=clearTeamDecisionsAfterFiringV09120;
+
+if(typeof addRoleDecision==="function"){
+  const _v09120AddRoleDecision=addRoleDecision;
+  addRoleDecision=function(){
+    if(isUnemployedCareerV09120())return null;
+    return _v09120AddRoleDecision.apply(this,arguments);
+  };
+  window.addRoleDecision=addRoleDecision;
+}
+
+if(typeof maybeCreateRoleInjuryDecision==="function"){
+  const _v09120InjuryDecision=maybeCreateRoleInjuryDecision;
+  maybeCreateRoleInjuryDecision=function(){
+    if(isUnemployedCareerV09120())return null;
+    return _v09120InjuryDecision.apply(this,arguments);
+  };
+  window.maybeCreateRoleInjuryDecision=maybeCreateRoleInjuryDecision;
+}
+
+function ensureUnemployedJobMarketV09120(){
+  if(!isUnemployedCareerV09120())return;
+  try{
+    if(typeof generateCareerJobOffersV078==="function")generateCareerJobOffersV078();
+    else if(typeof generateCareerJobOffers==="function")generateCareerJobOffers();
+  }catch(e){console.warn("Job market generation",e);}
+}
+window.ensureUnemployedJobMarketV09120=ensureUnemployedJobMarketV09120;
+
+function normalizeEmploymentStateV09120(){
+  if(!state)return;
+  const noTeam=!state.controlledTeamId;
+  const teamRole=["GM","Coach","Owner","Player"].includes(state.role);
+
+  if(teamRole && noTeam){
+    const firedFlag=state.careerStatus==="Fired" ||
+                    state.employmentStatus==="Fired" ||
+                    state.jobStatus==="Fired" ||
+                    state.gmCareer?.fired===true ||
+                    state.career?.fired===true ||
+                    state.wasFired===true ||
+                    !!state.gmCareer?.firedYear ||
+                    !!state.career?.firedYear;
+    if(firedFlag){
+      state.careerStatus="Fired";
+      state.employmentStatus="Unemployed";
+      clearTeamDecisionsAfterFiringV09120();
+      ensureUnemployedJobMarketV09120();
+    }
+  }
+}
+window.normalizeEmploymentStateV09120=normalizeEmploymentStateV09120;
+
+function syncUnemployedCareerUIV09120(){
+  if(!isUnemployedCareerV09120())return;
+  clearTeamDecisionsAfterFiringV09120();
+
+  const rolePill=document.getElementById("rolePill");
+  const roleKpi=document.getElementById("roleKpi");
+  const teamKpi=document.getElementById("teamKpi");
+  const assignment=document.getElementById("assignmentText");
+  const decisionKpi=document.getElementById("decisionKpi");
+
+  if(rolePill)rolePill.textContent=`${state.role} · Unemployed`;
+  if(roleKpi)roleKpi.textContent="Viewer";
+  if(teamKpi)teamKpi.textContent="No Team";
+  if(decisionKpi)decisionKpi.textContent="0";
+  if(assignment){
+    assignment.innerHTML=`<b>Unemployed</b><div class="muted small">You were fired. The universe continues in viewer mode until you accept another job.</div>`;
+  }
+}
+window.syncUnemployedCareerUIV09120=syncUnemployedCareerUIV09120;
+
+const _v09120RenderAll=renderAll;
+renderAll=function(){
+  normalizeEmploymentStateV09120();
+  const r=_v09120RenderAll.apply(this,arguments);
+  setTimeout(syncUnemployedCareerUIV09120,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+const _v09120SwitchTab=switchTab;
+switchTab=function(tab){
+  normalizeEmploymentStateV09120();
+  const r=_v09120SwitchTab.apply(this,arguments);
+  if(tab==="decisions" && isUnemployedCareerV09120()){
+    const sec=document.getElementById("decisions");
+    if(sec){
+      const card=sec.querySelector(".card");
+      if(card)card.innerHTML=`<h2>Decisions</h2><div class="notice">You are currently unemployed. Team decisions resume after you accept another job.</div>`;
+    }
+  }
+  if(tab==="jobmarket")ensureUnemployedJobMarketV09120();
+  setTimeout(syncUnemployedCareerUIV09120,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+setTimeout(()=>{
+  try{
+    normalizeEmploymentStateV09120();
+    syncUnemployedCareerUIV09120();
+    saveState?.();
+  }catch(e){console.error("v0.91.20 unemployed-state init",e);}
+},150);
 
 </script>
 </body>
