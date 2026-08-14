@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.21 · Traded Draft Pick Ownership Fix</div>
+    <div class="pill">v0.91.22 · Save Reliability Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.21";
+window.BASKETBALLVERSE_BUILD = "v0.91.22";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.21";
+      badge.textContent="Basketballverse v0.91.22";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.21";
+      badge.textContent="Basketballverse v0.91.22";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -22244,6 +22244,221 @@ setTimeout(()=>{
     saveState?.();
   }catch(e){console.error("v0.91.21 draft ownership repair",e);}
 },150);
+
+
+
+/* === v0.91.22 Save reliability + storage growth control ===
+   Long-running universes can outgrow mobile Safari localStorage if every
+   transient simulation object is kept forever. Preserve canonical history,
+   but strip/reduce derived UI caches before writing. */
+
+function compactStateForStorageV09122(){
+  if(!state)return null;
+
+  /* Start with the existing compact saver so logo stripping still happens. */
+  let copy;
+  try{
+    copy=compactStateForStorage();
+  }catch(e){
+    copy=JSON.parse(JSON.stringify(state));
+  }
+  if(!copy)return null;
+
+  /* Never persist large temporary trade/search result caches. */
+  if(copy.tradeFinder){
+    copy.tradeFinder.offers=[];
+  }
+  if(copy.gmTradeBuilder){
+    copy.gmTradeBuilder={
+      otherTeamId:copy.gmTradeBuilder.otherTeamId||null,
+      myPlayers:[],
+      theirPlayers:[],
+      myPicks:[],
+      theirPicks:[]
+    };
+  }
+
+  /* Current-game box scores are useful during play, but decades of raw box
+     score payloads are not required to preserve standings, player totals,
+     champions, draft history, franchise history, newspapers, etc. */
+  if(Array.isArray(copy.regularBoxScores) && copy.regularBoxScores.length>80){
+    copy.regularBoxScores=copy.regularBoxScores.slice(-80);
+  }
+
+  if(copy.season && Array.isArray(copy.season.recent) && copy.season.recent.length>80){
+    copy.season.recent=copy.season.recent.slice(-80);
+  }
+
+  /* Keep unresolved decisions plus a recent audit trail. */
+  if(Array.isArray(copy.decisions) && copy.decisions.length>250){
+    const open=copy.decisions.filter(d=>!d?.resolved);
+    const closed=copy.decisions.filter(d=>d?.resolved).slice(-200);
+    copy.decisions=[...closed,...open];
+  }
+
+  /* News is presentation history, while canonical season/draft/franchise
+     histories live elsewhere. Keep a generous recent archive without allowing
+     it to grow without bound. */
+  if(Array.isArray(copy.news) && copy.news.length>1200){
+    copy.news=copy.news.slice(-1200);
+  }
+
+  if(Array.isArray(copy.transitionErrors) && copy.transitionErrors.length>100){
+    copy.transitionErrors=copy.transitionErrors.slice(-100);
+  }
+
+  if(copy.frontOffice && Array.isArray(copy.frontOffice.transactions) && copy.frontOffice.transactions.length>600){
+    copy.frontOffice.transactions=copy.frontOffice.transactions.slice(0,600);
+  }
+
+  if(copy.draftRoom && Array.isArray(copy.draftRoom.tradeOffers) && copy.draftRoom.tradeOffers.length>20){
+    copy.draftRoom.tradeOffers=copy.draftRoom.tradeOffers.slice(-20);
+  }
+
+  /* Ephemeral UI selections can always be recreated. */
+  delete copy._processing;
+  delete copy.processing;
+  delete copy.progressState;
+  delete copy.uiToast;
+  delete copy.pendingModal;
+
+  return copy;
+}
+window.compactStateForStorageV09122=compactStateForStorageV09122;
+
+function approximateSaveSizeV09122(text){
+  try{return new Blob([text]).size;}catch(_){return String(text||"").length*2;}
+}
+window.approximateSaveSizeV09122=approximateSaveSizeV09122;
+
+function saveStateV09122(){
+  if(!state)return false;
+
+  try{
+    if(!state.saveId)state.saveId=makeSaveId();
+
+    /* Put a durable marker INSIDE the save so we can prove a newer state was
+       actually written and loaded later. */
+    state.lastSuccessfulSaveAt=Date.now();
+    state.lastSuccessfulSaveYear=Number(state.currentYear||state.startYear||1976);
+    state.lastSuccessfulSavePhase=state.offseason?.phase || state.season?.phase || "Season";
+
+    const compact=compactStateForStorageV09122();
+    const serialized=JSON.stringify(compact);
+    const key=saveStorageKey(state.saveId);
+
+    localStorage.setItem(key,serialized);
+
+    /* Read-after-write verification: do not claim Autosaved unless the browser
+       actually retained this exact save marker. */
+    const verifyRaw=localStorage.getItem(key);
+    if(!verifyRaw)throw new Error("Browser storage returned an empty save after writing.");
+
+    let verify;
+    try{verify=JSON.parse(verifyRaw);}catch(e){throw new Error("Saved universe could not be verified after writing.");}
+
+    if(Number(verify.lastSuccessfulSaveAt)!==Number(state.lastSuccessfulSaveAt)){
+      throw new Error("Browser storage did not retain the newest universe state.");
+    }
+
+    const summary=saveSummaryFromState(state);
+    summary.updatedAt=state.lastSuccessfulSaveAt;
+    summary.saveBytes=approximateSaveSizeV09122(serialized);
+    summary.saveYear=state.lastSuccessfulSaveYear;
+    summary.savePhase=state.lastSuccessfulSavePhase;
+    upsertSaveIndex(summary);
+
+    const status=document.getElementById("saveStatus");
+    if(status){
+      const now=new Date(state.lastSuccessfulSaveAt);
+      const kb=Math.round(summary.saveBytes/1024);
+      status.textContent=`Autosaved · ${state.name} · ${now.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} · ${kb} KB`;
+    }
+
+    try{renderSavedUniverseLists();}catch(_){}
+    return true;
+  }catch(err){
+    console.error("Basketballverse save failed:",err);
+
+    /* Roll back the marker in live memory because this save was NOT durable. */
+    state.lastSaveError=String(err?.message||err);
+    state.lastSaveErrorAt=Date.now();
+
+    const status=document.getElementById("saveStatus");
+    if(status)status.textContent=`SAVE FAILED · ${state.lastSaveError}`;
+
+    if(!state._saveFailureAlertShownV09122){
+      state._saveFailureAlertShownV09122=true;
+      setTimeout(()=>alert(
+        `Basketballverse could not update this save.\n\n${state.lastSaveError}\n\nThe game is still running, but progress after the last successful save is not protected.`
+      ),0);
+    }
+    return false;
+  }
+}
+window.saveStateV09122=saveStateV09122;
+
+/* Replace the old save function globally so every autosave/manual save uses
+   the verified storage path. */
+saveState=function(){return saveStateV09122();};
+window.saveState=saveState;
+
+/* Display the actual durable save marker in Saved Universes. */
+const _v09122SavedRow=cleanSavedUniverseRowV09110;
+cleanSavedUniverseRowV09110=function(x){
+  const row=_v09122SavedRow.apply(this,arguments);
+  const detail=row.querySelector(".small.muted");
+  if(detail){
+    const kb=x.saveBytes?` · ${Math.round(Number(x.saveBytes)/1024)} KB`:"";
+    const durable=x.updatedAt?new Date(x.updatedAt).toLocaleString():"Unknown";
+    detail.innerHTML=`${x.season||""} · ${x.role||"Viewer"} · ${x.phase||"Season"}<br>Saved ${durable}${kb}`;
+  }
+  return row;
+};
+window.cleanSavedUniverseRowV09110=cleanSavedUniverseRowV09110;
+
+/* Add a manual verified Save Now button next to the current save status if
+   one isn't already available. */
+function ensureVerifiedSaveButtonV09122(){
+  const status=document.getElementById("saveStatus");
+  if(!status||document.getElementById("verifiedSaveNowV09122"))return;
+
+  const btn=document.createElement("button");
+  btn.id="verifiedSaveNowV09122";
+  btn.type="button";
+  btn.textContent="Save Now";
+  btn.style.marginLeft="8px";
+  btn.onclick=()=>{
+    btn.disabled=true;
+    const old=btn.textContent;
+    btn.textContent="Saving…";
+    const ok=saveStateV09122();
+    btn.textContent=ok?"Saved ✓":"Save Failed";
+    setTimeout(()=>{btn.disabled=false;btn.textContent=old;},1200);
+  };
+  status.insertAdjacentElement("afterend",btn);
+}
+window.ensureVerifiedSaveButtonV09122=ensureVerifiedSaveButtonV09122;
+
+/* After loading an older universe, immediately try one verified save so the
+   index/timestamp catches up to the current build. */
+setTimeout(()=>{
+  try{
+    ensureVerifiedSaveButtonV09122();
+    if(state){
+      state._saveFailureAlertShownV09122=false;
+      saveStateV09122();
+    }
+  }catch(e){console.error("v0.91.22 save init",e);}
+},200);
+
+const _v09122RenderAll=renderAll;
+renderAll=function(){
+  const r=_v09122RenderAll.apply(this,arguments);
+  setTimeout(ensureVerifiedSaveButtonV09122,0);
+  return r;
+};
+window.renderAll=renderAll;
 
 </script>
 </body>
