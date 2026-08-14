@@ -1,34 +1,41 @@
 Basketballverse
-v0.91.23 · IndexedDB Save Fix
+v0.91.24 · Fired True Viewer Mode
 
-ROOT CAUSE CONFIRMED
-The screenshot shows:
-"The quota has been exceeded."
+ROOT CAUSE
+The GM firing code correctly set:
+- state.gmCareer.status = "Fired"
+- state.career.status = "Unemployed"
+- controlledTeamId = null
 
-Basketballverse was storing full universes in localStorage. Safari's localStorage
-quota is too small for a multi-season universe.
+But it left:
+- state.role = "GM"
 
-NEW SAVE SYSTEM
-- Full universes now save to IndexedDB instead of localStorage.
-- IndexedDB has substantially more capacity and is designed for larger structured data.
-- localStorage now keeps only the tiny Saved Universes index/metadata.
+Many older Basketballverse systems check state.role directly instead of the
+newer viewerMode() helper. So after being fired, those systems still treated
+the player like an active GM.
 
-MIGRATION
-- Existing localStorage saves are still readable.
-- When an old save is opened, Basketballverse migrates it to IndexedDB.
-- After a successful verified IndexedDB write, the large old localStorage copy
-  is removed to free the quota.
+FIX
+After firing/unemployment:
+- state.role becomes Viewer
+- controlledTeamId remains null
+- state.career.role preserves the actual profession (GM/Coach/etc.)
+- state.career.status remains Unemployed
+- all unresolved team decisions are closed
+- new team/injury decisions are blocked
+- simulation runs exactly like Viewer mode
+- UI shows "GM · Unemployed", "Viewer", and "No Team"
 
-VERIFICATION
-- Every save is read back from IndexedDB before being marked successful.
-- Save Now waits for the actual IndexedDB write to complete.
-- Saved Universes uses the IndexedDB-aware loader.
-- Load Existing Universe uses the same loader.
+NEW JOB
+When a career job is accepted:
+- the saved career role is restored to state.role
+- the new controlled team is restored
+- employment returns to Employed
+- GM status returns to Employed
 
-IMPORTANT
-Progress made AFTER the last successful save in v0.91.22 exists only in the
-currently open page memory. Reloading the page cannot recover that unsaved state.
-Do not close the old tab if you still need something visible from that session.
+EXISTING FIRED SAVES
+v0.91.24 repairs them automatically on load/render. You do not need to get fired again.
+
+This build keeps the IndexedDB save system from v0.91.23.
 
 FILES TO UPLOAD
 - index.html

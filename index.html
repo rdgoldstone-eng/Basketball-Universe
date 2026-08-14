@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.23 · IndexedDB Save Fix</div>
+    <div class="pill">v0.91.24 · Fired True Viewer Mode</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.23";
+window.BASKETBALLVERSE_BUILD = "v0.91.24";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.23";
+      badge.textContent="Basketballverse v0.91.24";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.23";
+      badge.textContent="Basketballverse v0.91.24";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -22824,6 +22824,254 @@ renderAll=function(){
   return r;
 };
 window.renderAll=renderAll;
+
+
+
+/* === v0.91.24 Fired = TRUE Viewer Mode ===
+   Root cause: the firing code sets:
+     state.gmCareer.status = "Fired"
+     state.career.status = "Unemployed"
+   but leaves state.role = "GM".
+   Many older systems check state.role directly instead of viewerMode(), so they
+   continued behaving as if the user still controlled a team.
+
+   Fix: while unemployed, state.role becomes Viewer. The career's actual role
+   remains stored in state.career.role (GM/Coach/etc.) and is restored automatically
+   when a new job is accepted. */
+
+function careerIsUnemployedV09124(){
+  if(!state)return false;
+  const careerStatus=String(state.career?.status||"").toLowerCase();
+  const gmStatus=String(state.gmCareer?.status||"").toLowerCase();
+
+  return !state.controlledTeamId && (
+    careerStatus==="unemployed" ||
+    gmStatus==="fired" ||
+    String(state.careerStatus||"").toLowerCase()==="fired" ||
+    String(state.employmentStatus||"").toLowerCase()==="unemployed"
+  );
+}
+window.careerIsUnemployedV09124=careerIsUnemployedV09124;
+
+function enterTrueViewerModeAfterFiringV09124(){
+  if(!careerIsUnemployedV09124())return false;
+
+  state.career=state.career||{};
+
+  /* Preserve the profession for job-market eligibility before changing live role. */
+  if(!state.career.role || state.career.role==="Viewer"){
+    if(state.gmCareer?.status==="Fired")state.career.role="GM";
+    else if(state.role && state.role!=="Viewer")state.career.role=state.role;
+  }
+
+  state.career.status="Unemployed";
+  state.employmentStatus="Unemployed";
+  state.controlledTeamId=null;
+
+  /* This is the key fix: all legacy team systems now see Viewer too. */
+  state.role="Viewer";
+
+  /* Kill any old team decisions that existed before the firing. */
+  state.decisions=Array.isArray(state.decisions)?state.decisions:[];
+  state.decisions.forEach(d=>{
+    if(!d?.resolved){
+      d.resolved=true;
+      d.autoResolved=true;
+      d.resolution="Unemployed — no team-controlled decision required.";
+    }
+  });
+
+  return true;
+}
+window.enterTrueViewerModeAfterFiringV09124=enterTrueViewerModeAfterFiringV09124;
+
+/* Update the older v0.91.20 unemployment detector to use the actual career flags. */
+isUnemployedCareerV09120=function(){
+  return careerIsUnemployedV09124();
+};
+window.isUnemployedCareerV09120=isUnemployedCareerV09120;
+
+/* Viewer behavior is now automatic because state.role is literally Viewer, but
+   retain this guard for old saves before normalization runs. */
+const _v09124ViewerMode=viewerMode;
+viewerMode=function(){
+  if(careerIsUnemployedV09124())return true;
+  return _v09124ViewerMode.apply(this,arguments);
+};
+window.viewerMode=viewerMode;
+
+hasBlockingDecisions=function(){
+  if(careerIsUnemployedV09124() || viewerMode())return false;
+  if(typeof actionableDecisionsV0893==="function")return actionableDecisionsV0893().length>0;
+  return (state?.decisions||[]).some(d=>!d?.resolved);
+};
+window.hasBlockingDecisions=hasBlockingDecisions;
+
+/* Any role-decision creator is blocked while unemployed, even before the role
+   normalization finishes. */
+if(typeof addRoleDecision==="function"){
+  const _v09124AddRoleDecision=addRoleDecision;
+  addRoleDecision=function(){
+    if(careerIsUnemployedV09124())return null;
+    return _v09124AddRoleDecision.apply(this,arguments);
+  };
+  window.addRoleDecision=addRoleDecision;
+}
+
+if(typeof maybeCreateRoleInjuryDecision==="function"){
+  const _v09124InjuryDecision=maybeCreateRoleInjuryDecision;
+  maybeCreateRoleInjuryDecision=function(){
+    if(careerIsUnemployedV09124())return null;
+    return _v09124InjuryDecision.apply(this,arguments);
+  };
+  window.maybeCreateRoleInjuryDecision=maybeCreateRoleInjuryDecision;
+}
+
+/* Generic career firing now transitions to Viewer immediately and does NOT add
+   a team-style blocking decision after the firing. */
+if(typeof fireCareerCharacter==="function"){
+  const _v09124FireCareerCharacter=fireCareerCharacter;
+  fireCareerCharacter=function(reason="Fired"){
+    ensureCareerState?.();
+
+    /* Reproduce the intended job-ending behavior without creating the old
+       "Your job has ended" blocking team decision. */
+    try{
+      if(state.career?.status!=="Viewer"){
+        recordCareerEvent?.("Job Ended",{reason});
+      }
+    }catch(_){}
+
+    state.career=state.career||{};
+    if(!state.career.role || state.career.role==="Viewer"){
+      state.career.role=state.role && state.role!=="Viewer" ? state.role : "GM";
+    }
+    state.career.status="Unemployed";
+    state.career.currentTeamId=null;
+    state.career.jobOffers=[];
+    state.controlledTeamId=null;
+
+    enterTrueViewerModeAfterFiringV09124();
+
+    try{generateCareerJobOffers?.(true);}catch(_){}
+    try{saveState?.();}catch(_){}
+  };
+  window.fireCareerCharacter=fireCareerCharacter;
+}
+
+/* The GM-specific firing path sets gmCareer.status correctly but historically
+   left state.role as GM. Normalize immediately after the review. */
+if(typeof gmSeasonReviewV087==="function"){
+  const _v09124GMReview=gmSeasonReviewV087;
+  gmSeasonReviewV087=function(){
+    const r=_v09124GMReview.apply(this,arguments);
+    if(String(state.gmCareer?.status||"").toLowerCase()==="fired"){
+      enterTrueViewerModeAfterFiringV09124();
+      try{generateCareerJobOffers?.(true);}catch(_){}
+      try{saveState?.();}catch(_){}
+    }
+    return r;
+  };
+  window.gmSeasonReviewV087=gmSeasonReviewV087;
+}
+
+/* Accepting a new career job already restores state.role in the old code.
+   Reinforce that and reset GM firing status when appropriate. */
+if(typeof acceptCareerJob==="function"){
+  const _v09124AcceptJob=acceptCareerJob;
+  acceptCareerJob=function(offerId){
+    const ok=_v09124AcceptJob.apply(this,arguments);
+    if(ok){
+      state.role=state.career?.role||state.role;
+      state.controlledTeamId=state.career?.currentTeamId||state.controlledTeamId;
+      state.employmentStatus="Employed";
+      if(state.role==="GM" && state.gmCareer){
+        state.gmCareer.status="Employed";
+        state.gmCareer.security=Math.max(45,Number(state.gmCareer.security||50));
+      }
+      try{saveState?.();}catch(_){}
+    }
+    return ok;
+  };
+  window.acceptCareerJob=acceptCareerJob;
+}
+
+/* UI while unemployed: career identity remains visible, but live control is Viewer. */
+function syncTrueViewerUnemployedUIV09124(){
+  if(!careerIsUnemployedV09124())return;
+
+  const careerRole=state.career?.role||"GM";
+  const rolePill=document.getElementById("rolePill");
+  const roleKpi=document.getElementById("roleKpi");
+  const teamKpi=document.getElementById("teamKpi");
+  const decisionKpi=document.getElementById("decisionKpi");
+  const assignment=document.getElementById("assignmentText");
+
+  if(rolePill)rolePill.textContent=`${careerRole} · Unemployed`;
+  if(roleKpi)roleKpi.textContent="Viewer";
+  if(teamKpi)teamKpi.textContent="No Team";
+  if(decisionKpi)decisionKpi.textContent="0";
+  if(assignment){
+    assignment.innerHTML=`<b>Unemployed ${careerRole}</b><div class="muted small">You are spectating the league until you accept another ${careerRole} job.</div>`;
+  }
+}
+window.syncTrueViewerUnemployedUIV09124=syncTrueViewerUnemployedUIV09124;
+
+/* Repair the CURRENT save immediately, including saves already fired in earlier builds. */
+function repairFiredSaveV09124(){
+  if(!state)return;
+  const changed=enterTrueViewerModeAfterFiringV09124();
+  if(changed){
+    try{
+      if(typeof generateCareerJobOffers==="function")generateCareerJobOffers(false);
+    }catch(_){}
+  }
+  syncTrueViewerUnemployedUIV09124();
+}
+window.repairFiredSaveV09124=repairFiredSaveV09124;
+
+const _v09124RenderAll=renderAll;
+renderAll=function(){
+  repairFiredSaveV09124();
+  const r=_v09124RenderAll.apply(this,arguments);
+  setTimeout(syncTrueViewerUnemployedUIV09124,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+const _v09124SwitchTab=switchTab;
+switchTab=function(tab){
+  repairFiredSaveV09124();
+  const r=_v09124SwitchTab.apply(this,arguments);
+
+  if(tab==="decisions" && careerIsUnemployedV09124()){
+    const sec=document.getElementById("decisions");
+    if(sec){
+      sec.innerHTML=`<div class="card"><h2>Decisions</h2><div class="notice">You are unemployed. There are no team decisions while you are in Viewer mode.</div></div>`;
+    }
+  }
+
+  setTimeout(syncTrueViewerUnemployedUIV09124,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Normalize before simulation starts too, not only during rendering. */
+for(const fnName of ["advanceSeason","advanceSimulation","runAdvance","simulateToTarget","simNextGame","simOneGame"]){
+  const fn=window[fnName];
+  if(typeof fn!=="function")continue;
+  window[fnName]=function(){
+    repairFiredSaveV09124();
+    return fn.apply(this,arguments);
+  };
+}
+
+setTimeout(()=>{
+  try{
+    repairFiredSaveV09124();
+    if(careerIsUnemployedV09124())saveState?.();
+  }catch(e){console.error("v0.91.24 fired-view repair",e);}
+},150);
 
 </script>
 </body>
