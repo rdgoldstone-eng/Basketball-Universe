@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.24 · Fired True Viewer Mode</div>
+    <div class="pill">v0.91.25 · Job Market Accept Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.24";
+window.BASKETBALLVERSE_BUILD = "v0.91.25";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.24";
+      badge.textContent="Basketballverse v0.91.25";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.24";
+      badge.textContent="Basketballverse v0.91.25";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -23071,6 +23071,229 @@ setTimeout(()=>{
     repairFiredSaveV09124();
     if(careerIsUnemployedV09124())saveState?.();
   }catch(e){console.error("v0.91.24 fired-view repair",e);}
+},150);
+
+
+
+/* === v0.91.25 Job Market offers + acceptance ===
+   The Career > Job Market tab was only DISPLAYING state.career.jobOffers.
+   It omitted the Accept / Decline actions that already existed in the older
+   Career & Employment panel. */
+
+function openJobOffersV09125(){
+  if(!state?.career)return [];
+  return (state.career.jobOffers||[]).filter(o=>o && o.status==="Open");
+}
+window.openJobOffersV09125=openJobOffersV09125;
+
+function acceptJobMarketOfferV09125(offerId){
+  if(!state?.career)return false;
+
+  const offer=(state.career.jobOffers||[]).find(o=>o.id===offerId && o.status==="Open");
+  if(!offer){
+    alert("That job offer is no longer available.");
+    renderJobMarketV09125();
+    return false;
+  }
+
+  let ok=false;
+
+  /* Coach/GM careers should use the staff-aware employment function because it
+     actually installs the user into the team's staff structure. */
+  if(typeof acceptCareerJobV078==="function" && ["Coach","GM"].includes(offer.role)){
+    ok=acceptCareerJobV078(offerId);
+  }else if(typeof acceptCareerJob==="function"){
+    ok=acceptCareerJob(offerId);
+  }
+
+  if(!ok){
+    alert(`Basketballverse could not accept the ${offer.teamName} ${offer.role} job.`);
+    return false;
+  }
+
+  /* v0.91.24 intentionally made the live role Viewer while unemployed.
+     The older V078 accept function restores the team/career status but did not
+     restore state.role, so explicitly restore full team control here. */
+  state.career.status="Employed";
+  state.career.currentTeamId=offer.teamId;
+  state.controlledTeamId=offer.teamId;
+  state.career.role=offer.role;
+  state.role=offer.role;
+  state.employmentStatus="Employed";
+  state.careerStatus="Employed";
+
+  if(offer.role==="GM" && state.gmCareer){
+    state.gmCareer.status="Employed";
+    state.gmCareer.security=Math.max(45,Number(state.gmCareer.security||50));
+  }
+
+  /* Clear the previous fired-state flags so v0.91.24 does not immediately
+     normalize the new employment back into Viewer mode. */
+  state.wasFired=false;
+  if(state.career)state.career.fired=false;
+  if(state.gmCareer){
+    state.gmCareer.fired=false;
+    state.gmCareer.firedYear=null;
+  }
+
+  try{setCareerSeasonExpectationV078?.();}catch(_){}
+  try{saveState?.();}catch(_){}
+  try{renderAll?.();}catch(_){}
+  try{switchTab?.("season");}catch(_){}
+  window.scrollTo({top:0,behavior:"smooth"});
+  return true;
+}
+window.acceptJobMarketOfferV09125=acceptJobMarketOfferV09125;
+
+function declineJobMarketOfferV09125(offerId){
+  if(typeof declineCareerJob==="function"){
+    declineCareerJob(offerId);
+  }else{
+    const o=(state.career?.jobOffers||[]).find(x=>x.id===offerId);
+    if(o)o.status="Declined";
+  }
+  try{saveState?.();}catch(_){}
+  renderJobMarketV09125();
+}
+window.declineJobMarketOfferV09125=declineJobMarketOfferV09125;
+
+function refreshJobMarketV09125(){
+  if(!state?.career)return;
+  try{
+    if(typeof generateCareerJobOffersV078==="function" && ["Coach","GM"].includes(state.career.role)){
+      generateCareerJobOffersV078(true);
+    }else if(typeof generateCareerJobOffers==="function"){
+      generateCareerJobOffers(true);
+    }
+    saveState?.();
+  }catch(e){
+    console.error("Job Market refresh",e);
+    alert(`Could not refresh the job market: ${String(e?.message||e)}`);
+  }
+  renderJobMarketV09125();
+}
+window.refreshJobMarketV09125=refreshJobMarketV09125;
+
+function renderJobMarketV09125(){
+  const host=document.getElementById("jobmarketBodyV090");
+  if(!host)return;
+
+  const career=state?.career;
+  if(!career){
+    host.innerHTML=`<div class="notice">Career mode is not active.</div>`;
+    return;
+  }
+
+  const offers=openJobOffersV09125();
+  const role=career.role || "GM";
+
+  host.innerHTML=`
+    <div class="card">
+      <h2>Job Market</h2>
+      <div class="grid2">
+        <div class="ownerMetric">
+          <b>${career.status||"Unemployed"}</b>
+          <div class="small muted">Employment</div>
+        </div>
+        <div class="ownerMetric">
+          <b>${role}</b>
+          <div class="small muted">Career Role</div>
+        </div>
+        <div class="ownerMetric">
+          <b>${Math.round(Number(career.reputation||50))}/100</b>
+          <div class="small muted">Reputation</div>
+        </div>
+        <div class="ownerMetric">
+          <b>${offers.length}</b>
+          <div class="small muted">Open Offers</div>
+        </div>
+      </div>
+
+      ${career.status==="Unemployed"?`
+        <button style="margin-top:10px" onclick="refreshJobMarketV09125()">Check for New Openings</button>
+      `:""}
+    </div>
+
+    ${offers.length ? offers.map(o=>`
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div>
+            <h3 style="margin:0">${o.teamName||"Team"}</h3>
+            <div class="small muted">${o.role||role} · ${o.source==="Approach"?"They approached you":"Open vacancy"}</div>
+          </div>
+          <span class="pill">Fit ${Math.round(Number(o.score||0))}</span>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button class="primary" onclick="acceptJobMarketOfferV09125('${String(o.id).replace(/'/g,"\\'")}')">
+            Accept ${o.role||role} Job
+          </button>
+          <button onclick="declineJobMarketOfferV09125('${String(o.id).replace(/'/g,"\\'")}')">
+            Decline
+          </button>
+        </div>
+      </div>
+    `).join("") : `
+      <div class="notice">
+        <b>No open ${role} offers right now.</b><br>
+        <span class="small">You can continue simulating in Viewer mode and check the market again later.</span>
+      </div>
+    `}
+  `;
+}
+window.renderJobMarketV09125=renderJobMarketV09125;
+
+/* Repair the generic Career > Job Market renderer that previously produced
+   information-only rows with no way to act on the offers. */
+const _v09125SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09125SwitchTab.apply(this,arguments);
+  if(tab==="jobmarket"){
+    setTimeout(()=>{
+      try{
+        if(careerIsUnemployedV09124?.() && !openJobOffersV09125().length){
+          /* Do not forcibly refresh every time; generate only if the market is empty. */
+          if(typeof generateCareerJobOffersV078==="function")generateCareerJobOffersV078(false);
+        }
+        renderJobMarketV09125();
+      }catch(e){console.error("Job Market render",e);}
+    },0);
+  }
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Also repair direct calls to V078 acceptance so any older Accept button restores
+   the live role from Viewer back to the accepted job. */
+if(typeof acceptCareerJobV078==="function"){
+  const _v09125AcceptV078=acceptCareerJobV078;
+  acceptCareerJobV078=function(offerId){
+    const offer=(state.career?.jobOffers||[]).find(o=>o.id===offerId);
+    const ok=_v09125AcceptV078.apply(this,arguments);
+    if(ok && offer){
+      state.role=offer.role;
+      state.controlledTeamId=offer.teamId;
+      state.career.status="Employed";
+      state.employmentStatus="Employed";
+      if(offer.role==="GM" && state.gmCareer){
+        state.gmCareer.status="Employed";
+        state.gmCareer.fired=false;
+        state.gmCareer.firedYear=null;
+      }
+      state.wasFired=false;
+      try{saveState?.();}catch(_){}
+    }
+    return ok;
+  };
+  window.acceptCareerJobV078=acceptCareerJobV078;
+}
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("jobmarket")?.classList.contains("active")){
+      renderJobMarketV09125();
+    }
+  }catch(e){console.error("v0.91.25 Job Market init",e);}
 },150);
 
 </script>
