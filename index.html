@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.22 · Save Reliability Fix</div>
+    <div class="pill">v0.91.23 · IndexedDB Save Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.22";
+window.BASKETBALLVERSE_BUILD = "v0.91.23";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.22";
+      badge.textContent="Basketballverse v0.91.23";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.22";
+      badge.textContent="Basketballverse v0.91.23";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -22456,6 +22456,371 @@ const _v09122RenderAll=renderAll;
 renderAll=function(){
   const r=_v09122RenderAll.apply(this,arguments);
   setTimeout(ensureVerifiedSaveButtonV09122,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+
+
+/* === v0.91.23 IndexedDB save system ===
+   localStorage's ~5 MB quota is too small for long Basketballverse universes.
+   IndexedDB becomes the primary save store; localStorage keeps only the small
+   save index and compatibility metadata. */
+
+const BV_DB_NAME_V09123="BasketballverseDB";
+const BV_DB_VERSION_V09123=1;
+const BV_STORE_V09123="universes";
+let bvDbPromiseV09123=null;
+let bvSaveQueueV09123=Promise.resolve();
+
+function openBasketballverseDBV09123(){
+  if(bvDbPromiseV09123)return bvDbPromiseV09123;
+  bvDbPromiseV09123=new Promise((resolve,reject)=>{
+    const req=indexedDB.open(BV_DB_NAME_V09123,BV_DB_VERSION_V09123);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(BV_STORE_V09123)){
+        db.createObjectStore(BV_STORE_V09123,{keyPath:"saveId"});
+      }
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error("IndexedDB could not be opened."));
+  });
+  return bvDbPromiseV09123;
+}
+window.openBasketballverseDBV09123=openBasketballverseDBV09123;
+
+async function idbPutUniverseV09123(record){
+  const db=await openBasketballverseDBV09123();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(BV_STORE_V09123,"readwrite");
+    tx.objectStore(BV_STORE_V09123).put(record);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error||new Error("IndexedDB write failed."));
+    tx.onabort=()=>reject(tx.error||new Error("IndexedDB write was aborted."));
+  });
+}
+window.idbPutUniverseV09123=idbPutUniverseV09123;
+
+async function idbGetUniverseV09123(saveId){
+  const db=await openBasketballverseDBV09123();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(BV_STORE_V09123,"readonly");
+    const req=tx.objectStore(BV_STORE_V09123).get(saveId);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error||new Error("IndexedDB read failed."));
+  });
+}
+window.idbGetUniverseV09123=idbGetUniverseV09123;
+
+async function idbDeleteUniverseV09123(saveId){
+  const db=await openBasketballverseDBV09123();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(BV_STORE_V09123,"readwrite");
+    tx.objectStore(BV_STORE_V09123).delete(saveId);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error||new Error("IndexedDB delete failed."));
+  });
+}
+window.idbDeleteUniverseV09123=idbDeleteUniverseV09123;
+
+function saveStatusV09123(text,error=false){
+  const el=document.getElementById("saveStatus");
+  if(el){
+    el.textContent=text;
+    el.style.color=error?"#ff8a8a":"";
+  }
+}
+
+async function performIndexedSaveV09123(snapshotMarker){
+  if(!state)return false;
+
+  try{
+    const compact=compactStateForStorageV09122();
+    compact.saveId=state.saveId;
+    compact.lastSuccessfulSaveAt=snapshotMarker;
+    compact.lastSuccessfulSaveYear=Number(state.currentYear||state.startYear||1976);
+    compact.lastSuccessfulSavePhase=state.offseason?.phase||state.season?.phase||"Season";
+
+    const serialized=JSON.stringify(compact);
+    const bytes=approximateSaveSizeV09122(serialized);
+
+    await idbPutUniverseV09123({
+      saveId:state.saveId,
+      updatedAt:snapshotMarker,
+      bytes,
+      state:compact
+    });
+
+    const verify=await idbGetUniverseV09123(state.saveId);
+    if(!verify || Number(verify.updatedAt)!==Number(snapshotMarker)){
+      throw new Error("IndexedDB did not retain the newest save.");
+    }
+
+    state.lastSuccessfulSaveAt=snapshotMarker;
+    state.lastSuccessfulSaveYear=compact.lastSuccessfulSaveYear;
+    state.lastSuccessfulSavePhase=compact.lastSuccessfulSavePhase;
+    state.lastSaveError=null;
+    state._saveFailureAlertShownV09122=false;
+
+    const summary=saveSummaryFromState(state);
+    summary.updatedAt=snapshotMarker;
+    summary.saveBytes=bytes;
+    summary.saveYear=compact.lastSuccessfulSaveYear;
+    summary.savePhase=compact.lastSuccessfulSavePhase;
+    summary.storage="IndexedDB";
+
+    try{upsertSaveIndex(summary);}catch(e){
+      console.warn("Save index update warning",e);
+    }
+
+    /* Remove the old full localStorage copy AFTER IndexedDB verification.
+       This frees the quota that caused v0.91.22 to fail. */
+    try{
+      localStorage.removeItem(saveStorageKey(state.saveId));
+    }catch(_){}
+
+    const kb=Math.max(1,Math.round(bytes/1024));
+    saveStatusV09123(`Autosaved · ${state.name} · ${new Date(snapshotMarker).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} · ${kb} KB`);
+    try{renderSavedUniverseLists();}catch(_){}
+    return true;
+  }catch(err){
+    console.error("IndexedDB save failed",err);
+    state.lastSaveError=String(err?.message||err);
+    state.lastSaveErrorAt=Date.now();
+    saveStatusV09123(`SAVE FAILED · ${state.lastSaveError}`,true);
+    if(!state._saveFailureAlertShownV09122){
+      state._saveFailureAlertShownV09122=true;
+      setTimeout(()=>alert(
+        `Basketballverse could not update this save.\n\n${state.lastSaveError}\n\nDo not close this page if you need to keep unsaved progress.`
+      ),0);
+    }
+    return false;
+  }
+}
+
+/* Keep saveState compatible with existing synchronous callers:
+   it queues the actual IndexedDB write and returns true to indicate scheduling. */
+saveState=function(){
+  if(!state)return false;
+  if(!state.saveId)state.saveId=makeSaveId();
+
+  const marker=Date.now();
+  saveStatusV09123(`Saving · ${state.name}…`);
+
+  bvSaveQueueV09123=bvSaveQueueV09123
+    .catch(()=>{})
+    .then(()=>performIndexedSaveV09123(marker));
+
+  return true;
+};
+window.saveState=saveState;
+
+/* Awaitable save for explicit Save Now / critical transitions. */
+async function saveStateNowV09123(){
+  if(!state)return false;
+  if(!state.saveId)state.saveId=makeSaveId();
+  const marker=Date.now();
+  saveStatusV09123(`Saving · ${state.name}…`);
+  bvSaveQueueV09123=bvSaveQueueV09123
+    .catch(()=>{})
+    .then(()=>performIndexedSaveV09123(marker));
+  return await bvSaveQueueV09123;
+}
+window.saveStateNowV09123=saveStateNowV09123;
+
+/* Load prefers IndexedDB, then migrates legacy localStorage saves automatically. */
+async function loadStateAsyncV09123(saveId){
+  try{
+    const rec=await idbGetUniverseV09123(saveId);
+    if(rec?.state){
+      const loaded=rehydrateLoadedState(rec.state);
+      loaded.saveId=saveId;
+      return loaded;
+    }
+  }catch(e){
+    console.warn("IndexedDB load warning",e);
+  }
+
+  /* Legacy fallback. */
+  let legacy=null;
+  try{legacy=loadState(saveId);}catch(e){console.warn("Legacy load warning",e);}
+  if(legacy){
+    legacy.saveId=saveId;
+    try{
+      const oldState=state;
+      state=legacy;
+      await saveStateNowV09123();
+      state=oldState;
+    }catch(e){
+      console.warn("Legacy-to-IndexedDB migration warning",e);
+    }
+  }
+  return legacy;
+}
+window.loadStateAsyncV09123=loadStateAsyncV09123;
+
+async function openSavedUniverseV09123(saveId){
+  try{
+    const loaded=await loadStateAsyncV09123(saveId);
+    if(!loaded){
+      alert("That saved universe could not be found.");
+      return false;
+    }
+    state=loaded;
+    showGame();
+    setTimeout(()=>{
+      try{saveState();}catch(_){}
+    },100);
+    return true;
+  }catch(e){
+    console.error("IndexedDB universe open",e);
+    alert(`Could not open this universe:\n\n${String(e?.message||e)}`);
+    return false;
+  }
+}
+window.openSavedUniverseV09123=openSavedUniverseV09123;
+
+/* Saved-list rows now open through IndexedDB-aware loader. */
+function savedUniverseRowIDBV09123(x){
+  const row=document.createElement("div");
+  row.className="savedUniverseRow";
+
+  const meta=document.createElement("div");
+  meta.className="savedUniverseMeta";
+  const title=document.createElement("div");
+  title.className="savedUniverseTitle";
+  title.textContent=x.name||"Basketballverse";
+
+  const detail=document.createElement("div");
+  detail.className="small muted";
+  const when=x.updatedAt?new Date(x.updatedAt).toLocaleString():"Unknown";
+  const kb=x.saveBytes?` · ${Math.max(1,Math.round(Number(x.saveBytes)/1024))} KB`:"";
+  detail.innerHTML=`${x.season||""} · ${x.role||"Viewer"} · ${x.phase||"Season"}<br>Saved ${when}${kb}`;
+  meta.append(title,detail);
+
+  const actions=document.createElement("div");
+  actions.className="savedUniverseActions";
+
+  const play=document.createElement("button");
+  play.type="button";
+  play.className="primary";
+  play.textContent="Play";
+  play.onclick=async()=>{
+    play.disabled=true;
+    play.textContent="Opening…";
+    const ok=await openSavedUniverseV09123(x.id);
+    if(!ok){play.disabled=false;play.textContent="Play";}
+  };
+
+  const rename=document.createElement("button");
+  rename.type="button";
+  rename.textContent="Rename";
+  rename.onclick=()=>renameUniverseFromList(x.id);
+
+  const del=document.createElement("button");
+  del.type="button";
+  del.className="danger";
+  del.textContent="Delete";
+  del.onclick=async()=>{
+    const ok=confirm(`Delete "${x.name||"Basketballverse"}"?`);
+    if(!ok)return;
+    try{await idbDeleteUniverseV09123(x.id);}catch(_){}
+    try{localStorage.removeItem(saveStorageKey(x.id));}catch(_){}
+    const idx=saveIndex().filter(s=>s.id!==x.id);
+    try{localStorage.setItem(SAVE_INDEX_KEY,JSON.stringify(idx));}catch(_){}
+    renderSavedUniverseLists();
+  };
+
+  actions.append(play,rename,del);
+  row.append(meta,actions);
+  return row;
+}
+
+renderSavedUniverseLists=function(){
+  migrateLegacySaveIfNeeded();
+  const index=saveIndex();
+
+  ["savedUniverseList","setupSavedUniverseList"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.innerHTML="";
+    if(!index.length){
+      el.innerHTML=`<span class="muted">No saved universes yet.</span>`;
+      return;
+    }
+    index.forEach(x=>el.appendChild(savedUniverseRowIDBV09123(x)));
+  });
+
+  const current=document.getElementById("currentUniverseSaveBox");
+  if(current){
+    current.innerHTML=state
+      ? `<b>${state.name}</b><div class="small muted">${seasonName()} · ${state.role} · ${state.season?.phase||"Season"}<br>IndexedDB autosave is active.</div>`
+      : `<span class="muted">No universe loaded.</span>`;
+  }
+};
+window.renderSavedUniverseLists=renderSavedUniverseLists;
+
+/* Load Existing Universe uses the same IndexedDB-aware path. */
+const loadBtnV09123=document.getElementById("loadBtn");
+if(loadBtnV09123){
+  loadBtnV09123.onclick=async()=>{
+    const index=saveIndex();
+    if(!index.length){
+      alert("No saved universe found in this browser.");
+      return;
+    }
+    if(index.length===1){
+      await openSavedUniverseV09123(index[0].id);
+      return;
+    }
+    document.getElementById("setupSavedUniverseList")?.scrollIntoView({behavior:"smooth",block:"center"});
+  };
+}
+
+/* Replace v0.91.22 Save Now with awaited IndexedDB save. */
+function ensureVerifiedSaveButtonV09123(){
+  const old=document.getElementById("verifiedSaveNowV09122");
+  if(old)old.remove();
+  const status=document.getElementById("saveStatus");
+  if(!status||document.getElementById("verifiedSaveNowV09123"))return;
+
+  const btn=document.createElement("button");
+  btn.id="verifiedSaveNowV09123";
+  btn.type="button";
+  btn.textContent="Save Now";
+  btn.style.marginLeft="8px";
+  btn.onclick=async()=>{
+    btn.disabled=true;
+    btn.textContent="Saving…";
+    const ok=await saveStateNowV09123();
+    btn.textContent=ok?"Saved ✓":"Save Failed";
+    setTimeout(()=>{btn.disabled=false;btn.textContent="Save Now";},1200);
+  };
+  status.insertAdjacentElement("afterend",btn);
+}
+window.ensureVerifiedSaveButtonV09123=ensureVerifiedSaveButtonV09123;
+
+/* One-time migration on load: move any currently loaded legacy save into IndexedDB,
+   then remove its large localStorage payload. */
+setTimeout(async()=>{
+  try{
+    ensureVerifiedSaveButtonV09123();
+    renderSavedUniverseLists();
+
+    if(state){
+      state._saveFailureAlertShownV09122=false;
+      await saveStateNowV09123();
+    }
+  }catch(e){
+    console.error("v0.91.23 IndexedDB init",e);
+  }
+},250);
+
+const _v09123RenderAll=renderAll;
+renderAll=function(){
+  const r=_v09123RenderAll.apply(this,arguments);
+  setTimeout(ensureVerifiedSaveButtonV09123,0);
   return r;
 };
 window.renderAll=renderAll;

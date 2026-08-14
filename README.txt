@@ -1,41 +1,34 @@
 Basketballverse
-v0.91.22 · Save Reliability Fix
+v0.91.23 · IndexedDB Save Fix
 
-PROBLEM
-Long-running universes can stop updating in browser storage even though the game
-continues running. Mobile Safari/localStorage has a limited quota, and raw
-simulation/UI caches can make a save grow much larger than the actual permanent
-league history requires.
+ROOT CAUSE CONFIRMED
+The screenshot shows:
+"The quota has been exceeded."
 
-FIX
-- Every save now gets a durable lastSuccessfulSaveAt marker.
-- Basketballverse performs a read-after-write verification before saying Autosaved.
-- The Saved Universes card timestamp now reflects the verified durable write.
-- Save size (KB) is shown in the autosave/status information.
-- Added a Save Now button that uses the exact same verified save path.
-- If saving fails, the header says SAVE FAILED and the game shows the actual error.
+Basketballverse was storing full universes in localStorage. Safari's localStorage
+quota is too small for a multi-season universe.
 
-STORAGE OPTIMIZATION
-Canonical history is preserved:
-- season history
-- champions
-- draft history
-- franchise history
-- newspapers
-- players/teams/contracts
-- career history
+NEW SAVE SYSTEM
+- Full universes now save to IndexedDB instead of localStorage.
+- IndexedDB has substantially more capacity and is designed for larger structured data.
+- localStorage now keeps only the tiny Saved Universes index/metadata.
 
-Only large/recreatable data is reduced:
-- Trade Finder offer cache
-- current Trade Machine selections
-- old raw box-score payloads beyond the most recent 80
-- oversized recent-game arrays
-- old resolved decision logs
-- very old news beyond a large retained archive
-- old transition-error logs
-- excessive transaction/UI caches
+MIGRATION
+- Existing localStorage saves are still readable.
+- When an old save is opened, Basketballverse migrates it to IndexedDB.
+- After a successful verified IndexedDB write, the large old localStorage copy
+  is removed to free the quota.
 
-This is intended to keep multi-decade universes saveable on iPhone/Safari.
+VERIFICATION
+- Every save is read back from IndexedDB before being marked successful.
+- Save Now waits for the actual IndexedDB write to complete.
+- Saved Universes uses the IndexedDB-aware loader.
+- Load Existing Universe uses the same loader.
+
+IMPORTANT
+Progress made AFTER the last successful save in v0.91.22 exists only in the
+currently open page memory. Reloading the page cannot recover that unsaved state.
+Do not close the old tab if you still need something visible from that session.
 
 FILES TO UPLOAD
 - index.html
