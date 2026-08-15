@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.27 · Historical Salary Cap</div>
+    <div class="pill">v0.91.28 · Luxury Tax & Aprons</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.27";
+window.BASKETBALLVERSE_BUILD = "v0.91.28";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.27";
+      badge.textContent="Basketballverse v0.91.28";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.27";
+      badge.textContent="Basketballverse v0.91.28";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -23797,6 +23797,401 @@ setTimeout(()=>{
     migrateContractsToHistoricalScaleV09127();
     saveState?.();
   }catch(e){console.error("v0.91.27 historical finance init",e);}
+},180);
+
+
+
+/* === v0.91.28 Luxury Tax, Repeater Tax, First Apron, Second Apron ===
+   Era activation:
+   - 2002-03: luxury-tax system begins
+   - 2013-14: progressive tax brackets
+   - 2014-15: repeater tax
+   - 2023-24: first and second apron thresholds appear
+   - 2024-25: full second-apron trade restrictions are enforced
+*/
+
+/* Historical tax lines in $M. 2004-05 is intentionally null because the old
+   luxury-tax mechanism did not trigger that season. */
+const HISTORICAL_TAX_LEVEL_M_V09128={
+  2002:52.900,
+  2003:54.600,
+  2004:null,
+  2005:61.700,
+  2006:65.420,
+  2007:67.865,
+  2008:71.150,
+  2009:69.920,
+  2010:70.307,
+  2011:70.307,
+  2012:70.307,
+  2013:71.748,
+  2014:76.829,
+  2015:84.740,
+  2016:113.287,
+  2017:119.266,
+  2018:123.733,
+  2019:132.627,
+  2020:132.627,
+  2021:136.606,
+  2022:150.267,
+  2023:165.294,
+  2024:170.814,
+  2025:187.895,
+  2026:200.428
+};
+window.HISTORICAL_TAX_LEVEL_M_V09128=HISTORICAL_TAX_LEVEL_M_V09128;
+
+const HISTORICAL_APRONS_M_V09128={
+  2023:{first:172.346,second:182.794},
+  2024:{first:178.132,second:188.931},
+  2025:{first:195.945,second:207.824},
+  2026:{first:209.015,second:221.686}
+};
+window.HISTORICAL_APRONS_M_V09128=HISTORICAL_APRONS_M_V09128;
+
+function taxLevelForYearV09128(year){
+  const y=Number(year);
+  if(y<2002)return null;
+  if(Object.prototype.hasOwnProperty.call(HISTORICAL_TAX_LEVEL_M_V09128,y)){
+    return HISTORICAL_TAX_LEVEL_M_V09128[y];
+  }
+  const cap=salaryCapForYearV09127(y);
+  if(!cap)return null;
+  /* Use the current-era tax/cap relationship beyond the historical table. */
+  return Math.round(cap*(200.428/164.961)*1000)/1000;
+}
+window.taxLevelForYearV09128=taxLevelForYearV09128;
+
+function apronLevelsForYearV09128(year){
+  const y=Number(year);
+  if(y<2023)return {first:null,second:null};
+  if(HISTORICAL_APRONS_M_V09128[y])return {...HISTORICAL_APRONS_M_V09128[y]};
+  const cap=salaryCapForYearV09127(y);
+  if(!cap)return {first:null,second:null};
+  return {
+    first:Math.round(cap*(209.015/164.961)*1000)/1000,
+    second:Math.round(cap*(221.686/164.961)*1000)/1000
+  };
+}
+window.apronLevelsForYearV09128=apronLevelsForYearV09128;
+
+function ensureFinancialHistoryV09128(){
+  state.financialHistory=state.financialHistory||{};
+  state.financialHistory.taxSeasons=state.financialHistory.taxSeasons||{};
+}
+window.ensureFinancialHistoryV09128=ensureFinancialHistoryV09128;
+
+function repeaterTaxTeamV09128(teamId,year=state.currentYear){
+  const y=Number(year);
+  if(y<2014)return false;
+  ensureFinancialHistoryV09128();
+  let paid=0;
+  for(let yy=y-4;yy<=y-1;yy++){
+    if(state.financialHistory.taxSeasons?.[yy]?.[teamId]?.taxpayer)paid++;
+  }
+  return paid>=3;
+}
+window.repeaterTaxTeamV09128=repeaterTaxTeamV09128;
+
+function luxuryTaxBillV09128(payroll,year=state.currentYear,repeater=false){
+  const y=Number(year);
+  const line=taxLevelForYearV09128(y);
+  if(line==null || Number(payroll)<=line)return 0;
+  let over=Number(payroll)-line;
+
+  /* Original luxury tax era: $1 tax per $1 over threshold. */
+  if(y<=2012)return Math.round(over*1000)/1000;
+
+  /* Progressive brackets beginning 2013-14.
+     Repeater adds $1.00 to each bracket rate. */
+  const baseRates=[1.50,1.75,2.50,3.25];
+  let bill=0,remaining=over,bracket=0;
+  while(remaining>0){
+    const chunk=Math.min(5,remaining);
+    let rate;
+    if(bracket<baseRates.length)rate=baseRates[bracket];
+    else rate=3.25+(bracket-3)*0.50;
+    if(repeater)rate+=1.00;
+    bill+=chunk*rate;
+    remaining-=chunk;
+    bracket++;
+  }
+  return Math.round(bill*1000)/1000;
+}
+window.luxuryTaxBillV09128=luxuryTaxBillV09128;
+
+function teamFinancialStatusV09128(team,year=state.currentYear,payrollOverride=null){
+  if(!team)return null;
+  const y=Number(year);
+  const payroll=payrollOverride==null?teamPayroll(team.name):Number(payrollOverride);
+  const cap=salaryCapForYearV09127(y);
+  const tax=taxLevelForYearV09128(y);
+  const aprons=apronLevelsForYearV09128(y);
+  const repeater=repeaterTaxTeamV09128(team.id,y);
+  const bill=luxuryTaxBillV09128(payroll,y,repeater);
+
+  let tier="Under Cap";
+  if(cap==null)tier="Pre-Cap";
+  else if(aprons.second!=null && payroll>aprons.second)tier="Second Apron";
+  else if(aprons.first!=null && payroll>aprons.first)tier="First Apron";
+  else if(tax!=null && payroll>tax)tier=repeater?"Repeater Tax":"Luxury Tax";
+  else if(payroll>cap)tier="Over Cap";
+
+  return {year:y,payroll,cap,tax,firstApron:aprons.first,secondApron:aprons.second,repeater,taxBill:bill,tier};
+}
+window.teamFinancialStatusV09128=teamFinancialStatusV09128;
+
+function recordFinancialSeasonV09128(year){
+  ensureFinancialHistoryV09128();
+  const y=Number(year);
+  const record=state.financialHistory.taxSeasons[y]=state.financialHistory.taxSeasons[y]||{};
+
+  for(const t of (state.teams||[]).filter(x=>!x.defunct)){
+    const st=teamFinancialStatusV09128(t,y);
+    record[t.id]={
+      payroll:Math.round(st.payroll*1000)/1000,
+      taxLevel:st.tax,
+      taxpayer:st.tax!=null && st.payroll>st.tax,
+      repeater:st.repeater,
+      taxBill:st.taxBill,
+      firstApron:st.firstApron!=null && st.payroll>st.firstApron,
+      secondApron:st.secondApron!=null && st.payroll>st.secondApron
+    };
+  }
+}
+window.recordFinancialSeasonV09128=recordFinancialSeasonV09128;
+
+/* Luxury tax is a real ownership expense. updateOwnerEconomics is called once
+   at the outgoing-season transition, so subtract the tax bill there. */
+if(typeof updateOwnerEconomics==="function"){
+  const _v09128OwnerEconomics=updateOwnerEconomics;
+  updateOwnerEconomics=function(){
+    const y=Number(state.currentYear);
+    _v09128OwnerEconomics.apply(this,arguments);
+
+    ensureOwnership?.();
+    for(const t of (state.teams||[]).filter(x=>!x.defunct)){
+      const d=ownerData?.(t.id);
+      if(!d)continue;
+      const st=teamFinancialStatusV09128(t,y);
+      if(st.taxBill>0){
+        d.expenses=Math.round((Number(d.expenses||0)+st.taxBill)*10)/10;
+        d.cash=Math.round((Number(d.cash||0)-st.taxBill)*10)/10;
+      }
+      d.lastLuxuryTaxBill=st.taxBill;
+      d.financialTier=st.tier;
+    }
+  };
+  window.updateOwnerEconomics=updateOwnerEconomics;
+}
+
+/* Apron-aware trade rules. They sit on top of the normal historical salary
+   matching and trade-value checks. */
+if(typeof gmEvaluateTradeV086==="function"){
+  const _v09128EvaluateTrade=gmEvaluateTradeV086;
+  gmEvaluateTradeV086=function(){
+    const base=_v09128EvaluateTrade.apply(this,arguments);
+    if(!base?.ok)return base;
+
+    const y=Number(state.currentYear);
+    if(y<2023)return base;
+
+    const team=gmTeamV084();
+    const b=gmTradeBuilderStateV086();
+    const other=(state.teams||[]).find(t=>t.id===b.otherTeamId);
+    if(!team||!other)return base;
+
+    const myOutgoing=gmTradeSalaryV086(b.myPlayers||[]);
+    const myIncoming=gmTradeSalaryV086(b.theirPlayers||[]);
+    const theirOutgoing=gmTradeSalaryV086(b.theirPlayers||[]);
+    const theirIncoming=gmTradeSalaryV086(b.myPlayers||[]);
+
+    const myPre=teamFinancialStatusV09128(team,y);
+    const theirPre=teamFinancialStatusV09128(other,y);
+    const myPost=teamFinancialStatusV09128(team,y,myPre.payroll-myOutgoing+myIncoming);
+    const theirPost=teamFinancialStatusV09128(other,y,theirPre.payroll-theirOutgoing+theirIncoming);
+
+    /* First-apron teams cannot increase payroll through the trade in our engine.
+       This captures the real-world restriction that apron teams lose the more
+       flexible salary-matching treatment available below the apron. */
+    if(myPre.firstApron!=null && myPre.payroll>myPre.firstApron && myIncoming>myOutgoing+0.001){
+      return {ok:false,msg:`${team.name} is above the first apron and cannot take back more salary than it sends out.`};
+    }
+    if(theirPre.firstApron!=null && theirPre.payroll>theirPre.firstApron && theirIncoming>theirOutgoing+0.001){
+      return {ok:false,msg:`${other.name} is above the first apron and cannot take back more salary than it sends out.`};
+    }
+
+    /* Full second-apron aggregation restriction starts in the 2024-25 season
+       in Basketballverse. */
+    if(y>=2024){
+      if(myPre.secondApron!=null && myPre.payroll>myPre.secondApron && (b.myPlayers||[]).length>1){
+        return {ok:false,msg:`${team.name} is above the second apron and cannot aggregate multiple player salaries in one trade.`};
+      }
+      if(theirPre.secondApron!=null && theirPre.payroll>theirPre.secondApron && (b.theirPlayers||[]).length>1){
+        return {ok:false,msg:`${other.name} is above the second apron and cannot aggregate multiple player salaries in one trade.`};
+      }
+    }
+
+    return base;
+  };
+  window.gmEvaluateTradeV086=gmEvaluateTradeV086;
+}
+
+/* Second-apron frozen-pick system. A team above the second apron at season end
+   has its first-round pick seven years out marked non-tradeable. */
+function applySecondApronPickRuleV09128(year){
+  const y=Number(year);
+  if(y<2024)return;
+  const futureYear=y+7;
+
+  for(const t of (state.teams||[]).filter(x=>!x.defunct)){
+    const st=teamFinancialStatusV09128(t,y);
+    if(st.secondApron==null || st.payroll<=st.secondApron)continue;
+
+    const pk=(state.draftPicks||[]).find(p=>
+      Number(p.year)===futureYear &&
+      Number(p.round||1)===1 &&
+      (p.originalTeamId===t.id || p.teamId===t.id)
+    );
+    if(pk){
+      pk.secondApronFrozen=true;
+      pk.secondApronFrozenByTeamId=t.id;
+      pk.secondApronFrozenSeason=y;
+    }
+  }
+}
+window.applySecondApronPickRuleV09128=applySecondApronPickRuleV09128;
+
+/* Frozen picks cannot be included in Trade Machine or Trade Finder. */
+if(typeof gmOwnedPicksV086==="function"){
+  const _v09128OwnedPicks=gmOwnedPicksV086;
+  gmOwnedPicksV086=function(team){
+    return _v09128OwnedPicks.apply(this,arguments).filter(pk=>!pk?.secondApronFrozen);
+  };
+  window.gmOwnedPicksV086=gmOwnedPicksV086;
+}
+
+/* Store the outgoing year's tax/apron status before the year flips. */
+if(typeof beginNextSeasonDirectV0892==="function"){
+  const _v09128BeginNextSeason=beginNextSeasonDirectV0892;
+  beginNextSeasonDirectV0892=function(){
+    const outgoing=Number(state.currentYear);
+    try{
+      recordFinancialSeasonV09128(outgoing);
+      applySecondApronPickRuleV09128(outgoing);
+      saveState?.();
+    }catch(e){console.warn("Financial season snapshot",e);}
+    return _v09128BeginNextSeason.apply(this,arguments);
+  };
+  window.beginNextSeasonDirectV0892=beginNextSeasonDirectV0892;
+}
+
+/* Financial display card. */
+function renderFinancialRulesCardV09128(){
+  const host=document.getElementById("frontoffice");
+  if(!host)return;
+  let card=document.getElementById("financialRulesCardV09128");
+  if(!card){
+    card=document.createElement("div");
+    card.id="financialRulesCardV09128";
+    card.className="card";
+    host.insertBefore(card,host.firstChild);
+  }
+
+  const y=Number(state.currentYear);
+  const team=currentControlledTeam?.();
+  const cap=salaryCapForYearV09127(y);
+  const tax=taxLevelForYearV09128(y);
+  const apr=apronLevelsForYearV09128(y);
+  const st=team?teamFinancialStatusV09128(team,y):null;
+
+  if(y<1984){
+    card.innerHTML=`<div class="sectionTitle">Financial Rules · ${y}-${String((y+1)%100).padStart(2,"0")}</div>
+      <b>Pre-cap era</b><div class="small muted">No salary cap, luxury tax, first apron, or second apron.</div>`;
+    return;
+  }
+
+  card.innerHTML=`
+    <div class="sectionTitle">Financial Rules · ${y}-${String((y+1)%100).padStart(2,"0")}</div>
+    <div class="grid2">
+      <div class="ownerMetric"><b>$${cap?.toFixed(3)??"—"}M</b><div class="small muted">Salary Cap</div></div>
+      <div class="ownerMetric"><b>${tax==null?"Not Active":"$"+tax.toFixed(3)+"M"}</b><div class="small muted">Luxury Tax</div></div>
+      <div class="ownerMetric"><b>${apr.first==null?"Not Active":"$"+apr.first.toFixed(3)+"M"}</b><div class="small muted">First Apron</div></div>
+      <div class="ownerMetric"><b>${apr.second==null?"Not Active":"$"+apr.second.toFixed(3)+"M"}</b><div class="small muted">Second Apron</div></div>
+    </div>
+    ${st?`<div class="notice" style="margin-top:10px"><b>${team.name}: ${st.tier}</b><br>
+      <span class="small">Payroll $${st.payroll.toFixed(2)}M${st.taxBill>0?` · Projected tax $${st.taxBill.toFixed(2)}M`:""}${st.repeater?" · Repeater":""}</span></div>`:""}
+    <div class="small muted" style="margin-top:8px">
+      ${y<2002?"Luxury tax has not been introduced yet.":
+        y<2013?"Luxury tax: $1 for every $1 over the tax line.":
+        y<2014?"Progressive luxury-tax brackets are active.":
+        y<2023?"Progressive and repeater luxury-tax rules are active.":
+        y<2024?"First and second apron thresholds are active.":
+        "First/second apron restrictions are active, including second-apron trade aggregation limits."}
+    </div>`;
+}
+window.renderFinancialRulesCardV09128=renderFinancialRulesCardV09128;
+
+const _v09128RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  const r=_v09128RenderFrontOffice.apply(this,arguments);
+  renderFinancialRulesCardV09128();
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* Owner screen includes tax bill when relevant. */
+if(typeof renderOwnership==="function"){
+  const _v09128RenderOwnership=renderOwnership;
+  renderOwnership=function(){
+    const r=_v09128RenderOwnership.apply(this,arguments);
+    const team=currentControlledTeam?.();
+    const box=document.getElementById("ownerFinanceBox");
+    if(team&&box){
+      const st=teamFinancialStatusV09128(team,state.currentYear);
+      if(st.tax!=null){
+        box.insertAdjacentHTML("beforeend",`<p class="small muted"><b>${st.tier}</b> · Tax line $${st.tax.toFixed(2)}M${st.taxBill>0?` · Projected tax bill $${st.taxBill.toFixed(2)}M`:""}</p>`);
+      }
+    }
+    return r;
+  };
+  window.renderOwnership=renderOwnership;
+}
+
+/* Apply current financial rule fields for UI/other systems. */
+function applyLuxuryTaxRulesV09128(){
+  if(!state)return;
+  applyHistoricalFinancialYearV09127?.();
+  state.leagueRules=state.leagueRules||{};
+  const y=Number(state.currentYear);
+  const tax=taxLevelForYearV09128(y);
+  const apr=apronLevelsForYearV09128(y);
+
+  state.leagueRules.luxuryTax=y>=2002 && tax!=null;
+  state.leagueRules.repeaterTax=y>=2014;
+  state.leagueRules.firstApron=y>=2023;
+  state.leagueRules.secondApron=y>=2023;
+  state.frontOffice=state.frontOffice||{};
+  state.frontOffice.taxLevel=tax;
+  state.frontOffice.firstApron=apr.first;
+  state.frontOffice.secondApron=apr.second;
+}
+window.applyLuxuryTaxRulesV09128=applyLuxuryTaxRulesV09128;
+
+const _v09128RenderAll=renderAll;
+renderAll=function(){
+  applyLuxuryTaxRulesV09128();
+  const r=_v09128RenderAll.apply(this,arguments);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(()=>{
+  try{
+    ensureFinancialHistoryV09128();
+    applyLuxuryTaxRulesV09128();
+    saveState?.();
+  }catch(e){console.error("v0.91.28 financial rules init",e);}
 },180);
 
 </script>
