@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.29 · Development By Team</div>
+    <div class="pill">v0.91.30 · Offseason Season Lock</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.29";
+window.BASKETBALLVERSE_BUILD = "v0.91.30";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.29";
+      badge.textContent="Basketballverse v0.91.30";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.29";
+      badge.textContent="Basketballverse v0.91.30";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -24366,6 +24366,241 @@ advanceOffseason=function(){
   return r;
 };
 window.advanceOffseason=advanceOffseason;
+
+
+
+/* === v0.91.30 HARD OFFSEASON SEASON LOCK ===
+   The offseason workflow may ONLY run after the postseason is complete.
+   In-season Free Agency remains usable for signing available players, but it
+   cannot expose or trigger Re-signings / Free Agency / Roster Cuts / Next Season. */
+
+function offseasonIsActuallyOpenV09130(){
+  return !!state && state.season?.phase==="Season Complete";
+}
+window.offseasonIsActuallyOpenV09130=offseasonIsActuallyOpenV09130;
+
+function clearIllegalOffseasonStateV09130(){
+  if(!state)return false;
+  if(offseasonIsActuallyOpenV09130())return false;
+
+  /* During Regular Season / Playoffs there is no active offseason workflow.
+     Clear stale workflow state left over by an older build, but leave canonical
+     history/draft/franchise records untouched. */
+  if(state.offseason){
+    state.offseason=null;
+    return true;
+  }
+  return false;
+}
+window.clearIllegalOffseasonStateV09130=clearIllegalOffseasonStateV09130;
+
+function offseasonBlockedMessageV09130(){
+  const phase=state?.season?.phase||"Regular Season";
+  if(phase==="Regular Season"){
+    const gp=typeof avgGames==="function"?Math.round(avgGames()):null;
+    return `The offseason is locked during the regular season${gp!=null?` (${gp} games played)`:""}. Finish the regular season and playoffs first.`;
+  }
+  if(phase==="Regular Season Complete"||phase==="Playoffs"){
+    return "The offseason is locked until the playoffs are complete and a champion has been crowned.";
+  }
+  return "The offseason is not currently open.";
+}
+window.offseasonBlockedMessageV09130=offseasonBlockedMessageV09130;
+
+/* Hard guard the core progression function. This sits outside every older
+   offseason wrapper, so no accumulated loop can advance during the season. */
+const _v09130AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  if(!offseasonIsActuallyOpenV09130()){
+    clearIllegalOffseasonStateV09130();
+    try{saveState?.();}catch(_){}
+    alert(offseasonBlockedMessageV09130());
+    try{switchTab("season");}catch(_){}
+    return false;
+  }
+  return _v09130AdvanceOffseason.apply(this,arguments);
+};
+window.advanceOffseason=advanceOffseason;
+
+/* The Offseason tab itself cannot open early. */
+const _v09130SwitchTab=switchTab;
+switchTab=function(tab){
+  if(tab==="offseason" && !offseasonIsActuallyOpenV09130()){
+    clearIllegalOffseasonStateV09130();
+    try{saveState?.();}catch(_){}
+    tab=state?.season?.phase==="Regular Season"?"season":"playoffs";
+  }
+  const r=_v09130SwitchTab.call(this,tab);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* Rendering the offseason is also guarded in case legacy code calls it directly. */
+const _v09130RenderOffseason=renderOffseason;
+renderOffseason=function(){
+  if(!offseasonIsActuallyOpenV09130()){
+    clearIllegalOffseasonStateV09130();
+    const sec=document.getElementById("offseason");
+    if(sec){
+      sec.innerHTML=`<div class="card"><h2>Offseason</h2><div class="notice">${offseasonBlockedMessageV09130()}</div></div>`;
+    }
+    return false;
+  }
+  return _v09130RenderOffseason.apply(this,arguments);
+};
+window.renderOffseason=renderOffseason;
+
+/* Even direct "start next season" calls are impossible unless the current
+   season is complete AND the offseason has reached Next Season. */
+if(typeof beginNextSeasonDirectV0892==="function"){
+  const _v09130BeginNext=beginNextSeasonDirectV0892;
+  beginNextSeasonDirectV0892=function(){
+    if(!offseasonIsActuallyOpenV09130() || state.offseason?.phase!=="Next Season"){
+      alert("Start New Season is only available after the current season, playoffs, and every offseason stage are complete.");
+      return false;
+    }
+    return _v09130BeginNext.apply(this,arguments);
+  };
+  window.beginNextSeasonDirectV0892=beginNextSeasonDirectV0892;
+}
+
+if(typeof beginNextSeason==="function"){
+  const _v09130BeginNextLegacy=beginNextSeason;
+  beginNextSeason=function(){
+    if(!offseasonIsActuallyOpenV09130() || state.offseason?.phase!=="Next Season"){
+      alert("Start New Season is only available after the current season, playoffs, and every offseason stage are complete.");
+      return false;
+    }
+    return _v09130BeginNextLegacy.apply(this,arguments);
+  };
+  window.beginNextSeason=beginNextSeason;
+}
+
+/* -------- In-season Free Agency --------
+   The Front Office Free Agency page is still useful during the season, but
+   it becomes a simple free-agent market. It has NO offseason progression button. */
+function renderInSeasonFreeAgencyV09130(){
+  const host=document.getElementById("frontOfficeFreeAgencyV0895");
+  if(!host||!state)return;
+
+  const team=typeof gmTeamV084==="function"?gmTeamV084():null;
+  if(!team){
+    host.innerHTML=`<div class="notice">Free-agent market is view-only because you do not currently control a team.</div>`;
+    return;
+  }
+
+  const roster=teamRoster(team.name);
+  const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(state.currentYear):15;
+  const fas=typeof gmFreeAgentsV085==="function"?gmFreeAgentsV085():[];
+
+  host.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team.name} · In-Season Free Agency</b><br>
+      <span class="small">${roster.length}/${max} players · This is NOT an offseason checkpoint.</span>
+    </div>
+
+    <div class="small muted" style="margin-bottom:10px">
+      You can sign available free agents during the season. Offseason progression remains locked until the playoffs are complete.
+    </div>
+
+    <div>
+      ${fas.slice(0,40).map(p=>`
+        <div class="teamrow">
+          <div class="teammeta">
+            <b>${p.name}</b>
+            <span class="small muted">${p.pos||"—"} · Age ${typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—")} · OVR ${p.ovr??"—"} · POT ${p.pot??"—"} · Ask ~$${gmFairSalaryV085(p).toFixed(2)}M</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="primary" onclick="gmQuickSignV0913('${String(p.id).replace(/'/g,"\\'")}',1);setTimeout(renderInSeasonFreeAgencyV09130,0)">Sign</button>
+            <button onclick="gmContractOfferV085('${String(p.id).replace(/'/g,"\\'")}','fa');setTimeout(renderInSeasonFreeAgencyV09130,0)">Custom</button>
+          </div>
+        </div>`).join("") || `<span class="muted">No free agents are currently available.</span>`}
+    </div>
+  `;
+}
+window.renderInSeasonFreeAgencyV09130=renderInSeasonFreeAgencyV09130;
+
+/* The critical old Finish Free Agency function cannot progress outside a real offseason. */
+if(typeof hardAdvanceFromFreeAgencyV09114==="function"){
+  const _v09130HardFA=hardAdvanceFromFreeAgencyV09114;
+  hardAdvanceFromFreeAgencyV09114=function(){
+    if(!offseasonIsActuallyOpenV09130() || state.offseason?.phase!=="Free Agency"){
+      alert("This is in-season Free Agency. There is no offseason stage to finish.");
+      return false;
+    }
+    return _v09130HardFA.apply(this,arguments);
+  };
+  window.hardAdvanceFromFreeAgencyV09114=hardAdvanceFromFreeAgencyV09114;
+}
+
+if(typeof finishFreeAgencyV09113==="function"){
+  finishFreeAgencyV09113=function(){
+    if(!offseasonIsActuallyOpenV09130() || state.offseason?.phase!=="Free Agency"){
+      alert("This is in-season Free Agency. Offseason progression is locked.");
+      return false;
+    }
+    return hardAdvanceFromFreeAgencyV09114();
+  };
+  window.finishFreeAgencyV09113=finishFreeAgencyV09113;
+}
+
+/* Whichever Free Agency renderer is reached, choose in-season vs offseason UI. */
+const _v09130RenderFA=renderSimpleFreeAgencyV0913;
+renderSimpleFreeAgencyV0913=function(){
+  if(!offseasonIsActuallyOpenV09130())return renderInSeasonFreeAgencyV09130();
+  return _v09130RenderFA.apply(this,arguments);
+};
+window.renderSimpleFreeAgencyV0913=renderSimpleFreeAgencyV0913;
+
+if(typeof renderSimpleFreeAgencyV09114==="function"){
+  const _v09130RenderFA14=renderSimpleFreeAgencyV09114;
+  renderSimpleFreeAgencyV09114=function(){
+    if(!offseasonIsActuallyOpenV09130())return renderInSeasonFreeAgencyV09130();
+    return _v09130RenderFA14.apply(this,arguments);
+  };
+  window.renderSimpleFreeAgencyV09114=renderSimpleFreeAgencyV09114;
+}
+
+/* Front Office stage renderer cannot accidentally initialize offseason workflow. */
+if(typeof renderFrontOfficeStagePageV0895==="function"){
+  const _v09130FOStage=renderFrontOfficeStagePageV0895;
+  renderFrontOfficeStagePageV0895=function(step,hostId){
+    if(step==="Free Agency" && !offseasonIsActuallyOpenV09130()){
+      setTimeout(renderInSeasonFreeAgencyV09130,0);
+      return;
+    }
+    if(["Re-signings","Roster Cuts"].includes(step) && !offseasonIsActuallyOpenV09130()){
+      const host=document.getElementById(hostId);
+      if(host)host.innerHTML=`<div class="notice"><b>${step} is an offseason activity.</b><br><span class="small">${offseasonBlockedMessageV09130()}</span></div>`;
+      return;
+    }
+    return _v09130FOStage.apply(this,arguments);
+  };
+  window.renderFrontOfficeStagePageV0895=renderFrontOfficeStagePageV0895;
+}
+
+/* Do not allow the offseason checklist helper to initialize an offseason early. */
+if(typeof ensureOffseasonWorkflowV0822==="function"){
+  const _v09130EnsureWorkflow=ensureOffseasonWorkflowV0822;
+  ensureOffseasonWorkflowV0822=function(){
+    if(!offseasonIsActuallyOpenV09130())return false;
+    return _v09130EnsureWorkflow.apply(this,arguments);
+  };
+  window.ensureOffseasonWorkflowV0822=ensureOffseasonWorkflowV0822;
+}
+
+/* Automatically clean stale offseason state in any already-running regular-season save. */
+setTimeout(()=>{
+  try{
+    if(!offseasonIsActuallyOpenV09130()){
+      const cleaned=clearIllegalOffseasonStateV09130();
+      if(cleaned)saveState?.();
+      if(document.getElementById("freeagency")?.classList.contains("active")){
+        renderInSeasonFreeAgencyV09130();
+      }
+    }
+  }catch(e){console.error("v0.91.30 offseason lock init",e);}
+},150);
 
 </script>
 </body>
