@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.30 · Offseason Season Lock</div>
+    <div class="pill">v0.91.31 · Historical Salary Demand Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.30";
+window.BASKETBALLVERSE_BUILD = "v0.91.31";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.30";
+      badge.textContent="Basketballverse v0.91.31";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.30";
+      badge.textContent="Basketballverse v0.91.31";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -24601,6 +24601,94 @@ setTimeout(()=>{
     }
   }catch(e){console.error("v0.91.30 offseason lock init",e);}
 },150);
+
+
+
+/* === v0.91.31 Historical salary-demand hard fix ===
+   Older FA/re-signing paths could retain cached demands from the former ~$100M
+   economy even after v0.91.27 changed the main market formula. */
+function eraSalaryDemandV09131(p,year=state?.currentYear){
+  if(!p)return historicalMinimumSalaryV09127(year);
+  const fair=eraFairSalaryV09127(p,year);
+  const age=Number(p.age||27), ovr=Number(p.ovr||60), pot=Number(p.pot||ovr);
+  let mult=1;
+  if(age<=26 && pot>=ovr+5)mult+=.06;
+  if(ovr>=88)mult+=.05;
+  if(age>=32)mult-=.05;
+  if(age>=35)mult-=.08;
+  const floor=historicalMinimumSalaryV09127(year);
+  const top=historicalTopSalaryReferenceV09127(year);
+  return Math.max(floor,Math.min(top,Math.round(fair*mult*100)/100));
+}
+window.eraSalaryDemandV09131=eraSalaryDemandV09131;
+
+function normalizePlayerSalaryDemandV09131(p,year=state?.currentYear){
+  if(!p)return;
+  const demand=eraSalaryDemandV09131(p,year);
+  for(const key of ["askingSalary","salaryAsk","askSalary","desiredSalary","salaryDemand",
+    "demandSalary","marketSalary","expectedSalary","freeAgentAsk","faAsk","askingPrice"]){
+    if(Object.prototype.hasOwnProperty.call(p,key))p[key]=demand;
+  }
+  for(const key of ["contractDemand","faDemand"]){
+    const obj=p[key];
+    if(obj&&typeof obj==="object"){
+      if("salary" in obj)obj.salary=demand;
+      if("annual" in obj)obj.annual=demand;
+      if("amount" in obj)obj.amount=demand;
+    }
+  }
+  p.eraSalaryDemandV09131=demand;
+  p.eraSalaryDemandSeasonV09131=Number(year);
+}
+window.normalizePlayerSalaryDemandV09131=normalizePlayerSalaryDemandV09131;
+
+function normalizeAllSalaryDemandsV09131(){
+  if(!state)return;
+  const y=Number(state.currentYear||1984);
+  for(const p of (state.players||[]))normalizePlayerSalaryDemandV09131(p,y);
+  if(Array.isArray(state.freeAgents)){
+    for(const fa of state.freeAgents)if(fa&&typeof fa==="object")normalizePlayerSalaryDemandV09131(fa,y);
+  }
+}
+window.normalizeAllSalaryDemandsV09131=normalizeAllSalaryDemandsV09131;
+
+/* These are the authoritative market salary functions from this build forward. */
+gmFairSalaryV085=function(p){return eraSalaryDemandV09131(p,state.currentYear);};
+window.gmFairSalaryV085=gmFairSalaryV085;
+careerMarketValueForAny=function(p){return eraSalaryDemandV09131(p,state.currentYear);};
+window.careerMarketValueForAny=careerMarketValueForAny;
+contractMarketAnnual=function(p){return eraSalaryDemandV09131(p,state.currentYear);};
+window.contractMarketAnnual=contractMarketAnnual;
+
+/* Normalize before every full render, which covers FA/re-signing screen entry
+   without relying on which historical renderer happens to win the wrapper chain. */
+const _v09131RenderAll=renderAll;
+renderAll=function(){
+  normalizeAllSalaryDemandsV09131();
+  return _v09131RenderAll.apply(this,arguments);
+};
+window.renderAll=renderAll;
+
+/* Also normalize immediately before contract negotiation. */
+if(typeof gmContractOfferV085==="function"){
+  const _v09131Offer=gmContractOfferV085;
+  gmContractOfferV085=function(playerId,mode){
+    const p=(state.players||[]).find(x=>String(x.id)===String(playerId));
+    if(p)normalizePlayerSalaryDemandV09131(p,state.currentYear);
+    return _v09131Offer.apply(this,arguments);
+  };
+  window.gmContractOfferV085=gmContractOfferV085;
+}
+
+/* Repair the currently loaded save automatically. */
+setTimeout(()=>{
+  try{
+    applyHistoricalFinancialYearV09127?.();
+    normalizeAllSalaryDemandsV09131();
+    saveState?.();
+    renderAll?.();
+  }catch(e){console.error("v0.91.31 salary demand repair",e);}
+},220);
 
 </script>
 </body>
