@@ -1,42 +1,42 @@
 Basketballverse
-v0.91.26 · Trade Selection Ownership Fix
+v0.91.27 · Historical Salary Cap
 
-BUG
-A draft pick was checked in the Trade Machine, then unchecked before submitting,
-but the pick still transferred to the other team.
+HISTORICAL CAP
+Basketballverse now uses the real NBA salary-cap amount for each season.
 
-ROOT PROBLEM
-The Trade Machine checkbox used a blind toggle:
-- click = invert selected state
+IMPORTANT FOR THE CURRENT 1983-84 SAVE
+- 1983-84: no modern NBA salary cap
+- 1984-85: $3.600M
+- 1985-86: $4.233M
+- 1986-87: $4.945M
+...and the cap continues changing every season.
 
-It did not send the checkbox's actual checked/unchecked value. With repeated
-rerenders and accumulated trade wrappers, the visual checkbox and the internal
-trade package could become out of sync.
+The table contains historical values through 2026-27 and published projected
+values through 2034-35. Beyond that, Basketballverse grows the cap 5% annually.
 
-FIX
-- Checkboxes now explicitly send this.checked.
-- checked=true guarantees the asset is selected.
-- checked=false guarantees the asset is removed.
-- Player/pick IDs compare safely as strings for older saves.
-- Before submission, selected picks are validated against CURRENT ownership.
-- Trade submission snapshots the exact final package.
-- Draft-pick ownership is transactional:
-  - rejected/failed trade = ownership restored
-  - accepted trade = ONLY picks still selected in the final package transfer
-- Old trade wrappers cannot transfer a pick that was removed before Submit.
+ERA-SCALED PLAYER SALARIES
+The salary system is changed at the same time so a historical cap is not paired
+with modern $40M+ salary demands.
 
-NOTE
-This prevents the bug going forward. A pick that was already incorrectly moved
-in an older save cannot be safely guessed/reversed automatically because the
-game cannot know whether that historical transfer was intended.
+- GM free-agent asking prices scale to the season.
+- Re-signing / extension market values use the same historical scale.
+- AI market salary functions use the same scale.
+- Rookie contracts scale to year and draft position.
+- Early-era offers can be below $1M.
+- 1983-84 superstar salary scale is around the historical ~$2.2M top market,
+  rather than modern $40M+ amounts.
+- Modern eras naturally grow into tens of millions as the cap grows.
 
-This build retains:
-- IndexedDB saving
-- Fired true Viewer mode
-- Job Market acceptance
-- Multi-asset Trade Finder
-- projected draft-pick values
-- traded-pick Draft Room ownership fix
+EXISTING SAVE MIGRATION
+The first time this build loads an older save, existing player contracts are
+converted from the old $100M-cap scale into the current historical era.
+Relative bargains/overpays are preserved as much as possible.
+
+FINANCIAL DISPLAY
+Front Office shows the current season's:
+- salary cap (or no cap)
+- minimum salary reference
+- superstar market reference
 
 FILES TO UPLOAD
 - index.html

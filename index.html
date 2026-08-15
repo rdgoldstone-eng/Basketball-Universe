@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.26 · Trade Selection Ownership Fix</div>
+    <div class="pill">v0.91.27 · Historical Salary Cap</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.26";
+window.BASKETBALLVERSE_BUILD = "v0.91.27";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.26";
+      badge.textContent="Basketballverse v0.91.27";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.26";
+      badge.textContent="Basketballverse v0.91.27";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -23485,6 +23485,319 @@ renderGMTradeBuilderV086=function(){
   return _v09126RenderTrade.apply(this,arguments);
 };
 window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+
+
+
+/* === v0.91.27 Historical salary cap + era-scaled contracts ===
+   currentYear is the START year of the NBA season:
+   1983 = 1983-84 (no modern cap)
+   1984 = 1984-85 ($3.6M cap)
+*/
+
+const HISTORICAL_CAP_M_V09127={
+  1984:3.600,1985:4.233,1986:4.945,1987:6.164,1988:7.232,1989:9.802,
+  1990:11.871,1991:12.500,1992:14.000,1993:15.175,1994:15.964,
+  1995:23.000,1996:24.363,1997:26.900,1998:30.000,1999:34.000,
+  2000:35.500,2001:42.500,2002:40.271,2003:43.840,2004:43.870,
+  2005:49.500,2006:53.135,2007:55.630,2008:58.680,2009:57.700,
+  2010:58.044,2011:58.044,2012:58.044,2013:58.679,2014:63.065,
+  2015:70.000,2016:94.143,2017:99.093,2018:101.869,2019:109.140,
+  2020:109.140,2021:112.414,2022:123.655,2023:136.021,2024:140.588,
+  2025:154.647,2026:164.961,
+  /* Published projections / estimates from the current cap table. */
+  2027:174.000,2028:182.700,2029:191.835,2030:201.427,2031:211.498,
+  2032:222.073,2033:233.177,2034:244.836
+};
+window.HISTORICAL_CAP_M_V09127=HISTORICAL_CAP_M_V09127;
+
+function salaryCapForYearV09127(year){
+  const y=Number(year);
+  if(y<1984)return null;
+  if(HISTORICAL_CAP_M_V09127[y]!=null)return HISTORICAL_CAP_M_V09127[y];
+
+  /* Beyond the published table, grow from 2034 at 5% annually. */
+  let cap=HISTORICAL_CAP_M_V09127[2034];
+  for(let yy=2035;yy<=y;yy++)cap*=1.05;
+  return Math.round(cap*1000)/1000;
+}
+window.salaryCapForYearV09127=salaryCapForYearV09127;
+
+/* Pre-cap top-market salary anchors in millions. These are used only to set
+   the scale of player demands before the modern cap begins. */
+const PRECAP_TOP_MARKET_M_V09127={
+  1976:.65,1977:.65,1978:.80,1979:1.00,1980:1.00,1981:1.00,1982:2.20,1983:2.20
+};
+
+function historicalTopSalaryReferenceV09127(year){
+  const y=Number(year);
+  if(y<1984)return PRECAP_TOP_MARKET_M_V09127[y] ?? 2.20;
+
+  const cap=salaryCapForYearV09127(y);
+
+  /* Era-appropriate superstar ceiling. This is market behavior, not a hard max.
+     Early cap era allowed stars to command much larger shares; modern max-style
+     economics compress the top end. */
+  if(y<=1985)return cap*.65;
+  if(y<=1989)return cap*.48;
+  if(y<=1994)return cap*.48;
+  if(y<=1997)return cap*.70;
+  if(y<=2004)return cap*.58;
+  if(y<=2015)return cap*.43;
+  return cap*.38;
+}
+window.historicalTopSalaryReferenceV09127=historicalTopSalaryReferenceV09127;
+
+function historicalMinimumSalaryV09127(year){
+  const y=Number(year);
+  if(y<1984)return .06;
+  const known={
+    1984:.065,1985:.070,1986:.075,1987:.075,1988:.100,1989:.110,
+    1990:.120,1991:.130,1992:.140,1993:.150,1994:.150,1995:.200,
+    1996:.220,1997:.242,1998:.288,1999:.302,2000:.317,2001:.333,
+    2002:.349,2003:.367,2004:.385,2005:.399,2006:.413,2007:.427,
+    2008:.442,2009:.458,2010:.474,2011:.474,2012:.474,2013:.490,
+    2014:.507,2015:.525,2016:.543,2017:.816,2018:.838,2019:.898,
+    2020:.898,2021:.925,2022:1.018,2023:1.120,2024:1.157,
+    2025:1.273,2026:1.358
+  };
+  if(known[y]!=null)return known[y];
+  const cap=salaryCapForYearV09127(y);
+  return Math.max(.065,Math.round(cap*.00825*1000)/1000);
+}
+window.historicalMinimumSalaryV09127=historicalMinimumSalaryV09127;
+
+function eraFairSalaryV09127(p,year=state?.currentYear){
+  if(!p)return historicalMinimumSalaryV09127(year);
+  const y=Number(year||1983);
+  const o=Math.max(45,Math.min(99,Number(p.ovr||60)));
+  const pot=Math.max(o,Math.min(99,Number(p.pot||o)));
+  const age=Number(p.age||27);
+
+  /* Convert player quality to share of the season's top-player market.
+     90+ stars approach the top historical salary scale; rotation players are
+     much lower. Potential matters more for younger players. */
+  let q;
+  if(o>=94)q=1.00;
+  else if(o>=90)q=.88;
+  else if(o>=86)q=.70;
+  else if(o>=82)q=.54;
+  else if(o>=78)q=.39;
+  else if(o>=74)q=.27;
+  else if(o>=70)q=.18;
+  else if(o>=66)q=.11;
+  else if(o>=62)q=.065;
+  else q=.035;
+
+  if(age<=25 && pot>=o+5)q*=1.08;
+  if(age>=33)q*=.84;
+  if(age>=36)q*=.72;
+
+  const top=historicalTopSalaryReferenceV09127(y);
+  const floor=historicalMinimumSalaryV09127(y);
+  return Math.max(floor,Math.round(top*q*100)/100);
+}
+window.eraFairSalaryV09127=eraFairSalaryV09127;
+
+function applyHistoricalFinancialYearV09127(){
+  if(!state)return;
+  ensureFrontOffice();
+
+  const y=Number(state.currentYear||1976);
+  const cap=salaryCapForYearV09127(y);
+
+  /* The modern NBA cap begins with 1984-85. */
+  state.leagueRules=state.leagueRules||{};
+  state.leagueRules.salaryCap=y>=1984;
+
+  state.frontOffice.cap=cap==null?0:cap;
+  state.frontOffice.capSeason=y;
+  state.frontOffice.financialEraVersion="v0.91.27";
+}
+window.applyHistoricalFinancialYearV09127=applyHistoricalFinancialYearV09127;
+
+/* One-time conversion of old $100M-scale contracts into the historical era.
+   Preserve whether a player was relatively under/overpaid by comparing their
+   old contract to the old market formula, then applying that ratio to the new
+   era market. */
+function migrateContractsToHistoricalScaleV09127(){
+  if(!state || state.financialMigrationV09127)return;
+
+  const y=Number(state.currentYear||1976);
+  for(const p of (state.players||[])){
+    if(!p?.contract || Number(p.contract.years||0)<=0)continue;
+
+    const o=Number(p.ovr||50),pot=Number(p.pot||o),age=Number(p.age||26);
+    let legacy=Math.max(1,(o-50)*0.85+(pot-o)*0.25);
+    if(o>=85)legacy+=12; else if(o>=80)legacy+=7; else if(o>=75)legacy+=3;
+    if(age>=33)legacy*=.82;
+    legacy=Math.max(1,Math.round(legacy*10)/10);
+
+    const old=Number(p.contract.salary||legacy);
+    const relative=Math.max(.55,Math.min(1.60,old/Math.max(1,legacy)));
+    const historical=eraFairSalaryV09127(p,y);
+    p.contract.salary=Math.max(historicalMinimumSalaryV09127(y),
+      Math.round(historical*relative*100)/100);
+  }
+
+  state.financialMigrationV09127={
+    year:y,
+    at:Date.now(),
+    note:"Converted legacy modern-scale contracts to historical salary scale."
+  };
+  try{saveState?.();}catch(_){}
+}
+window.migrateContractsToHistoricalScaleV09127=migrateContractsToHistoricalScaleV09127;
+
+/* Replace every major market-salary function with the same era-aware scale. */
+gmFairSalaryV085=function(p){return eraFairSalaryV09127(p,state.currentYear);};
+window.gmFairSalaryV085=gmFairSalaryV085;
+
+careerMarketValueForAny=function(p){return eraFairSalaryV09127(p,state.currentYear);};
+window.careerMarketValueForAny=careerMarketValueForAny;
+
+contractMarketAnnual=function(p){return eraFairSalaryV09127(p,state.currentYear);};
+window.contractMarketAnnual=contractMarketAnnual;
+
+playerSalary=function(p){
+  return Number(p?.contract?.salary||eraFairSalaryV09127(p,state?.currentYear));
+};
+window.playerSalary=playerSalary;
+
+/* Era-scaled rookie contracts. Draft position matters, but contracts remain
+   appropriate to the season's financial scale. */
+function rookieSalaryForPickV09127(round,pickInRound,year=state.currentYear){
+  const min=historicalMinimumSalaryV09127(year);
+  const cap=salaryCapForYearV09127(year);
+  const teams=Math.max(1,(state.teams||[]).filter(t=>!t.defunct).length);
+  const pick=Math.max(1,Number(pickInRound||teams));
+
+  if(Number(round||1)>1)return Math.round(min*100)/100;
+
+  const rankPct=(teams-pick+1)/teams;
+  const topRookie=(year<1984)
+    ? historicalTopSalaryReferenceV09127(year)*.25
+    : Math.max(min*1.5,cap*.075);
+  const salary=min+(topRookie-min)*Math.pow(rankPct,1.25);
+  return Math.round(salary*100)/100;
+}
+window.rookieSalaryForPickV09127=rookieSalaryForPickV09127;
+
+/* Override the opening-night rookie auto-sign helper. */
+if(typeof autoSignDraftedRookiesV0892==="function"){
+  autoSignDraftedRookiesV0892=function(team){
+    if(!team)return;
+    const roster=teamRoster(team.name);
+    roster.forEach(p=>{
+      const rookieish=Number(p.draftYear)===Number(state.currentYear+1) || p.rookie===true || p.isRookie===true;
+      if(!rookieish)return;
+      if(p.contract && Number(p.contract.years||0)>0)return;
+      const round=Number(p.draftRound||1);
+      const pick=Number(p.draftPickInRound||p.draftPick||15);
+      p.contract={years:round===1?3:2,salary:rookieSalaryForPickV09127(round,pick,state.currentYear+1)};
+      p.faEligible=false;
+      p.contractStatus="Under Contract";
+    });
+  };
+  window.autoSignDraftedRookiesV0892=autoSignDraftedRookiesV0892;
+}
+
+/* Contract prompts must accept sub-$1M salaries in early eras. */
+gmContractOfferV085=function(playerId,mode){
+  if(!isHumanGMV084())return;
+  const p=state.players.find(x=>x.id===playerId); if(!p)return;
+  const team=gmTeamV084();
+  const floor=historicalMinimumSalaryV09127(state.currentYear);
+  const proposed=Number(prompt(`Annual salary for ${p.name} ($M):`,String(gmFairSalaryV085(p))));
+  if(!Number.isFinite(proposed) || proposed<=0)return;
+  const salary=Math.max(floor,Math.round(proposed*100)/100);
+  const years=Math.max(1,Math.min(5,Number(prompt(`Contract years for ${p.name}:`,"3"))||0));
+  if(!years)return;
+
+  const payroll=teamPayroll(team.name);
+  const cap=salaryCapForYearV09127(state.currentYear);
+  if(state.leagueRules?.salaryCap && cap && mode==="fa" && payroll+salary>cap*1.18){
+    alert(`That would push ${team.name} too far above the current $${cap.toFixed(3)}M salary cap.`);
+    return;
+  }
+
+  const fair=gmFairSalaryV085(p);
+  const age=Number(p.age||26);
+  const desire=Math.max(.78,1.08-(years-1)*.025+(age<27?.04:0));
+  const threshold=fair*desire;
+  const accepted=salary>=threshold;
+
+  state.frontOffice.transactions=state.frontOffice.transactions||[];
+  if(accepted){
+    p.teamName=team.name;
+    p.contract={years,salary};
+    p.faEligible=false;
+    state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for ${years} year${years===1?"":"s"}, $${salary.toFixed(2)}M annually.`});
+    alert(`${p.name} accepted the offer.`);
+  }else{
+    state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} rejected ${team.name}'s ${years}-year, $${salary.toFixed(2)}M offer.`});
+    alert(`${p.name} rejected the offer. He is looking for roughly $${threshold.toFixed(2)}M per year.`);
+  }
+  saveState();renderFrontOffice();renderOffseason();
+};
+window.gmContractOfferV085=gmContractOfferV085;
+
+/* Display financial context wherever the main Front Office page renders. */
+function historicalFinanceSummaryV09127(){
+  const y=Number(state.currentYear||1976);
+  const cap=salaryCapForYearV09127(y);
+  const min=historicalMinimumSalaryV09127(y);
+  const top=historicalTopSalaryReferenceV09127(y);
+  return {
+    year:y,
+    season:`${y}-${String((y+1)%100).padStart(2,"0")}`,
+    cap,
+    min,
+    top
+  };
+}
+window.historicalFinanceSummaryV09127=historicalFinanceSummaryV09127;
+
+const _v09127RenderFrontOffice=renderFrontOffice;
+renderFrontOffice=function(){
+  applyHistoricalFinancialYearV09127();
+  const r=_v09127RenderFrontOffice.apply(this,arguments);
+
+  const host=document.getElementById("frontoffice");
+  if(host && !host.querySelector("#historicalFinanceCardV09127")){
+    const f=historicalFinanceSummaryV09127();
+    const card=document.createElement("div");
+    card.id="historicalFinanceCardV09127";
+    card.className="card";
+    card.innerHTML=`
+      <div class="sectionTitle">League Financial Scale · ${f.season}</div>
+      ${f.cap==null
+        ? `<b>No modern salary cap</b><div class="small muted">Top-player market reference about $${f.top.toFixed(2)}M.</div>`
+        : `<b>Salary Cap: $${f.cap.toFixed(3)}M</b><div class="small muted">Minimum salary about $${f.min.toFixed(3)}M · Superstar market reference about $${f.top.toFixed(2)}M.</div>`}
+    `;
+    host.insertBefore(card,host.firstChild);
+  }
+  return r;
+};
+window.renderFrontOffice=renderFrontOffice;
+
+/* Apply the correct cap every time the game fully renders / season changes. */
+const _v09127RenderAll=renderAll;
+renderAll=function(){
+  applyHistoricalFinancialYearV09127();
+  const r=_v09127RenderAll.apply(this,arguments);
+  return r;
+};
+window.renderAll=renderAll;
+
+/* Existing save migration + 1983-84 correction. */
+setTimeout(()=>{
+  try{
+    applyHistoricalFinancialYearV09127();
+    migrateContractsToHistoricalScaleV09127();
+    saveState?.();
+  }catch(e){console.error("v0.91.27 historical finance init",e);}
+},180);
 
 </script>
 </body>
