@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.28 · Luxury Tax & Aprons</div>
+    <div class="pill">v0.91.29 · Development By Team</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.28";
+window.BASKETBALLVERSE_BUILD = "v0.91.29";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.28";
+      badge.textContent="Basketballverse v0.91.29";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.28";
+      badge.textContent="Basketballverse v0.91.29";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -24193,6 +24193,179 @@ setTimeout(()=>{
     saveState?.();
   }catch(e){console.error("v0.91.28 financial rules init",e);}
 },180);
+
+
+
+/* === v0.91.29 Offseason Development by team ===
+   Development no longer renders the entire league in one enormous list.
+   It defaults to the user's controlled team and uses a dropdown for others. */
+
+function defaultDevelopmentTeamIdV09129(){
+  if(!state)return null;
+  if(state.controlledTeamId && (state.teams||[]).some(t=>t.id===state.controlledTeamId)){
+    return state.controlledTeamId;
+  }
+
+  /* If unemployed/viewer after being fired, prefer the most recent career team
+     when it can be identified; otherwise use the first active franchise. */
+  const careerTeam=state.career?.currentTeamId || state.career?.lastTeamId || null;
+  if(careerTeam && (state.teams||[]).some(t=>t.id===careerTeam))return careerTeam;
+
+  return (state.teams||[]).find(t=>!t.defunct)?.id || null;
+}
+window.defaultDevelopmentTeamIdV09129=defaultDevelopmentTeamIdV09129;
+
+function developmentTeamIdV09129(){
+  state.offseason=state.offseason||{};
+  const current=state.offseason.developmentViewTeamId;
+  if(current && (state.teams||[]).some(t=>t.id===current))return current;
+  const fallback=defaultDevelopmentTeamIdV09129();
+  state.offseason.developmentViewTeamId=fallback;
+  return fallback;
+}
+window.developmentTeamIdV09129=developmentTeamIdV09129;
+
+function setDevelopmentTeamV09129(teamId){
+  if(!state?.offseason)return;
+  state.offseason.developmentViewTeamId=teamId;
+  try{saveState?.();}catch(_){}
+  renderDevelopmentTeamBoxV09129();
+}
+window.setDevelopmentTeamV09129=setDevelopmentTeamV09129;
+
+function developmentRowsForTeamV09129(teamId){
+  const team=(state.teams||[]).find(t=>t.id===teamId);
+  if(!team)return [];
+  const results=state.offseason?.developmentResults||[];
+
+  return results
+    .filter(x=>x.team===team.name || x.teamId===team.id)
+    .sort((a,b)=>{
+      const da=Math.abs(Number(a.new||0)-Number(a.old||0));
+      const db=Math.abs(Number(b.new||0)-Number(b.old||0));
+      return db-da || String(a.name||"").localeCompare(String(b.name||""));
+    });
+}
+window.developmentRowsForTeamV09129=developmentRowsForTeamV09129;
+
+function renderDevelopmentTeamBoxV09129(){
+  const host=document.getElementById("developmentTeamBoxV09129");
+  if(!host)return;
+
+  const teamId=developmentTeamIdV09129();
+  const team=(state.teams||[]).find(t=>t.id===teamId);
+  const rows=developmentRowsForTeamV09129(teamId);
+
+  if(!team){
+    host.innerHTML=`<div class="notice">No team available.</div>`;
+    return;
+  }
+
+  const up=rows.filter(x=>Number(x.new)>Number(x.old)).length;
+  const down=rows.filter(x=>Number(x.new)<Number(x.old)).length;
+  const same=rows.filter(x=>Number(x.new)===Number(x.old)).length;
+
+  host.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team.name}</b><br>
+      <span class="small">${up} improved · ${down} declined${same?` · ${same} unchanged`:""}</span>
+    </div>
+
+    ${rows.length?rows.map(x=>{
+      const diff=Number(x.new||0)-Number(x.old||0);
+      const sign=diff>0?`+${diff}`:String(diff);
+      return `<div class="teamrow">
+        <div class="teammeta">
+          <b>${x.name}</b>
+          <span class="small muted">${x.pos||""}${x.age?`${x.pos?" · ":""}Age ${x.age}`:""}</span>
+        </div>
+        <div style="text-align:right">
+          <b>${x.old} → ${x.new}</b>
+          <div class="small muted">${sign}</div>
+        </div>
+      </div>`;
+    }).join(""):`<div class="notice"><b>No rating changes for ${team.name}.</b><br><span class="small">Development was processed, but no players on this team changed overall.</span></div>`}
+  `;
+}
+window.renderDevelopmentTeamBoxV09129=renderDevelopmentTeamBoxV09129;
+
+function developmentStageHTMLV09129(){
+  const teams=(state.teams||[]).filter(t=>!t.defunct).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const selected=developmentTeamIdV09129();
+
+  return `
+    <div class="offseasonMechanism">
+      <b>Development</b><br>
+      <span class="small">Players age and can improve or decline based on age, potential, coaching/development systems, opportunity, and universe variance.</span>
+    </div>
+
+    <div class="card" style="margin-top:10px">
+      <div class="small muted" style="margin-bottom:5px">Team</div>
+      <select id="developmentTeamSelectV09129" style="width:100%"
+        onchange="setDevelopmentTeamV09129(this.value)">
+        ${teams.map(t=>`<option value="${t.id}" ${String(t.id)===String(selected)?"selected":""}>${t.name}</option>`).join("")}
+      </select>
+    </div>
+
+    <div id="developmentTeamBoxV09129"></div>
+  `;
+}
+window.developmentStageHTMLV09129=developmentStageHTMLV09129;
+
+/* Replace only the Development detail from the existing offseason mechanism. */
+const _v09129StageDetail=offseasonStageDetailV0822;
+offseasonStageDetailV0822=function(step){
+  if(step==="Development"){
+    const html=developmentStageHTMLV09129();
+    setTimeout(renderDevelopmentTeamBoxV09129,0);
+    return html;
+  }
+  return _v09129StageDetail.apply(this,arguments);
+};
+window.offseasonStageDetailV0822=offseasonStageDetailV0822;
+
+/* Put Continue at the TOP of Development too, so the user never needs to scroll
+   past even one team's roster to advance. */
+const _v09129SelectedDetail=renderOffseasonSelectedDetailV0911;
+renderOffseasonSelectedDetailV0911=function(step){
+  const r=_v09129SelectedDetail.apply(this,arguments);
+
+  if(step==="Development" && state?.offseason?.phase==="Development"){
+    const body=document.getElementById("offseasonSelectedDetailV0911");
+    if(body && !document.getElementById("developmentTopContinueV09129")){
+      const bar=document.createElement("div");
+      bar.id="developmentTopContinueV09129";
+      bar.style.marginBottom="10px";
+      bar.innerHTML=`<button class="primary" style="width:100%">Complete Development → Draft Order</button>`;
+      body.insertAdjacentElement("beforebegin",bar);
+      bar.querySelector("button").addEventListener("click",()=>{
+        advanceOffseason();
+        window.scrollTo({top:0,behavior:"smooth"});
+      });
+    }
+  }
+
+  setTimeout(()=>{
+    if(step==="Development")renderDevelopmentTeamBoxV09129();
+  },0);
+
+  return r;
+};
+window.renderOffseasonSelectedDetailV0911=renderOffseasonSelectedDetailV0911;
+
+/* When Development is first reached, reset the dropdown to the user's current team. */
+const _v09129AdvanceOffseason=advanceOffseason;
+advanceOffseason=function(){
+  const before=state?.offseason?.phase;
+  const r=_v09129AdvanceOffseason.apply(this,arguments);
+  const after=state?.offseason?.phase;
+  if(after==="Development" && before!=="Development"){
+    state.offseason.developmentViewTeamId=defaultDevelopmentTeamIdV09129();
+    try{saveState?.();}catch(_){}
+  }
+  return r;
+};
+window.advanceOffseason=advanceOffseason;
 
 </script>
 </body>
