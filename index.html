@@ -541,7 +541,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.38 · History Subtabs</div>
+    <div class="pill">v0.91.39 · Auto Portrait Loader</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1539,7 +1539,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.38";
+window.BASKETBALLVERSE_BUILD = "v0.91.39";
 </script>
 
 <script>
@@ -19064,7 +19064,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.38";
+      badge.textContent="Basketballverse v0.91.39";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20396,7 +20396,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.38";
+      badge.textContent="Basketballverse v0.91.39";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25563,6 +25563,69 @@ setTimeout(()=>{
     if(document.getElementById("history")?.classList.contains("active"))historySubtabsV09138();
   }catch(e){console.error("v0.91.38 history subtabs",e);}
 },150);
+
+
+
+/* === v0.91.39 Automatic portrait filename loader ===
+   Historical portrait files are named by player name, e.g.
+   portraits/charles-barkley.webp.
+   v0.91.36 only hard-mapped Bird/Magic/Jordan, so later image files existed
+   but the game never requested them.
+
+   From now on:
+   1) explicit p.portrait wins
+   2) normalized PLAYER NAME file is tried
+   3) normalized PLAYER ID file is tried
+   4) Basketballverse fallback initials are shown
+*/
+
+function portraitNameKeyV09139(p){
+  return String(p?.name||"player").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+window.portraitNameKeyV09139=portraitNameKeyV09139;
+
+playerPortraitSrcV09135=function(p){
+  if(!p)return "";
+  if(p.portrait)return p.portrait;
+  return `portraits/${portraitNameKeyV09139(p)}.webp`;
+};
+window.playerPortraitSrcV09135=playerPortraitSrcV09135;
+
+portraitHTMLV09135=function(p,size="large"){
+  if(!p)return "";
+  const cls=size==="small"?"playerPortraitSmallV09135":"playerPortraitV09135";
+  const nameSrc=playerPortraitSrcV09135(p);
+  const idSrc=`portraits/${portraitKeyV09135(p)}.webp`;
+  const initials=portraitInitialsV09135(p);
+  const alt=String(p.name||"Player").replace(/"/g,"&quot;");
+  return `<div class="${cls}" data-player-portrait="${portraitNameKeyV09139(p)}">
+    <img src="${nameSrc}" data-id-src="${idSrc}" data-portrait-fallback="0"
+      alt="${alt}" loading="lazy"
+      onerror="
+        if(this.dataset.portraitFallback==='0' && this.dataset.idSrc && this.src.indexOf(this.dataset.idSrc)===-1){
+          this.dataset.portraitFallback='1';
+          this.src=this.dataset.idSrc;
+        }else{
+          this.style.display='none';
+          this.nextElementSibling.style.display='flex';
+        }">
+    <div class="portraitFallbackV09135" style="display:none">${initials}</div>
+  </div>`;
+};
+window.portraitHTMLV09135=portraitHTMLV09135;
+
+/* Refresh currently visible portrait-bearing screens after the loader changes. */
+setTimeout(()=>{
+  try{
+    refreshPortraitUIV09136?.();
+    if(document.getElementById("history")?.classList.contains("active")){
+      renderPlayerEncyclopediaV09137?.();
+    }
+    renderDraftRoom?.();
+  }catch(e){console.error("v0.91.39 portrait refresh",e);}
+},180);
 
 </script>
 </body>

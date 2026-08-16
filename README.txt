@@ -1,13 +1,29 @@
 Basketballverse
-v0.91.38 · History Subtabs
+v0.91.39 · Automatic Portrait Loader
 
-CHANGE
-History is now organized into subtabs:
-- Overview — the existing History information
-- Players — Player Encyclopedia, search, legacy rankings and player career pages
-- Awards — Awards History, award leaderboards and winner timelines
+BUG
+The second portrait batch could be uploaded correctly but still not appear.
+v0.91.36 only had explicit name mappings for Larry Bird, Magic Johnson, and
+Michael Jordan.
 
-The Player Encyclopedia and Awards History are no longer dumped underneath the
-main History page, reducing scrolling and keeping History organized.
+FIX
+Basketballverse now automatically looks for a portrait using the player's name:
+portraits/charles-barkley.webp
+portraits/hakeem-olajuwon.webp
+portraits/patrick-ewing.webp
+etc.
 
-Retains all v0.91.37 systems and portrait support.
+If the name-based file does not exist, it then tries the old player-ID filename.
+If neither exists, the normal fallback portrait appears.
+
+INCLUDED
+This ZIP includes the full second portrait batch inside /portraits.
+
+GITHUB
+Upload:
+- new index.html
+- the entire portraits folder contents (or just the new WebP files if the folder already exists)
+
+After this version, adding a portrait normally requires only adding:
+portraits/first-last.webp
+No new code mapping should be necessary.
