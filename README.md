@@ -1,49 +1,31 @@
-# Basketballverse v0.91.53 — Sequential Lottery Reveal + Tanking
+# Basketballverse v0.91.54 — Direct Draft Reveal + Canadian Logos
 
-## Draft Lottery Reveal
-The clickable-tile lottery has been replaced.
+## Draft lottery/reveal fix
+The separate lottery overlay is no longer required.
 
-The new presentation is intentionally simple:
-- Open the Draft Lottery Reveal from Draft Order.
-- Press **Reveal Next Pick**.
-- The lottery order is revealed from the lowest lottery pick upward, ending at #1.
-- Press **Reveal All** at any time to show the complete order.
-- **Return to Draft Order** always exits the presentation.
-- The reveal does not reroll the lottery. It displays the order Basketballverse already generated.
+The Draft Order page itself now contains the reveal system:
+- **Reveal Pick #X** reveals the first-round order from the bottom upward.
+- The reveal ends with the #1 pick.
+- **Reveal All** immediately shows the full first-round order.
+- **Reset Reveal** lets you replay the reveal.
+- Reveal progress is stored in the universe save.
+- Revealing picks does not reroll or alter the draft order.
 
-This removes the lottery machine, animation timing, and tile-click dependencies that were causing the previous presentations to fail.
+This is intentionally plain HTML inside the existing Draft Order page so it does not depend on the previous modal, animation, tile, or timer systems.
 
-## Stretch-run GM decision
-At roughly 70 games, GM mode now has four choices:
-1. Push for seeding
-2. Protect health
-3. Evaluate bench players
-4. Prioritize draft position
+## Toronto and Vancouver logos
+Toronto Raptors and Vancouver Grizzlies expansion-era logos are now embedded directly inside Basketballverse rather than loaded from third-party image hosts. This prevents failed remote images from falling back to the generic team logo.
 
-### Prioritize draft position
-This is the Basketballverse tanking option. The controlled team:
-- rests veterans / prioritizes development conceptually,
-- receives a meaningful late-season competitive penalty,
-- can still win games — tanking does not force losses,
-- records the strategy in league news.
+The Canadian expansion teams are refreshed on old saves as well, so an existing save that already created generic logo-library entries can rebuild those entries.
 
-The strategy affects only the remaining regular-season games after the decision.
-
-### Other choices
-- **Push for seeding** gives a small late-season competitive boost.
-- **Evaluate bench players** carries a small competitive cost while representing developmental minutes.
-- **Protect health** retains the existing health-oriented choice without deliberately weakening game results.
-
-## Existing-save support
-If a v0.91.52 or earlier save is currently sitting on an unresolved **Stretch-run priority** decision, the new tanking option is appended automatically.
-
-## Previous work retained
+## Previous changes retained
+- Stretch-run tanking / Prioritize Draft Position
 - Free Agency cap display
 - GM Career History Recovery
 - GM playoff-objective fix
 - Historical playoff formats
 - Free-agency economy improvements
-- Historically aware newspapers
+- Historic newspaper context
 
 ## Version
-**v0.91.53 · Sequential Lottery Reveal + Tanking**
+**v0.91.54 · Direct Draft Reveal + Canadian Logos**
