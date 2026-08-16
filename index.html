@@ -26734,8 +26734,8 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 <script>
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
-  const VERSION='v0.91.51';
-  const LABEL='v0.91.51 · Free Agency Cap Display';
+  const VERSION='v0.91.52';
+  const LABEL='v0.91.52 · Click-to-Reveal Draft Lottery';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -26986,6 +26986,249 @@ function archiveGMSeasonV09147(year,force=false){
 })();
 
 </script>
+
+<!-- === v0.91.52 Click-to-Reveal Draft Lottery === -->
+<style id="lotteryTilesStyleV09152">
+#bvLotteryOverlay .bvlot-main{display:block!important}
+#bvLotteryOverlay #bvLotStage{display:none!important}
+#bvLotteryOverlay .bvlot-results{max-width:880px;margin:0 auto}
+#bvLotteryOverlay #bvLotRows{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:10px;
+  max-height:min(62vh,620px);
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:4px;
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152{
+  min-height:112px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panel2);
+  padding:12px;
+  display:flex!important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:7px;
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .12s ease,border-color .12s ease,background .12s ease;
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152:active{transform:scale(.98)}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152:not(.reveal) .bvlot-team,
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152:not(.reveal) .bvlot-odds{display:none!important}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152:not(.reveal)::after{
+  content:"TAP TO REVEAL";
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  color:var(--muted);
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152.reveal{
+  border-color:var(--gold);
+  background:rgba(255,215,92,.06);
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152.winner{
+  border-width:2px;
+  box-shadow:0 0 0 2px rgba(255,215,92,.08);
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152 .bvlot-pick{
+  font-size:20px;
+  font-weight:950;
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152 .bvlot-team{
+  font-size:15px;
+  font-weight:900;
+}
+#bvLotteryOverlay .bvlot-row.bvlot-tile-v09152 .bvlot-via{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+  font-weight:600;
+  color:var(--muted);
+}
+#bvLotteryOverlay #bvLotWatch,
+#bvLotteryOverlay #bvLotQuick{display:none!important}
+#bvLotteryOverlay #bvLotInstant{display:inline-flex!important}
+@media(max-width:600px){
+  #bvLotteryOverlay #bvLotRows{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #bvLotteryOverlay .bvlot-row.bvlot-tile-v09152{min-height:104px}
+}
+</style>
+<script>
+(function(){
+  const VERSION='v0.91.52';
+  const LABEL='v0.91.52 · Click-to-Reveal Draft Lottery';
+  window.BASKETBALLVERSE_BUILD=VERSION;
+  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+  function lotYear(){
+    return Number(state?.offseason?.draftOrderEvent?.year||state?.currentYear+1||1985);
+  }
+  function lotEventType(y){
+    return y<=1984?'Conference Coin Flip':
+           y===1985?'Envelope Lottery':
+           y<=1989?'Equal-Chance Lottery':
+           y<=2018?'Weighted Lottery':'Modern Lottery';
+  }
+  function lotDrawCount(y,n){
+    if(y<=1984)return Math.min(2,n);
+    if(y===1985)return n;
+    if(y<=2018)return Math.min(3,n);
+    return Math.min(4,n);
+  }
+  function nonPlayoffTeams(){
+    let ids;
+    try{ids=playoffFieldTeamIds()}catch(_){ids=new Set()}
+    return (state?.teams||[]).filter(t=>!ids?.has?.(t.id))
+      .slice().sort((a,b)=>draftRecordPct(a)-draftRecordPct(b)||String(a.name).localeCompare(String(b.name)));
+  }
+  function lotteryOdds(y,inverse){
+    const n=inverse.length; let vals=[];
+    if(!n)return new Map();
+    if(y<=1984){
+      vals=inverse.map(()=>null);
+      if(n>=2){vals[0]=50;vals[1]=50}
+    }else if(y<=1989){
+      vals=inverse.map(()=>100/n);
+    }else if(y<=1993){
+      const sum=n*(n+1)/2;
+      vals=inverse.map((_,i)=>(n-i)/sum*100);
+    }else if(y<=2018){
+      const o=[25,16.4,13.9,10.7,8.8,7.1,6,5,3.6,2.9,2.1,1.5,.8,.5];
+      vals=inverse.map((_,i)=>o[Math.min(i,o.length-1)]);
+    }else{
+      const o=[14,14,14,12.5,10.5,9,7.5,6,4.5,3,2,1.5,1,.5];
+      vals=inverse.map((_,i)=>o[Math.min(i,o.length-1)]);
+    }
+    return new Map(inverse.map((t,i)=>[String(t.id),vals[i]]));
+  }
+  function lotteryData(){
+    if(!state?.offseason?.draftOrder?.length && typeof buildDraftOrder==='function')buildDraftOrder();
+    const y=lotYear(),inverse=nonPlayoffTeams(),n=inverse.length;
+    const first=(state?.offseason?.draftOrder||[]).filter(x=>(x.round||1)===1).slice(0,n);
+    return {y,inverse,first,odds:lotteryOdds(y,inverse),draws:lotDrawCount(y,n)};
+  }
+  function teamLabel(entry){
+    const owner=typeof teamById==='function'?teamById(entry?.teamId):null;
+    const orig=typeof teamById==='function'?teamById(entry?.originalTeamId):null;
+    return {
+      name:entry?.teamName||owner?.name||'Team',
+      via:entry?.originalTeamId&&entry.originalTeamId!==entry.teamId?`via ${orig?.name||'traded pick'}`:''
+    };
+  }
+  function tileHTML(d){
+    return d.first.map((e,i)=>{
+      const o=teamLabel(e);
+      const base=d.inverse.find(t=>String(t.id)===String(e.originalTeamId))||
+                 d.inverse.find(t=>String(t.id)===String(e.teamId));
+      const od=base?d.odds.get(String(base.id)):null;
+      const note=od!=null&&i<d.draws?`${od.toFixed(od<1?1:od%1?1:0)}% pre-draw`:i>=d.draws?'by record':'';
+      return `<div class="bvlot-row bvlot-tile-v09152" id="bvLotRow${i}" data-pick="${i+1}" data-lot-index="${i}" role="button" tabindex="0" aria-label="Reveal pick ${i+1}">
+        <div class="bvlot-pick">#${i+1}</div>
+        <div class="bvlot-team">${o.name}${o.via?`<span class="bvlot-via">${o.via}</span>`:''}</div>
+        <div class="bvlot-odds">${note}</div>
+      </div>`;
+    }).join('');
+  }
+  function revealTile(i){
+    const d=lotteryData();
+    const row=document.getElementById(`bvLotRow${i}`);
+    if(!row)return;
+    row.classList.add('reveal');
+    row.classList.toggle('winner',i===0);
+    row.setAttribute('aria-label',`Pick ${i+1}: ${teamLabel(d.first[i]||{}).name}`);
+    const s=document.getElementById('bvLotStatus');
+    if(s){
+      const o=teamLabel(d.first[i]||{});
+      s.textContent=i===0?`${o.name} owns the #1 pick!`:`Pick #${i+1}: ${o.name}`;
+    }
+  }
+  function revealAll(){
+    const d=lotteryData();
+    d.first.forEach((_,i)=>revealTile(i));
+    const first=teamLabel(d.first[0]||{});
+    const s=document.getElementById('bvLotStatus');
+    if(s)s.textContent=d.first.length?`${first.name} owns the #1 pick. Full order revealed.`:'Draft order revealed.';
+  }
+  function closeBoard(){
+    const ov=document.getElementById('bvLotteryOverlay');
+    ov?.classList.remove('show','bvlot-failsafe');
+    if(ov){ov.style.display='';ov.setAttribute('aria-hidden','true')}
+  }
+  function openBoard(){
+    const d=lotteryData(),ov=document.getElementById('bvLotteryOverlay');
+    if(!ov)return;
+    ov.style.display='';
+    ov.classList.add('show');
+    ov.classList.remove('bvlot-failsafe');
+    ov.setAttribute('aria-hidden','false');
+    const title=document.getElementById('bvLotTitle');
+    const sub=document.getElementById('bvLotSub');
+    const rows=document.getElementById('bvLotRows');
+    const resultTitle=document.getElementById('bvLotResultsTitle');
+    const status=document.getElementById('bvLotStatus');
+    if(title)title.textContent=`${d.y} BASKETBALLVERSE ${d.y<=1984?'DRAFT COIN FLIP':'DRAFT LOTTERY'}`;
+    if(sub)sub.textContent=`${lotEventType(d.y)} · Tap any pick tile to reveal it`;
+    if(resultTitle)resultTitle.textContent='Draft Lottery Reveal';
+    if(rows)rows.innerHTML=tileHTML(d);
+    if(status)status.textContent='Tap a tile to reveal that pick, or choose Reveal All.';
+    const all=document.getElementById('bvLotInstant');
+    if(all){all.textContent='Reveal All';all.onclick=revealAll}
+    const exit=document.getElementById('bvLotExit');
+    if(exit)exit.textContent='Return to Draft Order';
+  }
+
+  window.openLotteryBroadcastV09152=openBoard;
+  window.openLotteryBroadcastV09146=openBoard;
+  window.openLotteryBroadcastV09144=openBoard;
+  window.runLotteryBroadcastV09152=function(mode){if(mode==='instant')revealAll()};
+  window.runLotteryBroadcastV09146=window.runLotteryBroadcastV09152;
+  window.runLotteryBroadcastV09144=window.runLotteryBroadcastV09152;
+  window.closeLotteryBroadcastV09152=closeBoard;
+  window.closeLotteryBroadcastV09146=closeBoard;
+  window.closeLotteryBroadcastV09144=closeBoard;
+  window.revealAllLotteryV09152=revealAll;
+
+  document.addEventListener('click',function(e){
+    const tile=e.target?.closest?.('.bvlot-tile-v09152');
+    if(tile){e.preventDefault();revealTile(Number(tile.dataset.lotIndex));return}
+    if(e.target?.id==='bvLotInstant'){e.preventDefault();revealAll()}
+    if(e.target?.id==='bvLotExit'||e.target?.classList?.contains('bvlot-close')){e.preventDefault();closeBoard()}
+  },true);
+  document.addEventListener('keydown',function(e){
+    const tile=e.target?.closest?.('.bvlot-tile-v09152');
+    if(tile&&(e.key==='Enter'||e.key===' ')){e.preventDefault();revealTile(Number(tile.dataset.lotIndex))}
+    if(e.key==='Escape'&&document.getElementById('bvLotteryOverlay')?.classList.contains('show'))closeBoard();
+  },true);
+
+  // Ensure the Draft Order button opens the new reveal board even if an older renderer is used.
+  const prev=window.offseasonStageDetailV0822;
+  if(typeof prev==='function'){
+    window.offseasonStageDetailV0822=offseasonStageDetailV0822=function(step){
+      let html=String(prev(step));
+      if(step==='Draft Order'){
+        html=html.replace(/onclick="openLotteryBroadcastV0914[46]\(\)"/g,'onclick="openLotteryBroadcastV09152()"');
+        html=html.replace(/>Watch Draft Lottery</g,'>Open Draft Lottery<');
+        html=html.replace(/>Watch Coin Flip</g,'>Open Draft Order Reveal<');
+      }
+      return html;
+    };
+  }
+
+  // Unified visible version identity.
+  try{
+    document.querySelectorAll('.pill').forEach(el=>{
+      if(/^v0\.91\.\d+\s*·/.test(el.textContent.trim()))el.textContent=LABEL;
+    });
+  }catch(_){}
+})();
+</script>
+
 </body>
 </html>
 
