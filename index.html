@@ -546,6 +546,29 @@ pre{white-space:pre-wrap}
   .playerCardStatV09140{padding-left:0}
 }
 
+
+/* v0.91.41 roster card contract strip */
+.playerCardCleanV09140{background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,.006));border:1px solid var(--line);border-radius:14px;margin:8px 0;padding:12px}
+.playerCardContractV09141{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:150px;text-align:center}
+.playerCardMoneyV09141,.playerCardYearsV09141{padding:4px 8px;border-left:1px solid var(--line)}
+.playerCardMoneyV09141 b,.playerCardYearsV09141 b{display:block;font-size:17px;line-height:1.1}
+.playerCardMoneyV09141 span,.playerCardYearsV09141 span{display:block;margin-top:4px;font-size:10px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+.rosterCardTopV09141{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center}
+.rosterCardBottomV09141{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.rosterMetricV09141{text-align:center;min-width:0}
+.rosterMetricV09141 b{display:block;font-size:17px;white-space:nowrap}
+.rosterMetricV09141 span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+@media(max-width:560px){
+ .playerCardCleanV09140{display:block}
+ .playerCardRatingsV09140,.playerCardContractV09141{display:none}
+ .rosterCardBottomV09141{display:grid}
+}
+@media(min-width:561px){
+ .rosterCardTopV09141{display:contents}
+ .rosterCardBottomV09141{display:none}
+ .playerCardCleanV09140{grid-template-columns:56px minmax(0,1fr) minmax(150px,auto) minmax(150px,auto)}
+}
+
 </style>
 </head>
 <body>
@@ -562,7 +585,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.40 · Player Card Redesign</div>
+    <div class="pill">v0.91.41 · Roster Fix + Contracts</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1560,7 +1583,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.40";
+window.BASKETBALLVERSE_BUILD = "v0.91.41";
 </script>
 
 <script>
@@ -19085,7 +19108,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.40";
+      badge.textContent="Basketballverse v0.91.41";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20417,7 +20440,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.40";
+      badge.textContent="Basketballverse v0.91.41";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25717,6 +25740,92 @@ document.addEventListener("change",e=>{
 setTimeout(()=>{
   try{rebuildRosterCardsV09140();}catch(e){console.error("v0.91.40 player cards",e);}
 },180);
+
+
+
+/* === v0.91.41 Team > Roster selector + contract cards === */
+function rosterSalaryTextV09141(p){
+  const s=Number(p?.contract?.salary ?? (typeof playerSalary==="function"?playerSalary(p):0));
+  return Number.isFinite(s) ? `$${s.toFixed(s<10?2:1)}M` : "—";
+}
+function rosterYearsTextV09141(p){
+  const y=Math.max(0,Number(p?.contract?.years ?? p?.contractYears ?? 0)||0);
+  return y ? `${y} yr${y===1?"":"s"}` : "Exp.";
+}
+
+cleanPlayerCardHTMLV09140=function(p){
+  const age=typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—");
+  const min=Number(p.rotationMinutes??p.min??p.minutes??p.mpg??0);
+  const star=(!!p.starter || Number(p.ovr||0)>=85 || p.star===true || p.isStar===true);
+  const salary=rosterSalaryTextV09141(p);
+  const years=rosterYearsTextV09141(p);
+  return `<div class="playerCardCleanV09140" onclick="showPlayer('${String(p.id).replace(/'/g,"\\'")}')" style="cursor:pointer">
+    <div class="rosterCardTopV09141">
+      ${typeof portraitHTMLV09135==="function"?portraitHTMLV09135(p,"small"):""}
+      <div class="playerCardMainV09140">
+        <div class="playerCardNameV09140">${star?`<span class="playerCardStarV09140">★</span>`:""}${p.name}</div>
+        <div class="playerCardMetaV09140">${p.pos||"—"} · Age ${age}${p.rotationRole?` · ${p.rotationRole}`:""}</div>
+      </div>
+    </div>
+    <div class="playerCardRatingsV09140">
+      <div class="playerCardStatV09140"><b>${p.ovr??"—"}</b><span>OVR</span></div>
+      <div class="playerCardStatV09140"><b>${p.pot??"—"}</b><span>POT</span></div>
+      <div class="playerCardStatV09140"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
+    </div>
+    <div class="playerCardContractV09141">
+      <div class="playerCardMoneyV09141"><b>${salary}</b><span>Salary</span></div>
+      <div class="playerCardYearsV09141"><b>${years}</b><span>Years Left</span></div>
+    </div>
+    <div class="rosterCardBottomV09141">
+      <div class="rosterMetricV09141"><b>${p.ovr??"—"}</b><span>OVR</span></div>
+      <div class="rosterMetricV09141"><b>${p.pot??"—"}</b><span>POT</span></div>
+      <div class="rosterMetricV09141"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
+      <div class="rosterMetricV09141"><b>${salary}</b><span>Salary</span></div>
+      <div class="rosterMetricV09141"><b>${years}</b><span>Left</span></div>
+    </div>
+  </div>`;
+};
+window.cleanPlayerCardHTMLV09140=cleanPlayerCardHTMLV09140;
+
+rebuildRosterCardsV09140=function(){
+  const box=document.getElementById("rosterBox");
+  const sel=document.getElementById("playerTeamFilter");
+  if(!box||!sel||!state)return;
+  const teamName=sel.value;
+  if(!teamName)return;
+  const roster=(typeof rosterFor==="function"?rosterFor(teamName):teamRoster(teamName)).slice()
+    .sort((a,b)=>Number(b.rotationMinutes||0)-Number(a.rotationMinutes||0)||Number(b.ovr||0)-Number(a.ovr||0));
+  box.innerHTML=roster.length?roster.map(cleanPlayerCardHTMLV09140).join(""):`<div class="muted">No players on ${teamName}.</div>`;
+};
+window.rebuildRosterCardsV09140=rebuildRosterCardsV09140;
+
+/* The v0.91.40 patch listened for IDs that do not exist on Team > Roster.
+   The real selector is #playerTeamFilter. Re-render the entire Players screen
+   so roster, rotation and view-only permissions all switch together. */
+document.addEventListener("change",e=>{
+  if(e.target?.id==="playerTeamFilter"){
+    try{
+      renderPlayers();
+    }catch(err){
+      console.error("v0.91.41 team roster selector",err);
+      rebuildRosterCardsV09140();
+    }
+  }
+});
+
+/* Preserve selected team when renderPlayers repopulates the dropdown. */
+const _populatePlayerTeamFilterV09141=populatePlayerTeamFilter;
+populatePlayerTeamFilter=function(){
+  const sel=document.getElementById("playerTeamFilter");
+  const wanted=sel?.dataset?.selectedTeamV09141 || sel?.value || "";
+  _populatePlayerTeamFilterV09141.apply(this,arguments);
+  if(sel && wanted && state.teams.some(t=>t.name===wanted))sel.value=wanted;
+};
+window.populatePlayerTeamFilter=populatePlayerTeamFilter;
+
+document.addEventListener("change",e=>{
+  if(e.target?.id==="playerTeamFilter")e.target.dataset.selectedTeamV09141=e.target.value;
+},true);
 
 </script>
 </body>
