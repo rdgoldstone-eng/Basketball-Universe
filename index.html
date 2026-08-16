@@ -593,7 +593,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.42 · Portraits Everywhere</div>
+    <div class="pill">v0.91.43 · Historic Newspapers</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1591,7 +1591,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.42";
+window.BASKETBALLVERSE_BUILD = "v0.91.43";
 </script>
 
 <script>
@@ -18854,6 +18854,111 @@ setTimeout(()=>{
 
 
 
+
+/* === v0.91.43 Historically aware newspaper headlines ===
+   Newspapers now read the simulated universe before writing the headline.
+   Championship streaks/totals and MVP totals/streaks are calculated from
+   canonical Basketballverse history, including franchise identity history. */
+function bvOrdinal(n){
+  n=Number(n)||0;
+  const mod100=n%100,mod10=n%10;
+  const suffix=(mod100>=11&&mod100<=13)?"th":mod10===1?"st":mod10===2?"nd":mod10===3?"rd":"th";
+  return `${n}${suffix}`;
+}
+function bvNumberWord(n){
+  const words={1:"ONE",2:"TWO",3:"THREE",4:"FOUR",5:"FIVE",6:"SIX",7:"SEVEN",8:"EIGHT",9:"NINE",10:"TEN",11:"ELEVEN",12:"TWELVE"};
+  return words[Number(n)]||String(n);
+}
+function bvFranchiseIdentityForChampion(name,year){
+  const y=Number(year);
+  const champRow=(state.history?.champions||[]).find(c=>Number(c.year)===y);
+  let team=null;
+  if(champRow?.teamId)team=(state.teams||[]).find(t=>t.id===champRow.teamId)||null;
+  if(!team)team=(state.teams||[]).find(t=>t.name===name||(t.identityHistory||[]).some(h=>h.name===name))||null;
+  const names=new Set([name]);
+  if(team){
+    names.add(team.name);
+    (team.identityHistory||[]).forEach(h=>h?.name&&names.add(h.name));
+  }
+  return {teamId:champRow?.teamId||team?.id||null,names};
+}
+function bvSeasonBelongsToChampionFranchise(season,identity){
+  if(!season||!identity)return false;
+  const champRow=(state.history?.champions||[]).find(c=>Number(c.year)===Number(season.year));
+  if(identity.teamId&&champRow?.teamId)return champRow.teamId===identity.teamId;
+  return identity.names.has(season.champion);
+}
+function newspaperHistoricalContextV09143(year){
+  const y=Number(year);
+  const seasons=(state.history?.seasons||[]).filter(s=>Number(s.year)<=y).sort((a,b)=>Number(a.year)-Number(b.year));
+  const cur=seasons.find(s=>Number(s.year)===y)||{};
+  const champion=cur.champion||"League Champion";
+  const identity=bvFranchiseIdentityForChampion(champion,y);
+  const titleYears=seasons.filter(s=>bvSeasonBelongsToChampionFranchise(s,identity)&&s.champion).map(s=>Number(s.year));
+  const titleCount=titleYears.length;
+  const previousTitleYears=titleYears.filter(v=>v<y);
+  const previousTitleYear=previousTitleYears.length?Math.max(...previousTitleYears):null;
+  const droughtYears=previousTitleYear==null?null:y-previousTitleYear;
+  let titleStreak=cur.champion?1:0;
+  for(let py=y-1;py>=Math.min(...seasons.map(s=>Number(s.year)),y);py--){
+    const ps=seasons.find(s=>Number(s.year)===py);
+    if(ps&&bvSeasonBelongsToChampionFranchise(ps,identity)&&ps.champion)titleStreak++;else break;
+  }
+  let bestPriorTitleStreak=0,run=0;
+  seasons.filter(s=>Number(s.year)<y).forEach(s=>{
+    if(bvSeasonBelongsToChampionFranchise(s,identity)&&s.champion){run++;bestPriorTitleStreak=Math.max(bestPriorTitleStreak,run);}else run=0;
+  });
+
+  const mvp=cur.mvp||null;
+  const mvpSeasons=mvp?seasons.filter(s=>s.mvp===mvp):[];
+  const mvpCount=mvpSeasons.length;
+  let mvpStreak=mvp?1:0;
+  if(mvp){
+    for(let py=y-1;py>=Math.min(...seasons.map(s=>Number(s.year)),y);py--){
+      const ps=seasons.find(s=>Number(s.year)===py);
+      if(ps?.mvp===mvp)mvpStreak++;else break;
+    }
+  }
+  const priorMvpCounts={};
+  seasons.filter(s=>Number(s.year)<y&&s.mvp).forEach(s=>priorMvpCounts[s.mvp]=(priorMvpCounts[s.mvp]||0)+1);
+  const priorMvpRecord=Math.max(0,...Object.values(priorMvpCounts));
+  const mvpSetsRecord=!!mvp&&mvpCount>priorMvpRecord;
+
+  let headline=`${champion} Rule the Basketball World`;
+  let championshipNote="";
+  if(titleStreak>=4){
+    headline=`${bvNumberWord(titleStreak)} IN A ROW! ${champion} ARE CHAMPIONS AGAIN`;
+    championshipNote=`${champion} capture a ${bvOrdinal(titleStreak)} straight championship and their ${bvOrdinal(titleCount)} title overall.`;
+  }else if(titleStreak===3){
+    headline=`THREE-PEAT! ${champion} ARE CHAMPIONS AGAIN`;
+    championshipNote=`${champion} complete the three-peat, winning a third consecutive championship and their ${bvOrdinal(titleCount)} title overall.`;
+  }else if(titleStreak===2){
+    headline=`BACK-TO-BACK! ${champion} REPEAT AS CHAMPIONS`;
+    championshipNote=`${champion} defend the crown for a second straight championship, the ${bvOrdinal(titleCount)} title in franchise history.`;
+  }else if(titleCount===1){
+    headline=`FIRST TIME CHAMPIONS! ${champion} REACH THE TOP`;
+    championshipNote=`${champion} win the first championship in franchise history.`;
+  }else if(droughtYears!=null&&droughtYears>=15){
+    headline=`THE DROUGHT IS OVER! ${champion} ARE CHAMPIONS`;
+    championshipNote=`${champion} win their ${bvOrdinal(titleCount)} championship, ending a ${droughtYears}-year title drought.`;
+  }else if(titleCount>1){
+    headline=`${champion} CAPTURE ${bvOrdinal(titleCount).toUpperCase()} CHAMPIONSHIP`;
+    championshipNote=`${champion} add championship No. ${titleCount} to the franchise record book.`;
+  }
+
+  let mvpHeadline=mvp?`${mvp} wins MVP.`:"";
+  if(mvp){
+    if(mvpSetsRecord&&mvpCount>1)mvpHeadline=`${mvp} wins a record ${bvOrdinal(mvpCount)} MVP award.`;
+    else if(mvpStreak>=4)mvpHeadline=`${mvp} wins a ${bvOrdinal(mvpCount)} MVP award — ${mvpStreak} in a row.`;
+    else if(mvpStreak===3)mvpHeadline=`${mvp} completes an MVP three-peat, earning a ${bvOrdinal(mvpCount)} MVP award.`;
+    else if(mvpStreak===2)mvpHeadline=`${mvp} goes back-to-back, winning a ${bvOrdinal(mvpCount)} MVP award.`;
+    else if(mvpCount===1)mvpHeadline=`${mvp} wins the first MVP award of his career.`;
+    else mvpHeadline=`${mvp} wins his ${bvOrdinal(mvpCount)} MVP award.`;
+  }
+  return {champion,titleCount,titleStreak,previousTitleYear,droughtYears,bestPriorTitleStreak,headline,championshipNote,mvp,mvpCount,mvpStreak,mvpSetsRecord,mvpHeadline};
+}
+window.newspaperHistoricalContextV09143=newspaperHistoricalContextV09143;
+
 /* === v0.90.2 Newspaper completeness + archive repair ===
    One completed season = one permanent Final Edition.
    The paper is refreshed after the following offseason so draft, free agency,
@@ -18895,6 +19000,7 @@ function buildCompleteNewspaperV0902(year){
   }));
 
   const off=newspaperOffseasonNewsV0902(y);
+  const historicalContext=newspaperHistoricalContextV09143(y);
   const changes=[
     ...(majorSeasonChangesForNewspaper?.(y)||[]),
     ...off.franchise
@@ -18927,7 +19033,8 @@ function buildCompleteNewspaperV0902(year){
       .filter(r=>Number(r.year)===y)
       .sort((a,b)=>Number(b.w||b.wins||0)-Number(a.w||a.wins||0))
       .slice(0,5)
-      .map(r=>`${r.teamName||r.team||"Team"} ${r.w??r.wins??0}-${r.l??r.losses??0}`)
+      .map(r=>`${r.teamName||r.team||"Team"} ${r.w??r.wins??0}-${r.l??r.losses??0}`),
+    historicalContext
   };
 }
 window.buildCompleteNewspaperV0902=buildCompleteNewspaperV0902;
@@ -18980,15 +19087,20 @@ seasonNewspaperHTML=function(p){
 
   const draftLines=(p.topFive||[]).map(x=>`#${x.pick} ${x.player} — ${x.team}`);
   const changes=p.changes||[];
+  const historicalContext=newspaperHistoricalContextV09143(p.year);
+  p.historicalContext=historicalContext;
+  const headline=historicalContext?.headline||`${p.champion} Rule the Basketball World`;
+  const titleDeck=historicalContext?.championshipNote||(p.runnerUp?`${p.champion} defeat ${p.runnerUp} for the championship.`:"A new champion is crowned.");
+  const mvpLine=historicalContext?.mvpHeadline||`${p.awards?.mvp||"—"}`;
 
   return `<div class="newspaper">
     <div class="newspaperMast"><div class="newspaperDate">${p.seasonLabel} Final Edition · ${p.era||eraInfoForYear(p.year).name}</div><h2>Basketballverse Chronicle</h2></div>
-    <div class="newspaperHeadline">${p.champion} Rule the Basketball World</div>
-    <div class="newspaperDeck">${p.runnerUp?`${p.champion} defeat ${p.runnerUp} for the championship.`:"A new champion is crowned."}${p.finalsMvp?` ${p.finalsMvp} earns Finals MVP.`:""} The offseason is complete and the league is ready for ${Number(p.year)+1}-${String((Number(p.year)+2)%100).padStart(2,"0")}.</div>
+    <div class="newspaperHeadline">${headline}</div>
+    <div class="newspaperDeck">${titleDeck}${p.runnerUp?` ${p.champion} defeat ${p.runnerUp} in the Finals.`:""}${p.finalsMvp?` ${p.finalsMvp} earns Finals MVP.`:""} The offseason is complete and the league is ready for ${Number(p.year)+1}-${String((Number(p.year)+2)%100).padStart(2,"0")}.</div>
     <div class="newspaperChampion">${logoHTML(team)}<div><b style="font-size:20px">${p.champion}</b><div>${p.seasonLabel} League Champions</div></div></div>
     <div class="newspaperGrid" style="margin-top:16px">
       <div class="newspaperStory"><h3>Awards Desk</h3>
-        <div><b>MVP:</b> ${p.awards?.mvp||"—"}</div>
+        <div><b>MVP:</b> ${mvpLine}</div>
         <div><b>Rookie of the Year:</b> ${p.awards?.rookie||"—"}</div>
         <div><b>Defensive Player:</b> ${p.awards?.dpoy||"—"}</div>
         <div><b>Sixth Man:</b> ${p.awards?.sixth||"—"}</div>
@@ -19116,7 +19228,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.42";
+      badge.textContent="Basketballverse v0.91.43";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20448,7 +20560,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.42";
+      badge.textContent="Basketballverse v0.91.43";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -26044,3 +26156,5 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 </script>
 </body>
 </html>
+
+<!-- v0.91.43 Historic Newspapers: context-aware championship and MVP headlines -->

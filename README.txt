@@ -1,4 +1,4 @@
-Basketballverse v0.91.42 · Portraits Everywhere
+Basketballverse v0.91.43 · Historic Newspapers
 
 PORTRAITS ARE NOW A CORE PLAYER UI ELEMENT
 Portraits are automatically added/re-added on:
@@ -33,3 +33,6 @@ portrait. Generated fictional players continue to use the fallback portrait unti
 a generated-player portrait system is expanded.
 
 Retains all v0.91.41 simulation, financial, roster and contract systems.
+
+
+v0.91.43 adds historically aware newspaper headlines. Final Editions now recognize first titles, repeat champions, three-peats, 4+ title streaks, title droughts, franchise championship totals, MVP career totals, consecutive MVP streaks, and new all-time MVP records using the simulated universe history.
