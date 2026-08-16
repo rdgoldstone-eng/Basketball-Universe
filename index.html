@@ -26620,6 +26620,218 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
  }catch(e){}
 })();
 </script>
+
+<!-- === v0.91.47 GM Career Profile === -->
+
+<style id="gmCareerStyleV09147">
+#career.gmCareerProfileModeV09147 > :not(#gmCareerProfileV09147){display:none!important}
+#gmCareerProfileV09147 .careerMetric b{font-variant-numeric:tabular-nums}
+#gmCareerProfileV09147 .gmCareerSeasonTable{overflow-x:auto}
+@media(max-width:760px){#gmCareerProfileV09147 .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<script>
+/* === v0.91.47 GM Career Profile + unified build identity === */
+(function(){
+  const VERSION='v0.91.47';
+  const LABEL='v0.91.47 · GM Career Profile';
+  window.BASKETBALLVERSE_BUILD=VERSION;
+  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+  function safeNum(v,d=0){v=Number(v);return Number.isFinite(v)?v:d}
+  function gmStore(){
+    if(!window.state)return null;
+    state.gmCareer=state.gmCareer||{};
+    state.gmCareer.seasons=Array.isArray(state.gmCareer.seasons)?state.gmCareer.seasons:[];
+    state.gmCareer.history=Array.isArray(state.gmCareer.history)?state.gmCareer.history:[];
+    return state.gmCareer;
+  }
+  function identityNamesForTeamId(teamId){
+    const names=new Set();
+    const t=(state.teams||[]).find(x=>String(x.id)===String(teamId));
+    if(t){names.add(t.name);(t.identityHistory||[]).forEach(x=>x?.name&&names.add(x.name));}
+    const fh=state.franchiseHistory?.[teamId];
+    (fh?.identityEvents||[]).forEach(x=>{if(x?.name)names.add(x.name);if(x?.oldName)names.add(x.oldName)});
+    return names;
+  }
+  function teamSeasonRow(teamId,year){
+    const fh=state.franchiseHistory?.[teamId];
+    return (fh?.seasons||[]).find(s=>Number(s.year)===Number(year))||null;
+  }
+  function championRow(year){return (state.history?.champions||[]).find(c=>Number(c.year)===Number(year))||null}
+  function exactTitleFor(teamId,teamName,year){
+    const c=championRow(year); if(!c)return false;
+    const names=identityNamesForTeamId(teamId); if(teamName)names.add(teamName);
+    return String(c.teamId||'')===String(teamId)||names.has(c.team);
+  }
+  function exactFinalsFor(teamId,teamName,year){
+    const c=championRow(year); if(!c)return false;
+    const names=identityNamesForTeamId(teamId); if(teamName)names.add(teamName);
+    return String(c.teamId||'')===String(teamId)||names.has(c.team)||names.has(c.runnerUp);
+  }
+  function inferredPlayoffForArchive(teamId,year){
+    if(exactFinalsFor(teamId,null,year))return true;
+    const row=teamSeasonRow(teamId,year); if(!row)return false;
+    const conf=row.conference||row.conf; if(!conf)return false;
+    const all=[];
+    Object.entries(state.franchiseHistory||{}).forEach(([id,fh])=>{
+      const s=(fh?.seasons||[]).find(x=>Number(x.year)===Number(year));
+      if(!s)return;
+      if((s.conference||s.conf)!==conf)return;
+      const w=safeNum(s.w),l=safeNum(s.l),gp=w+l;
+      all.push({id,w,l,pct:gp?w/gp:0});
+    });
+    all.sort((a,b)=>b.pct-a.pct||b.w-a.w||String(a.id).localeCompare(String(b.id)));
+    let n=8;
+    try{n=safeNum(playoffFormatForYear?.(Number(year))?.teamsPerConference,Number(year)<=1983?6:8)}catch(_){n=Number(year)<=1983?6:8}
+    return all.slice(0,n).some(x=>String(x.id)===String(teamId));
+  }
+  function currentPlayoffResult(teamId,teamName){
+    const ps=state.season?.playoffState;
+    const champion=state.season?.champion||state.playoffs?.champion||null;
+    const names=identityNamesForTeamId(teamId); if(teamName)names.add(teamName);
+    const isChamp=champion&&names.has(champion);
+    if(isChamp)return {madePlayoffs:true,round:'Champion',champion:true,finals:true};
+    const series=(ps?.series||[]).filter(s=>String(s.aId)===String(teamId)||String(s.bId)===String(teamId));
+    const seeded=!!ps?.seedByTeam?.[teamId];
+    if(!series.length&&!seeded)return {madePlayoffs:false,round:'Missed Playoffs',champion:false,finals:false};
+    const order={'First Round':1,'Semifinals':2,'Conference Finals':3,'NBA Finals':4};
+    let best=series.slice().sort((a,b)=>(order[b.round]||0)-(order[a.round]||0))[0]?.round||'Playoffs';
+    const finals=best==='NBA Finals';
+    return {madePlayoffs:true,round:finals?'Finals':best,champion:false,finals};
+  }
+  function teamForGMYear(year){
+    const review=(state.gmCareer?.history||[]).find(h=>Number(h.year)===Number(year)&&h.teamId);
+    if(review)return {id:review.teamId,name:review.teamName||teamSeasonRow(review.teamId,year)?.name||'Team'};
+    const ev=(state.career?.history||[]).find(h=>Number(h.year)===Number(year)&&h.role==='GM'&&h.teamId);
+    if(ev)return {id:ev.teamId,name:ev.teamName||teamSeasonRow(ev.teamId,year)?.name||'Team'};
+    if(Number(year)===Number(state.currentYear)){
+      const id=state.controlledTeamId||state.career?.currentTeamId;
+      const t=(state.teams||[]).find(x=>String(x.id)===String(id));
+      if(id)return {id,name:t?.name||'Team'};
+    }
+    return null;
+  }
+  function archiveGMSeasonV09147(year,force=false){
+    if(!state||state.role!=='GM'&&!state.gmCareer)return null;
+    const gm=gmStore(); if(!gm)return null;
+    const y=Number(year); if(!Number.isFinite(y))return null;
+    if(!force&&gm.seasons.some(s=>Number(s.year)===y))return gm.seasons.find(s=>Number(s.year)===y);
+    const jt=teamForGMYear(y); if(!jt)return null;
+    const fr=teamSeasonRow(jt.id,y);
+    let wins=safeNum(fr?.w),losses=safeNum(fr?.l);
+    const review=(gm.history||[]).find(h=>Number(h.year)===y&&String(h.teamId)===String(jt.id));
+    if((wins+losses)===0&&review?.record){const m=String(review.record).match(/(\d+)\s*-\s*(\d+)/);if(m){wins=Number(m[1]);losses=Number(m[2])}}
+    let result;
+    if(Number(y)===Number(state.currentYear)&&state.season?.playoffState) result=currentPlayoffResult(jt.id,jt.name);
+    else {
+      const champ=exactTitleFor(jt.id,jt.name,y), finals=exactFinalsFor(jt.id,jt.name,y);
+      const po=inferredPlayoffForArchive(jt.id,y);
+      result={madePlayoffs:po||finals||champ,champion:champ,finals:finals,round:champ?'Champion':finals?'Finals':po?'Playoffs':'Missed Playoffs'};
+    }
+    const row={year:y,teamId:jt.id,teamName:fr?.name||jt.name,wins,losses,...result,security:review?.security??null};
+    const i=gm.seasons.findIndex(s=>Number(s.year)===y);
+    if(i>=0)gm.seasons[i]={...gm.seasons[i],...row}; else gm.seasons.push(row);
+    gm.seasons.sort((a,b)=>Number(a.year)-Number(b.year));
+    return row;
+  }
+  window.archiveGMSeasonV09147=archiveGMSeasonV09147;
+
+  function backfillGMCareerV09147(){
+    const gm=gmStore(); if(!gm)return;
+    const years=new Set();
+    (gm.history||[]).forEach(h=>Number.isFinite(Number(h.year))&&years.add(Number(h.year)));
+    (state.career?.history||[]).forEach(h=>h.role==='GM'&&Number.isFinite(Number(h.year))&&years.add(Number(h.year)));
+    years.forEach(y=>archiveGMSeasonV09147(y,false));
+    if(state.role==='GM'&&state.season?.phase==='Season Complete')archiveGMSeasonV09147(state.currentYear,true);
+  }
+  window.backfillGMCareerV09147=backfillGMCareerV09147;
+
+  function gmCareerStatsV09147(){
+    backfillGMCareerV09147();
+    const rows=(state.gmCareer?.seasons||[]).slice().sort((a,b)=>a.year-b.year);
+    const wins=rows.reduce((s,r)=>s+safeNum(r.wins),0), losses=rows.reduce((s,r)=>s+safeNum(r.losses),0);
+    const titles=rows.filter(r=>r.champion).length, playoffs=rows.filter(r=>r.madePlayoffs).length, finals=rows.filter(r=>r.finals).length;
+    const teams=new Set(rows.map(r=>r.teamId).filter(Boolean));
+    const best=rows.slice().sort((a,b)=>{const ap=(safeNum(a.wins)+safeNum(a.losses))?safeNum(a.wins)/(safeNum(a.wins)+safeNum(a.losses)):0;const bp=(safeNum(b.wins)+safeNum(b.losses))?safeNum(b.wins)/(safeNum(b.wins)+safeNum(b.losses)):0;return bp-ap||safeNum(b.wins)-safeNum(a.wins)})[0]||null;
+    return {rows,wins,losses,titles,playoffs,finals,teams:teams.size,seasons:rows.length,pct:(wins+losses)?wins/(wins+losses):0,best};
+  }
+  window.gmCareerStatsV09147=gmCareerStatsV09147;
+
+  function metric(v,label,sub=''){return `<div class="careerMetric"><b style="font-size:24px">${v}</b><div class="small muted">${label}</div>${sub?`<div class="small" style="margin-top:4px">${sub}</div>`:''}</div>`}
+  function gmSeasonRowsHTML(rows){
+    if(!rows.length)return `<div class="notice">Your completed GM seasons will be tracked here.</div>`;
+    return `<div class="gmCareerSeasonTable"><div class="careerSeasonRow header"><span>Season</span><span>Team</span><span>W</span><span>L</span><span>Playoffs</span><span class="careerHide">Result</span><span class="careerHide">Win%</span></div>${rows.slice().reverse().map(r=>{
+      const gp=safeNum(r.wins)+safeNum(r.losses),pct=gp?(safeNum(r.wins)/gp*100).toFixed(1):'—';
+      const result=r.champion?'🏆 Champion':r.finals?'Finals':r.round|| (r.madePlayoffs?'Playoffs':'Missed');
+      return `<div class="careerSeasonRow"><b>${r.year}-${String((Number(r.year)+1)%100).padStart(2,'0')}</b><span>${r.teamName||'Team'}</span><b>${safeNum(r.wins)}</b><b>${safeNum(r.losses)}</b><span>${r.madePlayoffs?'Yes':'No'}</span><span class="careerHide">${result}</span><span class="careerHide">${pct}${pct==='—'?'':'%'}</span></div>`;
+    }).join('')}</div>`;
+  }
+  function renderGMCareerProfileV09147(){
+    if(!state)return;
+    const sec=document.getElementById('career'); if(!sec)return;
+    if(state.role!=='GM'){
+      sec.classList.remove('gmCareerProfileModeV09147');
+      document.getElementById('gmCareerProfileV09147')?.remove();
+      return;
+    }
+    sec.classList.add('gmCareerProfileModeV09147');
+    let host=document.getElementById('gmCareerProfileV09147');
+    if(!host){host=document.createElement('div');host.id='gmCareerProfileV09147';sec.prepend(host)}
+    const s=gmCareerStatsV09147();
+    const team=state.controlledTeamId?(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId)):null;
+    const gm=state.gmCareer||{};
+    const best=s.best?`${s.best.year}: ${s.best.wins}-${s.best.losses}`:'No completed seasons';
+    host.innerHTML=`
+      <div class="card"><div class="pill">GM CAREER</div><h2 style="margin-top:10px">${state.name||'Your'} General Manager Profile</h2><p class="muted">${team?`Current team: <b>${team.name}</b>`:'Currently between GM jobs'} · Reputation ${Math.round(safeNum(gm.reputation,50))}/100 · Job Security ${Math.round(safeNum(gm.security,65))}/100</p>
+      <div class="grid4" style="margin-top:12px">${metric(s.titles,'Championships')}${metric(s.playoffs,'Playoff Appearances')}${metric(s.finals,'Finals Appearances')}${metric(s.seasons,'Seasons as GM')}</div>
+      <div class="grid4" style="margin-top:10px">${metric(`${s.wins}-${s.losses}`,'Career Record')}${metric(s.pct?`${(s.pct*100).toFixed(1)}%`:'—','Career Win %')}${metric(s.teams,'Franchises Managed')}${metric(best,'Best Regular Season')}</div></div>
+      <div class="card"><h2>Season-by-Season Résumé</h2><p class="small muted">Championships and Finals are read from the universe's permanent history. Playoff appearances are stored exactly for new seasons; older saves are reconstructed from archived standings where needed.</p>${gmSeasonRowsHTML(s.rows)}</div>`;
+
+    const hist=document.getElementById('careerhistoryBodyV090');
+    if(hist)hist.innerHTML=`<div class="grid4">${metric(s.titles,'Championships')}${metric(s.playoffs,'Playoffs')}${metric(s.finals,'Finals')}${metric(`${s.wins}-${s.losses}`,'Career Record')}</div><div style="margin-top:14px">${gmSeasonRowsHTML(s.rows)}</div>`;
+    try{
+      const item=(window.navigationGroups?.career||[]).find(x=>x[0]==='careerhistory');if(item)item[1]='GM Résumé';
+    }catch(_){ }
+  }
+  window.renderGMCareerProfileV09147=renderGMCareerProfileV09147;
+
+  /* Snapshot the just-finished GM season before the league resets. */
+  const oldBegin=window.beginNextSeason;
+  if(typeof oldBegin==='function'){
+    window.beginNextSeason=beginNextSeason=function(){
+      try{if(state?.role==='GM')archiveGMSeasonV09147(state.currentYear,true)}catch(e){console.warn('GM career archive',e)}
+      return oldBegin.apply(this,arguments);
+    };
+  }
+
+  /* Render the profile everywhere the Career UI can be reached. */
+  const oldRenderAll=window.renderAll;
+  if(typeof oldRenderAll==='function'){
+    window.renderAll=renderAll=function(){const r=oldRenderAll.apply(this,arguments);setTimeout(renderGMCareerProfileV09147,0);return r};
+  }
+  const oldSwitch=window.switchTab;
+  if(typeof oldSwitch==='function'){
+    window.switchTab=switchTab=function(tab){const r=oldSwitch.apply(this,arguments);if(tab==='career'||tab==='careerhistory')setTimeout(renderGMCareerProfileV09147,0);return r};
+  }
+
+  function enforceVersionV09147(){
+    try{
+      let badge=document.getElementById('buildBadgeV0904');
+      if(!badge){badge=document.createElement('div');badge.id='buildBadgeV0904';badge.style.cssText='position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88';document.body.appendChild(badge)}
+      badge.textContent=`Basketballverse ${LABEL}`;
+      badge.title='Game script loaded completely';
+      document.querySelectorAll('.pill,[data-build],#buildVersion,.buildVersion').forEach(el=>{
+        if(/v0\.91\.\d+/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/v0\.91\.\d+(?:\s*·\s*[^\n]*)?/,LABEL);
+      });
+    }catch(e){console.warn('v0.91.47 version banner',e)}
+  }
+  window.enforceBuildIdentityV0904=enforceVersionV09147;
+  window.markScriptReadyV09111=function(){enforceVersionV09147();try{document.getElementById('loadBtn')?.setAttribute('data-script-ready','true');document.getElementById('createBtn')?.setAttribute('data-script-ready','true')}catch(_){}};
+
+  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.47 init',e)}},350);
+})();
+
+</script>
 </body>
 </html>
 
