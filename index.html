@@ -569,6 +569,14 @@ pre{white-space:pre-wrap}
  .playerCardCleanV09140{grid-template-columns:56px minmax(0,1fr) minmax(150px,auto) minmax(150px,auto)}
 }
 
+
+/* v0.91.42 portraits everywhere */
+.playerPortraitInlineV09142{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.playerPortraitInlineV09142 .playerPortraitSmallV09135{width:40px;height:48px;border-radius:9px}
+.playerPortraitMiniV09142 .playerPortraitSmallV09135{width:32px;height:38px;border-radius:8px}
+.playerPortraitAwardV09142{display:flex;align-items:center;gap:8px}
+.playerPortraitAwardV09142 .playerPortraitSmallV09135{width:36px;height:44px;border-radius:8px}
+
 </style>
 </head>
 <body>
@@ -585,7 +593,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.41 · Roster Fix + Contracts</div>
+    <div class="pill">v0.91.42 · Portraits Everywhere</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1583,7 +1591,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.41";
+window.BASKETBALLVERSE_BUILD = "v0.91.42";
 </script>
 
 <script>
@@ -19108,7 +19116,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.41";
+      badge.textContent="Basketballverse v0.91.42";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20440,7 +20448,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.41";
+      badge.textContent="Basketballverse v0.91.42";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25826,6 +25834,212 @@ window.populatePlayerTeamFilter=populatePlayerTeamFilter;
 document.addEventListener("change",e=>{
   if(e.target?.id==="playerTeamFilter")e.target.dataset.selectedTeamV09141=e.target.value;
 },true);
+
+
+
+/* === v0.91.42 Portraits Everywhere + duplicate-safe portrait planning === */
+
+function portraitPlayerByNameV09142(name){
+  const clean=String(name||"")
+    .replace(/^#?\d+\s*[.)-]?\s*/,"")
+    .replace(/^[★☆]\s*/,"")
+    .trim()
+    .toLowerCase();
+  if(!clean)return null;
+  return (state.players||[]).find(p=>String(p.name||"").trim().toLowerCase()===clean) ||
+         (state.retiredPlayers||[]).find?.(p=>String(p.name||"").trim().toLowerCase()===clean) ||
+         null;
+}
+window.portraitPlayerByNameV09142=portraitPlayerByNameV09142;
+
+function decorateNamedRowV09142(row,name){
+  if(!row || row.dataset.portraitDecoratedV09142==="1")return;
+  const p=portraitPlayerByNameV09142(name);
+  if(!p)return;
+  row.dataset.portraitDecoratedV09142="1";
+  const holder=document.createElement("span");
+  holder.className="playerPortraitInlineV09142";
+  holder.innerHTML=portraitHTMLV09135(p,"small");
+  row.insertBefore(holder,row.firstChild);
+}
+window.decorateNamedRowV09142=decorateNamedRowV09142;
+
+function decorateRowsByBoldV09142(root,selector){
+  if(!root)return;
+  root.querySelectorAll(selector).forEach(row=>{
+    if(row.dataset.portraitDecoratedV09142==="1")return;
+    const b=row.querySelector("b");
+    if(!b)return;
+    let name=(b.textContent||"").trim()
+      .replace(/^#?\d+\s*[.)-]?\s*/,"")
+      .replace(/^[★☆]\s*/,"");
+    const p=portraitPlayerByNameV09142(name);
+    if(!p)return;
+    decorateNamedRowV09142(row,p.name);
+  });
+}
+window.decorateRowsByBoldV09142=decorateRowsByBoldV09142;
+
+function decorateTradeMachineV09142(){
+  decorateRowsByBoldV09142(document.getElementById("gmTradeBuilderV086"),".teamrow");
+  decorateRowsByBoldV09142(document.getElementById("tradeMachineStandaloneV0885"),".teamrow");
+}
+function decorateTradeFinderV09142(){
+  const root=document.getElementById("tradeFinderAssetListV09119");
+  if(!root)return;
+  root.querySelectorAll("label").forEach(row=>{
+    if(row.dataset.portraitDecoratedV09142==="1")return;
+    const b=row.querySelector("b");
+    if(!b)return;
+    const p=portraitPlayerByNameV09142(b.textContent);
+    if(p)decorateNamedRowV09142(row,p.name);
+  });
+}
+function decorateFreeAgencyV09142(){
+  for(const id of ["faCompactListV09114","frontOfficeFreeAgencyV0895"]){
+    decorateRowsByBoldV09142(document.getElementById(id),".teamrow");
+  }
+}
+function decorateHealthV09142(){
+  for(const id of ["leagueInjuryReport","fatigueWatch","controlledTeamHealth"]){
+    decorateRowsByBoldV09142(document.getElementById(id),".healthRow");
+  }
+}
+function decorateStatsV09142(){
+  const leaders=document.getElementById("leagueLeadersBox");
+  if(leaders){
+    leaders.querySelectorAll(".relationshipRow").forEach(row=>{
+      if(row.dataset.portraitDecoratedV09142==="1")return;
+      const span=row.querySelector("span");
+      const txt=(span?.textContent||"").replace(/^\d+\.\s*/,"").split(" · ")[0].trim();
+      const p=portraitPlayerByNameV09142(txt);
+      if(p)decorateNamedRowV09142(row,p.name);
+    });
+  }
+  decorateRowsByBoldV09142(document.getElementById("playerStatsTable"),".statRow");
+  decorateRowsByBoldV09142(document.getElementById("activeCareerLeaderList"),".teamrow");
+  const career=document.getElementById("careerLeaderList");
+  if(career){
+    career.querySelectorAll(".allTimeRow").forEach(row=>{
+      if(row.dataset.portraitDecoratedV09142==="1")return;
+      const bs=row.querySelectorAll("b");
+      const name=bs[1]?.textContent||"";
+      const p=portraitPlayerByNameV09142(name);
+      if(p)decorateNamedRowV09142(row,p.name);
+    });
+  }
+}
+function decorateHallOfFameV09142(){
+  const list=document.getElementById("hallOfFameList");
+  if(list){
+    list.querySelectorAll(".hofCard").forEach(card=>{
+      if(card.dataset.portraitDecoratedV09142==="1")return;
+      const b=card.querySelector("b");
+      const p=portraitPlayerByNameV09142(b?.textContent);
+      if(p)decorateNamedRowV09142(card,p.name);
+    });
+  }
+  decorateRowsByBoldV09142(document.getElementById("hallWatchList"),".teamrow");
+}
+function decorateDraftHistoryV09142(){
+  const root=document.getElementById("draftHistoryList");
+  if(!root)return;
+  root.querySelectorAll(".teamrow").forEach(row=>{
+    if(row.dataset.portraitDecoratedV09142==="1")return;
+    const txt=row.querySelector("b")?.textContent||"";
+    const name=txt.replace(/^#\d+\s+/,"").trim();
+    const p=portraitPlayerByNameV09142(name);
+    if(p)decorateNamedRowV09142(row,p.name);
+  });
+}
+function decorateAwardsHistoryV09142(){
+  const root=document.getElementById("awardsHistoryBodyV09137");
+  if(!root)return;
+  root.querySelectorAll(".legacyRowV09137").forEach(row=>{
+    if(row.dataset.portraitDecoratedV09142==="1")return;
+    const texts=[...row.querySelectorAll("span,b")].map(x=>(x.textContent||"").trim());
+    for(const txt of texts){
+      const name=txt.replace(/^#\d+\s+/,"").trim();
+      const p=portraitPlayerByNameV09142(name);
+      if(p){decorateNamedRowV09142(row,p.name);break;}
+    }
+  });
+}
+function decorateEncyclopediaV09142(){
+  decorateRowsByBoldV09142(document.getElementById("playerEncyclopediaBodyV09137"),".legacyRowV09137");
+}
+function decorateCurrentDraftV09142(){
+  try{addDraftPortraitsV09135?.();}catch(_){}
+}
+function decorateTransactionsV09142(){
+  for(const id of ["transactionLogBox","transactionsBox"]){
+    const root=document.getElementById(id);
+    if(!root)return;
+    root.querySelectorAll(".teamrow,.transactionRow,.calendarline").forEach(row=>{
+      if(row.dataset.portraitDecoratedV09142==="1")return;
+      const text=row.textContent||"";
+      const p=(state.players||[]).find(x=>text.includes(x.name));
+      if(p)decorateNamedRowV09142(row,p.name);
+    });
+  }
+}
+function decorateAllPlayerSurfacesV09142(){
+  decorateTradeMachineV09142();
+  decorateTradeFinderV09142();
+  decorateFreeAgencyV09142();
+  decorateHealthV09142();
+  decorateStatsV09142();
+  decorateHallOfFameV09142();
+  decorateDraftHistoryV09142();
+  decorateAwardsHistoryV09142();
+  decorateEncyclopediaV09142();
+  decorateCurrentDraftV09142();
+  decorateTransactionsV09142();
+  try{refreshPortraitUIV09136?.();}catch(_){}
+}
+window.decorateAllPlayerSurfacesV09142=decorateAllPlayerSurfacesV09142;
+
+/* Wrap the major render paths so portraits are restored after every rerender. */
+for(const fnName of [
+  "renderGMTradeBuilderV086","renderTradeFinderV09119",
+  "renderSimpleFreeAgencyV09114","renderInSeasonFreeAgencyV09130",
+  "renderHealthCenter","renderStatsCenter","renderHallOfFame",
+  "renderDraftHistoryV0831","renderAwardsHistoryV09137",
+  "renderPlayerEncyclopediaV09137","renderFrontOffice","renderPlayers"
+]){
+  const old=window[fnName];
+  if(typeof old!=="function")continue;
+  window[fnName]=function(){
+    const r=old.apply(this,arguments);
+    setTimeout(decorateAllPlayerSurfacesV09142,0);
+    return r;
+  };
+}
+
+/* Awards page should always show portraits after switching award type. */
+document.addEventListener("change",e=>{
+  if(e.target?.id==="awardsHistorySelectV09137")setTimeout(decorateAwardsHistoryV09142,0);
+});
+
+/* When any tab opens, decorate the visible player surfaces. */
+const _v09142SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09142SwitchTab.apply(this,arguments);
+  setTimeout(decorateAllPlayerSurfacesV09142,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* A MutationObserver catches UI fragments rendered by older wrappers that don't
+   go through a named renderer anymore. */
+let portraitObserverTimerV09142=null;
+const portraitObserverV09142=new MutationObserver(()=>{
+  clearTimeout(portraitObserverTimerV09142);
+  portraitObserverTimerV09142=setTimeout(decorateAllPlayerSurfacesV09142,30);
+});
+portraitObserverV09142.observe(document.body,{childList:true,subtree:true});
+
+setTimeout(decorateAllPlayerSurfacesV09142,180);
 
 </script>
 </body>
