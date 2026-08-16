@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.34 · Division Standings Fix</div>
+    <div class="pill">v0.91.35 · Player Portrait System</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.34";
+window.BASKETBALLVERSE_BUILD = "v0.91.35";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.34";
+      badge.textContent="Basketballverse v0.91.35";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.34";
+      badge.textContent="Basketballverse v0.91.35";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -24859,6 +24859,175 @@ setTimeout(()=>{
     if(document.getElementById("leagueWestStandingsV0901"))document.getElementById("leagueWestStandingsV0901").innerHTML=standingsTable("West");
   }catch(e){console.error("v0.91.34 standings redraw",e);}
 },120);
+
+
+
+/* === v0.91.35 Player Portrait System ===
+   Portraits are player-ID based, not team based, so trades never leave a player
+   wearing the wrong team's branding. Missing portraits get a polished generated
+   silhouette card until an individual portrait asset is added.
+
+   Asset convention:
+     portraits/<normalized-player-id>.webp
+   A player may also explicitly define p.portrait.
+*/
+
+function portraitKeyV09135(p){
+  const raw=String(p?.id || p?.playerId || p?.name || "player").toLowerCase();
+  return raw.replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+window.portraitKeyV09135=portraitKeyV09135;
+
+function playerPortraitSrcV09135(p){
+  if(!p)return "";
+  if(p.portrait)return p.portrait;
+  return `portraits/${portraitKeyV09135(p)}.webp`;
+}
+window.playerPortraitSrcV09135=playerPortraitSrcV09135;
+
+function portraitInitialsV09135(p){
+  return String(p?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+}
+
+function portraitHTMLV09135(p,size="large"){
+  if(!p)return "";
+  const cls=size==="small"?"playerPortraitSmallV09135":"playerPortraitV09135";
+  const src=playerPortraitSrcV09135(p);
+  const initials=portraitInitialsV09135(p);
+  return `<div class="${cls}" data-player-portrait="${portraitKeyV09135(p)}">
+    <img src="${src}" alt="${String(p.name||"Player").replace(/"/g,"&quot;")}"
+      loading="lazy"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="portraitFallbackV09135" style="display:none">${initials}</div>
+  </div>`;
+}
+window.portraitHTMLV09135=portraitHTMLV09135;
+
+const portraitStyleV09135=document.createElement("style");
+portraitStyleV09135.textContent=`
+.playerPortraitV09135,.playerPortraitSmallV09135{
+  position:relative;overflow:hidden;flex:0 0 auto;
+  background:linear-gradient(145deg,#202635,#10141d);
+  border:1px solid #343d50;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+}
+.playerPortraitV09135{width:112px;height:138px;border-radius:18px}
+.playerPortraitSmallV09135{width:48px;height:58px;border-radius:10px}
+.playerPortraitV09135 img,.playerPortraitSmallV09135 img{
+  width:100%;height:100%;object-fit:cover;object-position:center top;display:block;
+}
+.portraitFallbackV09135{
+  width:100%;height:100%;align-items:center;justify-content:center;
+  font-weight:900;letter-spacing:.04em;color:#f4c85b;
+  background:
+    radial-gradient(circle at 50% 28%,#343b4b 0 17%,transparent 18%),
+    radial-gradient(ellipse at 50% 95%,#343b4b 0 35%,transparent 36%),
+    linear-gradient(145deg,#202635,#10141d);
+}
+.playerPortraitV09135 .portraitFallbackV09135{font-size:24px}
+.playerPortraitSmallV09135 .portraitFallbackV09135{font-size:13px}
+.playerProfileHeroV09135{
+  display:flex;gap:16px;align-items:center;margin-bottom:14px;
+  padding:14px;border-radius:18px;background:linear-gradient(135deg,#191f2b,#11151e);
+  border:1px solid #30394a;
+}
+.playerProfileHeroV09135 .playerHeroInfoV09135{min-width:0;flex:1}
+.playerProfileHeroV09135 .playerHeroNameV09135{font-size:26px;font-weight:900;line-height:1.05}
+.playerProfileHeroV09135 .playerHeroMetaV09135{margin-top:6px;color:#a9b1c2}
+`;
+document.head.appendChild(portraitStyleV09135);
+
+/* Add a portrait hero to the existing player profile without replacing its
+   historical stats, contracts, awards, transactions, etc. */
+function injectPlayerProfilePortraitV09135(p){
+  if(!p)return;
+  const profile=document.getElementById("playerProfile") ||
+                document.getElementById("playerProfileBody") ||
+                document.querySelector('[data-player-profile]');
+  if(!profile || profile.querySelector(".playerProfileHeroV09135"))return;
+
+  const team=(state.teams||[]).find(t=>t.name===p.team || t.id===p.teamId);
+  const age=typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—");
+  const hero=document.createElement("div");
+  hero.className="playerProfileHeroV09135";
+  hero.innerHTML=`
+    ${portraitHTMLV09135(p,"large")}
+    <div class="playerHeroInfoV09135">
+      <div class="playerHeroNameV09135">${p.name}</div>
+      <div class="playerHeroMetaV09135">${p.pos||"—"} · Age ${age}${team?` · ${team.name}`:""}</div>
+      <div style="margin-top:8px"><b>OVR ${p.ovr??"—"}</b> &nbsp; <span class="muted">POT ${p.pot??"—"}</span></div>
+    </div>`;
+  profile.prepend(hero);
+}
+window.injectPlayerProfilePortraitV09135=injectPlayerProfilePortraitV09135;
+
+/* Try to identify the currently displayed profile player after profile render. */
+function currentProfilePlayerV09135(){
+  const ids=[
+    state?.ui?.playerId,state?.selectedPlayerId,state?.playerProfileId,
+    state?.ui?.selectedPlayerId
+  ].filter(Boolean);
+  for(const id of ids){
+    const p=(state.players||[]).find(x=>String(x.id)===String(id));
+    if(p)return p;
+  }
+  return null;
+}
+window.currentProfilePlayerV09135=currentProfilePlayerV09135;
+
+/* Draft selection: small portrait beside each selectable prospect. */
+function addDraftPortraitsV09135(){
+  const board=document.getElementById("draftProspectBoard");
+  if(!board)return;
+  for(const row of board.querySelectorAll(".teamrow")){
+    if(row.querySelector(".playerPortraitSmallV09135"))continue;
+    const btn=row.querySelector("button[onclick*='gmDraftPlayerV0881']");
+    if(!btn)continue;
+    const m=(btn.getAttribute("onclick")||"").match(/gmDraftPlayerV0881\('([^']+)'/);
+    if(!m)continue;
+    const p=(state.draftRoom?.available||[]).find(x=>String(x.draftId||x.id)===String(m[1]));
+    if(!p)continue;
+    row.insertAdjacentHTML("afterbegin",portraitHTMLV09135(p,"small"));
+  }
+}
+window.addDraftPortraitsV09135=addDraftPortraitsV09135;
+
+/* Keep portrait assets deliberately out of save-state. Only the player's ID/path
+   is stored, which prevents the browser-save quota problem from returning. */
+function assignPortraitMetadataV09135(){
+  for(const p of (state?.players||[])){
+    if(!p.portraitKey)p.portraitKey=portraitKeyV09135(p);
+  }
+}
+window.assignPortraitMetadataV09135=assignPortraitMetadataV09135;
+
+const _v09135RenderAll=renderAll;
+renderAll=function(){
+  assignPortraitMetadataV09135();
+  const r=_v09135RenderAll.apply(this,arguments);
+  setTimeout(()=>{
+    const p=currentProfilePlayerV09135();
+    if(p)injectPlayerProfilePortraitV09135(p);
+    addDraftPortraitsV09135();
+  },0);
+  return r;
+};
+window.renderAll=renderAll;
+
+const _v09135RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  const r=_v09135RenderDraftRoom.apply(this,arguments);
+  setTimeout(addDraftPortraitsV09135,0);
+  return r;
+};
+window.renderDraftRoom=renderDraftRoom;
+
+setTimeout(()=>{
+  try{
+    assignPortraitMetadataV09135();
+    saveState?.();
+  }catch(e){console.error("v0.91.35 portrait init",e);}
+},180);
 
 </script>
 </body>
