@@ -593,7 +593,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.44 · Animated Draft Lottery</div>
+    <div class="pill">v0.91.45 · Free Agency Economy</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1591,7 +1591,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.44";
+window.BASKETBALLVERSE_BUILD = "v0.91.45";
 </script>
 
 <script>
@@ -26246,6 +26246,259 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLotteryBroadcastV09144()});
  // Update visible version labels without disturbing save compatibility.
  try{document.querySelectorAll(".pill").forEach(el=>{if(/v0\.91\.43/.test(el.textContent))el.textContent=el.textContent.replace(/v0\.91\.43\s*·\s*Historic Newspapers/,"v0.91.44 · Animated Draft Lottery")})}catch(e){}
+})();
+</script>
+
+<script>
+/* === v0.91.45 Free Agency & Salary Economy ===
+   Goals:
+   - keep elite salaries in a sustainable share of the actual historical cap
+   - treat the NBA cap as a soft cap for a club's own free agents
+   - use cap space / one mid-level-style exception / minimum deals for outside FAs
+   - let asking prices fall in market waves instead of leaving good players unsigned
+   - protect the human GM from league-AI roster decisions
+*/
+(function(){
+ const BUILD="v0.91.45";
+ window.BASKETBALLVERSE_BUILD=BUILD;
+
+ function minSalary(y=state?.currentYear){return Number(historicalMinimumSalaryV09127?.(y)||.06)}
+ function capFor(y=state?.currentYear){return Number(salaryCapForYearV09127?.(y)||0)}
+ function activeTeams(){return (state?.teams||[]).filter(t=>!t.defunct)}
+ function controlled(){return state?.role==='GM'?currentControlledTeam?.():null}
+ function isOwnFA(p,team){return !!p&&!!team&&(p.previousTeamName===team.name || rfaRightsTeam?.(p)?.id===team.id)}
+ function marketWave(p){return Math.max(0,Math.min(3,Number(p?.faMarketWaveV09145||0)))}
+
+ function playerLeagueRankV09145(p){
+   const pool=(state?.players||[]).filter(x=>!x.retired&&!x.deferredEntry).slice().sort((a,b)=>Number(b.ovr||0)-Number(a.ovr||0));
+   const idx=pool.findIndex(x=>String(x.id)===String(p?.id));
+   return idx<0?pool.length:idx+1;
+ }
+ window.playerLeagueRankV09145=playerLeagueRankV09145;
+
+ function sustainableSalaryV09145(p,year=state?.currentYear,applyWave=true){
+   if(!p)return minSalary(year);
+   const y=Number(year||1976), o=Math.max(45,Math.min(99,Number(p.ovr||60)));
+   const pot=Math.max(o,Math.min(99,Number(p.pot||o))), age=Number(p.age||27);
+   const floor=minSalary(y), cap=capFor(y);
+   let annual;
+
+   if(y<1984 || !cap){
+     const top=Number(historicalTopSalaryReferenceV09127?.(y)||1);
+     let q=o>=94?.92:o>=90?.76:o>=86?.60:o>=82?.45:o>=78?.32:o>=74?.22:o>=70?.145:o>=66?.09:o>=62?.055:.032;
+     annual=top*q;
+   }else{
+     /* Sustainable cap shares. Only genuine league-superstars reach max-like money. */
+     let share=o>=94?.33:o>=90?.27:o>=86?.21:o>=82?.155:o>=78?.11:o>=74?.075:o>=70?.050:o>=66?.033:o>=62?.021:.012;
+     const rank=playerLeagueRankV09145(p);
+     if(o>=90){
+       if(rank<=5)share*=1.05;
+       else if(rank>15)share*=.93;
+     }
+     /* The unusual mid-90s market could stretch farther without making every star a 60-70% cap player. */
+     if(y>=1995&&y<=1998&&o>=94)share*=1.10;
+     annual=cap*share;
+   }
+
+   if(age<=25&&pot>=o+5)annual*=1.05;
+   if(age>=32)annual*=.94;
+   if(age>=35)annual*=.85;
+   if(age>=37)annual*=.78;
+
+   if(applyWave && p.teamName==='Free Agent'){
+     const wave=marketWave(p);
+     const discounts=[1,.94,.87,.80];
+     let d=discounts[wave]||1;
+     if(o>=90)d=Math.max(d,.84); // elite players bend, but do not collapse to minimum money
+     annual*=d;
+   }
+   return Math.max(floor,Math.round(annual*100)/100);
+ }
+ window.sustainableSalaryV09145=sustainableSalaryV09145;
+
+ /* One market number everywhere. */
+ window.eraFairSalaryV09127=function(p,year=state?.currentYear){return sustainableSalaryV09145(p,year,false)};
+ window.eraSalaryDemandV09131=function(p,year=state?.currentYear){return sustainableSalaryV09145(p,year,true)};
+ window.gmFairSalaryV085=function(p){return sustainableSalaryV09145(p,state.currentYear,true)};
+ window.careerMarketValueForAny=function(p){return sustainableSalaryV09145(p,state.currentYear,true)};
+ window.contractMarketAnnual=function(p){return sustainableSalaryV09145(p,state.currentYear,true)};
+
+ window.normalizePlayerSalaryDemandV09131=function(p,year=state?.currentYear){
+   if(!p)return;
+   const demand=sustainableSalaryV09145(p,year,true);
+   for(const key of ["askingSalary","salaryAsk","askSalary","desiredSalary","salaryDemand","demandSalary","marketSalary","expectedSalary","freeAgentAsk","faAsk","askingPrice"]){
+     if(Object.prototype.hasOwnProperty.call(p,key))p[key]=demand;
+   }
+   for(const key of ["contractDemand","faDemand"]){const obj=p[key];if(obj&&typeof obj==='object'){if('salary' in obj)obj.salary=demand;if('annual' in obj)obj.annual=demand;if('amount' in obj)obj.amount=demand}}
+   p.eraSalaryDemandV09131=demand;p.eraSalaryDemandSeasonV09131=Number(year);
+ };
+ window.normalizeAllSalaryDemandsV09131=function(){for(const p of (state?.players||[]))normalizePlayerSalaryDemandV09131(p,state.currentYear)};
+
+ function exceptionAmountV09145(team){
+   if(!state?.leagueRules?.salaryCap)return Infinity;
+   const cap=capFor();
+   /* A simple MLE-like safety valve. It scales by era and is intentionally smaller than star money. */
+   return Math.max(minSalary()*2,Math.round(cap*.095*100)/100);
+ }
+ window.exceptionAmountV09145=exceptionAmountV09145;
+
+ function outsideFAPathV09145(team,p,salary){
+   if(!state?.leagueRules?.salaryCap)return {ok:true,type:'space'};
+   const cap=capFor(), payroll=teamPayroll(team.name), room=Math.max(0,cap-payroll), floor=minSalary();
+   if(salary<=room+.001)return {ok:true,type:'space'};
+   if(salary<=floor*1.15)return {ok:true,type:'minimum'};
+   const ex=exceptionAmountV09145(team);
+   if(capExceptionAvailable?.(team)&&salary<=ex+.001)return {ok:true,type:'exception'};
+   return {ok:false,type:'none',room,exception:ex};
+ }
+ window.outsideFAPathV09145=outsideFAPathV09145;
+
+ /* Own-player rights: clubs may exceed the cap to retain core players. Financial restraint
+    still matters for marginal veterans so every roster does not balloon indefinitely. */
+ window.runLeagueReSigningsAI=function(){
+   ensureFrontOffice();refreshAIRosterPlans?.();
+   const human=controlled(), results=[];
+   for(const team of activeTeams()){
+     if(human&&team.id===human.id)continue;
+     const expiring=teamRoster(team.name).filter(p=>!p.retired&&(p.faEligible||Number(p.contract?.years||0)===0)).sort((a,b)=>Number(b.ovr||0)-Number(a.ovr||0));
+     for(const p of expiring){
+       const o=Number(p.ovr||0), age=Number(p.age||27), demand=sustainableSalaryV09145(p,state.currentYear,false);
+       const dir=state.frontOffice?.teamDirections?.[team.id]||'Balanced';
+       let keep=aiKeepScore?.(team,p)>=64 || o>=75 || (age<=25&&Number(p.pot||0)>=74);
+       if(dir==='Build for the Future'&&age>30&&o<81)keep=false;
+       if(dir==='Contend Now'&&o>=67)keep=true;
+       if(!keep){if(qualifyingOfferEligible?.(p))state.frontOffice.rfaRights[p.id]=team.id;continue}
+
+       const years=age>=32?2:age<=25?4:3;
+       const seed=parseInt(hashlibCompat(`${p.id}|resign45|${state.currentYear}`).slice(0,4),16);
+       const salary=Math.max(minSalary(),Math.round(demand*(.94+(seed%9)/100)*100)/100);
+       const cap=capFor(), projected=teamPayroll(team.name)-playerSalary(p)+salary;
+       /* Soft-cap retention for stars/core. Marginal players can still be allowed to walk on very expensive teams. */
+       if(state.leagueRules?.salaryCap&&cap&&projected>cap*1.38&&o<80){if(qualifyingOfferEligible?.(p))state.frontOffice.rfaRights[p.id]=team.id;continue}
+       p.contract={years,salary,expires:state.currentYear+years};p.faEligible=false;p.faStatus=null;
+       delete state.frontOffice.rfaRights[p.id];
+       state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);
+       results.push(`${p.name} re-signed with ${team.name} (${years}y, $${salary.toFixed(2)}M/yr)`);
+     }
+   }
+   if(state.offseason)state.offseason.reSignResults=results;
+   if(results.length)state.news?.push({year:state.currentYear+1,title:'Re-signings',text:`${results.length} veterans stayed with their teams before open free agency.`});
+   return results;
+ };
+
+ window.shouldMatchRfaOffer=function(p,rightsTeam,salary,years){
+   if(!p||!rightsTeam)return false;
+   const o=Number(p.ovr||0), core=o>=76 || (Number(p.age||99)<=25&&Number(p.pot||0)>=78);
+   const fair=salary<=sustainableSalaryV09145(p,state.currentYear,false)*1.10;
+   const cap=capFor(), projected=teamPayroll(rightsTeam.name)+salary;
+   const financiallySane=!state.leagueRules?.salaryCap||!cap||projected<=cap*(o>=84?1.48:1.35);
+   return core&&fair&&financiallySane;
+ };
+
+ window.runFreeAgencyAI=function(){
+   if(!state?.offseason)return [];
+   if(!(state.offseason.freeAgents||[]).length)openFreeAgency?.();
+   ensureFrontOffice();refreshAIRosterPlans?.();
+   const human=controlled(), moves=[];
+
+   let pool=(state.offseason.freeAgents||[]).map(pid=>playerById(pid)).filter(p=>p&&!p.retired&&p.teamName==='Free Agent').sort((a,b)=>Number(b.ovr||0)-Number(a.ovr||0));
+   for(let wave=0;wave<4;wave++){
+     for(const p of pool){if(p.teamName!=='Free Agent')continue;p.faMarketWaveV09145=wave;
+       const salary=sustainableSalaryV09145(p,state.currentYear,true);
+       const candidates=[];
+       for(const team of activeTeams()){
+         if(human&&team.id===human.id)continue;
+         if(!canAddPlayerToRoster?.(team).ok)continue;
+         const path=outsideFAPathV09145(team,p,salary);if(!path.ok)continue;
+         const dir=state.frontOffice?.teamDirections?.[team.id]||'Balanced';
+         let fit=(aiPlayerFitScore?.(team,p)||Number(p.ovr||0))+(teamPositionNeedScore?.(team,p)||0);
+         if(dir==='Contend Now'&&Number(p.ovr||0)>=72)fit+=4;
+         if(dir==='Build for the Future'&&Number(p.age||99)<=25)fit+=4;
+         if(dir==='Cut Payroll'&&salary>capFor()*.10)fit-=7;
+         fit+=(teamPlayerPower?.(team.name)||60)*.012;
+         if(path.type==='exception')fit-=1.5; // preserve exceptions unless the fit is worthwhile
+         const noise=(parseInt(hashlibCompat(`${p.id}|${team.id}|fa45|${state.currentYear}|${wave}`).slice(0,4),16)/65535)*2.5;
+         candidates.push({team,path,fit:fit+noise});
+       }
+       candidates.sort((a,b)=>b.fit-a.fit);
+       const best=candidates[0];
+       if(best){
+         const seed=parseInt(hashlibCompat(`${p.id}|fa45sign|${state.currentYear}`).slice(0,4),16);
+         const age=Number(p.age||27), years=age>=32?1+(seed%2):age<=25?3+(seed%2):2+(seed%3);
+         const offer=Math.max(minSalary(),Math.round(salary*(.97+(seed%7)/100)*100)/100);
+         const rights=rfaRightsTeam?.(p);
+         if(rights&&rights.id!==best.team.id&&!(human&&rights.id===human.id)&&shouldMatchRfaOffer(p,rights,offer,years)){
+           moves.push(finalizeFreeAgentSigning(p,rights,years,offer,'RFA offer matched'));
+         }else{
+           if(best.path.type==='exception')markCapExceptionUsed?.(best.team);
+           moves.push(finalizeFreeAgentSigning(p,best.team,years,offer,best.path.type==='exception'?'cap exception':best.path.type==='minimum'?'minimum exception':rights?'RFA rights declined':''));
+         }
+       }
+     }
+   }
+
+   /* Market-reset safeguard: an established high-level player should not lose a whole season
+      merely because every team used its cap room. His previous club can retain him via soft-cap
+      rights on a short discounted contract, unless that club is controlled by the human GM. */
+   for(const p of pool.filter(x=>x.teamName==='Free Agent'&&Number(x.ovr||0)>=80)){
+     const prev=activeTeams().find(t=>t.name===p.previousTeamName);
+     if(prev&&!(human&&prev.id===human.id)&&canAddPlayerToRoster?.(prev).ok){
+       const salary=Math.max(minSalary(),Math.round(sustainableSalaryV09145(p,state.currentYear,false)*.82*100)/100);
+       moves.push(finalizeFreeAgentSigning(p,prev,1,salary,'1-year market reset / own-player rights'));
+     }
+   }
+
+   for(const p of pool)delete p.faMarketWaveV09145;
+   state.offseason.faResults=moves;
+   state.news?.push({year:state.currentYear+1,title:'Free agency',text:moves.length?`${moves.length} free agents signed new contracts as the market developed through multiple waves.`:'No major free-agent moves were completed.'});
+   normalizeAllSalaryDemandsV09131?.();
+   return moves;
+ };
+
+ /* Human GM: own free agents may be retained above the cap. Outside players need cap
+    space, the exception, or a minimum deal. */
+ window.gmContractOfferV085=function(playerId,mode){
+   if(!isHumanGMV084?.())return false;
+   const p=(state.players||[]).find(x=>String(x.id)===String(playerId)), team=gmTeamV084?.();if(!p||!team)return false;
+   const demand=sustainableSalaryV09145(p,state.currentYear,true), floor=minSalary();
+   const raw=Number(prompt(`Annual salary for ${p.name} ($M):`,String(demand.toFixed(2))));if(!Number.isFinite(raw)||raw<=0)return false;
+   const salary=Math.max(floor,Math.round(raw*100)/100);
+   const years=Math.max(1,Math.min(5,Number(prompt(`Contract years for ${p.name}:`,"3"))||0));if(!years)return false;
+   const own=isOwnFA(p,team)||mode!=='fa';
+   let path={ok:true,type:'own rights'};
+   if(mode==='fa'&&!own){path=outsideFAPathV09145(team,p,salary);if(!path.ok){alert(`${team.name} does not have enough cap room for that offer. Current room: about $${path.room.toFixed(2)}M. Exception: about $${path.exception.toFixed(2)}M.`);return false}}
+   const age=Number(p.age||27), threshold=demand*(age<=26?1.00:age>=33?.90:.95);
+   const seed=parseInt(hashlibCompat(`${p.id}|gm45|${state.currentYear}|${years}|${salary}`).slice(0,4),16)/65535;
+   const accepted=salary>=threshold || (salary>=threshold*.94&&seed<.35);
+   state.frontOffice.transactions=state.frontOffice.transactions||[];
+   if(!accepted){state.frontOffice.transactions.unshift({year:state.currentYear,text:`${p.name} rejected ${team.name}'s ${years}-year, $${salary.toFixed(2)}M offer.`});alert(`${p.name} rejected the offer. Current market is about $${demand.toFixed(2)}M/year.`);saveState?.();return false}
+   if(mode==='fa'&&path.type==='exception')markCapExceptionUsed?.(team);
+   p.teamName=team.name;p.contract={years,salary,expires:state.currentYear+years};p.faEligible=false;p.faStatus=null;
+   state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);if(state.offseason?.freeAgents)state.offseason.freeAgents=state.offseason.freeAgents.filter(id=>id!==p.id);delete state.frontOffice.rfaRights[p.id];delete p.faMarketWaveV09145;
+   state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} ${own?'re-signs':'signs'} ${p.name}: ${years} year${years===1?'':'s'}, $${salary.toFixed(2)}M annually${path.type==='exception'?' using the cap exception':''}.`});
+   alert(`${p.name} accepted the offer.`);saveState?.();renderAll?.();return true;
+ };
+
+ window.gmQuickSignV0913=function(playerId,years=2){
+   if(!isHumanGMV084?.())return false;
+   const p=(state.players||[]).find(x=>String(x.id)===String(playerId)), team=gmTeamV084?.();if(!p||!team||p.teamName!=='Free Agent')return false;
+   const limit=rosterLimitForYear(state.currentYear+1);if(teamRoster(team.name).length>=limit){alert(`${team.name} already has ${limit} players.`);return false}
+   const salary=sustainableSalaryV09145(p,state.currentYear,true), own=isOwnFA(p,team);let path={ok:true,type:'own rights'};
+   if(!own){path=outsideFAPathV09145(team,p,salary);if(!path.ok){alert(`${p.name}'s $${salary.toFixed(2)}M asking price does not fit your cap room or exception. Use Custom to negotiate a lower offer.`);return false}}
+   if(path.type==='exception')markCapExceptionUsed?.(team);
+   const yrs=Math.max(1,Math.min(4,Number(years)||2));p.teamName=team.name;p.contract={years:yrs,salary,expires:state.currentYear+yrs};p.faEligible=false;p.faStatus=null;
+   state.freeAgents=(state.freeAgents||[]).filter(id=>id!==p.id);if(state.offseason?.freeAgents)state.offseason.freeAgents=state.offseason.freeAgents.filter(id=>id!==p.id);delete state.frontOffice.rfaRights[p.id];delete p.faMarketWaveV09145;
+   state.frontOffice.transactions=state.frontOffice.transactions||[];state.frontOffice.transactions.unshift({year:state.currentYear,text:`${team.name} signs ${p.name} for ${yrs} year${yrs===1?'':'s'}, $${salary.toFixed(2)}M annually${path.type==='exception'?' using the cap exception':''}.`});
+   saveState?.();renderAll?.();return true;
+ };
+
+ /* Repair old oversized cached asks immediately; existing signed contracts are left alone. */
+ try{normalizeAllSalaryDemandsV09131?.()}catch(e){console.warn('v0.91.45 demand normalization',e)}
+ try{
+   document.querySelectorAll('.pill').forEach(el=>{if(/v0\.91\.44/.test(el.textContent))el.textContent=el.textContent.replace(/v0\.91\.44\s*·\s*Animated Draft Lottery/, 'v0.91.45 · Free Agency Economy')});
+   const badge=document.querySelector('[data-build],#buildVersion,.buildVersion');if(badge&&/v0\.91\.44/.test(badge.textContent))badge.textContent=badge.textContent.replace(/v0\.91\.44.*/, 'v0.91.45 · Free Agency Economy');
+ }catch(_){ }
+ setTimeout(()=>{try{normalizeAllSalaryDemandsV09131?.();saveState?.();renderAll?.()}catch(e){console.error('v0.91.45 init',e)}},260);
 })();
 </script>
 
