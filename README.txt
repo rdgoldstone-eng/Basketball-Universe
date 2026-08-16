@@ -1,38 +1,19 @@
-Basketballverse v0.91.43 · Historic Newspapers
+Basketballverse v0.91.44 — Animated Draft Lottery
 
-PORTRAITS ARE NOW A CORE PLAYER UI ELEMENT
-Portraits are automatically added/re-added on:
-- Team roster
-- Player Profile
-- Draft selection
-- Draft History
-- Free Agency
-- Trade Machine
-- Trade Finder
-- Injury Report / Health
-- League stats and player leaderboards
-- All-Time career leaderboards
-- Player Encyclopedia
-- Awards History
-- Hall of Fame / Hall watch
-- Transaction lists when a player can be identified
+Built on v0.91.43 Historic Newspapers.
 
-A MutationObserver also catches player rows produced by older render wrappers,
-so portraits survive screen refreshes and rerenders.
+NEW
+- Full-screen animated Draft Lottery / Coin Flip presentation from the Draft Order stage.
+- Historical presentation by era:
+  * through 1984: conference coin flip for #1
+  * 1985: envelope lottery presentation
+  * 1986–1989: equal-chance lottery presentation
+  * 1990–2018: weighted lottery presentation
+  * 2019+: modern top-four lottery presentation
+- Watch Lottery, Quick Reveal, and Show Results controls.
+- Reveals the already-generated Basketballverse draft order; watching the animation does not reroll or alter the universe.
+- Traded draft-pick ownership is shown as "via" the original team.
+- Pre-draw odds are shown where applicable.
+- Mobile-responsive presentation and Escape-to-close support.
 
-PORTRAIT MASTER LIST
-portraits/portrait-manifest.json contains 54 UNIQUE player
-portrait filenames from Batches 1-4.
-
-From Batch 5 onward, portrait creation should compare against this master list
-first so we do not waste batches generating players who already have artwork.
-
-LONG-TERM GOAL
-Every historical player in the Basketballverse database can eventually receive a
-portrait. Generated fictional players continue to use the fallback portrait until
-a generated-player portrait system is expanded.
-
-Retains all v0.91.41 simulation, financial, roster and contract systems.
-
-
-v0.91.43 adds historically aware newspaper headlines. Final Editions now recognize first titles, repeat champions, three-peats, 4+ title streaks, title droughts, franchise championship totals, MVP career totals, consecutive MVP streaks, and new all-time MVP records using the simulated universe history.
+Also retains the v0.91.43 historically-aware newspaper headlines and all prior systems/assets.

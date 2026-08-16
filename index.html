@@ -593,7 +593,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.43 · Historic Newspapers</div>
+    <div class="pill">v0.91.44 · Animated Draft Lottery</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1591,7 +1591,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.43";
+window.BASKETBALLVERSE_BUILD = "v0.91.44";
 </script>
 
 <script>
@@ -26154,6 +26154,101 @@ portraitObserverV09142.observe(document.body,{childList:true,subtree:true});
 setTimeout(decorateAllPlayerSurfacesV09142,180);
 
 </script>
+
+<!-- === v0.91.44 Animated Draft Lottery Broadcast === -->
+<style>
+#bvLotteryOverlay{position:fixed;inset:0;z-index:99999;background:rgba(5,8,13,.96);display:none;align-items:center;justify-content:center;padding:18px;color:#f7f8fb;font-family:inherit}
+#bvLotteryOverlay.show{display:flex}
+.bvlot-shell{width:min(1100px,96vw);height:min(760px,94vh);background:linear-gradient(180deg,#141b25,#0a0f16 68%);border:1px solid #364152;border-radius:20px;box-shadow:0 30px 80px #000;display:flex;flex-direction:column;overflow:hidden}
+.bvlot-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #293241;background:linear-gradient(90deg,#111823,#1b2635)}
+.bvlot-title{font-size:clamp(19px,3vw,30px);font-weight:900;letter-spacing:.04em}.bvlot-sub{font-size:12px;color:#aeb8c6;margin-top:3px}
+.bvlot-close{border:1px solid #3b4656;background:#171e29;color:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
+.bvlot-main{display:grid;grid-template-columns:minmax(310px,.9fr) minmax(360px,1.25fr);gap:18px;padding:18px;min-height:0;flex:1}
+.bvlot-stage{border:1px solid #2c3747;border-radius:16px;background:radial-gradient(circle at 50% 28%,#26354a 0,#111823 40%,#090d13 80%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:390px}
+.bvlot-machine{width:250px;height:250px;border:8px solid rgba(225,235,247,.55);border-radius:50%;position:relative;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.12),rgba(255,255,255,.025) 55%,rgba(0,0,0,.3));box-shadow:inset 0 0 30px rgba(195,220,255,.12),0 10px 30px #0008}
+.bvlot-machine:after{content:"";position:absolute;width:64px;height:92px;left:50%;bottom:-82px;transform:translateX(-50%);border:6px solid #8795a8;border-top:0;border-radius:0 0 12px 12px;background:#18202c}
+.bvball{position:absolute;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#111;background:#f4f4ef;border:2px solid #bac2cb;box-shadow:inset -5px -6px 10px #9299a4,0 2px 5px #0008;transition:transform .25s}
+.bvlot-machine.spin .bvball{animation:bvBounce .72s infinite alternate ease-in-out}
+.bvlot-machine.spin .bvball:nth-child(2n){animation-duration:.54s}.bvlot-machine.spin .bvball:nth-child(3n){animation-duration:.89s}.bvlot-machine.spin .bvball:nth-child(5n){animation-direction:alternate-reverse}
+@keyframes bvBounce{0%{transform:translate(-12px,10px) rotate(0)}35%{transform:translate(24px,-18px) rotate(130deg)}70%{transform:translate(-18px,-31px) rotate(260deg)}100%{transform:translate(18px,18px) rotate(360deg)}}
+.bvlot-envelopebox{width:270px;height:220px;position:relative}.bvenv{position:absolute;width:170px;height:104px;left:50%;top:50%;background:#e8dfca;border:2px solid #958b77;border-radius:4px;box-shadow:0 8px 18px #0007;transform-origin:center}.bvenv:after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,transparent 49%,#bcb19b 50%,transparent 51%)}
+.bvlot-envelopebox.spin .bvenv{animation:bvEnvShuffle .7s infinite alternate ease-in-out}@keyframes bvEnvShuffle{from{transform:translate(-50%,-50%) rotate(-8deg) translateX(-24px)}to{transform:translate(-50%,-50%) rotate(8deg) translateX(24px)}}
+.bvlot-coin{width:190px;height:190px;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff2a8,#d2a934 45%,#816415 78%);border:7px ridge #d6b84b;color:#4b3a0a;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;font-size:24px;box-shadow:0 12px 35px #0009,inset 0 0 20px #fff8}.bvlot-coin.spin{animation:bvCoin 1s linear infinite}@keyframes bvCoin{0%{transform:rotateY(0) rotateZ(0)}100%{transform:rotateY(1080deg) rotateZ(360deg)}}
+.bvlot-callout{margin-top:92px;text-align:center;padding:0 20px}.bvlot-callout strong{display:block;font-size:20px}.bvlot-callout span{font-size:12px;color:#aab4c2}
+.bvlot-results{border:1px solid #2c3747;border-radius:16px;background:#0d131c;padding:14px;overflow:auto}.bvlot-results h3{margin:2px 0 10px;font-size:15px;color:#c8d0dc;text-transform:uppercase;letter-spacing:.08em}
+.bvlot-row{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;min-height:54px;border-bottom:1px solid #202a38;padding:5px 4px;opacity:.22;transform:translateY(5px);transition:.35s}.bvlot-row.reveal{opacity:1;transform:none}.bvlot-pick{font-size:22px;font-weight:1000;color:#f5c84c}.bvlot-team{font-weight:800}.bvlot-via{display:block;font-size:11px;color:#8996a8;font-weight:500}.bvlot-odds{font-size:11px;color:#9eabbc;text-align:right}
+.bvlot-row.winner{background:linear-gradient(90deg,rgba(245,200,76,.18),transparent);border:1px solid rgba(245,200,76,.45);border-radius:10px}.bvlot-row.winner .bvlot-pick{font-size:28px}
+.bvlot-foot{display:flex;gap:9px;padding:12px 18px;border-top:1px solid #293241;background:#0d131b}.bvlot-foot button{padding:10px 15px;border-radius:9px;border:1px solid #3a4657;background:#192231;color:#fff;font-weight:750;cursor:pointer}.bvlot-foot .primary{background:#e3b940;color:#171208;border-color:#f2d16a}.bvlot-foot .spacer{flex:1}.bvlot-status{font-size:13px;color:#bcc6d4;align-self:center}
+@media(max-width:760px){.bvlot-main{grid-template-columns:1fr;overflow:auto}.bvlot-stage{min-height:350px}.bvlot-shell{height:96vh}.bvlot-machine{width:205px;height:205px}.bvlot-callout{margin-top:82px}}
+</style>
+<div id="bvLotteryOverlay" aria-hidden="true">
+ <div class="bvlot-shell">
+  <div class="bvlot-head"><div><div class="bvlot-title" id="bvLotTitle">BASKETBALLVERSE DRAFT LOTTERY</div><div class="bvlot-sub" id="bvLotSub"></div></div><button class="bvlot-close" onclick="closeLotteryBroadcastV09144()">Close</button></div>
+  <div class="bvlot-main"><div class="bvlot-stage" id="bvLotStage"></div><div class="bvlot-results"><h3 id="bvLotResultsTitle">Lottery Board</h3><div id="bvLotRows"></div></div></div>
+  <div class="bvlot-foot"><button class="primary" id="bvLotWatch" onclick="runLotteryBroadcastV09144('watch')">Watch Lottery</button><button onclick="runLotteryBroadcastV09144('quick')">Quick Reveal</button><button onclick="runLotteryBroadcastV09144('instant')">Show Results</button><div class="spacer"></div><div class="bvlot-status" id="bvLotStatus"></div></div>
+ </div>
+</div>
+<script>
+(function(){
+ const BUILD="v0.91.44";
+ window.BASKETBALLVERSE_BUILD=BUILD;
+ function year(){return Number(state?.offseason?.draftOrderEvent?.year||state?.currentYear+1||1985)}
+ function eventType(y){return y<=1984?"Coin Flip":y===1985?"Envelope Lottery":y<=1989?"Equal-Chance Lottery":y<=2018?"Weighted Lottery":"Modern Lottery"}
+ function lotteryCount(y,n){if(y<=1984)return Math.min(2,n);if(y===1985)return n;if(y<=2018)return Math.min(3,n);return Math.min(4,n)}
+ function inverseTeams(){const ids=playoffFieldTeamIds();return (state.teams||[]).filter(t=>!ids.has(t.id)).slice().sort((a,b)=>draftRecordPct(a)-draftRecordPct(b)||String(a.name).localeCompare(String(b.name)))}
+ function oddsFor(y,inverse){
+   let n=inverse.length, vals=[];
+   if(y<=1984){vals=inverse.map(()=>null);if(n>=2){vals[0]=50;vals[1]=50}}
+   else if(y<=1989) vals=inverse.map(()=>100/n);
+   else if(y<=1993){let sum=n*(n+1)/2;vals=inverse.map((_,i)=>(n-i)/sum*100)}
+   else if(y<=2018){let o=[25,16.4,13.9,10.7,8.8,7.1,6,5,3.6,2.9,2.1,1.5,.8,.5];vals=inverse.map((_,i)=>o[Math.min(i,o.length-1)])}
+   else {let o=[14,14,14,12.5,10.5,9,7.5,6,4.5,3,2,1.5,1,.5];vals=inverse.map((_,i)=>o[Math.min(i,o.length-1)])}
+   return new Map(inverse.map((t,i)=>[t.id,vals[i]]));
+ }
+ function data(){
+   if(!state?.offseason?.draftOrder?.length && typeof buildDraftOrder==="function")buildDraftOrder();
+   const y=year(), inverse=inverseTeams(), n=inverse.length, first=(state.offseason?.draftOrder||[]).filter(x=>(x.round||1)===1).slice(0,n), odds=oddsFor(y,inverse);
+   return {y,inverse,first,odds,draws:lotteryCount(y,n)};
+ }
+ function ownerLabel(entry){const owner=teamById(entry.teamId),orig=teamById(entry.originalTeamId);return {name:entry.teamName||owner?.name||"Team",via:entry.originalTeamId&&entry.originalTeamId!==entry.teamId?`via ${orig?.name||"traded pick"}`:""}}
+ function machineHTML(d){
+   if(d.y<=1984)return `<div class="bvlot-coin" id="bvLotMachine">#1<br>PICK</div><div class="bvlot-callout"><strong>Conference Coin Flip</strong><span>The worst team in each conference has a 50–50 chance at the first pick.</span></div>`;
+   if(d.y===1985)return `<div class="bvlot-envelopebox" id="bvLotMachine">${Array.from({length:Math.min(7,d.inverse.length)},(_,i)=>`<div class="bvenv" style="transform:translate(-50%,-50%) rotate(${(i-3)*4}deg) translateY(${i*2}px)"></div>`).join("")}</div><div class="bvlot-callout" style="margin-top:35px"><strong>Envelope Lottery</strong><span>Every non-playoff club enters with an equal chance.</span></div>`;
+   const balls=Array.from({length:14},(_,i)=>{let x=22+((i*47)%165), yy=23+((i*61)%155);return `<div class="bvball" style="left:${x}px;top:${yy}px;animation-delay:-${(i*.11).toFixed(2)}s">${i+1}</div>`}).join("");
+   return `<div class="bvlot-machine" id="bvLotMachine">${balls}</div><div class="bvlot-callout"><strong>${eventType(d.y)}</strong><span>${d.y>=2019?"The top four selections are drawn.":"The top three selections are drawn."} Remaining teams fall into record order.</span></div>`;
+ }
+ function rowsHTML(d){return d.first.map((e,i)=>{let o=ownerLabel(e), base=d.inverse.find(t=>t.id===e.originalTeamId)||d.inverse.find(t=>t.id===e.teamId),od=base?d.odds.get(base.id):null;return `<div class="bvlot-row" id="bvLotRow${i}" data-pick="${i+1}"><div class="bvlot-pick">#${i+1}</div><div class="bvlot-team">${o.name}${o.via?`<span class="bvlot-via">${o.via}</span>`:""}</div><div class="bvlot-odds">${od!=null&&i<d.draws?`${od.toFixed(od<1?1:od%1?1:0)}% pre-draw`:i>=d.draws?"by record":""}</div></div>`}).join("")}
+ window.openLotteryBroadcastV09144=function(){
+   const d=data(), ov=document.getElementById("bvLotteryOverlay");if(!ov)return;
+   ov.classList.add("show");ov.setAttribute("aria-hidden","false");
+   document.getElementById("bvLotTitle").textContent=`${d.y} BASKETBALLVERSE ${d.y<=1984?"DRAFT COIN FLIP":"DRAFT LOTTERY"}`;
+   document.getElementById("bvLotSub").textContent=`${eventType(d.y)} · ${d.inverse.length} non-playoff team${d.inverse.length===1?"":"s"}`;
+   document.getElementById("bvLotStage").innerHTML=machineHTML(d);document.getElementById("bvLotRows").innerHTML=rowsHTML(d);
+   document.getElementById("bvLotResultsTitle").textContent=d.y<=1984?"Draft Order":"Lottery Board";document.getElementById("bvLotStatus").textContent="Choose how to reveal the results.";
+   document.getElementById("bvLotWatch").textContent=d.y<=1984?"Watch Coin Flip":"Watch Lottery";
+ };
+ window.closeLotteryBroadcastV09144=function(){let ov=document.getElementById("bvLotteryOverlay");ov?.classList.remove("show");if(ov)ov.setAttribute("aria-hidden","true")};
+ function reveal(i,d){let row=document.getElementById(`bvLotRow${i}`);if(row){row.classList.add("reveal");if(i===0)row.classList.add("winner")}let o=ownerLabel(d.first[i]||{});document.getElementById("bvLotStatus").textContent=i===0?`${o.name} wins the #1 pick!`:`Pick #${i+1}: ${o.name}`}
+ window.runLotteryBroadcastV09144=function(mode){
+   const d=data(),m=document.getElementById("bvLotMachine");document.querySelectorAll(".bvlot-row").forEach(r=>r.classList.remove("reveal","winner"));
+   if(mode==="instant"){d.first.forEach((_,i)=>reveal(i,d));document.getElementById("bvLotStatus").textContent=`${ownerLabel(d.first[0]||{}).name} owns the #1 pick.`;return}
+   const delay=mode==="quick"?230:900, pause=mode==="quick"?250:1350;
+   if(m)m.classList.add("spin");document.getElementById("bvLotStatus").textContent=d.y<=1984?"The coin is in the air…":d.y===1985?"The envelopes are being shuffled…":"The lottery machine is running…";
+   setTimeout(()=>{if(m)m.classList.remove("spin");let revealOrder=[];for(let i=d.first.length-1;i>=0;i--)revealOrder.push(i);revealOrder.forEach((idx,k)=>setTimeout(()=>reveal(idx,d),k*delay));},pause);
+ };
+ // Append the broadcast button to the final accumulated Draft Order renderer.
+ const oldDetail=window.offseasonStageDetailV0822||offseasonStageDetailV0822;
+ window.offseasonStageDetailV0822=offseasonStageDetailV0822=function(step){
+   let html=oldDetail(step);
+   if(step==="Draft Order" && state?.offseason?.draftOrder?.length){const y=year();html+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="openLotteryBroadcastV09144()">${y<=1984?"Watch Coin Flip":"Watch Draft Lottery"}</button></div>`}
+   return html;
+ };
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLotteryBroadcastV09144()});
+ // Update visible version labels without disturbing save compatibility.
+ try{document.querySelectorAll(".pill").forEach(el=>{if(/v0\.91\.43/.test(el.textContent))el.textContent=el.textContent.replace(/v0\.91\.43\s*·\s*Historic Newspapers/,"v0.91.44 · Animated Draft Lottery")})}catch(e){}
+})();
+</script>
+
 </body>
 </html>
 
