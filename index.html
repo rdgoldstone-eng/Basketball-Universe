@@ -11030,7 +11030,7 @@ function playoffFormatForYear(year){
  if(y<=2002)return {teamsPerConference:8,firstRoundBestOf:5,firstRoundByes:0};
  return {teamsPerConference:8,firstRoundBestOf:7,firstRoundByes:0};
 }
-// v0.91.50: Historical first-round format guard.
+// v0.91.51: Historical first-round format guard.
 // NBA first round: best-of-3 through 1983-84, best-of-5 from 1984-85 through 2002-03,
 // and best-of-7 beginning with 2003-04. This also repairs playoffState loaded from older saves.
 function normalizeHistoricalFirstRoundFormat(){
@@ -17191,7 +17191,7 @@ function gmPreviousSeasonRowV087(team){
 }
 
 
-// v0.91.50: GM playoff-objective progress must read the canonical postseason state.
+// v0.91.51: GM playoff-objective progress must read the canonical postseason state.
 // Achievement scale: 0 missed playoffs, 1 made playoffs, 2 reached semifinals,
 // 3 reached conference finals, 4 reached NBA Finals, 5 won championship.
 function gmCurrentPlayoffAchievementV09149(team){
@@ -21075,6 +21075,12 @@ function renderSimpleFreeAgencyV09114(){
   const min=typeof gmMinimumRosterV0913==="function"?gmMinimumRosterV0913():8;
   const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(Number(state.currentYear)+1):15;
   const fas=typeof gmFreeAgentsV085==="function"?gmFreeAgentsV085():[];
+  const cap=Number(state.frontOffice?.cap||100);
+  const payroll=Number(teamPayroll(team.name)||0);
+  const capRoom=cap-payroll;
+  const exception=typeof capExceptionAmount==="function"?capExceptionAmount(team):0;
+  const exceptionOpen=typeof capExceptionAvailable==="function"?capExceptionAvailable(team):false;
+  const capClass=capRoom<0?"capBad":capRoom<cap*.12?"capWarn":"capGood";
 
   const legal=roster.length>=min && roster.length<=max;
   const status=roster.length<min
@@ -21084,6 +21090,22 @@ function renderSimpleFreeAgencyV09114(){
       : "Roster is at the current limit.";
 
   host.innerHTML=`
+    <div class="card" id="freeAgencyCapBarV09151" style="margin-bottom:12px">
+      <div class="calendarline">
+        <div>
+          <b>${team.name} Salary Cap</b>
+          <div class="small muted">Current payroll before your next signing</div>
+        </div>
+        <span class="pill">${state.leagueRules?.salaryCap?"SOFT CAP":"NO CAP"}</span>
+      </div>
+      <div class="grid4" style="margin-top:10px">
+        <div class="careerMetric"><b>$${payroll.toFixed(1)}M</b><div class="small muted">Payroll</div></div>
+        <div class="careerMetric"><b>$${cap.toFixed(1)}M</b><div class="small muted">Salary Cap</div></div>
+        <div class="careerMetric"><b class="${capClass}">${capRoom>=0?`$${capRoom.toFixed(1)}M`:`-$${Math.abs(capRoom).toFixed(1)}M`}</b><div class="small muted">${capRoom>=0?"Cap Room":"Over Cap"}</div></div>
+        <div class="careerMetric"><b>${state.leagueRules?.salaryCap?(exceptionOpen?`$${Number(exception).toFixed(1)}M`:"Used"):"—"}</b><div class="small muted">Exception</div></div>
+      </div>
+    </div>
+
     <div id="freeAgencyFinishBarV09114" class="card">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px">
         <div>
@@ -24731,11 +24753,26 @@ function renderInSeasonFreeAgencyV09130(){
   const roster=teamRoster(team.name);
   const max=typeof rosterLimitForYear==="function"?rosterLimitForYear(state.currentYear):15;
   const fas=typeof gmFreeAgentsV085==="function"?gmFreeAgentsV085():[];
+  const cap=Number(state.frontOffice?.cap||100);
+  const payroll=Number(teamPayroll(team.name)||0);
+  const capRoom=cap-payroll;
+  const exception=typeof capExceptionAmount==="function"?capExceptionAmount(team):0;
+  const exceptionOpen=typeof capExceptionAvailable==="function"?capExceptionAvailable(team):false;
+  const capClass=capRoom<0?"capBad":capRoom<cap*.12?"capWarn":"capGood";
 
   host.innerHTML=`
     <div class="notice" style="margin-bottom:10px">
       <b>${team.name} · In-Season Free Agency</b><br>
       <span class="small">${roster.length}/${max} players · This is NOT an offseason checkpoint.</span>
+    </div>
+
+    <div class="card" id="inSeasonFreeAgencyCapBarV09151" style="margin-bottom:12px">
+      <div class="grid4">
+        <div class="careerMetric"><b>$${payroll.toFixed(1)}M</b><div class="small muted">Payroll</div></div>
+        <div class="careerMetric"><b>$${cap.toFixed(1)}M</b><div class="small muted">Salary Cap</div></div>
+        <div class="careerMetric"><b class="${capClass}">${capRoom>=0?`$${capRoom.toFixed(1)}M`:`-$${Math.abs(capRoom).toFixed(1)}M`}</b><div class="small muted">${capRoom>=0?"Cap Room":"Over Cap"}</div></div>
+        <div class="careerMetric"><b>${state.leagueRules?.salaryCap?(exceptionOpen?`$${Number(exception).toFixed(1)}M`:"Used"):"—"}</b><div class="small muted">Exception</div></div>
+      </div>
     </div>
 
     <div class="small muted" style="margin-bottom:10px">
@@ -26686,7 +26723,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 })();
 </script>
 
-<!-- === v0.91.50 GM Career History Recovery === -->
+<!-- === v0.91.51 Free Agency Cap Display === -->
 
 <style id="gmCareerStyleV09147">
 #career.gmCareerProfileModeV09147 > :not(#gmCareerProfileV09147){display:none!important}
@@ -26695,10 +26732,10 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 @media(max-width:760px){#gmCareerProfileV09147 .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <script>
-/* === v0.91.50 GM Career History Recovery + unified build identity === */
+/* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
-  const VERSION='v0.91.50';
-  const LABEL='v0.91.50 · GM Career History Recovery';
+  const VERSION='v0.91.51';
+  const LABEL='v0.91.51 · Free Agency Cap Display';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -26789,7 +26826,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
       .sort((a,b)=>Number(b.year)-Number(a.year))[0];
     if(priorEv)return {id:priorEv.teamId,name:priorEv.teamName||teamSeasonRow(priorEv.teamId,y)?.name||'Team'};
 
-    // v0.91.50 legacy-save recovery:
+    // v0.91.51 legacy-save recovery:
     // Older Basketballverse saves existed before GM season/job history was recorded.
     // For those saves, the only reliable ownership signal is the franchise currently controlled
     // by the human GM. Treat that franchise as the historical GM job unless a saved job event says otherwise.
@@ -26940,12 +26977,12 @@ function archiveGMSeasonV09147(year,force=false){
       document.querySelectorAll('.pill,[data-build],#buildVersion,.buildVersion').forEach(el=>{
         if(/v0\.91\.\d+/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/v0\.91\.\d+(?:\s*·\s*[^\n]*)?/,LABEL);
       });
-    }catch(e){console.warn('v0.91.50 version banner',e)}
+    }catch(e){console.warn('v0.91.51 version banner',e)}
   }
   window.enforceBuildIdentityV0904=enforceVersionV09147;
   window.markScriptReadyV09111=function(){enforceVersionV09147();try{document.getElementById('loadBtn')?.setAttribute('data-script-ready','true');document.getElementById('createBtn')?.setAttribute('data-script-ready','true')}catch(_){}};
 
-  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.50 init',e)}},350);
+  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.51 init',e)}},350);
 })();
 
 </script>

@@ -1,34 +1,27 @@
-# Basketballverse v0.91.50 — GM Career History Recovery
+# Basketballverse v0.91.51 — Free Agency Cap Display
 
-## What this fixes
-Older Basketballverse saves can have years of league history — including championships — from before the GM Career Profile existed. Previous builds only backfilled seasons that already had a GM review/history entry, so those older accomplishments could display as zero.
+## New in this build
+The Free Agency signing screens now display the controlled team's salary-cap position directly above the market.
 
-v0.91.50 reconstructs the GM résumé from the permanent universe data already in the save.
+Displayed information:
+- Current payroll
+- Salary cap
+- Available cap room, or amount over the cap
+- Available cap exception / whether it has already been used
+- Existing roster status remains visible
 
-## GM Career Profile now recovers
-- Championships
-- NBA Finals appearances
-- Playoff appearances
-- Seasons as GM
-- Regular-season wins and losses when archived franchise records are available
-- Career win percentage
-- Best regular-season record
-- Season-by-season résumé
+The same cap panel appears in both offseason and in-season Free Agency.
 
-## Legacy-save behavior
-If an older save has no historical GM job-change records, Basketballverse uses the human GM's currently controlled franchise as the historical franchise for the missing years. This is the best available reconstruction for saves created before GM job history was stored.
-
-If a save *does* contain GM job/team-change history, those explicit records take priority.
-
-## Other fixes retained
-- v0.91.49 GM playoff-objective hierarchy fix
-- v0.91.48 historical first-round playoff format fix
+## Previous fixes retained
+- GM Career History Recovery
+- GM playoff-objective fix
+- Historical playoff-series format correction
 - Free-agency economy improvements
 - Draft lottery stability
-- Historic newspaper context
+- Historically aware newspaper headlines
 
 ## Version
-In-game build banner: **v0.91.50 · GM Career History Recovery**
+In-game banner: **v0.91.51 · Free Agency Cap Display**
 
-## Test
-Load your existing long-running GM save and open the Career section. Your previously won championships should now appear in the GM Career totals and in the season-by-season résumé without starting a new universe.
+## Installation
+Upload/replace the included files in the same GitHub location used for Basketballverse. Existing saves remain compatible.
