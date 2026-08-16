@@ -1,7 +1,9 @@
-Basketballverse Portrait Pack — Batch 4
+Basketballverse Portrait Pack — Batch 4 FIXED
 
-Drop the .webp files into your existing /portraits folder.
-Basketballverse v0.91.39+ loads them automatically by filename.
+This replaces the first Batch 4 ZIP, whose crops were misaligned and could show
+pieces of neighboring player cards.
+
+Delete/replace the old Batch 4 files in /portraits with these corrected files.
 
 24 portraits included.
-No index.html update is required for the portraits themselves.
+No index.html update is required.
