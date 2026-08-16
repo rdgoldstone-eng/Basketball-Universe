@@ -593,7 +593,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.45 · Free Agency Economy</div>
+    <div class="pill">v0.91.46 · Lottery Stability Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -26185,7 +26185,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
  <div class="bvlot-shell">
   <div class="bvlot-head"><div><div class="bvlot-title" id="bvLotTitle">BASKETBALLVERSE DRAFT LOTTERY</div><div class="bvlot-sub" id="bvLotSub"></div></div><button class="bvlot-close" onclick="closeLotteryBroadcastV09144()">Close</button></div>
   <div class="bvlot-main"><div class="bvlot-stage" id="bvLotStage"></div><div class="bvlot-results"><h3 id="bvLotResultsTitle">Lottery Board</h3><div id="bvLotRows"></div></div></div>
-  <div class="bvlot-foot"><button class="primary" id="bvLotWatch" onclick="runLotteryBroadcastV09144('watch')">Watch Lottery</button><button onclick="runLotteryBroadcastV09144('quick')">Quick Reveal</button><button onclick="runLotteryBroadcastV09144('instant')">Show Results</button><div class="spacer"></div><div class="bvlot-status" id="bvLotStatus"></div></div>
+  <div class="bvlot-foot"><button class="primary" id="bvLotWatch" onclick="runLotteryBroadcastV09146('watch')">Watch Lottery</button><button id="bvLotQuick" onclick="runLotteryBroadcastV09146('quick')">Quick Reveal</button><button id="bvLotInstant" onclick="runLotteryBroadcastV09146('instant')">Show Results</button><button id="bvLotExit" onclick="closeLotteryBroadcastV09146()">Return to Draft Order</button><div class="spacer"></div><div class="bvlot-status" id="bvLotStatus"></div></div>
  </div>
 </div>
 <script>
@@ -26495,13 +26495,131 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
  /* Repair old oversized cached asks immediately; existing signed contracts are left alone. */
  try{normalizeAllSalaryDemandsV09131?.()}catch(e){console.warn('v0.91.45 demand normalization',e)}
  try{
-   document.querySelectorAll('.pill').forEach(el=>{if(/v0\.91\.44/.test(el.textContent))el.textContent=el.textContent.replace(/v0\.91\.44\s*·\s*Animated Draft Lottery/, 'v0.91.45 · Free Agency Economy')});
-   const badge=document.querySelector('[data-build],#buildVersion,.buildVersion');if(badge&&/v0\.91\.44/.test(badge.textContent))badge.textContent=badge.textContent.replace(/v0\.91\.44.*/, 'v0.91.45 · Free Agency Economy');
+   document.querySelectorAll('.pill').forEach(el=>{if(/v0\.91\.44/.test(el.textContent))el.textContent=el.textContent.replace(/v0\.91\.44\s*·\s*Animated Draft Lottery/, 'v0.91.46 · Lottery Stability Fix')});
+   const badge=document.querySelector('[data-build],#buildVersion,.buildVersion');if(badge&&/v0\.91\.44/.test(badge.textContent))badge.textContent=badge.textContent.replace(/v0\.91\.44.*/, 'v0.91.46 · Lottery Stability Fix');
  }catch(_){ }
  setTimeout(()=>{try{normalizeAllSalaryDemandsV09131?.();saveState?.();renderAll?.()}catch(e){console.error('v0.91.45 init',e)}},260);
 })();
 </script>
 
+
+
+<!-- === v0.91.46 Lottery Stability Fix === -->
+<style>
+#bvLotteryOverlay .bvlot-close,#bvLotExit,#bvLotInstant{position:relative;z-index:3}
+#bvLotExit{background:#263244;border-color:#536278}
+#bvLotteryOverlay.bvlot-failsafe .bvlot-machine.spin .bvball,
+#bvLotteryOverlay.bvlot-failsafe .bvlot-envelopebox.spin .bvenv,
+#bvLotteryOverlay.bvlot-failsafe .bvlot-coin.spin{animation:none!important}
+@media(max-width:760px){.bvlot-foot{position:sticky;bottom:0;z-index:8;flex-wrap:wrap}.bvlot-foot .spacer{display:none}.bvlot-status{width:100%}}
+</style>
+<script>
+(function(){
+ const BUILD='v0.91.46';
+ window.BASKETBALLVERSE_BUILD=BUILD;
+ let watchdog=null;
+ let revealTimers=[];
+ const originalOpen=window.openLotteryBroadcastV09144;
+ const originalClose=window.closeLotteryBroadcastV09144;
+ const originalRun=window.runLotteryBroadcastV09144;
+
+ function clearLotteryTimers(){
+   if(watchdog){clearTimeout(watchdog);watchdog=null;}
+   revealTimers.forEach(id=>clearTimeout(id));
+   revealTimers=[];
+ }
+ function overlay(){return document.getElementById('bvLotteryOverlay')}
+ function stopMachine(){
+   const ov=overlay();
+   if(ov)ov.classList.add('bvlot-failsafe');
+   document.getElementById('bvLotMachine')?.classList.remove('spin');
+ }
+ function forceReveal(message){
+   try{
+     stopMachine();
+     const rows=[...document.querySelectorAll('#bvLotRows .bvlot-row')];
+     rows.forEach((row,i)=>{row.classList.add('reveal');row.classList.toggle('winner',i===0)});
+     const first=rows[0]?.querySelector('.bvlot-team')?.childNodes?.[0]?.textContent?.trim();
+     const s=document.getElementById('bvLotStatus');
+     if(s)s.textContent=message|| (first?`${first} owns the #1 pick. Results locked in.`:'Lottery results revealed.');
+   }catch(e){
+     console.error('Basketballverse lottery fallback reveal failed',e);
+   }
+ }
+ function absoluteClose(){
+   clearLotteryTimers();
+   stopMachine();
+   try{originalClose?.()}catch(e){console.error(e)}
+   const ov=overlay();
+   if(ov){ov.classList.remove('show','bvlot-failsafe');ov.style.display='none';ov.setAttribute('aria-hidden','true')}
+   // Restore CSS-controlled display for the next open.
+   requestAnimationFrame(()=>{if(ov)ov.style.display=''});
+ }
+ window.closeLotteryBroadcastV09146=absoluteClose;
+ window.closeLotteryBroadcastV09144=absoluteClose;
+
+ window.openLotteryBroadcastV09146=function(){
+   clearLotteryTimers();
+   const ov=overlay();
+   if(ov){ov.style.display='';ov.classList.remove('bvlot-failsafe')}
+   try{
+     originalOpen?.();
+   }catch(e){
+     console.error('Basketballverse lottery presentation failed to open',e);
+     if(ov){ov.classList.add('show');ov.setAttribute('aria-hidden','false')}
+     forceReveal('Animation unavailable — showing the saved draft order instead.');
+   }
+ };
+ window.openLotteryBroadcastV09144=window.openLotteryBroadcastV09146;
+
+ window.runLotteryBroadcastV09146=function(mode){
+   clearLotteryTimers();
+   if(mode==='instant'){
+     // This path deliberately does not depend on the animation code or timers.
+     forceReveal('Lottery animation skipped — official results shown.');
+     return;
+   }
+   try{
+     // Keep the existing era-specific animation, but never allow it to own progression.
+     originalRun?.(mode);
+   }catch(e){
+     console.error('Basketballverse lottery animation error',e);
+     forceReveal('Animation error — official results shown automatically.');
+     return;
+   }
+   // iOS/background timer throttling or an animation exception can no longer strand the user.
+   const maxMs=mode==='quick'?3500:9000;
+   watchdog=setTimeout(()=>forceReveal('Lottery complete — official results shown automatically.'),maxMs);
+ };
+ window.runLotteryBroadcastV09144=window.runLotteryBroadcastV09146;
+
+ // Capture-phase handlers remain functional even if an old inline handler throws.
+ document.addEventListener('click',function(e){
+   const id=e.target?.id;
+   if(id==='bvLotInstant'){e.preventDefault();e.stopImmediatePropagation();window.runLotteryBroadcastV09146('instant')}
+   else if(id==='bvLotExit'){e.preventDefault();e.stopImmediatePropagation();absoluteClose()}
+   else if(e.target?.classList?.contains('bvlot-close')){e.preventDefault();e.stopImmediatePropagation();absoluteClose()}
+   else if(e.target===overlay()){absoluteClose()}
+ },true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay()?.classList.contains('show'))absoluteClose()},true);
+
+ // Replace the Draft Order button handler with the stable opener after every render.
+ const detailFn=window.offseasonStageDetailV0822;
+ if(typeof detailFn==='function'){
+   window.offseasonStageDetailV0822=offseasonStageDetailV0822=function(step){
+     let html=detailFn(step);
+     if(step==='Draft Order')html=String(html).replace(/onclick="openLotteryBroadcastV09144\(\)"/g,'onclick="openLotteryBroadcastV09146()"');
+     return html;
+   };
+ }
+
+ try{
+   document.querySelectorAll('.pill').forEach(el=>{
+     if(/v0\.91\.45/.test(el.textContent))el.textContent=el.textContent.replace(/v0\.91\.45\s*·\s*Free Agency Economy/,'v0.91.46 · Lottery Stability Fix');
+   });
+ }catch(e){}
+})();
+</script>
 </body>
 </html>
 
