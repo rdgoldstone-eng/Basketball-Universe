@@ -541,7 +541,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.37 · Player Encyclopedia</div>
+    <div class="pill">v0.91.38 · History Subtabs</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1539,7 +1539,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.37";
+window.BASKETBALLVERSE_BUILD = "v0.91.38";
 </script>
 
 <script>
@@ -19064,7 +19064,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.37";
+      badge.textContent="Basketballverse v0.91.38";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20396,7 +20396,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.37";
+      badge.textContent="Basketballverse v0.91.38";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25473,6 +25473,96 @@ renderAll=function(){
   return r;
 };
 window.renderAll=renderAll;
+
+
+
+/* === v0.91.38 History subtabs ===
+   Keep the main History page compact. Player Encyclopedia and Awards History
+   now live behind dedicated History subtabs instead of being appended inline. */
+
+function historySubtabsV09138(){
+  const history=document.getElementById("history");
+  if(!history || document.getElementById("historySubtabsV09138"))return;
+
+  /* Let v0.91.37 build its encyclopedia content first, then reorganize it. */
+  ensureHistoryEncyclopediaUIV09137?.();
+  const encyclopedia=document.getElementById("playerEncyclopediaV09137");
+  if(!encyclopedia)return;
+
+  /* Separate the v0.91.37 blocks into Players and Awards panes. */
+  const kids=[...encyclopedia.children];
+  const playerCard=kids[0]||null;
+  const playerDetail=kids[1]||null;
+  const awardsCard=kids[2]||null;
+
+  const shell=document.createElement("div");
+  shell.id="historySubtabsV09138";
+  shell.innerHTML=`
+    <div style="display:flex;gap:8px;overflow-x:auto;margin:10px 0 14px;padding-bottom:2px">
+      <button id="historyTabOverviewV09138" class="primary" onclick="showHistorySubtabV09138('overview')">Overview</button>
+      <button id="historyTabPlayersV09138" onclick="showHistorySubtabV09138('players')">Players</button>
+      <button id="historyTabAwardsV09138" onclick="showHistorySubtabV09138('awards')">Awards</button>
+    </div>
+    <div id="historyPaneOverviewV09138"></div>
+    <div id="historyPanePlayersV09138" style="display:none"></div>
+    <div id="historyPaneAwardsV09138" style="display:none"></div>`;
+
+  /* Move all pre-existing History content into Overview, except the encyclopedia
+     container that we're splitting into the two new panes. */
+  const overview=shell.querySelector("#historyPaneOverviewV09138");
+  const players=shell.querySelector("#historyPanePlayersV09138");
+  const awards=shell.querySelector("#historyPaneAwardsV09138");
+
+  const existing=[...history.children].filter(x=>x!==encyclopedia);
+  history.prepend(shell);
+  for(const node of existing){
+    if(node!==shell)overview.appendChild(node);
+  }
+
+  if(playerCard)players.appendChild(playerCard);
+  if(playerDetail)players.appendChild(playerDetail);
+  if(awardsCard)awards.appendChild(awardsCard);
+  encyclopedia.remove();
+
+  renderPlayerEncyclopediaV09137?.();
+  renderAwardsHistoryV09137?.();
+}
+window.historySubtabsV09138=historySubtabsV09138;
+
+function showHistorySubtabV09138(which){
+  for(const name of ["overview","players","awards"]){
+    const pane=document.getElementById(`historyPane${name[0].toUpperCase()+name.slice(1)}V09138`);
+    const btn=document.getElementById(`historyTab${name[0].toUpperCase()+name.slice(1)}V09138`);
+    if(pane)pane.style.display=name===which?"":"none";
+    if(btn)btn.classList.toggle("primary",name===which);
+  }
+  if(which==="players")renderPlayerEncyclopediaV09137?.();
+  if(which==="awards")renderAwardsHistoryV09137?.();
+}
+window.showHistorySubtabV09138=showHistorySubtabV09138;
+
+/* v0.91.37's helper would otherwise append another encyclopedia because its
+   original wrapper was removed from the DOM. Once our shell exists, do nothing. */
+const _v09138EnsureHistory=ensureHistoryEncyclopediaUIV09137;
+ensureHistoryEncyclopediaUIV09137=function(){
+  if(document.getElementById("historySubtabsV09138"))return;
+  return _v09138EnsureHistory.apply(this,arguments);
+};
+window.ensureHistoryEncyclopediaUIV09137=ensureHistoryEncyclopediaUIV09137;
+
+const _v09138SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09138SwitchTab.apply(this,arguments);
+  if(tab==="history")setTimeout(historySubtabsV09138,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("history")?.classList.contains("active"))historySubtabsV09138();
+  }catch(e){console.error("v0.91.38 history subtabs",e);}
+},150);
 
 </script>
 </body>
