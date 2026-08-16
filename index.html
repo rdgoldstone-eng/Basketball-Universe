@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.32 · Standings Ranking Cleanup</div>
+    <div class="pill">v0.91.33 · Draft Selection Cleanup</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1196,8 +1196,8 @@ pre{white-space:pre-wrap}
 
     <div class="grid2">
       <div class="card">
-        <h2>Prospect Board</h2>
-        <div id="draftProspectBoard" class="muted">No draft class loaded.</div>
+        <h2>Make Your Selection</h2>
+        <div id="draftProspectBoard" class="muted">Your choices will appear when your team is on the clock.</div>
       </div>
       <div class="card">
         <h2>Trade Offers</h2>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.32";
+window.BASKETBALLVERSE_BUILD = "v0.91.33";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.32";
+      badge.textContent="Basketballverse v0.91.33";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.32";
+      badge.textContent="Basketballverse v0.91.33";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -24722,6 +24722,88 @@ renderAll=function(){
 window.renderAll=renderAll;
 
 setTimeout(cleanStandingsRankNumbersV09132,120);
+
+
+
+/* === v0.91.33 Draft Room cleanup ===
+   The Draft Room no longer shows a duplicate "Prospect Board" plus a separate
+   "Make Your Selection" panel. The existing draftProspectBoard slot is now the
+   one selection area and only becomes a player list when the user's team is on
+   the clock. Scouting remains the place to review the full class beforehand. */
+
+function renderDraftSelectionOnlyV09133(){
+  const board=document.getElementById("draftProspectBoard");
+  if(!board || !state?.draftRoom)return;
+
+  /* Remove the old second/duplicate selection card from v0.88.1. */
+  document.getElementById("gmDraftSelectionV0881")?.remove();
+
+  const dr=state.draftRoom;
+
+  if(dr.completed){
+    board.innerHTML=`<div class="notice"><b>Draft complete.</b><br><span class="small">All selections have been made.</span></div>`;
+    return;
+  }
+
+  if(!dr.active){
+    board.innerHTML=`<div class="notice"><b>No selection to make yet.</b><br><span class="small">Use Scouting to review the draft class. Your choices will appear here when your team is on the clock.</span></div>`;
+    return;
+  }
+
+  if(!isUserDraftPick()){
+    const team=currentDraftTeam?.();
+    board.innerHTML=`<div class="notice"><b>${team?.name||"Another team"} is on the clock.</b><br><span class="small">Your draft choices will appear here when your team reaches its pick.</span></div>`;
+    return;
+  }
+
+  const team=typeof gmTeamV084==="function"?gmTeamV084():currentControlledTeam?.();
+  const available=(dr.available||[])
+    .slice()
+    .sort((a,b)=>estimateProspectValue(b)-estimateProspectValue(a))
+    .slice(0,40);
+
+  board.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      <b>${team?.name||"Your team"} is on the clock.</b><br>
+      <span class="small">Choose the player you want to draft.</span>
+    </div>
+    ${available.length?available.map(p=>{
+      let r=team?scoutProspectReport(team.id,p):null;
+      let ovrText=r?`${r.estOvrLow}-${r.estOvrHigh}`:(p.ovr??p.rating??p.prospect??"—");
+      let potText=r?`${r.estPotLow}-${r.estPotHigh}`:(p.pot??p.potential??p.ceiling??"—");
+      return `<div class="teamrow">
+        <div class="teammeta">
+          <b>${p.name||"Prospect"}</b>
+          <span class="small muted">${p.pos||"—"} · Age ${p.age??"—"} · OVR ${ovrText} · POT ${potText}${p.college?` · ${p.college}`:""}</span>
+        </div>
+        <button class="primary" style="min-width:78px" onclick="gmDraftPlayerV0881('${String(p.draftId||p.id).replace(/'/g,"\\'")}')">Draft</button>
+      </div>`;
+    }).join(""):`<div class="notice">No prospects remain.</div>`}
+  `;
+}
+window.renderDraftSelectionOnlyV09133=renderDraftSelectionOnlyV09133;
+
+/* Run after the accumulated Draft Room renderer so its old board is replaced
+   and its duplicate GM selection card is removed. */
+const _v09133RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  const r=_v09133RenderDraftRoom.apply(this,arguments);
+  renderDraftSelectionOnlyV09133();
+  return r;
+};
+window.renderDraftRoom=renderDraftRoom;
+
+/* Neutralize the old helper's duplicate card if another wrapper calls it later. */
+gmDraftSelectionPanelV0881=function(){return "";};
+window.gmDraftSelectionPanelV0881=gmDraftSelectionPanelV0881;
+
+setTimeout(()=>{
+  try{
+    if(document.getElementById("draftroom")?.classList.contains("active")){
+      renderDraftSelectionOnlyV09133();
+    }
+  }catch(e){console.error("v0.91.33 draft selection init",e);}
+},120);
 
 </script>
 </body>
