@@ -11030,6 +11030,24 @@ function playoffFormatForYear(year){
  if(y<=2002)return {teamsPerConference:8,firstRoundBestOf:5,firstRoundByes:0};
  return {teamsPerConference:8,firstRoundBestOf:7,firstRoundByes:0};
 }
+// v0.91.48: Historical first-round format guard.
+// NBA first round: best-of-3 through 1983-84, best-of-5 from 1984-85 through 2002-03,
+// and best-of-7 beginning with 2003-04. This also repairs playoffState loaded from older saves.
+function normalizeHistoricalFirstRoundFormat(){
+ if(!state)return;
+ const fmt=playoffFormatForYear(state.currentYear);
+ if(state.leagueRules)state.leagueRules.firstRoundBestOf=fmt.firstRoundBestOf;
+ const ps=state.season?.playoffState;
+ if(ps){
+   ps.format=ps.format||{};
+   ps.format.teamsPerConference=fmt.teamsPerConference;
+   ps.format.firstRoundBestOf=fmt.firstRoundBestOf;
+   ps.format.firstRoundByes=fmt.firstRoundByes;
+   (ps.series||[]).forEach(s=>{
+     if(s.round==="First Round" && !s.complete)s.bestOf=fmt.firstRoundBestOf;
+   });
+ }
+}
 function playoffFieldTeamIds(){
  let ps=state.season?.playoffState;
  if(ps?.seedByTeam)return new Set(Object.keys(ps.seedByTeam));
@@ -11049,6 +11067,7 @@ function playoffFieldTeamIds(){
 }
 
 function initPostseasonExperience(){
+ normalizeHistoricalFirstRoundFormat();
  if(state.season.phase!=="Regular Season Complete" && state.season.phase!=="Playoffs")return;
  if(state.season.playoffState)return;
  const fmt=playoffFormatForYear(state.currentYear);
@@ -26621,7 +26640,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 })();
 </script>
 
-<!-- === v0.91.47 GM Career Profile === -->
+<!-- === v0.91.48 Historical Playoff Format Fix === -->
 
 <style id="gmCareerStyleV09147">
 #career.gmCareerProfileModeV09147 > :not(#gmCareerProfileV09147){display:none!important}
@@ -26630,10 +26649,10 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 @media(max-width:760px){#gmCareerProfileV09147 .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <script>
-/* === v0.91.47 GM Career Profile + unified build identity === */
+/* === v0.91.48 Historical Playoff Format Fix + unified build identity === */
 (function(){
-  const VERSION='v0.91.47';
-  const LABEL='v0.91.47 · GM Career Profile';
+  const VERSION='v0.91.48';
+  const LABEL='v0.91.48 · Historical Playoff Format Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -26823,12 +26842,12 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
       document.querySelectorAll('.pill,[data-build],#buildVersion,.buildVersion').forEach(el=>{
         if(/v0\.91\.\d+/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/v0\.91\.\d+(?:\s*·\s*[^\n]*)?/,LABEL);
       });
-    }catch(e){console.warn('v0.91.47 version banner',e)}
+    }catch(e){console.warn('v0.91.48 version banner',e)}
   }
   window.enforceBuildIdentityV0904=enforceVersionV09147;
   window.markScriptReadyV09111=function(){enforceVersionV09147();try{document.getElementById('loadBtn')?.setAttribute('data-script-ready','true');document.getElementById('createBtn')?.setAttribute('data-script-ready','true')}catch(_){}};
 
-  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.47 init',e)}},350);
+  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.48 init',e)}},350);
 })();
 
 </script>
