@@ -10838,7 +10838,7 @@ function maybeTriggerMilestones(){
    state.season.stretchDecision=true;
    if(state.role==="Commissioner") addRoleDecision("Stretch-run league watch","The regular season is nearing its end. Decide what the league office should monitor most closely.",["Playoff race integrity","Franchise attendance","Offseason expansion interest"]);
    if(state.role==="Owner") addRoleDecision("Stretch-run expectations","Set expectations for the final weeks of the season.",["Playoffs are mandatory","Evaluate long-term progress","No additional pressure"]);
-   if(state.role==="GM") addRoleDecision("Stretch-run priority","Set the roster's priority for the final weeks.",["Push for seeding","Protect health","Evaluate bench players"]);
+   if(state.role==="GM") addRoleDecision("Stretch-run priority","Set the roster's priority for the final weeks.",["Push for seeding","Protect health","Evaluate bench players","Prioritize draft position"]);
    if(state.role==="Coach") addRoleDecision("Stretch-run coaching plan","Set the team's approach for the final weeks.",["Chase best seed","Manage veteran minutes","Expand development minutes"]);
  }
 }
@@ -26734,8 +26734,8 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 <script>
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
-  const VERSION='v0.91.52';
-  const LABEL='v0.91.52 · Click-to-Reveal Draft Lottery';
+  const VERSION='v0.91.53';
+  const LABEL='v0.91.53 · Sequential Lottery Reveal + Tanking';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27061,8 +27061,8 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
-  const VERSION='v0.91.52';
-  const LABEL='v0.91.52 · Click-to-Reveal Draft Lottery';
+  const VERSION='v0.91.53';
+  const LABEL='v0.91.53 · Sequential Lottery Reveal + Tanking';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27226,6 +27226,214 @@ function archiveGMSeasonV09147(year,force=false){
       if(/^v0\.91\.\d+\s*·/.test(el.textContent.trim()))el.textContent=LABEL;
     });
   }catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.53 Sequential Lottery Reveal + Tanking === -->
+<style id="lotterySequentialStyleV09153">
+#bvLotteryOverlay #bvLotStage{display:none!important}
+#bvLotteryOverlay .bvlot-main{display:block!important}
+#bvLotteryOverlay .bvlot-results{max-width:720px;margin:0 auto}
+#bvLotteryOverlay #bvLotRows{display:block!important;max-height:55vh;overflow:auto;-webkit-overflow-scrolling:touch}
+#bvLotteryOverlay .bvlot-row{
+  display:none!important;
+  grid-template-columns:70px minmax(0,1fr) auto;
+  align-items:center;gap:12px;padding:13px 10px;border-bottom:1px solid var(--line)
+}
+#bvLotteryOverlay .bvlot-row.reveal{display:grid!important}
+#bvLotteryOverlay .bvlot-row.winner{border:2px solid var(--gold);border-radius:12px;background:rgba(255,215,92,.06)}
+#bvLotteryOverlay .bvlot-pick{font-size:18px;font-weight:950}
+#bvLotteryOverlay .bvlot-team{font-size:15px;font-weight:900}
+#bvLotteryOverlay .bvlot-via{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-top:2px}
+#bvLotteryOverlay #bvLotWatch{display:inline-flex!important}
+#bvLotteryOverlay #bvLotQuick{display:none!important}
+#bvLotteryOverlay #bvLotInstant{display:inline-flex!important}
+@media(max-width:600px){
+ #bvLotteryOverlay .bvlot-row{grid-template-columns:54px minmax(0,1fr);gap:8px}
+ #bvLotteryOverlay .bvlot-odds{grid-column:2}
+}
+</style>
+<script>
+(function(){
+ const VERSION='v0.91.53';
+ const LABEL='v0.91.53 · Sequential Lottery Reveal + Tanking';
+ window.BASKETBALLVERSE_BUILD=VERSION;
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ let nextRevealIndex=-1;
+
+ function lotteryYear(){return Number(state?.offseason?.draftOrderEvent?.year||state?.currentYear+1||1985)}
+ function eventType(y){return y<=1984?'Conference Coin Flip':y===1985?'Envelope Lottery':y<=1989?'Equal-Chance Lottery':y<=2018?'Weighted Lottery':'Modern Lottery'}
+ function nonPlayoff(){
+   let ids;try{ids=playoffFieldTeamIds()}catch(_){ids=new Set()}
+   return (state?.teams||[]).filter(t=>!ids?.has?.(t.id)).slice()
+     .sort((a,b)=>draftRecordPct(a)-draftRecordPct(b)||String(a.name).localeCompare(String(b.name)));
+ }
+ function data(){
+   if(!state?.offseason?.draftOrder?.length&&typeof buildDraftOrder==='function')buildDraftOrder();
+   const y=lotteryYear(),inverse=nonPlayoff(),n=inverse.length;
+   const first=(state?.offseason?.draftOrder||[]).filter(x=>(x.round||1)===1).slice(0,n);
+   return {y,inverse,first};
+ }
+ function label(e){
+   const owner=typeof teamById==='function'?teamById(e?.teamId):null;
+   const orig=typeof teamById==='function'?teamById(e?.originalTeamId):null;
+   return {name:e?.teamName||owner?.name||'Team',via:e?.originalTeamId&&e.originalTeamId!==e.teamId?`via ${orig?.name||'traded pick'}`:''};
+ }
+ function rowsHTML(d){
+   return d.first.map((e,i)=>{
+     const o=label(e);
+     return `<div class="bvlot-row" id="bvLotRow${i}" data-index="${i}">
+       <div class="bvlot-pick">#${i+1}</div>
+       <div class="bvlot-team">${o.name}${o.via?`<span class="bvlot-via">${o.via}</span>`:''}</div>
+       <div class="bvlot-odds">${i===0?'LOTTERY WINNER':''}</div>
+     </div>`;
+   }).join('');
+ }
+ function open(){
+   const d=data(),ov=document.getElementById('bvLotteryOverlay');if(!ov)return;
+   ov.style.display='';ov.classList.add('show');ov.setAttribute('aria-hidden','false');
+   nextRevealIndex=d.first.length-1;
+   document.getElementById('bvLotTitle').textContent=`${d.y} BASKETBALLVERSE ${d.y<=1984?'DRAFT ORDER':'DRAFT LOTTERY'}`;
+   document.getElementById('bvLotSub').textContent=`${eventType(d.y)} · Picks reveal from the bottom up`;
+   document.getElementById('bvLotResultsTitle').textContent='Draft Order Reveal';
+   document.getElementById('bvLotRows').innerHTML=rowsHTML(d);
+   document.getElementById('bvLotStatus').textContent=`Ready to reveal pick #${d.first.length}.`;
+   const next=document.getElementById('bvLotWatch');
+   next.textContent='Reveal Next Pick';next.onclick=revealNext;
+   const all=document.getElementById('bvLotInstant');
+   all.textContent='Reveal All';all.onclick=revealAll;
+   document.getElementById('bvLotExit').textContent='Return to Draft Order';
+ }
+ function revealNext(){
+   const d=data();
+   if(nextRevealIndex<0){document.getElementById('bvLotStatus').textContent='Full lottery order revealed.';return}
+   const i=nextRevealIndex--;
+   const row=document.getElementById(`bvLotRow${i}`);if(!row)return;
+   row.classList.add('reveal');if(i===0)row.classList.add('winner');
+   row.scrollIntoView({block:'nearest'});
+   const o=label(d.first[i]||{});
+   const status=document.getElementById('bvLotStatus');
+   if(i===0)status.textContent=`${o.name} WINS THE #1 PICK!`;
+   else status.textContent=`Pick #${i+1}: ${o.name} · Next: #${i}`;
+ }
+ function revealAll(){
+   const d=data();
+   d.first.forEach((_,i)=>{const r=document.getElementById(`bvLotRow${i}`);r?.classList.add('reveal');if(i===0)r?.classList.add('winner')});
+   nextRevealIndex=-1;
+   const o=label(d.first[0]||{});
+   document.getElementById('bvLotStatus').textContent=d.first.length?`${o.name} owns the #1 pick. Full order revealed.`:'Draft order revealed.';
+ }
+ function close(){
+   const ov=document.getElementById('bvLotteryOverlay');ov?.classList.remove('show');
+   if(ov){ov.style.display='';ov.setAttribute('aria-hidden','true')}
+ }
+ window.openLotteryBroadcastV09153=open;
+ window.openLotteryBroadcastV09152=open;
+ window.openLotteryBroadcastV09146=open;
+ window.openLotteryBroadcastV09144=open;
+ window.runLotteryBroadcastV09153=(mode)=>mode==='instant'?revealAll():revealNext();
+ window.runLotteryBroadcastV09152=window.runLotteryBroadcastV09153;
+ window.runLotteryBroadcastV09146=window.runLotteryBroadcastV09153;
+ window.runLotteryBroadcastV09144=window.runLotteryBroadcastV09153;
+ window.closeLotteryBroadcastV09153=close;
+ window.closeLotteryBroadcastV09152=close;
+ window.closeLotteryBroadcastV09146=close;
+ window.closeLotteryBroadcastV09144=close;
+
+ // Add tanking as the fourth GM stretch-run option, including old saves where the decision is already open.
+ function addTankingChoice(){
+   if(!state)return;
+   (state.decisions||[]).forEach(d=>{
+     if(!d.resolved&&d.title==='Stretch-run priority'){
+       d.choices=Array.isArray(d.choices)?d.choices:[];
+       if(!d.choices.includes('Prioritize draft position'))d.choices.push('Prioritize draft position');
+     }
+   });
+ }
+ const oldMilestones=window.maybeTriggerMilestones;
+ if(typeof oldMilestones==='function'){
+   window.maybeTriggerMilestones=maybeTriggerMilestones=function(){
+     const r=oldMilestones.apply(this,arguments);addTankingChoice();return r;
+   };
+ }
+ addTankingChoice();
+
+ // Persist and apply the selected GM stretch-run strategy.
+ function controlledTeam(){
+   return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null;
+ }
+ const oldResolve=window.resolveDecision;
+ window.resolveDecision=function(id,choice){
+   const d=state?.decisions?.find(x=>x.id===id);
+   if(d?.title==='Stretch-run priority'&&state.role==='GM'){
+     state.season=state.season||{};
+     state.season.gmStretchStrategy=choice;
+     if(choice==='Prioritize draft position'){
+       const t=controlledTeam();
+       const ownsFirst=(state.offseason?.draftPicks||state.draftPicks||[]).some?.(p=>
+         Number(p.year)===Number(state.currentYear+1)&&Number(p.round||1)===1&&String(p.teamId||p.ownerTeamId)===String(t?.id)
+       );
+       state.news=state.news||[];
+       state.news.push({year:state.currentYear,title:`${t?.name||'Team'} prioritizes draft position`,text:`The front office shifts late-season minutes toward development and rests veterans more aggressively.${ownsFirst?' The club controls its upcoming first-round pick.':''}`});
+     }
+   }
+   return oldResolve?.call(this,id,choice);
+ };
+
+ // Tanking changes only the human-controlled club's late-season win probability.
+ // It is meaningful but not a guaranteed loss: roughly a 20% strength penalty.
+ const oldWinChance=window.winChance;
+ if(typeof oldWinChance==='function'){
+   window.winChance=winChance=function(a,b){
+     let p=oldWinChance(a,b);
+     if(state?.season?.phase==='Regular Season'&&state?.season?.gmStretchStrategy==='Prioritize draft position'){
+       const id=String(state.controlledTeamId||'');
+       if(String(a?.id)===id)p*=0.78;
+       if(String(b?.id)===id)p=1-(1-p)*0.78;
+     }
+     return Math.max(.04,Math.min(.96,p));
+   };
+ }
+
+ // Other stretch-run strategies get light gameplay identity too.
+ if(typeof oldWinChance==='function'){
+   const tankAware=window.winChance;
+   window.winChance=winChance=function(a,b){
+     let p=tankAware(a,b),s=state?.season?.gmStretchStrategy,id=String(state?.controlledTeamId||'');
+     if(s==='Push for seeding'){
+       if(String(a?.id)===id)p=Math.min(.96,p+0.035);
+       if(String(b?.id)===id)p=Math.max(.04,p-0.035);
+     }else if(s==='Evaluate bench players'){
+       if(String(a?.id)===id)p*=0.94;
+       if(String(b?.id)===id)p=1-(1-p)*0.94;
+     }
+     return p;
+   };
+ }
+
+ // Replace old lottery buttons with the new opener after render.
+ const prev=window.offseasonStageDetailV0822;
+ if(typeof prev==='function'){
+   window.offseasonStageDetailV0822=offseasonStageDetailV0822=function(step){
+     let html=String(prev(step));
+     if(step==='Draft Order'){
+       html=html.replace(/onclick="openLotteryBroadcastV091(?:44|46|52)\(\)"/g,'onclick="openLotteryBroadcastV09153()"');
+       html=html.replace(/>Watch Draft Lottery</g,'>Open Draft Lottery Reveal<');
+       html=html.replace(/>Open Draft Lottery</g,'>Open Draft Lottery Reveal<');
+     }
+     return html;
+   };
+ }
+
+ document.addEventListener('click',function(e){
+   if(e.target?.id==='bvLotWatch'){e.preventDefault();e.stopImmediatePropagation();revealNext()}
+   else if(e.target?.id==='bvLotInstant'){e.preventDefault();e.stopImmediatePropagation();revealAll()}
+   else if(e.target?.id==='bvLotExit'||e.target?.classList?.contains('bvlot-close')){e.preventDefault();e.stopImmediatePropagation();close()}
+ },true);
+
+ // Visible build identity.
+ try{document.querySelectorAll('.pill').forEach(el=>{if(/^v0\.91\.\d+\s*·/.test(el.textContent.trim()))el.textContent=LABEL})}catch(_){}
 })();
 </script>
 

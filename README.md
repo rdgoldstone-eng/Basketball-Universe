@@ -1,30 +1,49 @@
-# Basketballverse v0.91.52 — Click-to-Reveal Draft Lottery
+# Basketballverse v0.91.53 — Sequential Lottery Reveal + Tanking
 
-## Draft Lottery redesign
-The animated lottery machine has been removed from the user flow.
+## Draft Lottery Reveal
+The clickable-tile lottery has been replaced.
 
-The lottery now opens as a simple reveal board:
-- Every lottery/draft-order position appears as a tile.
-- Tap or click any tile to reveal the team holding that pick.
-- Tiles can be revealed in any order.
-- **Reveal All** instantly shows the entire order.
-- **Return to Draft Order** closes the board at any time.
-- Keyboard users can reveal a selected tile with Enter or Space.
-- The existing Basketballverse lottery result is used; opening or revealing the board does not reroll the draft order.
+The new presentation is intentionally simple:
+- Open the Draft Lottery Reveal from Draft Order.
+- Press **Reveal Next Pick**.
+- The lottery order is revealed from the lowest lottery pick upward, ending at #1.
+- Press **Reveal All** at any time to show the complete order.
+- **Return to Draft Order** always exits the presentation.
+- The reveal does not reroll the lottery. It displays the order Basketballverse already generated.
 
-Historical lottery rules and odds remain part of the underlying simulation. This update changes only the presentation.
+This removes the lottery machine, animation timing, and tile-click dependencies that were causing the previous presentations to fail.
 
-## Previous fixes retained
+## Stretch-run GM decision
+At roughly 70 games, GM mode now has four choices:
+1. Push for seeding
+2. Protect health
+3. Evaluate bench players
+4. Prioritize draft position
+
+### Prioritize draft position
+This is the Basketballverse tanking option. The controlled team:
+- rests veterans / prioritizes development conceptually,
+- receives a meaningful late-season competitive penalty,
+- can still win games — tanking does not force losses,
+- records the strategy in league news.
+
+The strategy affects only the remaining regular-season games after the decision.
+
+### Other choices
+- **Push for seeding** gives a small late-season competitive boost.
+- **Evaluate bench players** carries a small competitive cost while representing developmental minutes.
+- **Protect health** retains the existing health-oriented choice without deliberately weakening game results.
+
+## Existing-save support
+If a v0.91.52 or earlier save is currently sitting on an unresolved **Stretch-run priority** decision, the new tanking option is appended automatically.
+
+## Previous work retained
 - Free Agency cap display
 - GM Career History Recovery
 - GM playoff-objective fix
-- Historical playoff-series format correction
+- Historical playoff formats
 - Free-agency economy improvements
-- Draft lottery stability safeguards
-- Historically aware newspaper headlines
+- Historically aware newspapers
 
 ## Version
-In-game build banner: **v0.91.52 · Click-to-Reveal Draft Lottery**
-
-## Installation
-Upload/replace the included files in the same GitHub location used for Basketballverse. Existing saves remain compatible.
+**v0.91.53 · Sequential Lottery Reveal + Tanking**
