@@ -515,6 +515,16 @@ pre{white-space:pre-wrap}
   border-color:var(--gold);
 }
 
+
+/* v0.91.37 Player Encyclopedia */
+.playerEncyclopediaSearchV09137{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.playerEncyclopediaSearchV09137 input,.playerEncyclopediaSearchV09137 select{flex:1;min-width:160px}
+.legacyGridV09137{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.legacyCardV09137{border:1px solid var(--line);border-radius:14px;padding:12px}
+.legacyRowV09137{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.legacyRowV09137:last-child{border-bottom:0}
+.awardTimelineV09137{display:grid;gap:8px}
+
 </style>
 </head>
 <body>
@@ -531,7 +541,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.36 · Portrait Library Starter</div>
+    <div class="pill">v0.91.37 · Player Encyclopedia</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1539,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.36";
+window.BASKETBALLVERSE_BUILD = "v0.91.37";
 </script>
 
 <script>
@@ -19054,7 +19064,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.36";
+      badge.textContent="Basketballverse v0.91.37";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20396,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.36";
+      badge.textContent="Basketballverse v0.91.37";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25183,6 +25193,286 @@ renderAll=function(){
 window.renderAll=renderAll;
 
 setTimeout(refreshPortraitUIV09136,160);
+
+
+
+/* === v0.91.37 Player Encyclopedia / Legacy / Awards History === */
+
+function encyclopediaPlayersV09137(){
+  const list=(state.players||[]).slice();
+  const retired=state.retiredPlayers||state.history?.retiredPlayers||[];
+  for(const p of (retired||[])){
+    if(!list.some(x=>String(x.id)===String(p.id)||x.name===p.name))list.push(p);
+  }
+  return list;
+}
+
+function allAwardsV09137(){
+  const out=[];
+  const push=(award,season,player,team,extra={})=>{
+    if(!award||!player)return;
+    out.push({award:String(award),season,player:String(player),team:team||null,...extra});
+  };
+
+  const sources=[
+    state.awardsHistory,state.history?.awards,state.leagueHistory?.awards,
+    state.awards,state.historyArchive?.awards
+  ];
+  for(const src of sources){
+    if(!src)continue;
+    if(Array.isArray(src)){
+      for(const a of src){
+        if(!a)continue;
+        if(a.award||a.type){
+          push(a.award||a.type,a.season||a.year,a.player||a.playerName||a.name,a.team||a.teamName,a);
+        }else{
+          for(const [k,v] of Object.entries(a)){
+            if(typeof v==="string")push(k,a.season||a.year,v,null,a);
+            else if(v&&typeof v==="object")push(k,a.season||a.year,v.player||v.name,v.team,v);
+          }
+        }
+      }
+    }else{
+      for(const [season,val] of Object.entries(src)){
+        if(!val)continue;
+        if(Array.isArray(val)){
+          for(const a of val)if(a)push(a.award||a.type,season,a.player||a.playerName||a.name,a.team||a.teamName,a);
+        }else if(typeof val==="object"){
+          for(const [award,v] of Object.entries(val)){
+            if(typeof v==="string")push(award,season,v,null,{});
+            else if(Array.isArray(v)){
+              for(const vv of v){
+                if(typeof vv==="string")push(award,season,vv,null,{});
+                else if(vv)push(award,season,vv.player||vv.name,vv.team,{...vv});
+              }
+            }else if(v)push(award,season,v.player||v.name,v.team,{...v});
+          }
+        }
+      }
+    }
+  }
+
+  const seasonSources=[
+    ...(Array.isArray(state.seasonHistory)?state.seasonHistory:[]),
+    ...(Array.isArray(state.history?.seasons)?state.history.seasons:[])
+  ];
+  const labels={
+    mvp:"MVP",finalsMvp:"Finals MVP",dpoy:"Defensive Player of the Year",
+    roy:"Rookie of the Year",sixthMan:"Sixth Man of the Year",mip:"Most Improved Player"
+  };
+  for(const s of seasonSources){
+    for(const [key,label] of Object.entries(labels)){
+      const v=s?.[key];
+      if(!v)continue;
+      if(typeof v==="string")push(label,s.season||s.year,v,null,{});
+      else push(label,s.season||s.year,v.player||v.name,v.team,{...v});
+    }
+  }
+
+  const seen=new Set();
+  return out.filter(a=>{
+    const k=`${a.award}|${a.season}|${a.player}`;
+    if(seen.has(k))return false;
+    seen.add(k);
+    return true;
+  });
+}
+window.allAwardsV09137=allAwardsV09137;
+
+function playerCareerRowsV09137(p){
+  const rows=[];
+  const sources=[
+    state.playerSeasonHistory,state.history?.playerSeasons,state.seasonHistory,state.history?.seasons
+  ];
+  for(const src of sources){
+    if(!src)continue;
+    const seasons=Array.isArray(src)?src:Object.values(src);
+    for(const s of seasons){
+      if(!s||typeof s!=="object")continue;
+      const pools=[s.players,s.playerStats,s.stats,s.playerSeasons];
+      for(const pool of pools){
+        if(!pool)continue;
+        const vals=Array.isArray(pool)?pool:Object.values(pool);
+        for(const r of vals){
+          if(!r||typeof r!=="object")continue;
+          const same=(r.playerId!=null&&String(r.playerId)===String(p.id))||
+                     (r.id!=null&&String(r.id)===String(p.id))||
+                     (r.name&&r.name===p.name)||(r.playerName&&r.playerName===p.name);
+          if(same)rows.push({...r,season:r.season||s.season||s.year});
+        }
+      }
+    }
+  }
+  return rows;
+}
+
+function playerAccoladesV09137(p){
+  const awards=allAwardsV09137().filter(a=>a.player===p.name||String(a.playerId||"")===String(p.id));
+  const counts={};
+  for(const a of awards)counts[a.award]=(counts[a.award]||0)+1;
+  let titles=0;
+  if(Array.isArray(p.championships))titles=p.championships.length;
+  else if(Number.isFinite(Number(p.championships)))titles=Number(p.championships);
+  return {awards,counts,titles};
+}
+window.playerAccoladesV09137=playerAccoladesV09137;
+
+function careerTotalsV09137(p){
+  const rows=playerCareerRowsV09137(p);
+  const sum=(...keys)=>rows.reduce((n,r)=>n+Number(keys.map(k=>r[k]).find(v=>v!=null)||0),0);
+  return {
+    rows,
+    gp:sum("gp","games")||Number(p.careerGp||0),
+    pts:sum("pts","points")||Number(p.careerPts||0),
+    reb:sum("reb","rebounds")||Number(p.careerReb||0),
+    ast:sum("ast","assists")||Number(p.careerAst||0)
+  };
+}
+
+function awardCountLikeV09137(counts,needles){
+  return Object.entries(counts).filter(([k])=>needles.some(n=>k.toLowerCase().includes(n))).reduce((n,[,v])=>n+v,0);
+}
+
+function legacyScoreV09137(p){
+  const a=playerAccoladesV09137(p), t=careerTotalsV09137(p), c=a.counts;
+  let score=0;
+  score+=awardCountLikeV09137(c,["finals mvp"])*30;
+  score+=awardCountLikeV09137(c,["mvp","most valuable"])*40;
+  score+=a.titles*24;
+  score+=awardCountLikeV09137(c,["all-star"])*5;
+  score+=awardCountLikeV09137(c,["all-nba","all league","all-league"])*8;
+  score+=awardCountLikeV09137(c,["defensive player"])*18;
+  score+=awardCountLikeV09137(c,["all-defensive"])*5;
+  score+=awardCountLikeV09137(c,["rookie"])*6;
+  score+=Math.min(40,t.pts/1000)+Math.min(20,t.reb/1200)+Math.min(20,t.ast/1000);
+  score+=Math.max(0,(Number(p.peakOvr||p.ovr||0)-80)*2);
+  return Math.round(score*10)/10;
+}
+window.legacyScoreV09137=legacyScoreV09137;
+
+function openEncyclopediaPlayerV09137(id){
+  const p=encyclopediaPlayersV09137().find(x=>String(x.id)===String(id));
+  const host=document.getElementById("playerEncyclopediaDetailV09137");
+  if(!p||!host)return;
+  const a=playerAccoladesV09137(p),t=careerTotalsV09137(p);
+  host.innerHTML=`
+    <div class="card">
+      <div class="playerProfileHeroV09135">
+        ${typeof portraitHTMLV09135==="function"?portraitHTMLV09135(p,"large"):""}
+        <div class="playerHeroInfoV09135">
+          <div class="playerHeroNameV09135">${p.name}</div>
+          <div class="playerHeroMetaV09135">${p.pos||"—"} · ${p.retired?"Retired":(p.teamName||p.team||"")}</div>
+          <div style="margin-top:8px"><b>Legacy Score ${legacyScoreV09137(p)}</b></div>
+        </div>
+      </div>
+      <div class="legacyGridV09137">
+        <div class="legacyCardV09137"><b>${a.titles}</b><div class="small muted">Championships</div></div>
+        <div class="legacyCardV09137"><b>${t.pts||"—"}</b><div class="small muted">Career Points</div></div>
+        <div class="legacyCardV09137"><b>${t.reb||"—"}</b><div class="small muted">Career Rebounds</div></div>
+        <div class="legacyCardV09137"><b>${t.ast||"—"}</b><div class="small muted">Career Assists</div></div>
+      </div>
+    </div>
+    <div class="card"><h3>Accolades</h3>
+      ${Object.entries(a.counts).sort((x,y)=>y[1]-x[1]).map(([k,v])=>`<div class="legacyRowV09137"><span>${k}</span><b>${v}×</b></div>`).join("")||`<span class="muted">No recorded awards.</span>`}
+    </div>
+    <div class="card"><h3>Awards by Season</h3>
+      ${a.awards.sort((x,y)=>String(x.season).localeCompare(String(y.season))).map(x=>`<div class="legacyRowV09137"><span>${x.season||"—"}</span><b>${x.award}</b></div>`).join("")||`<span class="muted">No recorded awards.</span>`}
+    </div>`;
+  host.scrollIntoView({behavior:"smooth",block:"start"});
+}
+window.openEncyclopediaPlayerV09137=openEncyclopediaPlayerV09137;
+
+function renderPlayerEncyclopediaV09137(){
+  const host=document.getElementById("playerEncyclopediaBodyV09137");
+  if(!host)return;
+  const q=(document.getElementById("playerEncyclopediaSearchV09137")?.value||"").trim().toLowerCase();
+  const sort=document.getElementById("playerEncyclopediaSortV09137")?.value||"legacy";
+  let players=encyclopediaPlayersV09137().filter(p=>!q||String(p.name||"").toLowerCase().includes(q));
+  if(sort==="name")players.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  else if(sort==="mvp")players.sort((a,b)=>awardCountLikeV09137(playerAccoladesV09137(b).counts,["mvp","most valuable"])-awardCountLikeV09137(playerAccoladesV09137(a).counts,["mvp","most valuable"])||legacyScoreV09137(b)-legacyScoreV09137(a));
+  else players.sort((a,b)=>legacyScoreV09137(b)-legacyScoreV09137(a));
+
+  host.innerHTML=players.slice(0,300).map((p,i)=>{
+    const a=playerAccoladesV09137(p);
+    const mvps=awardCountLikeV09137(a.counts,["mvp","most valuable"]);
+    const allstars=awardCountLikeV09137(a.counts,["all-star"]);
+    return `<div class="legacyRowV09137" onclick="openEncyclopediaPlayerV09137('${String(p.id).replace(/'/g,"\\'")}')" style="cursor:pointer">
+      <div style="display:flex;gap:10px;align-items:center">
+        ${typeof portraitHTMLV09135==="function"?portraitHTMLV09135(p,"small"):""}
+        <div><b>${sort==="legacy"?`#${i+1} `:""}${p.name}</b><div class="small muted">${p.pos||"—"} · ${p.retired?"Retired":(p.teamName||p.team||"")}</div></div>
+      </div>
+      <div style="text-align:right"><b>${legacyScoreV09137(p)}</b><div class="small muted">${mvps?`${mvps} MVP · `:""}${a.titles?`${a.titles} titles · `:""}${allstars?`${allstars} AS`:""}</div></div>
+    </div>`;
+  }).join("")||`<div class="notice">No matching players.</div>`;
+}
+window.renderPlayerEncyclopediaV09137=renderPlayerEncyclopediaV09137;
+
+function renderAwardsHistoryV09137(){
+  const host=document.getElementById("awardsHistoryBodyV09137");
+  const sel=document.getElementById("awardsHistorySelectV09137");
+  if(!host||!sel)return;
+  const awards=allAwardsV09137();
+  const types=[...new Set(awards.map(a=>a.award).filter(Boolean))].sort();
+  if(!sel.options.length)sel.innerHTML=types.map(t=>`<option value="${t.replace(/"/g,"&quot;")}">${t}</option>`).join("");
+  const type=sel.value||types[0]||"";
+  const rows=awards.filter(a=>a.award===type).sort((a,b)=>String(b.season).localeCompare(String(a.season)));
+  const counts={};rows.forEach(a=>counts[a.player]=(counts[a.player]||0)+1);
+  host.innerHTML=`
+    <div class="card"><h3>${type||"Awards"}</h3>
+      ${Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,25).map(([p,c],i)=>`<div class="legacyRowV09137"><span>#${i+1} ${p}</span><b>${c}×</b></div>`).join("")||`<span class="muted">No recorded winners.</span>`}
+    </div>
+    <div class="card"><h3>Timeline</h3>
+      ${rows.map(a=>`<div class="legacyRowV09137"><span>${a.season||"—"}</span><b>${a.player}</b></div>`).join("")||`<span class="muted">No recorded winners.</span>`}
+    </div>`;
+}
+window.renderAwardsHistoryV09137=renderAwardsHistoryV09137;
+
+function ensureHistoryEncyclopediaUIV09137(){
+  const history=document.getElementById("history");
+  if(!history||document.getElementById("playerEncyclopediaV09137"))return;
+  const section=document.createElement("div");
+  section.id="playerEncyclopediaV09137";
+  section.innerHTML=`
+    <div class="card">
+      <h2>Player Encyclopedia</h2>
+      <div class="small muted" style="margin-bottom:10px">Search every active or retired player in this Basketballverse.</div>
+      <div class="playerEncyclopediaSearchV09137">
+        <input id="playerEncyclopediaSearchV09137" placeholder="Search player..." oninput="renderPlayerEncyclopediaV09137()">
+        <select id="playerEncyclopediaSortV09137" onchange="renderPlayerEncyclopediaV09137()">
+          <option value="legacy">All-Time Legacy</option>
+          <option value="mvp">Most MVPs</option>
+          <option value="name">Name</option>
+        </select>
+      </div>
+      <div id="playerEncyclopediaBodyV09137"></div>
+    </div>
+    <div id="playerEncyclopediaDetailV09137"></div>
+    <div class="card">
+      <h2>Awards History</h2>
+      <select id="awardsHistorySelectV09137" style="width:100%;margin-bottom:10px" onchange="renderAwardsHistoryV09137()"></select>
+      <div id="awardsHistoryBodyV09137"></div>
+    </div>`;
+  history.appendChild(section);
+  renderPlayerEncyclopediaV09137();
+  renderAwardsHistoryV09137();
+}
+window.ensureHistoryEncyclopediaUIV09137=ensureHistoryEncyclopediaUIV09137;
+
+const _v09137SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09137SwitchTab.apply(this,arguments);
+  if(tab==="history")setTimeout(ensureHistoryEncyclopediaUIV09137,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+const _v09137RenderAll=renderAll;
+renderAll=function(){
+  const r=_v09137RenderAll.apply(this,arguments);
+  setTimeout(()=>{if(document.getElementById("history")?.classList.contains("active"))ensureHistoryEncyclopediaUIV09137();},0);
+  return r;
+};
+window.renderAll=renderAll;
 
 </script>
 </body>

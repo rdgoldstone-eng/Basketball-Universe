@@ -1,34 +1,25 @@
 Basketballverse
-v0.91.36 · Portrait Library Starter
+v0.91.37 · Player Encyclopedia
 
-FIRST REAL PORTRAITS
-This build includes approved generated-style portraits for:
-- Larry Bird
-- Magic Johnson
-- Michael Jordan
+NEW: HISTORY > PLAYER ENCYCLOPEDIA
+- Search active and retired players.
+- Sort by All-Time Legacy, Most MVPs, or Name.
+- Open a permanent career page for any player.
+- Review championships, career totals when recorded, award counts, and awards by season.
+- Portrait support is included.
 
-UI INTEGRATION
-Portraits now appear in:
-- Player Profile
-- Team roster
-- League player-leader rows
-- Draft selection
-- Free Agency
-- Trade Finder
-- Trade Machine
+NEW: AWARDS HISTORY
+- Select an award type.
+- See the all-time leaderboard for that award.
+- See every recorded winner by season.
 
-Portraits belong to the player, not the franchise. Team changes do not require
-new portrait ownership. The historical starter portraits are mapped by player
-name so they work even if a league file gives the player a different internal ID.
+LEGACY
+Legacy Score is based only on accomplishments recorded inside this Basketballverse:
+MVPs, Finals MVPs, championships, All-Star / All-League / defensive honors,
+career production when available, and peak OVR.
 
-MISSING PLAYERS
-Players without portrait art continue using the Basketballverse fallback. The
-library can be expanded progressively without changing save files.
+This is designed so that decades later you can look back and see who actually
+became the greatest players in YOUR universe, including players such as Bill Walton
+if they dominated the MVP race.
 
-GITHUB
-Upload:
-- index.html
-- basketballverse-logo.jpg
-- the ENTIRE portraits folder
-
-Retains all v0.91.35 systems.
+Retains all v0.91.36 systems and portraits.
