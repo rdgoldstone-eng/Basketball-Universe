@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.33 · Draft Selection Cleanup</div>
+    <div class="pill">v0.91.34 · Division Standings Fix</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.33";
+window.BASKETBALLVERSE_BUILD = "v0.91.34";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.33";
+      badge.textContent="Basketballverse v0.91.34";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.33";
+      badge.textContent="Basketballverse v0.91.34";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -24803,6 +24803,61 @@ setTimeout(()=>{
       renderDraftSelectionOnlyV09133();
     }
   }catch(e){console.error("v0.91.33 draft selection init",e);}
+},120);
+
+
+
+/* === v0.91.34 Division standings fix ===
+   v0.91.32 hid the first table cell after rendering. On division-header rows,
+   that first cell WAS the entire colspan division header, so the division label
+   disappeared too. Fix the actual standings renderer instead of hiding cells.
+
+   We keep standings split by division and remove the ranking number entirely. */
+standingsTable=function(conf){
+  const teams=ordered(conf);
+  const divisions=[...new Set(teams.map(t=>t.division).filter(Boolean))];
+  let rows="";
+
+  if(divisions.length){
+    divisions.forEach(div=>{
+      rows+=`<tr class="divisionLabel"><td colspan="4">${div} Division</td></tr>`;
+      teams.filter(t=>t.division===div).forEach(t=>{
+        rows+=`<tr>
+          <td><span style="display:inline-flex;align-items:center;gap:6px">${logoHTML(t)}<span>${t.name}</span></span></td>
+          <td>${t.w||0}</td>
+          <td>${t.l||0}</td>
+          <td>${t.gp?pct(t).toFixed(3).replace(/^0/,"."):"—"}</td>
+        </tr>`;
+      });
+    });
+  }else{
+    rows=teams.map(t=>`<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:6px">${logoHTML(t)}<span>${t.name}</span></span></td>
+      <td>${t.w||0}</td>
+      <td>${t.l||0}</td>
+      <td>${t.gp?pct(t).toFixed(3).replace(/^0/,"."):"—"}</td>
+    </tr>`).join("");
+  }
+
+  return `<table class="standings">
+    <thead><tr><th>Team</th><th>W</th><th>L</th><th>PCT</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+};
+window.standingsTable=standingsTable;
+
+/* Disable the old post-render cell-hiding workaround entirely. */
+cleanStandingsRankNumbersV09132=function(){};
+window.cleanStandingsRankNumbersV09132=cleanStandingsRankNumbersV09132;
+
+/* Immediately redraw any standings already visible. */
+setTimeout(()=>{
+  try{
+    if(document.getElementById("eastStandings"))document.getElementById("eastStandings").innerHTML=standingsTable("East");
+    if(document.getElementById("westStandings"))document.getElementById("westStandings").innerHTML=standingsTable("West");
+    if(document.getElementById("leagueEastStandingsV0901"))document.getElementById("leagueEastStandingsV0901").innerHTML=standingsTable("East");
+    if(document.getElementById("leagueWestStandingsV0901"))document.getElementById("leagueWestStandingsV0901").innerHTML=standingsTable("West");
+  }catch(e){console.error("v0.91.34 standings redraw",e);}
 },120);
 
 </script>
