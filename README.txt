@@ -1,19 +1,9 @@
-Basketballverse v0.91.41
+Basketballverse Portrait Pack — Batch 5
 
-TEAM > ROSTER FIX
-- Fixed the team dropdown not changing the displayed roster.
-- The real Team > Roster selector is playerTeamFilter; v0.91.40 was listening
-  for selector IDs that do not exist on this screen.
-- Changing teams now updates roster cards, rotation, and permissions together.
-- Your selected team stays selected while the screen rerenders.
+22 NEW UNIQUE player portraits.
+No players already present in the v0.91.42 portrait manifest were included.
 
-PLAYER CARDS
-- Cleaner card-style layout.
-- Portrait, name, position, age and role grouped together.
-- OVR, POT and MIN remain clearly labeled.
-- Salary added.
-- Years Left added.
-- Mobile layout uses one five-item stat strip: OVR / POT / MIN / Salary / Left.
-- Desktop keeps ratings and contract information in separate readable groups.
+Drop all .webp files directly into your existing /portraits folder.
+No index.html update is required.
 
-All v0.91.40 simulation systems and automatic portrait loading are retained.
+Unique portrait library after this batch: 76 players.
