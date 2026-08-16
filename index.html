@@ -525,6 +525,27 @@ pre{white-space:pre-wrap}
 .legacyRowV09137:last-child{border-bottom:0}
 .awardTimelineV09137{display:grid;gap:8px}
 
+
+.playerCardCleanV09140{
+  display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;
+  align-items:center;padding:12px 0;border-bottom:1px solid var(--line)
+}
+.playerCardCleanV09140:last-child{border-bottom:0}
+.playerCardCleanV09140 .playerPortraitSmallV09135{width:56px;height:68px;border-radius:12px}
+.playerCardMainV09140{min-width:0}
+.playerCardNameV09140{font-weight:900;font-size:18px;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.playerCardMetaV09140{margin-top:4px;color:var(--muted);font-size:13px;line-height:1.25}
+.playerCardRatingsV09140{display:grid;grid-template-columns:repeat(3,minmax(44px,1fr));gap:8px;text-align:center;min-width:150px}
+.playerCardStatV09140{padding-left:8px}
+.playerCardStatV09140 b{display:block;font-size:18px;line-height:1}
+.playerCardStatV09140 span{display:block;margin-top:4px;font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.playerCardStarV09140{color:#f4c85b;margin-right:5px}
+@media(max-width:560px){
+  .playerCardCleanV09140{grid-template-columns:56px minmax(0,1fr);align-items:start}
+  .playerCardRatingsV09140{grid-column:2;width:100%;min-width:0;margin-top:4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)}
+  .playerCardStatV09140{padding-left:0}
+}
+
 </style>
 </head>
 <body>
@@ -541,7 +562,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.39 · Auto Portrait Loader</div>
+    <div class="pill">v0.91.40 · Player Card Redesign</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1539,7 +1560,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.39";
+window.BASKETBALLVERSE_BUILD = "v0.91.40";
 </script>
 
 <script>
@@ -19064,7 +19085,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.39";
+      badge.textContent="Basketballverse v0.91.40";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20396,7 +20417,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.39";
+      badge.textContent="Basketballverse v0.91.40";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25625,6 +25646,76 @@ setTimeout(()=>{
     }
     renderDraftRoom?.();
   }catch(e){console.error("v0.91.39 portrait refresh",e);}
+},180);
+
+
+
+function cleanPlayerCardHTMLV09140(p){
+  const age=typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—");
+  const min=Number(p.min??p.minutes??p.mpg??0);
+  const star=(Number(p.ovr||0)>=85 || p.star===true || p.isStar===true);
+  return `<div class="playerCardCleanV09140" onclick="showPlayer('${String(p.id).replace(/'/g,"\\'")}')" style="cursor:pointer">
+    ${typeof portraitHTMLV09135==="function"?portraitHTMLV09135(p,"small"):""}
+    <div class="playerCardMainV09140">
+      <div class="playerCardNameV09140">${star?`<span class="playerCardStarV09140">★</span>`:""}${p.name}</div>
+      <div class="playerCardMetaV09140">${p.pos||"—"} · Age ${age}</div>
+    </div>
+    <div class="playerCardRatingsV09140">
+      <div class="playerCardStatV09140"><b>${p.ovr??"—"}</b><span>OVR</span></div>
+      <div class="playerCardStatV09140"><b>${p.pot??"—"}</b><span>POT</span></div>
+      <div class="playerCardStatV09140"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
+    </div>
+  </div>`;
+}
+window.cleanPlayerCardHTMLV09140=cleanPlayerCardHTMLV09140;
+
+function rebuildRosterCardsV09140(){
+  const box=document.getElementById("rosterBox");
+  if(!box||!state)return;
+  const teamName=document.getElementById("rosterTeamSelect")?.value ||
+                 document.getElementById("teamSelect")?.value ||
+                 state.teams?.find(t=>t.id===state.controlledTeamId)?.name;
+  if(!teamName)return;
+  const roster=teamRoster(teamName);
+  if(!Array.isArray(roster)||!roster.length)return;
+
+  let list=document.getElementById("cleanRosterListV09140");
+  const oldRows=[...box.querySelectorAll(".teamrow,.playerline")];
+
+  if(!list){
+    list=document.createElement("div");
+    list.id="cleanRosterListV09140";
+    if(oldRows.length){
+      oldRows[0].parentNode.insertBefore(list,oldRows[0]);
+    }else{
+      box.appendChild(list);
+    }
+  }
+  oldRows.forEach(r=>r.remove());
+
+  list.innerHTML=roster.slice().sort((a,b)=>
+    Number(b.ovr||0)-Number(a.ovr||0) ||
+    Number(b.min||b.minutes||0)-Number(a.min||a.minutes||0)
+  ).map(cleanPlayerCardHTMLV09140).join("");
+}
+window.rebuildRosterCardsV09140=rebuildRosterCardsV09140;
+
+const _v09140RenderPlayers=renderPlayers;
+renderPlayers=function(){
+  const r=_v09140RenderPlayers.apply(this,arguments);
+  setTimeout(rebuildRosterCardsV09140,0);
+  return r;
+};
+window.renderPlayers=renderPlayers;
+
+document.addEventListener("change",e=>{
+  if(e.target && (e.target.id==="rosterTeamSelect" || e.target.id==="teamSelect")){
+    setTimeout(rebuildRosterCardsV09140,20);
+  }
+});
+
+setTimeout(()=>{
+  try{rebuildRosterCardsV09140();}catch(e){console.error("v0.91.40 player cards",e);}
 },180);
 
 </script>
