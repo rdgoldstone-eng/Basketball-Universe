@@ -531,7 +531,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.91.35 · Player Portrait System</div>
+    <div class="pill">v0.91.36 · Portrait Library Starter</div>
     <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -1529,7 +1529,7 @@ window.safeTransitionStep = window.safeTransitionStep || function(label,fn){
 };
 /* Global-var compatibility for older non-window references. */
 var safeTransitionStep = window.safeTransitionStep;
-window.BASKETBALLVERSE_BUILD = "v0.91.35";
+window.BASKETBALLVERSE_BUILD = "v0.91.36";
 </script>
 
 <script>
@@ -19054,7 +19054,7 @@ function enforceBuildIdentityV0904(){
     if(!badge){
       badge=document.createElement("div");
       badge.id="buildBadgeV0904";
-      badge.textContent="Basketballverse v0.91.35";
+      badge.textContent="Basketballverse v0.91.36";
       badge.style.cssText="position:fixed;right:8px;bottom:8px;z-index:100001;font:600 11px system-ui;padding:5px 8px;border-radius:999px;background:#171a20;color:#f1c40f;border:1px solid #f1c40f;opacity:.88";
       document.body.appendChild(badge);
     }
@@ -20386,7 +20386,7 @@ function markScriptReadyV09111(){
   try{
     const badge=document.getElementById("buildBadgeV0904");
     if(badge){
-      badge.textContent="Basketballverse v0.91.35";
+      badge.textContent="Basketballverse v0.91.36";
       badge.title="Game script loaded completely";
     }
     const load=document.getElementById("loadBtn");
@@ -25028,6 +25028,161 @@ setTimeout(()=>{
     saveState?.();
   }catch(e){console.error("v0.91.35 portrait init",e);}
 },180);
+
+
+
+/* === v0.91.36 Starter historical portrait library + wider UI integration === */
+
+const PORTRAIT_NAME_MAP_V09136={
+  "larry bird":"portraits/larry-bird.webp",
+  "magic johnson":"portraits/magic-johnson.webp",
+  "michael jordan":"portraits/michael-jordan.webp"
+};
+window.PORTRAIT_NAME_MAP_V09136=PORTRAIT_NAME_MAP_V09136;
+
+/* Historical art can be keyed by name while generated players continue to use
+   their stable player-ID portrait key. This lets the same Larry/Magic/Jordan art
+   work even if a league file uses different internal IDs. */
+playerPortraitSrcV09135=function(p){
+  if(!p)return "";
+  if(p.portrait)return p.portrait;
+  const byName=PORTRAIT_NAME_MAP_V09136[String(p.name||"").trim().toLowerCase()];
+  if(byName)return byName;
+  return `portraits/${portraitKeyV09135(p)}.webp`;
+};
+window.playerPortraitSrcV09135=playerPortraitSrcV09135;
+
+function portraitPlayerByVisibleNameV09136(text){
+  const clean=String(text||"")
+    .replace(/^[★\s\d.#]+/,"")
+    .trim()
+    .toLowerCase();
+  if(!clean)return null;
+
+  let p=(state.players||[]).find(x=>String(x.name||"").trim().toLowerCase()===clean);
+  if(p)return p;
+
+  /* Sometimes rows contain extra metadata after the name. */
+  p=(state.players||[]).find(x=>clean.startsWith(String(x.name||"").trim().toLowerCase()));
+  return p||null;
+}
+
+function decoratePortraitRowsV09136(containerId){
+  const host=document.getElementById(containerId);
+  if(!host)return;
+
+  const rows=[...host.querySelectorAll(".teamrow,.playerline")];
+  for(const row of rows){
+    if(row.querySelector(".playerPortraitSmallV09135"))continue;
+
+    let nameEl=row.querySelector(".playername") || row.querySelector(".teammeta b") || row.querySelector("b");
+    if(!nameEl)continue;
+
+    const p=portraitPlayerByVisibleNameV09136(nameEl.textContent);
+    if(!p)continue;
+
+    /* Keep the header row untouched. */
+    if(row.classList.contains("header"))continue;
+
+    row.insertAdjacentHTML("afterbegin",portraitHTMLV09135(p,"small"));
+  }
+}
+window.decoratePortraitRowsV09136=decoratePortraitRowsV09136;
+
+function refreshPortraitUIV09136(){
+  /* Player/roster */
+  decoratePortraitRowsV09136("rosterBox");
+  decoratePortraitRowsV09136("leaderBox");
+
+  /* Draft */
+  addDraftPortraitsV09135?.();
+
+  /* Free agency */
+  decoratePortraitRowsV09136("frontOfficeFreeAgencyV0895");
+
+  /* Trade Finder + Trade Machine */
+  decoratePortraitRowsV09136("tradeFinderV09115");
+  decoratePortraitRowsV09136("gmTradeBuilderV086");
+  decoratePortraitRowsV09136("tradeMachineStandaloneV0885");
+}
+window.refreshPortraitUIV09136=refreshPortraitUIV09136;
+
+/* Player Profile: inject from the exact clicked player rather than trying to
+   infer a selected-player state field. */
+const _v09136ShowPlayer=showPlayer;
+showPlayer=function(id){
+  const r=_v09136ShowPlayer.apply(this,arguments);
+  const p=playerById(id);
+  if(p){
+    const profile=document.getElementById("playerProfile");
+    if(profile){
+      profile.querySelector(".playerProfileHeroV09135")?.remove();
+      injectPlayerProfilePortraitV09135(p);
+    }
+  }
+  return r;
+};
+window.showPlayer=showPlayer;
+
+/* Roster renderer */
+const _v09136RenderPlayers=renderPlayers;
+renderPlayers=function(){
+  const r=_v09136RenderPlayers.apply(this,arguments);
+  setTimeout(refreshPortraitUIV09136,0);
+  return r;
+};
+window.renderPlayers=renderPlayers;
+
+/* Draft renderer */
+const _v09136RenderDraftRoom=renderDraftRoom;
+renderDraftRoom=function(){
+  const r=_v09136RenderDraftRoom.apply(this,arguments);
+  setTimeout(refreshPortraitUIV09136,0);
+  return r;
+};
+window.renderDraftRoom=renderDraftRoom;
+
+/* Trade renderers */
+if(typeof renderGMTradeBuilderV086==="function"){
+  const _v09136RenderTrade=renderGMTradeBuilderV086;
+  renderGMTradeBuilderV086=function(){
+    const r=_v09136RenderTrade.apply(this,arguments);
+    setTimeout(refreshPortraitUIV09136,0);
+    return r;
+  };
+  window.renderGMTradeBuilderV086=renderGMTradeBuilderV086;
+}
+
+if(typeof renderTradeFinderV09119==="function"){
+  const _v09136RenderFinder=renderTradeFinderV09119;
+  renderTradeFinderV09119=function(){
+    const r=_v09136RenderFinder.apply(this,arguments);
+    setTimeout(refreshPortraitUIV09136,0);
+    return r;
+  };
+  window.renderTradeFinderV09119=renderTradeFinderV09119;
+}
+
+/* Free Agency can come through several accumulated renderers; the tab hook is
+   the safest common place to decorate it. */
+const _v09136SwitchTab=switchTab;
+switchTab=function(tab){
+  const r=_v09136SwitchTab.apply(this,arguments);
+  setTimeout(refreshPortraitUIV09136,0);
+  return r;
+};
+window.switchTab=switchTab;
+
+/* General render pass */
+const _v09136RenderAll=renderAll;
+renderAll=function(){
+  const r=_v09136RenderAll.apply(this,arguments);
+  setTimeout(refreshPortraitUIV09136,0);
+  return r;
+};
+window.renderAll=renderAll;
+
+setTimeout(refreshPortraitUIV09136,160);
 
 </script>
 </body>

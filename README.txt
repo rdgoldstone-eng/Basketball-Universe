@@ -1,24 +1,34 @@
 Basketballverse
-v0.91.35 · Player Portrait System
+v0.91.36 · Portrait Library Starter
 
-FOUNDATION
-- Every player now has a stable portrait key based on player ID.
-- Portraits follow the PLAYER, not the team.
-- Trades therefore never require changing portrait ownership.
-- Portrait artwork lives in /portraits and is not stored inside save data.
-- Missing artwork gets a Basketballverse-styled fallback instead of a broken image.
+FIRST REAL PORTRAITS
+This build includes approved generated-style portraits for:
+- Larry Bird
+- Magic Johnson
+- Michael Jordan
 
-FIRST UI INTEGRATION
-- Player Profile: large portrait hero.
-- Draft selection: compact portrait beside selectable prospects.
-- The system is reusable for Free Agency, Trade Finder, awards, newspaper and
-  Hall of Fame as the portrait library grows.
+UI INTEGRATION
+Portraits now appear in:
+- Player Profile
+- Team roster
+- League player-leader rows
+- Draft selection
+- Free Agency
+- Trade Finder
+- Trade Machine
 
-ASSET FORMAT
-portraits/<normalized-player-id>.webp
+Portraits belong to the player, not the franchise. Team changes do not require
+new portrait ownership. The historical starter portraits are mapped by player
+name so they work even if a league file gives the player a different internal ID.
 
-IMPORTANT
-This build establishes the portrait ENGINE. Individual historical-player art is
-a separate asset library and can be added progressively without changing saves.
+MISSING PLAYERS
+Players without portrait art continue using the Basketballverse fallback. The
+library can be expanded progressively without changing save files.
 
-Retains all v0.91.34 systems.
+GITHUB
+Upload:
+- index.html
+- basketballverse-logo.jpg
+- the ENTIRE portraits folder
+
+Retains all v0.91.35 systems.
