@@ -11030,7 +11030,7 @@ function playoffFormatForYear(year){
  if(y<=2002)return {teamsPerConference:8,firstRoundBestOf:5,firstRoundByes:0};
  return {teamsPerConference:8,firstRoundBestOf:7,firstRoundByes:0};
 }
-// v0.91.49: Historical first-round format guard.
+// v0.91.50: Historical first-round format guard.
 // NBA first round: best-of-3 through 1983-84, best-of-5 from 1984-85 through 2002-03,
 // and best-of-7 beginning with 2003-04. This also repairs playoffState loaded from older saves.
 function normalizeHistoricalFirstRoundFormat(){
@@ -17191,7 +17191,7 @@ function gmPreviousSeasonRowV087(team){
 }
 
 
-// v0.91.49: GM playoff-objective progress must read the canonical postseason state.
+// v0.91.50: GM playoff-objective progress must read the canonical postseason state.
 // Achievement scale: 0 missed playoffs, 1 made playoffs, 2 reached semifinals,
 // 3 reached conference finals, 4 reached NBA Finals, 5 won championship.
 function gmCurrentPlayoffAchievementV09149(team){
@@ -26686,7 +26686,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 })();
 </script>
 
-<!-- === v0.91.49 GM Playoff Objective Fix === -->
+<!-- === v0.91.50 GM Career History Recovery === -->
 
 <style id="gmCareerStyleV09147">
 #career.gmCareerProfileModeV09147 > :not(#gmCareerProfileV09147){display:none!important}
@@ -26695,10 +26695,10 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 @media(max-width:760px){#gmCareerProfileV09147 .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <script>
-/* === v0.91.49 GM Playoff Objective Fix + unified build identity === */
+/* === v0.91.50 GM Career History Recovery + unified build identity === */
 (function(){
-  const VERSION='v0.91.49';
-  const LABEL='v0.91.49 · GM Playoff Objective Fix';
+  const VERSION='v0.91.50';
+  const LABEL='v0.91.50 · GM Career History Recovery';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -26722,7 +26722,15 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
     const fh=state.franchiseHistory?.[teamId];
     return (fh?.seasons||[]).find(s=>Number(s.year)===Number(year))||null;
   }
-  function championRow(year){return (state.history?.champions||[]).find(c=>Number(c.year)===Number(year))||null}
+  function championRow(year){
+    const y=Number(year);
+    const c=(state.history?.champions||[]).find(c=>Number(c.year)===y);
+    if(c)return c;
+    const s=(state.history?.seasons||[]).find(s=>Number(s.year)===y);
+    if(!s||!s.champion)return null;
+    const t=(state.teams||[]).find(x=>x.name===s.champion||(x.identityHistory||[]).some(h=>h.name===s.champion));
+    return {year:y,team:s.champion,teamId:t?.id||null,runnerUp:s.runnerUp||null};
+  }
   function exactTitleFor(teamId,teamName,year){
     const c=championRow(year); if(!c)return false;
     const names=identityNamesForTeamId(teamId); if(teamName)names.add(teamName);
@@ -26765,18 +26773,38 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
     return {madePlayoffs:true,round:finals?'Finals':best,champion:false,finals};
   }
   function teamForGMYear(year){
-    const review=(state.gmCareer?.history||[]).find(h=>Number(h.year)===Number(year)&&h.teamId);
-    if(review)return {id:review.teamId,name:review.teamName||teamSeasonRow(review.teamId,year)?.name||'Team'};
-    const ev=(state.career?.history||[]).find(h=>Number(h.year)===Number(year)&&h.role==='GM'&&h.teamId);
-    if(ev)return {id:ev.teamId,name:ev.teamName||teamSeasonRow(ev.teamId,year)?.name||'Team'};
-    if(Number(year)===Number(state.currentYear)){
+    const y=Number(year);
+
+    // Best source: actual GM review/job history saved for that season.
+    const review=(state.gmCareer?.history||[]).find(h=>Number(h.year)===y&&h.teamId);
+    if(review)return {id:review.teamId,name:review.teamName||teamSeasonRow(review.teamId,y)?.name||'Team'};
+
+    // Secondary source: general career/job-change history.
+    const exactEv=(state.career?.history||[]).find(h=>Number(h.year)===y&&h.role==='GM'&&h.teamId);
+    if(exactEv)return {id:exactEv.teamId,name:exactEv.teamName||teamSeasonRow(exactEv.teamId,y)?.name||'Team'};
+
+    // If career events describe a GM tenure, use the most recent GM assignment at or before this year.
+    const priorEv=(state.career?.history||[])
+      .filter(h=>h.role==='GM'&&h.teamId&&Number.isFinite(Number(h.year))&&Number(h.year)<=y)
+      .sort((a,b)=>Number(b.year)-Number(a.year))[0];
+    if(priorEv)return {id:priorEv.teamId,name:priorEv.teamName||teamSeasonRow(priorEv.teamId,y)?.name||'Team'};
+
+    // v0.91.50 legacy-save recovery:
+    // Older Basketballverse saves existed before GM season/job history was recorded.
+    // For those saves, the only reliable ownership signal is the franchise currently controlled
+    // by the human GM. Treat that franchise as the historical GM job unless a saved job event says otherwise.
+    if(state.role==='GM'){
       const id=state.controlledTeamId||state.career?.currentTeamId;
-      const t=(state.teams||[]).find(x=>String(x.id)===String(id));
-      if(id)return {id,name:t?.name||'Team'};
+      if(id){
+        const t=(state.teams||[]).find(x=>String(x.id)===String(id));
+        const fr=teamSeasonRow(id,y);
+        return {id,name:fr?.name||t?.name||'Team',legacyRecovered:true};
+      }
     }
     return null;
   }
-  function archiveGMSeasonV09147(year,force=false){
+
+function archiveGMSeasonV09147(year,force=false){
     if(!state||state.role!=='GM'&&!state.gmCareer)return null;
     const gm=gmStore(); if(!gm)return null;
     const y=Number(year); if(!Number.isFinite(y))return null;
@@ -26802,12 +26830,36 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
   window.archiveGMSeasonV09147=archiveGMSeasonV09147;
 
   function backfillGMCareerV09147(){
-    const gm=gmStore(); if(!gm)return;
+    const gm=gmStore(); if(!gm||state.role!=='GM')return;
     const years=new Set();
+    const start=Number(state.historicalStartYear??state.startYear??state.currentYear);
+    const current=Number(state.currentYear);
+
+    // Explicit GM records.
     (gm.history||[]).forEach(h=>Number.isFinite(Number(h.year))&&years.add(Number(h.year)));
     (state.career?.history||[]).forEach(h=>h.role==='GM'&&Number.isFinite(Number(h.year))&&years.add(Number(h.year)));
-    years.forEach(y=>archiveGMSeasonV09147(y,false));
-    if(state.role==='GM'&&state.season?.phase==='Season Complete')archiveGMSeasonV09147(state.currentYear,true);
+
+    // Permanent universe history. Older saves commonly have these even though GM tracking did not exist yet.
+    (state.history?.seasons||[]).forEach(s=>Number.isFinite(Number(s.year))&&years.add(Number(s.year)));
+    (state.history?.champions||[]).forEach(c=>Number.isFinite(Number(c.year))&&years.add(Number(c.year)));
+
+    // Current controlled franchise season archive gives us W-L and conference data for legacy seasons.
+    const legacyTeamId=state.controlledTeamId||state.career?.currentTeamId;
+    const fh=legacyTeamId?state.franchiseHistory?.[legacyTeamId]:null;
+    (fh?.seasons||[]).forEach(s=>Number.isFinite(Number(s.year))&&years.add(Number(s.year)));
+
+    // If the universe has clearly advanced several seasons but the old save has sparse metadata,
+    // scan completed years. archiveGMSeason will only create a row when a GM team can be resolved.
+    if(Number.isFinite(start)&&Number.isFinite(current)&&current>start){
+      for(let y=start;y<current;y++)years.add(y);
+    }
+
+    [...years].sort((a,b)=>a-b).forEach(y=>{
+      // Do not manufacture future/current incomplete season history.
+      if(y<current || state.season?.phase==='Season Complete')archiveGMSeasonV09147(y,true);
+    });
+
+    if(state.season?.phase==='Season Complete')archiveGMSeasonV09147(current,true);
   }
   window.backfillGMCareerV09147=backfillGMCareerV09147;
 
@@ -26888,12 +26940,12 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
       document.querySelectorAll('.pill,[data-build],#buildVersion,.buildVersion').forEach(el=>{
         if(/v0\.91\.\d+/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/v0\.91\.\d+(?:\s*·\s*[^\n]*)?/,LABEL);
       });
-    }catch(e){console.warn('v0.91.49 version banner',e)}
+    }catch(e){console.warn('v0.91.50 version banner',e)}
   }
   window.enforceBuildIdentityV0904=enforceVersionV09147;
   window.markScriptReadyV09111=function(){enforceVersionV09147();try{document.getElementById('loadBtn')?.setAttribute('data-script-ready','true');document.getElementById('createBtn')?.setAttribute('data-script-ready','true')}catch(_){}};
 
-  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.49 init',e)}},350);
+  setTimeout(()=>{try{backfillGMCareerV09147();renderGMCareerProfileV09147();enforceVersionV09147();saveState?.()}catch(e){console.error('v0.91.50 init',e)}},350);
 })();
 
 </script>

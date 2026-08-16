@@ -1,28 +1,34 @@
-# Basketballverse v0.91.49 — GM Playoff Objective Fix
+# Basketballverse v0.91.50 — GM Career History Recovery
 
-## Fix in this build
-- Fixes GM playoff objectives incorrectly showing as incomplete after a successful playoff run or championship.
-- The Objectives system now reads the canonical `state.season.playoffState` used by the actual postseason.
-- Playoff achievement is hierarchical:
-  - 1 = made playoffs
-  - 2 = reached semifinals / second round
-  - 3 = reached conference finals
-  - 4 = reached NBA Finals
-  - 5 = won NBA championship
-- Winning a championship automatically satisfies lower-level playoff goals such as **Make a playoff run**.
-- First-round byes are recognized correctly in historical playoff formats.
-- Works with an active postseason and with a completed championship season.
-- Retains the v0.91.48 historical first-round format correction.
-- In-game version banner updated to v0.91.49.
+## What this fixes
+Older Basketballverse saves can have years of league history — including championships — from before the GM Career Profile existed. Previous builds only backfilled seasons that already had a GM review/history entry, so those older accomplishments could display as zero.
 
-## Installation
-Upload/replace the files from this ZIP in the same GitHub location used for Basketballverse.
+v0.91.50 reconstructs the GM résumé from the permanent universe data already in the save.
 
-## Save compatibility
-Compatible with existing saves. The objective is recalculated from the postseason data already stored in the save, so a championship already won in the current season should be credited when the Objectives page refreshes.
+## GM Career Profile now recovers
+- Championships
+- NBA Finals appearances
+- Playoff appearances
+- Seasons as GM
+- Regular-season wins and losses when archived franchise records are available
+- Career win percentage
+- Best regular-season record
+- Season-by-season résumé
+
+## Legacy-save behavior
+If an older save has no historical GM job-change records, Basketballverse uses the human GM's currently controlled franchise as the historical franchise for the missing years. This is the best available reconstruction for saves created before GM job history was stored.
+
+If a save *does* contain GM job/team-change history, those explicit records take priority.
+
+## Other fixes retained
+- v0.91.49 GM playoff-objective hierarchy fix
+- v0.91.48 historical first-round playoff format fix
+- Free-agency economy improvements
+- Draft lottery stability
+- Historic newspaper context
+
+## Version
+In-game build banner: **v0.91.50 · GM Career History Recovery**
 
 ## Test
-1. Load a save in which your controlled team has reached at least the second round.
-2. Open **Objectives**.
-3. **Make a playoff run** should show complete.
-4. If your team won the NBA championship, every playoff-achievement objective below championship level should also be complete.
+Load your existing long-running GM save and open the Career section. Your previously won championships should now appear in the GM Career totals and in the season-by-season résumé without starting a new universe.
