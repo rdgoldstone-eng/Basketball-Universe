@@ -1,21 +1,28 @@
-# Basketballverse v0.91.48 — Historical Playoff Format Fix
+# Basketballverse v0.91.49 — GM Playoff Objective Fix
 
 ## Fix in this build
-- Corrects the NBA first-round series format by season:
-  - through 1983-84: best-of-3
-  - 1984-85 through 2002-03: best-of-5
-  - 2003-04 onward: best-of-7
-- Specifically fixes 1993-94 so the first round is best-of-5.
-- Adds a save-game compatibility guard. If an older save has an active first-round series incorrectly stored as best-of-7, Basketballverse repairs the active, unfinished series when the postseason loads.
-- Synchronizes the displayed league-rule value with the historical playoff format.
-- Retains the GM Career Profile, free-agency economy changes, lottery stability fixes, and earlier features.
-- Updates the in-game version banner to v0.91.48.
+- Fixes GM playoff objectives incorrectly showing as incomplete after a successful playoff run or championship.
+- The Objectives system now reads the canonical `state.season.playoffState` used by the actual postseason.
+- Playoff achievement is hierarchical:
+  - 1 = made playoffs
+  - 2 = reached semifinals / second round
+  - 3 = reached conference finals
+  - 4 = reached NBA Finals
+  - 5 = won NBA championship
+- Winning a championship automatically satisfies lower-level playoff goals such as **Make a playoff run**.
+- First-round byes are recognized correctly in historical playoff formats.
+- Works with an active postseason and with a completed championship season.
+- Retains the v0.91.48 historical first-round format correction.
+- In-game version banner updated to v0.91.49.
 
 ## Installation
-Replace the previous `index.html` with this build's `index.html`, or upload the contents of this ZIP to the same GitHub location used for Basketballverse.
+Upload/replace the files from this ZIP in the same GitHub location used for Basketballverse.
 
 ## Save compatibility
-Designed to work with existing Basketballverse saves. The playoff-format repair applies to active unfinished first-round series; completed historical series are not rewritten.
+Compatible with existing saves. The objective is recalculated from the postseason data already stored in the save, so a championship already won in the current season should be credited when the Objectives page refreshes.
 
 ## Test
-For the 1993-94 season, open the playoffs and confirm each first-round series displays **Best of 5** and clinches at three wins.
+1. Load a save in which your controlled team has reached at least the second round.
+2. Open **Objectives**.
+3. **Make a playoff run** should show complete.
+4. If your team won the NBA championship, every playoff-achievement objective below championship level should also be complete.
