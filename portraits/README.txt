@@ -1,13 +1,6 @@
-1976 Basketballverse Class Portraits
+1977 Basketballverse Class Portraits — Rebuilt
 
-42 portrait files covering the 1976 draft-class players represented in the
-Basketballverse 1976 starting league.
-
-Drop the .webp files into /portraits. Existing files with the same player name
-can be replaced if you want this draft-class set to be authoritative.
-
-The portraits are AI-generated game-style artwork. For obscure historical
-players where a reliable likeness was not available in our generated source
-art, the file uses a unique era-appropriate generated portrait.
+65 individual 256x256 .webp portrait files.
+Drop the .webp files directly into your existing /portraits folder and replace the older 1977 files.
 
 No index.html change is required.
