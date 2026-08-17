@@ -1,22 +1,38 @@
-# Basketballverse v0.91.61 — Coach Identity + Legacy
+# Basketballverse v0.91.62 — Coach Scouting + Halftime Adjustments
 
-## New Coach Identity
-Choose a coaching philosophy: Offensive Architect, Defensive Specialist, Player Developer, Motivator, or Tactician.
+## Pregame Opponent Scouting
+Coach mode now adds an Opponent Scouting section to Team → Game Plan when a playoff matchup is active.
 
-## Coach Attributes
-Career/Profile now tracks Offense, Defense, Development, Motivation, Game Management, and Adaptability. Attributes improve through completed seasons and career performance.
+The scouting report shows:
+- Opponent star player
+- Offensive identity
+- Pace
+- Defensive identity
+- Shooting strength
+- Rebounding strength
+- Passing strength
+- Suggested tactical notes based on the matchup
 
-## Legacy Score
-Coach careers receive a Legacy Score based on career wins, playoff appearances, Finals appearances, championships, Coach of the Year awards, and reputation.
+## Interactive Halftime Adjustments
+When watching a game in Coach mode, halftime now becomes an interactive coaching checkpoint.
 
-## Coach of the Year
-Strong seasons can now produce Coach of the Year recognition. Awards are stored and displayed on the Coach career profile.
+You can change:
+- Offense: Stay Course, Attack Paint, More Threes, Run Through Star
+- Defense: Stay Course, Pressure Ball, Protect Paint, Deny Star
+- Tempo: Push Pace, Normal, Slow Down
+- Rotation: Normal, Shorten Rotation, Use Bench More
 
-## Existing Coach systems retained
-Interactive crunch-time coaching, editable depth chart, rotation/minutes, game plans, player roles, development, career résumé, expectations, and AI front-office offseason handling.
+The game also gives contextual halftime notes based on the score and opponent profile.
 
-## Next
-Pregame opponent scouting and halftime adjustments.
+Halftime choices affect the third-quarter simulation. If the game remains close, the existing interactive Crunch Time system takes over in the fourth quarter.
+
+## Coach role flow
+Pregame: Scout opponent and set Game Plan
+Halftime: Make tactical adjustments
+Crunch Time: Control late-game lineup, offense, defense, tempo, fouling, and go-to player
+
+## Previous Coach features retained
+Coach Identity/Legacy, Coach of the Year, coach attributes, editable depth chart, rotations, player roles, development, career résumé, expectations, and AI front-office offseason handling.
 
 ## Version
-v0.91.61 · Coach Identity + Legacy
+v0.91.62 · Coach Scouting + Halftime Adjustments

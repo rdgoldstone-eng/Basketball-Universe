@@ -26762,7 +26762,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.61 · Coach Identity + Legacy';
+  const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27089,7 +27089,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.61 · Coach Identity + Legacy';
+  const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27284,7 +27284,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27479,7 +27479,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27612,7 +27612,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.61 · Coach Identity + Legacy';
+  const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27683,7 +27683,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.61 · Coach Identity + Legacy';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27739,7 +27739,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27838,7 +27838,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28006,7 +28006,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28276,7 +28276,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28447,7 +28447,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.61 · Coach Identity + Legacy';
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28482,6 +28482,212 @@ function archiveGMSeasonV09147(year,force=false){
  };
  const rp=window.renderCoachPagesV09159;if(typeof rp==='function')window.renderCoachPagesV09159=function(){let r=rp.apply(this,arguments);setTimeout(window.renderCoachIdentityLegacyV09161,0);return r};
  const ra=window.renderAll;if(typeof ra==='function')window.renderAll=function(){let r=ra.apply(this,arguments);if(state?.role==='Coach')setTimeout(window.renderCoachIdentityLegacyV09161,0);return r};
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.62 Coach Scouting + Halftime Adjustments === -->
+<style id="coachScoutingHalftimeStyleV09162">
+.coachScoutGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.coachScoutCard{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.coachScoutCard b{display:block;margin-bottom:3px}
+.coachHalftimeBox{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.coachHalftimeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.coachHalftimeGrid label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+@media(max-width:650px){.coachScoutGrid,.coachHalftimeGrid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+ function coachMode(){return state?.role==='Coach'}
+ function cteam(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
+ function healthy(name){
+   return (state.players||[]).filter(p=>p.teamName===name&&!p.retired&&!p.deferredEntry&&p.healthStatus!=='Out');
+ }
+ function avgTop(name,key,n=5){
+   const r=healthy(name).slice().sort((a,b)=>Number(b[key]??b.ovr||0)-Number(a[key]??a.ovr||0)).slice(0,n);
+   return r.length?r.reduce((s,p)=>s+Number(p[key]??p.ovr||60),0)/r.length:60;
+ }
+ function topPlayer(name){
+   return healthy(name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0]||null;
+ }
+ function teamProfile(name){
+   const t=(state.teams||[]).find(x=>x.name===name); if(!t)return null;
+   const s=typeof coachSettings==='function'?coachSettings(t.id):{};
+   const guards=healthy(name).filter(p=>['PG','SG'].includes(p.pos));
+   const bigs=healthy(name).filter(p=>['PF','C'].includes(p.pos));
+   const shooting=avgTop(name,'shooting',5),defense=avgTop(name,'defense',5),rebounding=avgTop(name,'rebounding',5),passing=avgTop(name,'passing',4);
+   const style=s?.offense||((shooting>=rebounding+4)?'Perimeter':(rebounding>=shooting+4?'Inside':'Balanced'));
+   const pace=s?.pace||'Balanced';
+   const defStyle=s?.defense||'Man-to-Man';
+   return {t,style,pace,defStyle,shooting,defense,rebounding,passing,star:topPlayer(name),guards,bigs};
+ }
+ function scoutAdvice(opp){
+   if(!opp)return [];
+   const tips=[];
+   if(opp.style==='Inside'||opp.rebounding>=76)tips.push('Protect the paint and finish possessions with rebounds.');
+   if(opp.style==='Perimeter'||opp.shooting>=77)tips.push('Stay attached to shooters and consider switching or pressure.');
+   if(opp.passing<70)tips.push('Ball pressure can disrupt their guards.');
+   if(opp.defense<70)tips.push('Attack aggressively; their defense is vulnerable.');
+   if(opp.pace==='Fast')tips.push('Control transition defense and consider slowing tempo.');
+   if(opp.star)tips.push(`Their primary threat is ${opp.star.name} (${opp.star.pos}, ${opp.star.ovr} OVR).`);
+   return tips.slice(0,4);
+ }
+ function opponentForUpcoming(){
+   const ps=state?.season?.playoffState;
+   if(ps){
+     const active=(typeof currentSeriesForTeam==='function')?currentSeriesForTeam(state.controlledTeamId):null;
+     if(active){
+       const id=String(active.aId)===String(state.controlledTeamId)?active.bId:active.aId;
+       return (state.teams||[]).find(t=>String(t.id)===String(id))||null;
+     }
+   }
+   return null;
+ }
+ function scoutHTML(){
+   const me=cteam(),opp=opponentForUpcoming(); if(!me)return '<span class="muted">No controlled team.</span>';
+   if(!opp)return '<div class="notice">Opponent scouting becomes available when a playoff matchup is active.</div>';
+   const p=teamProfile(opp.name),tips=scoutAdvice(p);
+   return `<div class="calendarline"><div><h3 style="margin:0">${opp.name}</h3><div class="small muted">Pregame scouting report</div></div><span class="pill">${p.style} · ${p.pace}</span></div>
+   <div class="coachScoutGrid">
+     <div class="coachScoutCard"><b>Primary Threat</b>${p.star?`${p.star.name} · ${p.star.pos} · ${p.star.ovr} OVR`:'No clear star'}</div>
+     <div class="coachScoutCard"><b>Offensive Identity</b>${p.style} · ${p.pace} pace</div>
+     <div class="coachScoutCard"><b>Defensive Identity</b>${p.defStyle}</div>
+     <div class="coachScoutCard"><b>Shooting</b>${Math.round(p.shooting)}</div>
+     <div class="coachScoutCard"><b>Rebounding</b>${Math.round(p.rebounding)}</div>
+     <div class="coachScoutCard"><b>Passing</b>${Math.round(p.passing)}</div>
+   </div>
+   <h3>Scouting Notes</h3>${tips.map(x=>`<div class="notice" style="margin-top:6px">${x}</div>`).join('')}`;
+ }
+ window.coachPregameScoutHTMLV09162=scoutHTML;
+
+ // Add scouting to Game Plan page.
+ const oldPages=window.renderCoachPagesV09159;
+ if(typeof oldPages==='function'){
+   window.renderCoachPagesV09159=function(){
+     const r=oldPages.apply(this,arguments);
+     if(coachMode()){
+       const host=document.getElementById('coachGamePlanPageV09158');
+       if(host && !document.getElementById('coachPregameScoutV09162')){
+         const box=document.createElement('div');
+         box.id='coachPregameScoutV09162';
+         box.className='card';
+         box.style.marginTop='12px';
+         box.innerHTML=`<h2>Opponent Scouting</h2>${scoutHTML()}`;
+         host.appendChild(box);
+       }else if(host){
+         const box=document.getElementById('coachPregameScoutV09162');
+         if(box)box.innerHTML=`<h2>Opponent Scouting</h2>${scoutHTML()}`;
+       }
+     }
+     return r;
+   };
+ }
+
+ // ---------- Halftime interactive coaching ----------
+ function watch(){return state?.season?.playoffState?.watchGame||null}
+ function controlsTeam(w){return coachMode()&&w&&(String(state.controlledTeamId)===String(w.aId)||String(state.controlledTeamId)===String(w.bId))}
+ function halfStore(w){
+   w.coachHalftime=w.coachHalftime||{offense:'Stay Course',defense:'Stay Course',tempo:'Normal',rotation:'Normal'};
+   return w.coachHalftime;
+ }
+ window.setCoachHalftimeV09162=function(k,v){
+   const w=watch();if(!w)return;halfStore(w)[k]=v;
+   try{saveState?.()}catch(_){}
+   try{renderWatchGame?.()}catch(_){}
+ };
+ function halftimeRead(w){
+   const side=String(state.controlledTeamId)===String(w.aId)?'a':'b';
+   const my=side==='a'?w.aScore:w.bScore,opp=side==='a'?w.bScore:w.aScore;
+   const diff=my-opp;
+   const notes=[];
+   if(diff<=-10)notes.push('You are down double digits — consider a higher-variance adjustment.');
+   if(diff>=10)notes.push('You have a solid lead — protecting possessions and limiting transition risk can help.');
+   if(Math.abs(diff)<6)notes.push('One or two possessions separate the teams. Small tactical edges matter.');
+   const oppTeam=side==='a'?teamById(w.bId):teamById(w.aId),p=teamProfile(oppTeam?.name);
+   if(p?.shooting>=77)notes.push('Opponent shooting is a major threat.');
+   if(p?.rebounding>=77)notes.push('Opponent size/rebounding is a major threat.');
+   return notes.slice(0,3);
+ }
+ function halftimeHTML(w){
+   if(!controlsTeam(w)||w.complete||w.quarter!==2||w.crunch)return '';
+   const d=halfStore(w),notes=halftimeRead(w);
+   const opts=(arr,val)=>arr.map(x=>`<option ${x===val?'selected':''}>${x}</option>`).join('');
+   return `<div class="coachHalftimeBox">
+     <h3 style="margin-top:0">Halftime Adjustments</h3>
+     ${notes.map(n=>`<div class="small muted" style="margin-bottom:4px">• ${n}</div>`).join('')}
+     <div class="coachHalftimeGrid" style="margin-top:9px">
+       <div><label>Offense</label><select onchange="setCoachHalftimeV09162('offense',this.value)">${opts(['Stay Course','Attack Paint','More Threes','Run Through Star'],d.offense)}</select></div>
+       <div><label>Defense</label><select onchange="setCoachHalftimeV09162('defense',this.value)">${opts(['Stay Course','Pressure Ball','Protect Paint','Deny Star'],d.defense)}</select></div>
+       <div><label>Tempo</label><select onchange="setCoachHalftimeV09162('tempo',this.value)">${opts(['Push Pace','Normal','Slow Down'],d.tempo)}</select></div>
+       <div><label>Rotation</label><select onchange="setCoachHalftimeV09162('rotation',this.value)">${opts(['Normal','Shorten Rotation','Use Bench More'],d.rotation)}</select></div>
+     </div>
+   </div>`;
+ }
+ window.coachHalftimeHTMLV09162=halftimeHTML;
+
+ function halftimeEdge(w){
+   if(!controlsTeam(w))return 0;
+   const d=halfStore(w),side=String(state.controlledTeamId)===String(w.aId)?'a':'b';
+   const opp=side==='a'?teamById(w.bId):teamById(w.aId),p=teamProfile(opp?.name);
+   let e=0;
+   if(d.offense==='Attack Paint' && p?.defense<74)e+=.035;
+   if(d.offense==='More Threes' && avgTop(cteam().name,'shooting',5)>=75)e+=.035;
+   if(d.offense==='Run Through Star' && topPlayer(cteam().name)?.ovr>=82)e+=.04;
+   if(d.defense==='Pressure Ball' && p?.passing<72)e+=.03;
+   if(d.defense==='Protect Paint' && (p?.style==='Inside'||p?.rebounding>=76))e+=.035;
+   if(d.defense==='Deny Star' && p?.star?.ovr>=82)e+=.025;
+   if(d.tempo==='Push Pace' && avgTop(cteam().name,'passing',3)>=74)e+=.02;
+   if(d.tempo==='Slow Down')e+=.01;
+   if(d.rotation==='Shorten Rotation')e+=.025;
+   if(d.rotation==='Use Bench More')e-=.015;
+   return Math.max(-.06,Math.min(.12,e));
+ }
+
+ // Replace third-quarter simulation for Coach so halftime choices affect the next segment.
+ const oldQuarter=window.advanceWatchQuarter;
+ window.advanceWatchQuarter=function(){
+   const w=watch();
+   if(w&&controlsTeam(w)&&w.quarter===2&&!w.crunch&&!w.complete){
+     const a=teamById(w.aId),b=teamById(w.bId),side=String(state.controlledTeamId)===String(w.aId)?'a':'b';
+     w.quarter++;
+     let ap=quarterPoints(a,b,w.quarter),bp=quarterPoints(b,a,w.quarter),edge=halftimeEdge(w);
+     const swing=Math.round(edge*18);
+     if(side==='a')ap+=swing; else bp+=swing;
+     w.aScore+=ap;w.bScore+=bp;
+     const d=halfStore(w);
+     w.moments.unshift(`Halftime adjustment: ${d.offense} offense · ${d.defense} defense · ${d.tempo} tempo · ${d.rotation}.`);
+     let lead=w.aScore===w.bScore?'The game is tied':`${w.aScore>w.bScore?a.name:b.name} leads by ${Math.abs(w.aScore-w.bScore)}`;
+     w.moments.unshift(`End of 3rd quarter: ${lead}. ${watchLeader(w.aScore>=w.bScore?a.name:b.name)}`);
+     if(Math.abs(w.aScore-w.bScore)<=12){
+       w.crunch=true;w.crunchStage=0;
+       w.moments.unshift(`Closing lineups: ${a.name} — ${closingFiveText(a.name)}. ${b.name} — ${closingFiveText(b.name)}.`);
+       w.moments.unshift(`Fourth quarter setup: ${lead}. This one is close enough to enter Crunch Time.`);
+     }
+     renderWatchGame();saveState();return;
+   }
+   return oldQuarter.apply(this,arguments);
+ };
+
+ // Inject halftime controls into Watch Game.
+ const oldRenderWatch=window.renderWatchGame;
+ window.renderWatchGame=function(){
+   const r=oldRenderWatch.apply(this,arguments),w=watch(),panel=document.getElementById('watchGamePanel');
+   if(panel&&w&&controlsTeam(w)&&w.quarter===2&&!w.crunch&&!w.complete){
+     const wp=panel.querySelector('.watchPanel');
+     if(wp){
+       const wrapper=document.createElement('div');wrapper.innerHTML=halftimeHTML(w);
+       const node=wrapper.firstElementChild;
+       const btn=wp.querySelector('button.primary');
+       if(node){if(btn)wp.insertBefore(node,btn);else wp.appendChild(node)}
+     }
+   }
+   return r;
+ };
+
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
 </script>
