@@ -1,31 +1,27 @@
-# Basketballverse v0.91.54 — Direct Draft Reveal + Canadian Logos
+# Basketballverse v0.91.55 — Local Canadian Logo Asset Fix
 
-## Draft lottery/reveal fix
-The separate lottery overlay is no longer required.
+## Toronto & Vancouver
+The previous fix still allowed Toronto and Vancouver to pass through the generic logo-library path.
 
-The Draft Order page itself now contains the reveal system:
-- **Reveal Pick #X** reveals the first-round order from the bottom upward.
-- The reveal ends with the #1 pick.
-- **Reveal All** immediately shows the full first-round order.
-- **Reset Reveal** lets you replay the reveal.
-- Reveal progress is stored in the universe save.
-- Revealing picks does not reroll or alter the draft order.
+This version includes two local logo assets:
+- `logos/toronto-raptors-1995.svg`
+- `logos/vancouver-grizzlies-1995.svg`
 
-This is intentionally plain HTML inside the existing Draft Order page so it does not depend on the previous modal, animation, tile, or timer systems.
+The game now hard-routes Toronto Raptors and Vancouver Grizzlies to those local files before any generated or remote logo fallback can run.
 
-## Toronto and Vancouver logos
-Toronto Raptors and Vancouver Grizzlies expansion-era logos are now embedded directly inside Basketballverse rather than loaded from third-party image hosts. This prevents failed remote images from falling back to the generic team logo.
+Existing saves are also repaired by clearing cached generic logo entries for those teams.
 
-The Canadian expansion teams are refreshed on old saves as well, so an existing save that already created generic logo-library entries can rebuild those entries.
+## Important
+Upload the **entire ZIP contents**, including the `/logos` folder, to GitHub. If only `index.html` is uploaded, the two local logo files will not be available.
 
-## Previous changes retained
-- Stretch-run tanking / Prioritize Draft Position
+## Other features retained
+- Direct Draft Order reveal
+- Stretch-run tanking
 - Free Agency cap display
 - GM Career History Recovery
-- GM playoff-objective fix
 - Historical playoff formats
 - Free-agency economy improvements
-- Historic newspaper context
+- Historically aware newspapers
 
 ## Version
-**v0.91.54 · Direct Draft Reveal + Canadian Logos**
+**v0.91.55 · Local Canadian Logo Asset Fix**
