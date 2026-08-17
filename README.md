@@ -1,23 +1,44 @@
-# Basketballverse v0.91.57 — Coach Offseason Authority Fix
+# Basketballverse v0.91.58 — Coach Navigation Reorganization
 
-## Coach re-signing loop fixed
-Coach mode was reaching the league Re-signings stage, but the offseason UI still directed the user into Front Office contract controls. That created a loop because those decisions belong to the GM.
+## Coach Team menu
+The old combined Depth Chart page contained too many unrelated Coach systems.
 
-Coach mode now has explicit role authority during the offseason:
+In Coach mode, Team now has dedicated subtabs:
+- Roster
+- Game Plan
+- Rotation
+- Depth Chart
+- Player Roles
+- Development
+- Health
+- Stats
 
-- **Re-signings:** `Let GM Handle Re-signings`
-- **Free Agency:** `Let GM Handle Free Agency`
-- **Roster Cuts:** `Let GM Finalize Roster`
+### Game Plan
+Pace, offensive style, defensive style, crunch-time preference and playoff adjustments.
 
-The AI front office handles those personnel stages for the Coach's team and every other team, then the offseason advances normally.
+### Rotation
+Active rotation size and individual player minutes.
 
-Coach mode no longer needs to open Front Office or manually sign/release players to continue.
+### Depth Chart
+A clean positional depth chart without all of the other Coach systems mixed into it.
 
-## Existing save repair
-A Coach save already stuck on Re-signings, Free Agency, or Roster Cuts will reopen on the Offseason page with the correct action available.
+### Player Roles
+Primary option, secondary option, sixth man, defensive stopper, prospect, bench leader and player buy-in.
 
-## Coach role retained
-v0.91.56 Coach Career, expectations, résumé, rotations, schemes, development focus, roles/buy-in and coaching systems remain intact.
+### Development
+Choose and review player development priorities.
+
+## Career
+Coach Career and Coaching Résumé have moved into the Career menu under the Coach Profile page.
+
+## Objectives
+Front Office Expectations have moved to Objectives, alongside the Coach's other season goals and job-performance information.
+
+## Previous Coach fixes retained
+- Coach career statistics and résumé
+- Front-office expectations
+- Coach offseason authority / re-signing loop fix
+- Rotations, schemes, development, roles/buy-in and playoff adjustments
 
 ## Version
-v0.91.57 · Coach Offseason Authority Fix
+v0.91.58 · Coach Navigation Reorganization

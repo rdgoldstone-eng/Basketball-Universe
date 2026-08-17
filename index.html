@@ -1199,7 +1199,29 @@ pre{white-space:pre-wrap}
 <div class="card"><h2>Coaching Résumé</h2><div id="coachResumeBox" class="muted">No completed seasons yet.</div></div>
 </section>
 
-  <section id="frontoffice" class="section">
+  
+<section id="coachgameplan" class="section">
+  <div class="card"><h2>Game Plan</h2><div id="coachGamePlanPageV09158"></div></div>
+</section>
+<section id="coachrotation" class="section">
+  <div class="card"><h2>Rotation</h2><div id="coachRotationPageV09158"></div></div>
+</section>
+<section id="coachdepthchart" class="section">
+  <div class="card"><h2>Depth Chart</h2><div id="coachDepthChartPageV09158"></div></div>
+</section>
+<section id="coachroles" class="section">
+  <div class="card"><h2>Player Roles</h2><div id="coachRolesPageV09158"></div></div>
+</section>
+<section id="coachdevelopment" class="section">
+  <div class="card"><h2>Development</h2><div id="coachDevelopmentPageV09158"></div></div>
+</section>
+<section id="coachcareer" class="section">
+  <div class="grid2">
+    <div class="card"><h2>Coach Career</h2><div id="coachCareerPageV09158"></div></div>
+    <div class="card"><h2>Coaching Résumé</h2><div id="coachResumePageV09158"></div></div>
+  </div>
+</section>
+<section id="frontoffice" class="section">
     <div class="grid2">
       <div class="card">
         <h2>Roster & Payroll</h2>
@@ -26740,7 +26762,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+  const LABEL='v0.91.58 · Coach Navigation Reorganization';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27067,7 +27089,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+  const LABEL='v0.91.58 · Coach Navigation Reorganization';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27262,7 +27284,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+ const LABEL='v0.91.58 · Coach Navigation Reorganization';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27457,7 +27479,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+ const LABEL='v0.91.58 · Coach Navigation Reorganization';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27590,7 +27612,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+  const LABEL='v0.91.58 · Coach Navigation Reorganization';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27661,7 +27683,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.57 · Coach Offseason Authority Fix';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.58 · Coach Navigation Reorganization';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27717,7 +27739,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+ const LABEL='v0.91.58 · Coach Navigation Reorganization';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27807,6 +27829,164 @@ function archiveGMSeasonV09147(year,force=false){
      }
    }catch(e){console.error('Coach offseason repair',e)}
  },150);
+
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.58 Coach Navigation Reorganization === -->
+<script>
+(function(){
+ const LABEL='v0.91.58 · Coach Navigation Reorganization';
+ window.BASKETBALLVERSE_BUILD='v0.91.58';
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+ const COACH_TEAM_TABS=[
+   ['players','Roster'],
+   ['coachgameplan','Game Plan'],
+   ['coachrotation','Rotation'],
+   ['coachdepthchart','Depth Chart'],
+   ['coachroles','Player Roles'],
+   ['coachdevelopment','Development'],
+   ['healthcenter','Health'],
+   ['stats','Stats']
+ ];
+ const COACH_CAREER_TABS=[
+   ['coachcareer','Profile'],
+   ['jobmarket','Job Market'],
+   ['careerhistory','Career History']
+ ];
+ const coachTabIds=new Set(['coachgameplan','coachrotation','coachdepthchart','coachroles','coachdevelopment','coachcareer']);
+
+ const oldNavigationGroupForTab=window.navigationGroupForTab;
+ window.navigationGroupForTab=navigationGroupForTab=function(tab){
+   if(['coachgameplan','coachrotation','coachdepthchart','coachroles','coachdevelopment'].includes(tab))return 'team';
+   if(tab==='coachcareer')return 'career';
+   return oldNavigationGroupForTab?.call(this,tab)||'dashboard';
+ };
+
+ const oldRenderSubNavigation=window.renderSubNavigation;
+ window.renderSubNavigation=renderSubNavigation=function(group,activeTab){
+   if(state?.role!=='Coach')return oldRenderSubNavigation.apply(this,arguments);
+   const sub=document.getElementById('subNav');if(!sub)return;
+   const wrap=document.querySelector('.subNavWrap');
+   let items=group==='team'?COACH_TEAM_TABS:group==='career'?COACH_CAREER_TABS:null;
+   if(!items)return oldRenderSubNavigation.apply(this,arguments);
+   if(wrap)wrap.classList.remove('hidden');
+   sub.innerHTML=items.map(([tab,label])=>`<button data-subtab="${tab}" class="${tab===activeTab?'active':''}">${label}</button>`).join('');
+   sub.querySelectorAll('button').forEach(btn=>btn.onclick=()=>switchTab(btn.dataset.subtab));
+ };
+
+ function controlledTeam(){
+   return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null;
+ }
+ function roster(){
+   const t=controlledTeam();if(!t)return [];
+   return (state.players||[]).filter(p=>p.teamName===t.name&&!p.retired&&!p.deferredEntry)
+     .sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
+ }
+ function renderCoachPages(){
+   if(state?.role!=='Coach')return;
+   const t=controlledTeam();if(!t)return;
+   try{initializeRotationForTeam?.(t.name)}catch(_){}
+   const s=coachSettings?.(t.id)||{};
+   const r=roster();
+
+   let host=document.getElementById('coachGamePlanPageV09158');
+   if(host){
+     const identity=document.getElementById('coachIdentityBox')?.innerHTML||'';
+     const plan=document.getElementById('coachGamePlanBox')?.innerHTML||'';
+     host.innerHTML=`<div class="grid2"><div><h3>Pace & Identity</h3>${identity}</div><div><h3>Scheme</h3>${plan}</div></div>`;
+   }
+
+   host=document.getElementById('coachRotationPageV09158');
+   if(host){
+     host.innerHTML=`<p class="small muted">Set the active rotation and minutes. Basketballverse normalizes the active group to 240 total minutes.</p>
+       ${rotationHealthSummary?.(t.name)||''}
+       <div class="choicebar" style="margin:10px 0">
+         <button onclick="setRotationSize(8)">8-Man</button>
+         <button onclick="setRotationSize(9)">9-Man</button>
+         <button onclick="setRotationSize(10)">10-Man</button>
+         <button onclick="autoCoachRotation()">Auto Rotation</button>
+       </div>
+       ${r.map(p=>`<div class="rotationRow"><div><b>${p.starter?'★ ':''}${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.healthStatus||'Healthy'}</div></div><div>${p.rotationRole||'Reserve'}</div><div><input class="minutesInput" type="number" min="0" max="48" value="${p.rotationMinutes||0}" onchange="setRotationMinutes('${p.id}',this.value)"></div><div class="coachHide">${p.fatigue||0} fatigue</div></div>`).join('')}`;
+   }
+
+   host=document.getElementById('coachDepthChartPageV09158');
+   if(host)host.innerHTML=`<p class="small muted">Your positional depth chart is based on position fit, health, overall ability and the starting five.</p>${rotationHealthSummary?.(t.name)||''}${depthChartHTML?.(t.name)||''}`;
+
+   host=document.getElementById('coachRolesPageV09158');
+   if(host)host.innerHTML=document.getElementById('coachPlayerRolesBox')?.innerHTML||'<span class="muted">No player roles available.</span>';
+
+   host=document.getElementById('coachDevelopmentPageV09158');
+   if(host)host.innerHTML=document.getElementById('coachDevelopmentBox')?.innerHTML||'<span class="muted">No development targets available.</span>';
+
+   host=document.getElementById('coachCareerPageV09158');
+   if(host)host.innerHTML=document.getElementById('coachCareerBox')?.innerHTML||'<span class="muted">No career data yet.</span>';
+   host=document.getElementById('coachResumePageV09158');
+   if(host)host.innerHTML=document.getElementById('coachResumeBox')?.innerHTML||'<span class="muted">No completed seasons yet.</span>';
+
+   // Expectations belong with role objectives, not on the Team page.
+   const obj=document.getElementById('objectivesPageV0893');
+   if(obj){
+     let wrap=document.getElementById('coachExpectationsObjectivesV09158');
+     if(!wrap){
+       wrap=document.createElement('div');
+       wrap.id='coachExpectationsObjectivesV09158';
+       wrap.style.marginTop='14px';
+       obj.appendChild(wrap);
+     }
+     wrap.innerHTML=`<div class="card" style="margin:0"><h3>Front Office Expectations</h3>${document.getElementById('coachExpectationsBox')?.innerHTML||'<span class="muted">No expectations yet.</span>'}</div>`;
+   }
+ }
+ window.renderCoachPagesV09158=renderCoachPages;
+
+ // Coach clicks on the old combined Coaching/Depth Chart page are redirected to the real Depth Chart tab.
+ const oldSwitchTab=window.switchTab;
+ window.switchTab=switchTab=function(tab){
+   if(state?.role==='Coach'&&tab==='coaching')tab='coachdepthchart';
+   if(state?.role==='Coach'&&tab==='career')tab='coachcareer';
+   const r=oldSwitchTab.call(this,tab);
+   setTimeout(()=>{try{renderCoachPages()}catch(e){console.error('coach page render',e)}},0);
+   return r;
+ };
+
+ const oldRenderAll=window.renderAll;
+ window.renderAll=renderAll=function(){
+   const r=oldRenderAll.apply(this,arguments);
+   if(state?.role==='Coach')setTimeout(()=>{try{renderCoachPages()}catch(e){console.error('coach page render',e)}},0);
+   return r;
+ };
+
+ // Main Team/Career buttons should open Coach-specific first pages when Coach mode is active.
+ function repairCoachMainNav(){
+   if(state?.role!=='Coach')return;
+   document.querySelectorAll('.mainNav button').forEach(btn=>{
+     if(btn.dataset.group==='team'){
+       btn.dataset.tab='players';
+       btn.onclick=()=>switchTab('players');
+     }
+     if(btn.dataset.group==='career'){
+       btn.dataset.tab='coachcareer';
+       btn.onclick=()=>switchTab('coachcareer');
+     }
+   });
+ }
+ const oldUpdateNav=window.updateNavigationForTab;
+ window.updateNavigationForTab=updateNavigationForTab=function(tab){
+   const r=oldUpdateNav.apply(this,arguments);
+   repairCoachMainNav();
+   return r;
+ };
+
+ setTimeout(()=>{
+   try{
+     repairCoachMainNav();
+     if(state?.role==='Coach'&&document.getElementById('coaching')?.classList.contains('active'))switchTab('coachdepthchart');
+     renderCoachPages();
+   }catch(e){console.error('Coach nav init',e)}
+ },180);
 
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
