@@ -26740,7 +26740,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.56 · Coach Role Expansion';
+  const LABEL='v0.91.57 · Coach Offseason Authority Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27067,7 +27067,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.56 · Coach Role Expansion';
+  const LABEL='v0.91.57 · Coach Offseason Authority Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27262,7 +27262,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.56 · Coach Role Expansion';
+ const LABEL='v0.91.57 · Coach Offseason Authority Fix';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27457,7 +27457,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.56 · Coach Role Expansion';
+ const LABEL='v0.91.57 · Coach Offseason Authority Fix';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27590,7 +27590,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.56 · Coach Role Expansion';
+  const LABEL='v0.91.57 · Coach Offseason Authority Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27661,7 +27661,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.56 · Coach Role Expansion';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.57 · Coach Offseason Authority Fix';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27709,6 +27709,105 @@ function archiveGMSeasonV09147(year,force=false){
  window.renderCoachCareerV09156=render;
  const old=window.renderCoaching;if(typeof old==='function')window.renderCoaching=renderCoaching=function(){let x=old.apply(this,arguments);render();return x};
  const oldAll=window.renderAll;if(typeof oldAll==='function')window.renderAll=renderAll=function(){let x=oldAll.apply(this,arguments);if(state?.role==='Coach')render();return x};
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.57 Coach Offseason Authority Fix === -->
+<script>
+(function(){
+ const LABEL='v0.91.57 · Coach Offseason Authority Fix';
+ window.BASKETBALLVERSE_BUILD='v0.91.57';
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+ function coachMode(){return state?.role==='Coach'}
+ function nextPhase(){
+   if(!state?.offseason)return false;
+   const i=Number(state.offseason.phaseIndex||0)+1;
+   state.offseason.phaseIndex=i;
+   state.offseason.phase=state.offseason.phases?.[i]||'Next Season';
+   try{saveState?.()}catch(_){}
+   try{renderOffseason?.()}catch(_){}
+   try{renderAll?.()}catch(_){}
+   try{switchTab?.('offseason')}catch(_){}
+   return true;
+ }
+ function coachProcessPhase(){
+   if(!coachMode()||!state?.offseason)return false;
+   const p=state.offseason.phase;
+   // A coach does not make personnel decisions. The AI GM/front office handles these.
+   if(p==='Re-signings'){
+     runLeagueReSigningsAI?.();
+     state.offseason.processed=state.offseason.processed||{};
+     state.offseason.processed[p]=true;
+     return nextPhase();
+   }
+   if(p==='Free Agency'){
+     runFreeAgencyAI?.();
+     state.offseason.processed=state.offseason.processed||{};
+     state.offseason.processed[p]=true;
+     return nextPhase();
+   }
+   if(p==='Roster Cuts'){
+     runRosterCutsAI?.();
+     refreshAllAIRotations?.();
+     state.offseason.processed=state.offseason.processed||{};
+     state.offseason.processed[p]=true;
+     return nextPhase();
+   }
+   return false;
+ }
+ window.coachProcessOffseasonPhaseV09157=coachProcessPhase;
+
+ // Final wrapper sits outside the accumulated GM/offseason wrappers.
+ const priorAdvance=window.advanceOffseason;
+ window.advanceOffseason=advanceOffseason=function(){
+   if(coachProcessPhase())return true;
+   return priorAdvance.apply(this,arguments);
+ };
+
+ // Coach-specific stage copy. Never send a Coach to the Front Office contract screen.
+ const priorDetail=window.offseasonStageDetailV0822;
+ if(typeof priorDetail==='function'){
+   window.offseasonStageDetailV0822=offseasonStageDetailV0822=function(step){
+     if(coachMode()&&step==='Re-signings'){
+       return `<div class="notice"><b>Your GM is handling contract decisions.</b><br><span class="small">As head coach, you can review the roster but re-signing players is a front-office responsibility.</span></div>${step===state.offseason?.phase?`<button class="primary" onclick="advanceOffseason()">Let GM Handle Re-signings</button>`:''}`;
+     }
+     if(coachMode()&&step==='Free Agency'){
+       return `<div class="notice"><b>Your GM is handling free agency.</b><br><span class="small">The front office will sign players based on team needs and finances. Your role is to coach the roster you are given.</span></div>${step===state.offseason?.phase?`<button class="primary" onclick="advanceOffseason()">Let GM Handle Free Agency</button>`:''}`;
+     }
+     if(coachMode()&&step==='Roster Cuts'){
+       return `<div class="notice"><b>Your GM is setting the opening-night roster.</b><br><span class="small">Final cuts are a front-office decision. Your rotation will update after the roster is finalized.</span></div>${step===state.offseason?.phase?`<button class="primary" onclick="advanceOffseason()">Let GM Finalize Roster</button>`:''}`;
+     }
+     return priorDetail.apply(this,arguments);
+   };
+ }
+
+ // The offseason action button must clearly describe who owns the decision.
+ const priorRender=window.renderOffseason;
+ if(typeof priorRender==='function'){
+   window.renderOffseason=renderOffseason=function(){
+     const r=priorRender.apply(this,arguments);
+     if(coachMode()){
+       const p=state?.offseason?.phase,btn=document.getElementById('advanceOffseasonBtn');
+       if(btn&&p==='Re-signings'){btn.classList.remove('hidden');btn.disabled=false;btn.textContent='Let GM Handle Re-signings';btn.onclick=()=>advanceOffseason()}
+       if(btn&&p==='Free Agency'){btn.classList.remove('hidden');btn.disabled=false;btn.textContent='Let GM Handle Free Agency';btn.onclick=()=>advanceOffseason()}
+       if(btn&&p==='Roster Cuts'){btn.classList.remove('hidden');btn.disabled=false;btn.textContent='Let GM Finalize Roster';btn.onclick=()=>advanceOffseason()}
+     }
+     return r;
+   };
+ }
+
+ // Existing save repair: a Coach already trapped at one of these stages gets a clean actionable screen.
+ setTimeout(()=>{
+   try{
+     if(coachMode()&&['Re-signings','Free Agency','Roster Cuts'].includes(state?.offseason?.phase)){
+       renderOffseason?.();switchTab?.('offseason');
+     }
+   }catch(e){console.error('Coach offseason repair',e)}
+ },150);
+
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
 </script>

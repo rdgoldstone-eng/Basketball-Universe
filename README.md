@@ -1,20 +1,23 @@
-# Basketballverse v0.91.56 — Coach Role Expansion
+# Basketballverse v0.91.57 — Coach Offseason Authority Fix
 
-This begins the dedicated Roles phase with Coach.
+## Coach re-signing loop fixed
+Coach mode was reaching the league Re-signings stage, but the offseason UI still directed the user into Front Office contract controls. That created a loop because those decisions belong to the GM.
 
-## Coach workspace
-The existing Coach systems remain: starters, depth chart, 240 rotation minutes, rotation size, pace, offense, defense, crunch-time preference, player roles/buy-in, development focus, fatigue, scheme fit, and playoff series adjustments.
+Coach mode now has explicit role authority during the offseason:
 
-## New Coach Career
-Coach mode now tracks championships, playoff appearances, Finals appearances, seasons coached, career W-L, winning percentage, reputation, job security, and a season-by-season coaching résumé.
+- **Re-signings:** `Let GM Handle Re-signings`
+- **Free Agency:** `Let GM Handle Free Agency`
+- **Roster Cuts:** `Let GM Finalize Roster`
 
-## Front Office Expectations
-Expectations scale with roster strength: develop/compete, make playoffs, reach Conference Finals, or contend for a championship. Results affect reputation and job security.
+The AI front office handles those personnel stages for the Coach's team and every other team, then the offseason advances normally.
 
-## Role identity
-Coach is about maximizing the roster the GM gives you. Trades, drafting, contracts and cap management remain GM responsibilities.
+Coach mode no longer needs to open Front Office or manually sign/release players to continue.
 
-Existing Coach saves attempt to recover completed seasons from franchise history.
+## Existing save repair
+A Coach save already stuck on Re-signings, Free Agency, or Roster Cuts will reopen on the Offseason page with the correct action available.
+
+## Coach role retained
+v0.91.56 Coach Career, expectations, résumé, rotations, schemes, development focus, roles/buy-in and coaching systems remain intact.
 
 ## Version
-v0.91.56 · Coach Role Expansion
+v0.91.57 · Coach Offseason Authority Fix
