@@ -1,41 +1,41 @@
-# Basketballverse v0.91.59 — Coach Team Menu + Editable Depth Chart
+# Basketballverse v0.91.60 — Interactive Coach Crunch Time
 
-## Team menu fix
-The Coach Team subtabs introduced in v0.91.58 could display but their click handlers were being overwritten by older navigation wrappers.
+## Watch Game is now interactive for Coach mode
+When the user's team is involved in a close watched playoff game, the game enters Crunch Time after the third quarter.
 
-v0.91.59 adds a final Coach-specific navigation layer. These Team subtabs are functional:
-- Roster
-- Game Plan
-- Rotation
-- Depth Chart
-- Player Roles
-- Development
-- Health
-- Stats
+At each crunch-time checkpoint the Coach can change:
 
-Career navigation also remains Coach-specific.
+- Closing Lineup: Best Five, Shooting, Defense, Size, or Choose Five manually
+- Offensive Focus: Primary Option, Attack Paint, Hunt Threes, Balanced, Slow It Down
+- Defense: Straight Up, Pressure Ball, Protect Paint, Switch Everything, Deny Star
+- Tempo: Push Pace, Normal, Burn Clock
+- Late Foul Strategy: Normal, Foul If Trailing, No Intentional Foul
+- Go-To Player
 
-## Editable Depth Chart
-Depth Chart is no longer view-only.
+## Checkpoints
+Coach decisions can be changed at:
+- 6:00 remaining
+- 3:00 remaining
+- 1:00 remaining
+- Final possessions
 
-For PG, SG, SF, PF and C you can:
-- Choose the starter
-- Move players up or down in the positional depth order
-- Use players at compatible secondary positions
-- Maintain one unique five-player starting lineup
+The selected strategy affects the probabilities used by the crunch-time simulation. Strong lineup/scheme fits help; poor fits provide less benefit. Manual lineups require exactly five healthy players.
 
-Starter changes feed back into the roster/rotation system and are saved with the universe.
+Coach adjustments are also written into the game's play-by-play moments so the watched game records what you changed.
 
-## Rotation
-Rotation remains separate from Depth Chart. Use Rotation to control minutes and rotation size; use Depth Chart to control positional hierarchy and starters.
+## Other roles
+GM, Owner, Commissioner, Player and Viewer continue to use the normal observational Watch Game flow. Interactive tactical controls are a Coach-role feature.
 
 ## Previous Coach features retained
-- Game plans and schemes
-- Player roles and buy-in
-- Development focus
-- Coach career and résumé
-- Front Office Expectations in Objectives
-- Coach offseason authority / re-signing loop fix
+- Editable Depth Chart
+- Separate Team subtabs
+- Rotation/minutes
+- Game Plan
+- Player Roles
+- Development
+- Coach Career and Résumé
+- Front Office Expectations
+- Coach offseason authority
 
 ## Version
-v0.91.59 · Coach Team Menu + Editable Depth Chart
+v0.91.60 · Interactive Coach Crunch Time

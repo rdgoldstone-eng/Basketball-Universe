@@ -26762,7 +26762,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+  const LABEL='v0.91.60 · Interactive Coach Crunch Time';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27089,7 +27089,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+  const LABEL='v0.91.60 · Interactive Coach Crunch Time';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27284,7 +27284,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27479,7 +27479,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27612,7 +27612,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+  const LABEL='v0.91.60 · Interactive Coach Crunch Time';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27683,7 +27683,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27739,7 +27739,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27838,7 +27838,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28006,7 +28006,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28258,6 +28258,183 @@ function archiveGMSeasonV09147(year,force=false){
      }
    }catch(e){console.error('v0.91.59 init',e)}
  },220);
+
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.60 Interactive Coach Crunch Time === -->
+<style id="coachCrunchStyleV09160">
+.coachCrunchBox{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.coachCrunchGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.coachCrunchChoice label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.coachCrunchChoice select{width:100%}
+.coachCrunchFive{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:7px}
+.coachCrunchFive label{font-size:12px;text-transform:none;letter-spacing:0;color:inherit}
+@media(max-width:600px){.coachCrunchGrid,.coachCrunchFive{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+ function wgame(){return state?.season?.playoffState?.watchGame||null}
+ function controlledInGame(w){
+   if(state?.role!=='Coach'||!w)return false;
+   return String(state.controlledTeamId)===String(w.aId)||String(state.controlledTeamId)===String(w.bId);
+ }
+ function controlledSide(w){return String(state.controlledTeamId)===String(w.aId)?'a':'b'}
+ function teamObj(){return (state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))}
+ function healthyRoster(){
+   const t=teamObj();if(!t)return [];
+   return (state.players||[]).filter(p=>p.teamName===t.name&&!p.retired&&!p.deferredEntry&&p.healthStatus!=='Out')
+     .sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+ }
+ function primaryStar(){
+   const t=teamObj();if(!t)return null;
+   const s=coachSettings?.(t.id);
+   const pid=Object.entries(s?.playerRoles||{}).find(x=>x[1]==='Primary Option')?.[0];
+   return healthyRoster().find(p=>String(p.id)===String(pid))||healthyRoster()[0]||null;
+ }
+ function ensureDecision(w){
+   w.coachCrunchDecision=w.coachCrunchDecision||{
+     offense:'Primary Option',defense:'Straight Up',tempo:'Normal',lineup:'Best Five',
+     foul:'Normal',starId:primaryStar()?.id||null,manualFive:[]
+   };
+   return w.coachCrunchDecision;
+ }
+ window.setCoachCrunchDecisionV09160=function(key,val){
+   const w=wgame();if(!w)return;const d=ensureDecision(w);
+   d[key]=val;try{saveState?.()}catch(_){}
+   try{renderWatchGame?.()}catch(_){}
+ };
+ window.toggleCoachCrunchFiveV09160=function(pid,checked){
+   const w=wgame();if(!w)return;const d=ensureDecision(w);d.manualFive=d.manualFive||[];
+   if(checked){
+     if(d.manualFive.length>=5){alert('Choose no more than five players.');renderWatchGame();return}
+     if(!d.manualFive.some(x=>String(x)===String(pid)))d.manualFive.push(pid);
+   }else d.manualFive=d.manualFive.filter(x=>String(x)!==String(pid));
+   try{saveState?.()}catch(_){}
+   try{renderWatchGame?.()}catch(_){}
+ };
+ function decisionHTML(w){
+   if(!controlledInGame(w)||!w.crunch||w.complete)return '';
+   const d=ensureDecision(w),roster=healthyRoster(),stars=roster.slice(0,8);
+   const opts=(arr,v)=>arr.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');
+   const manual=d.lineup==='Choose Five'?`<div class="coachCrunchFive">${roster.slice(0,12).map(p=>`<label><input type="checkbox" ${d.manualFive.some(x=>String(x)===String(p.id))?'checked':''} onchange="toggleCoachCrunchFiveV09160('${p.id}',this.checked)"> ${p.name} · ${p.pos} · ${p.ovr}</label>`).join('')}</div>`:'';
+   return `<div class="coachCrunchBox">
+     <h3 style="margin-top:0">Coach Decisions</h3>
+     <div class="small muted" style="margin-bottom:9px">These instructions apply to the next crunch-time segment. You can change them again at the next stoppage.</div>
+     <div class="coachCrunchGrid">
+       <div class="coachCrunchChoice"><label>Closing Lineup</label><select onchange="setCoachCrunchDecisionV09160('lineup',this.value)">${opts(['Best Five','Shooting','Defense','Size','Choose Five'],d.lineup)}</select>${manual}</div>
+       <div class="coachCrunchChoice"><label>Offensive Focus</label><select onchange="setCoachCrunchDecisionV09160('offense',this.value)">${opts(['Primary Option','Attack Paint','Hunt Threes','Balanced','Slow It Down'],d.offense)}</select></div>
+       <div class="coachCrunchChoice"><label>Defense</label><select onchange="setCoachCrunchDecisionV09160('defense',this.value)">${opts(['Straight Up','Pressure Ball','Protect Paint','Switch Everything','Deny Star'],d.defense)}</select></div>
+       <div class="coachCrunchChoice"><label>Tempo</label><select onchange="setCoachCrunchDecisionV09160('tempo',this.value)">${opts(['Push Pace','Normal','Burn Clock'],d.tempo)}</select></div>
+       <div class="coachCrunchChoice"><label>Late Foul Strategy</label><select onchange="setCoachCrunchDecisionV09160('foul',this.value)">${opts(['Normal','Foul If Trailing','No Intentional Foul'],d.foul)}</select></div>
+       <div class="coachCrunchChoice"><label>Go-To Player</label><select onchange="setCoachCrunchDecisionV09160('starId',this.value)">${stars.map(p=>`<option value="${p.id}" ${String(p.id)===String(d.starId)?'selected':''}>${p.name} · ${p.pos} · ${p.ovr}</option>`).join('')}</select></div>
+     </div>
+   </div>`;
+ }
+ function playerRating(p,type){
+   if(!p)return 60;
+   if(type==='shoot')return Number(p.shooting??p.three??p.ovr??60);
+   if(type==='def')return Number(p.defense??p.perimeterDefense??p.ovr??60);
+   if(type==='size')return Number(p.rebounding??p.inside??p.ovr??60)+(p.pos==='C'?8:p.pos==='PF'?5:0);
+   return Number(p.ovr||60);
+ }
+ function chosenFive(d){
+   const r=healthyRoster();
+   if(d.lineup==='Choose Five'&&d.manualFive?.length===5){
+     const five=d.manualFive.map(id=>r.find(p=>String(p.id)===String(id))).filter(Boolean);
+     if(five.length===5)return five;
+   }
+   const type=d.lineup==='Shooting'?'shoot':d.lineup==='Defense'?'def':d.lineup==='Size'?'size':'ovr';
+   return r.slice().sort((a,b)=>playerRating(b,type)-playerRating(a,type)).slice(0,5);
+ }
+ function coachEdge(w,opp){
+   if(!controlledInGame(w))return 0;
+   const d=ensureDecision(w),five=chosenFive(d),avg=five.length?five.reduce((s,p)=>s+Number(p.ovr||60),0)/five.length:60;
+   let edge=(avg-70)/80;
+   if(d.offense==='Hunt Threes')edge+=five.filter(p=>playerRating(p,'shoot')>=75).length*.012;
+   if(d.offense==='Attack Paint')edge+=five.filter(p=>['PF','C'].includes(p.pos)).length*.012;
+   if(d.offense==='Primary Option'&&healthyRoster().find(p=>String(p.id)===String(d.starId))?.ovr>=80)edge+=.035;
+   if(d.defense==='Pressure Ball')edge+=five.filter(p=>['PG','SG','SF'].includes(p.pos)&&playerRating(p,'def')>=72).length*.01;
+   if(d.defense==='Protect Paint')edge+=five.filter(p=>['PF','C'].includes(p.pos)).length*.012;
+   if(d.defense==='Deny Star')edge+=.025;
+   if(d.tempo==='Push Pace')edge+=five.filter(p=>['PG','SG'].includes(p.pos)).length*.008;
+   if(d.tempo==='Burn Clock')edge+=.015;
+   return Math.max(-.10,Math.min(.14,edge));
+ }
+ function noteDecision(w,stage){
+   if(!controlledInGame(w))return;
+   const d=ensureDecision(w),star=healthyRoster().find(p=>String(p.id)===String(d.starId));
+   w.moments.unshift(`Coach adjustment at ${stage}: ${d.lineup} lineup · ${d.offense} · ${d.defense} · ${d.tempo}${star?` · go-to: ${star.name}`:''}.`);
+ }
+ window.coachCrunchDecisionHTMLV09160=decisionHTML;
+
+ // Replace crunch simulation only when the user's Coach controls one of the teams.
+ const oldAdvance=window.advanceCrunchTime;
+ window.advanceCrunchTime=advanceCrunchTime=function(){
+   const ps=state.season?.playoffState,w=ps?.watchGame;
+   if(!w||w.complete||!controlledInGame(w))return oldAdvance.apply(this,arguments);
+   const a=teamById(w.aId),b=teamById(w.bId);
+   const stages=[{label:'6:00 remaining',poss:5},{label:'3:00 remaining',poss:3},{label:'1:00 remaining',poss:2},{label:'Final possessions',poss:2}];
+   const st=stages[w.crunchStage];if(!st){finishWatchedGame();return}
+   const side=controlledSide(w),d=ensureDecision(w);
+   if(d.lineup==='Choose Five'&&d.manualFive.length!==5){alert('Choose exactly five players for the manual closing lineup, or select another lineup option.');return}
+   noteDecision(w,st.label);
+   let edge=coachEdge(w,side==='a'?b:a),aPts=0,bPts=0;
+   for(let i=0;i<st.poss;i++){
+     let chance=crunchChance(a,b)+(side==='a'?edge:-edge);
+     chance=Math.max(.12,Math.min(.88,chance));
+     if(Math.random()<chance)aPts+=Math.random()<(d.offense==='Hunt Threes'&&side==='a'?0.40:0.28)?3:2;
+     else bPts+=Math.random()<(d.offense==='Hunt Threes'&&side==='b'?0.40:0.28)?3:2;
+     if(Math.random()<.30){if(Math.random()<.5)aPts++;else bPts++}
+   }
+   // intentional fouling can create extra scoring variance late
+   if(w.crunchStage>=2&&d.foul==='Foul If Trailing'){
+     const trailing=(side==='a'?w.aScore+aPts:w.bScore+bPts)<(side==='a'?w.bScore+bPts:w.aScore+aPts);
+     if(trailing){if(side==='a')bPts+=Math.floor(Math.random()*3);else aPts+=Math.floor(Math.random()*3)}
+   }
+   w.aScore+=aPts;w.bScore+=bPts;
+   let leader=w.aScore>=w.bScore?a:b,other=leader.id===a.id?b:a,diff=Math.abs(w.aScore-w.bScore);
+   let km=keyMoment(leader.name,other.name,diff,w.crunchStage);
+   if(km.impact?.playerId)w.crunchActions.push(km.impact);
+   w.moments.unshift(`${st.label}: ${leader.name} ${Math.max(w.aScore,w.bScore)}, ${other.name} ${Math.min(w.aScore,w.bScore)}. ${km.text}`);
+   w.crunchStage++;
+   if(w.crunchStage>=stages.length){
+     if(w.aScore===w.bScore){w.moments.unshift(`Overtime: regulation ends tied at ${w.aScore}.`);let oa=7+Math.floor(Math.random()*8),ob=7+Math.floor(Math.random()*8);if(oa===ob)oa++;w.aScore+=oa;w.bScore+=ob}
+     finishWatchedGame();
+   }else{renderWatchGame();saveState()}
+ };
+
+ // Append decision controls after the watch panel is rendered.
+ const oldRender=window.renderWatchGame;
+ window.renderWatchGame=renderWatchGame=function(){
+   const r=oldRender.apply(this,arguments),w=wgame(),panel=document.getElementById('watchGamePanel');
+   if(panel&&w&&controlledInGame(w)&&w.crunch&&!w.complete){
+     const watch=panel.querySelector('.watchPanel');
+     if(watch){
+       const box=document.createElement('div');
+       box.innerHTML=decisionHTML(w);
+       const node=box.firstElementChild;
+       if(node){
+         const action=watch.querySelector('button.primary');
+         if(action)watch.insertBefore(node,action);else watch.appendChild(node);
+       }
+     }
+   }
+   return r;
+ };
+
+ // Initialize coach decision state as soon as a close game enters crunch time.
+ const oldQuarter=window.advanceWatchQuarter;
+ window.advanceWatchQuarter=advanceWatchQuarter=function(){
+   const r=oldQuarter.apply(this,arguments),w=wgame();
+   if(w&&w.crunch&&controlledInGame(w))ensureDecision(w);
+   return r;
+ };
 
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
