@@ -1,27 +1,20 @@
-# Basketballverse v0.91.55 — Local Canadian Logo Asset Fix
+# Basketballverse v0.91.56 — Coach Role Expansion
 
-## Toronto & Vancouver
-The previous fix still allowed Toronto and Vancouver to pass through the generic logo-library path.
+This begins the dedicated Roles phase with Coach.
 
-This version includes two local logo assets:
-- `logos/toronto-raptors-1995.svg`
-- `logos/vancouver-grizzlies-1995.svg`
+## Coach workspace
+The existing Coach systems remain: starters, depth chart, 240 rotation minutes, rotation size, pace, offense, defense, crunch-time preference, player roles/buy-in, development focus, fatigue, scheme fit, and playoff series adjustments.
 
-The game now hard-routes Toronto Raptors and Vancouver Grizzlies to those local files before any generated or remote logo fallback can run.
+## New Coach Career
+Coach mode now tracks championships, playoff appearances, Finals appearances, seasons coached, career W-L, winning percentage, reputation, job security, and a season-by-season coaching résumé.
 
-Existing saves are also repaired by clearing cached generic logo entries for those teams.
+## Front Office Expectations
+Expectations scale with roster strength: develop/compete, make playoffs, reach Conference Finals, or contend for a championship. Results affect reputation and job security.
 
-## Important
-Upload the **entire ZIP contents**, including the `/logos` folder, to GitHub. If only `index.html` is uploaded, the two local logo files will not be available.
+## Role identity
+Coach is about maximizing the roster the GM gives you. Trades, drafting, contracts and cap management remain GM responsibilities.
 
-## Other features retained
-- Direct Draft Order reveal
-- Stretch-run tanking
-- Free Agency cap display
-- GM Career History Recovery
-- Historical playoff formats
-- Free-agency economy improvements
-- Historically aware newspapers
+Existing Coach saves attempt to recover completed seasons from franchise history.
 
 ## Version
-**v0.91.55 · Local Canadian Logo Asset Fix**
+v0.91.56 · Coach Role Expansion

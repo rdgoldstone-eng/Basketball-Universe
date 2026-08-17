@@ -1192,7 +1192,12 @@ pre{white-space:pre-wrap}
         <div id="coachNotesBox" class="muted">No notes yet.</div>
       </div>
     </div>
-  </section>
+  <div class="grid2">
+<div class="card"><h2>Coach Career</h2><div id="coachCareerBox" class="muted">No coaching career data yet.</div></div>
+<div class="card"><h2>Front Office Expectations</h2><div id="coachExpectationsBox" class="muted">No expectations yet.</div></div>
+</div>
+<div class="card"><h2>Coaching Résumé</h2><div id="coachResumeBox" class="muted">No completed seasons yet.</div></div>
+</section>
 
   <section id="frontoffice" class="section">
     <div class="grid2">
@@ -26735,7 +26740,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.55 · Local Canadian Logo Asset Fix';
+  const LABEL='v0.91.56 · Coach Role Expansion';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27062,7 +27067,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.55 · Local Canadian Logo Asset Fix';
+  const LABEL='v0.91.56 · Coach Role Expansion';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27257,7 +27262,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.55 · Local Canadian Logo Asset Fix';
+ const LABEL='v0.91.56 · Coach Role Expansion';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27452,7 +27457,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.55 · Local Canadian Logo Asset Fix';
+ const LABEL='v0.91.56 · Coach Role Expansion';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27585,7 +27590,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.55 · Local Canadian Logo Asset Fix';
+  const LABEL='v0.91.56 · Coach Role Expansion';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27646,6 +27651,65 @@ function archiveGMSeasonV09147(year,force=false){
       if(/^v0\.91\.\d+\s*·/.test(el.textContent.trim()))el.textContent=LABEL;
     });
   }catch(_){}
+})();
+</script>
+
+
+<style id="coachCareerV09156">
+.coachCareerGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.coachResumeRow{display:grid;grid-template-columns:80px 1fr 90px 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}.coachExpectation{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin-bottom:10px}
+@media(max-width:700px){.coachCareerGrid{grid-template-columns:repeat(2,1fr)}.coachResumeRow{grid-template-columns:70px 1fr}.coachResumeExtra{grid-column:2}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.56 · Coach Role Expansion';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
+ function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
+ function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
+ function champ(y){return (state.history?.champions||[]).find(x=>Number(x.year)===Number(y))||(state.history?.seasons||[]).find(x=>Number(x.year)===Number(y))}
+ function fseason(id,y){return (state.franchiseHistory?.[id]?.seasons||[]).find(x=>Number(x.year)===Number(y))}
+ function post(id,name,y){
+   let c=champ(y),cn=c?.team||c?.champion||c?.championName,ci=c?.teamId||c?.championId;
+   if((ci&&String(ci)===String(id))||cn===name)return {n:5,s:'NBA Champion'};
+   if((c?.runnerUp||c?.runnerUpName)===name)return {n:4,s:'NBA Finals'};
+   let f=fseason(id,y),r=String(f?.playoffResult||f?.postseason||f?.result||'');
+   if(/conference finals/i.test(r))return {n:3,s:'Conference Finals'};
+   if(/second round|semifinal/i.test(r))return {n:2,s:'Second Round'};
+   if(/playoff|first round/i.test(r))return {n:1,s:'Playoffs'};
+   return {n:0,s:'Missed Playoffs'};
+ }
+ function expectation(t){
+   let r=(state.players||[]).filter(p=>p.teamName===t.name&&!p.retired&&!p.deferredEntry).sort((a,b)=>(b.ovr||0)-(a.ovr||0)).slice(0,8);
+   let a=r.length?r.reduce((s,p)=>s+Number(p.ovr||60),0)/r.length:65;
+   return a>=80?{s:'Contend for championship',n:4}:a>=75?{s:'Reach the Conference Finals',n:3}:a>=70?{s:'Make the playoffs',n:1}:{s:'Develop the roster and stay competitive',n:0};
+ }
+ function backfill(){
+   if(state?.role!=='Coach')return;let c=store(),t=ct();if(!t)return;
+   (state.franchiseHistory?.[t.id]?.seasons||[]).forEach(f=>{
+     let y=Number(f.year);if(!Number.isFinite(y)||y>=Number(state.currentYear)||c.history.some(x=>Number(x.year)===y))return;
+     let p=post(t.id,t.name,y),w=Number(f.wins??f.w??0),l=Number(f.losses??f.l??0);
+     c.history.push({year:y,teamName:f.name||t.name,wins:w,losses:l,level:p.n,result:p.s,legacy:true});
+   });
+ }
+ function archive(){
+   if(state?.role!=='Coach')return;let c=store(),t=ct();if(!t)return;let y=Number(state.currentYear);
+   if(c.history.some(x=>Number(x.year)===y)||!(state.season?.phase==='Season Complete'||state.season?.champion))return;
+   let r=rec(t),p=post(t.id,t.name,y),e=expectation(t),met=p.n>=e.n;
+   c.history.push({year:y,teamName:t.name,wins:r.w,losses:r.l,level:p.n,result:p.s,expectation:e.s,met});
+   c.reputation=Math.max(0,Math.min(100,Number(c.reputation||50)+(p.n===5?12:p.n>=4?7:p.n>=3?4:met?2:-4)));
+   c.jobSecurity=Math.max(0,Math.min(100,Number(c.jobSecurity||70)+(p.n===5?15:met?5:-10)));
+ }
+ function render(){
+   if(state?.role!=='Coach')return;let c=store(),t=ct();if(!t)return;backfill();archive();
+   let h=c.history,w=h.reduce((s,x)=>s+Number(x.wins||0),0),l=h.reduce((s,x)=>s+Number(x.losses||0),0),e=expectation(t),r=rec(t);
+   let vals=[[h.filter(x=>x.level>=5).length,'Championships'],[h.filter(x=>x.level>=1).length,'Playoff Apps.'],[h.filter(x=>x.level>=4).length,'Finals Apps.'],[h.length,'Seasons'],[`${w}-${l}`,'Career Record'],[`${w+l?(w/(w+l)*100).toFixed(1):'0.0'}%`,'Win %'],[c.reputation,'Reputation'],[c.jobSecurity,'Job Security']];
+   let b=document.getElementById('coachCareerBox');if(b)b.innerHTML=`<div class="coachCareerGrid">${vals.map(v=>`<div class="careerMetric"><b>${v[0]}</b><div class="small muted">${v[1]}</div></div>`).join('')}</div>`;
+   b=document.getElementById('coachExpectationsBox');if(b)b.innerHTML=`<div class="coachExpectation"><b>${e.s}</b><div class="small muted">Front office season expectation</div></div><div class="grid2"><div class="careerMetric"><b>${r.w}-${r.l}</b><div class="small muted">Current Record</div></div><div class="careerMetric"><b>${coachingPlanGrade(t.name).grade}</b><div class="small muted">Scheme Fit</div></div></div><p class="small muted">You are judged on results, development, rotations and meeting expectations. Trades, contracts and roster construction belong to the GM.</p>`;
+   b=document.getElementById('coachResumeBox');if(b)b.innerHTML=h.length?h.slice().sort((a,b)=>b.year-a.year).map(x=>`<div class="coachResumeRow"><b>${x.year}-${String(x.year+1).slice(-2)}</b><b>${x.teamName}</b><span>${x.wins}-${x.losses}</span><span class="coachResumeExtra"><b>${x.result}</b>${x.level>=5?' 🏆':''}</span></div>`).join(''):'<span class="muted">Completed seasons will build your coaching résumé here.</span>';
+ }
+ window.renderCoachCareerV09156=render;
+ const old=window.renderCoaching;if(typeof old==='function')window.renderCoaching=renderCoaching=function(){let x=old.apply(this,arguments);render();return x};
+ const oldAll=window.renderAll;if(typeof oldAll==='function')window.renderAll=renderAll=function(){let x=oldAll.apply(this,arguments);if(state?.role==='Coach')render();return x};
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
 </script>
 
