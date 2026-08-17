@@ -1,9 +1,9 @@
-# Basketballverse v0.91.58 — Coach Navigation Reorganization
+# Basketballverse v0.91.59 — Coach Team Menu + Editable Depth Chart
 
-## Coach Team menu
-The old combined Depth Chart page contained too many unrelated Coach systems.
+## Team menu fix
+The Coach Team subtabs introduced in v0.91.58 could display but their click handlers were being overwritten by older navigation wrappers.
 
-In Coach mode, Team now has dedicated subtabs:
+v0.91.59 adds a final Coach-specific navigation layer. These Team subtabs are functional:
 - Roster
 - Game Plan
 - Rotation
@@ -13,32 +13,29 @@ In Coach mode, Team now has dedicated subtabs:
 - Health
 - Stats
 
-### Game Plan
-Pace, offensive style, defensive style, crunch-time preference and playoff adjustments.
+Career navigation also remains Coach-specific.
 
-### Rotation
-Active rotation size and individual player minutes.
+## Editable Depth Chart
+Depth Chart is no longer view-only.
 
-### Depth Chart
-A clean positional depth chart without all of the other Coach systems mixed into it.
+For PG, SG, SF, PF and C you can:
+- Choose the starter
+- Move players up or down in the positional depth order
+- Use players at compatible secondary positions
+- Maintain one unique five-player starting lineup
 
-### Player Roles
-Primary option, secondary option, sixth man, defensive stopper, prospect, bench leader and player buy-in.
+Starter changes feed back into the roster/rotation system and are saved with the universe.
 
-### Development
-Choose and review player development priorities.
+## Rotation
+Rotation remains separate from Depth Chart. Use Rotation to control minutes and rotation size; use Depth Chart to control positional hierarchy and starters.
 
-## Career
-Coach Career and Coaching Résumé have moved into the Career menu under the Coach Profile page.
-
-## Objectives
-Front Office Expectations have moved to Objectives, alongside the Coach's other season goals and job-performance information.
-
-## Previous Coach fixes retained
-- Coach career statistics and résumé
-- Front-office expectations
+## Previous Coach features retained
+- Game plans and schemes
+- Player roles and buy-in
+- Development focus
+- Coach career and résumé
+- Front Office Expectations in Objectives
 - Coach offseason authority / re-signing loop fix
-- Rotations, schemes, development, roles/buy-in and playoff adjustments
 
 ## Version
-v0.91.58 · Coach Navigation Reorganization
+v0.91.59 · Coach Team Menu + Editable Depth Chart

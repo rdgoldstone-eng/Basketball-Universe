@@ -26762,7 +26762,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.58 · Coach Navigation Reorganization';
+  const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27089,7 +27089,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.58 · Coach Navigation Reorganization';
+  const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27284,7 +27284,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.58 · Coach Navigation Reorganization';
+ const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27479,7 +27479,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.58 · Coach Navigation Reorganization';
+ const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27612,7 +27612,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.58 · Coach Navigation Reorganization';
+  const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27683,7 +27683,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.58 · Coach Navigation Reorganization';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27739,7 +27739,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.58 · Coach Navigation Reorganization';
+ const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27838,7 +27838,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.58 · Coach Navigation Reorganization';
+ const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27987,6 +27987,277 @@ function archiveGMSeasonV09147(year,force=false){
      renderCoachPages();
    }catch(e){console.error('Coach nav init',e)}
  },180);
+
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.59 Coach Team Navigation + Editable Depth Chart Fix === -->
+<style id="coachDepthEditStyleV09159">
+.coachDepthEditGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.coachDepthSlotEdit{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel2)}
+.coachDepthSlotEdit h3{margin:0 0 8px}
+.coachDepthPlayerEdit{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:7px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.coachDepthPlayerEdit:first-of-type{border-top:0}
+.coachDepthOrderBtn{padding:4px 7px;font-size:11px}
+@media(max-width:850px){.coachDepthEditGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.coachDepthSlotEdit:last-child{grid-column:1/-1}}
+@media(max-width:500px){.coachDepthEditGrid{grid-template-columns:1fr}.coachDepthSlotEdit:last-child{grid-column:auto}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.59 · Coach Team Menu + Editable Depth Chart';
+ window.BASKETBALLVERSE_BUILD='v0.91.59';
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+ const TEAM_TABS=[
+  ['players','Roster'],
+  ['coachgameplan','Game Plan'],
+  ['coachrotation','Rotation'],
+  ['coachdepthchart','Depth Chart'],
+  ['coachroles','Player Roles'],
+  ['coachdevelopment','Development'],
+  ['healthcenter','Health'],
+  ['stats','Stats']
+ ];
+ const CAREER_TABS=[
+  ['coachcareer','Profile'],
+  ['jobmarket','Job Market'],
+  ['careerhistory','Career History']
+ ];
+
+ function isCoach(){return state?.role==='Coach'}
+ function coachTeam(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
+ function coachRoster(){
+   const t=coachTeam();if(!t)return [];
+   return (state.players||[]).filter(p=>p.teamName===t.name&&!p.retired&&!p.deferredEntry);
+ }
+
+ // ---------- Reliable Coach navigation ----------
+ function coachGroupForTab(tab){
+   if(TEAM_TABS.some(x=>x[0]===tab))return 'team';
+   if(CAREER_TABS.some(x=>x[0]===tab))return 'career';
+   if(['season','decisions','objectives','playoffs','offseason'].includes(tab))return 'season';
+   return null;
+ }
+ function drawCoachSubnav(group,activeTab){
+   if(!isCoach())return false;
+   const items=group==='team'?TEAM_TABS:group==='career'?CAREER_TABS:null;
+   if(!items)return false;
+   const sub=document.getElementById('subNav');
+   const wrap=document.querySelector('.subNavWrap');
+   if(!sub)return false;
+   if(wrap)wrap.classList.remove('hidden');
+   sub.innerHTML=items.map(([id,label])=>`<button type="button" data-coach-tab="${id}" class="${id===activeTab?'active':''}">${label}</button>`).join('');
+   sub.querySelectorAll('[data-coach-tab]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       window.coachSwitchTabV09159(btn.dataset.coachTab);
+     });
+   });
+   return true;
+ }
+ window.coachSwitchTabV09159=function(tab){
+   const sec=document.getElementById(tab);
+   if(!sec)return false;
+   document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+   sec.classList.add('active');
+   const group=coachGroupForTab(tab)||'team';
+   document.querySelectorAll('.mainNav button').forEach(b=>b.classList.toggle('active',b.dataset.group===group));
+   drawCoachSubnav(group,tab);
+   try{updateSimulationLocationNav?.()}catch(_){}
+   try{renderCoachPagesV09159()}catch(e){console.error(e)}
+   window.scrollTo({top:0,behavior:'smooth'});
+   return true;
+ };
+
+ // Capture Coach subtab clicks before older broken handlers can interfere.
+ document.addEventListener('click',function(e){
+   if(!isCoach())return;
+   const btn=e.target.closest?.('#subNav button');
+   if(!btn)return;
+   const tab=btn.dataset.coachTab||btn.dataset.subtab;
+   if(TEAM_TABS.some(x=>x[0]===tab)||CAREER_TABS.some(x=>x[0]===tab)){
+     e.preventDefault();
+     e.stopImmediatePropagation();
+     window.coachSwitchTabV09159(tab);
+   }
+ },true);
+
+ function repairMainNav(){
+   if(!isCoach())return;
+   document.querySelectorAll('.mainNav button').forEach(btn=>{
+     if(btn.dataset.group==='team'){
+       btn.onclick=null;
+       btn.addEventListener('click',e=>{e.preventDefault();window.coachSwitchTabV09159('players')},{once:true});
+     }
+     if(btn.dataset.group==='career'){
+       btn.onclick=null;
+       btn.addEventListener('click',e=>{e.preventDefault();window.coachSwitchTabV09159('coachcareer')},{once:true});
+     }
+   });
+ }
+
+ // ---------- Editable Depth Chart ----------
+ function eligibleForSlot(p,slot){
+   if(typeof playerCanFillSlot==='function')return playerCanFillSlot(p,slot);
+   const map={PG:['PG','SG'],SG:['SG','PG','SF'],SF:['SF','SG','PF'],PF:['PF','SF','C'],C:['C','PF']};
+   return (map[slot]||[slot]).includes(p.pos);
+ }
+ function depthOrderStore(){
+   const t=coachTeam();if(!t)return {};
+   const s=coachSettings(t.id);
+   s.depthOrder=s.depthOrder||{PG:[],SG:[],SF:[],PF:[],C:[]};
+   return s.depthOrder;
+ }
+ function normalizeDepthOrder(){
+   const r=coachRoster(),order=depthOrderStore();
+   ['PG','SG','SF','PF','C'].forEach(slot=>{
+     const eligible=r.filter(p=>eligibleForSlot(p,slot));
+     const valid=(order[slot]||[]).filter(id=>eligible.some(p=>String(p.id)===String(id)));
+     eligible.sort((a,b)=>(b.ovr||0)-(a.ovr||0)).forEach(p=>{
+       if(!valid.some(id=>String(id)===String(p.id)))valid.push(p.id);
+     });
+     order[slot]=valid;
+   });
+ }
+ function playerBy(id){return coachRoster().find(p=>String(p.id)===String(id))}
+ function setStarter(slot,pid){
+   const t=coachTeam();if(!t)return;
+   const p=playerBy(pid);if(!p||!eligibleForSlot(p,slot))return;
+   const order=depthOrderStore();
+   order[slot]=[p.id,...(order[slot]||[]).filter(id=>String(id)!==String(p.id))];
+
+   // Only one starter per position and five total. Build starters from slot leaders.
+   normalizeDepthOrder();
+   const starterIds=[];
+   const used=new Set();
+   ['PG','SG','SF','PF','C'].forEach(s=>{
+     const candidate=(order[s]||[]).map(playerBy).find(x=>x&&!used.has(String(x.id))&&x.healthStatus!=='Out');
+     if(candidate){starterIds.push(candidate.id);used.add(String(candidate.id))}
+   });
+   coachRoster().forEach(x=>{
+     x.starter=starterIds.some(id=>String(id)===String(x.id));
+     if(x.starter&&Number(x.rotationMinutes||0)<=0)x.rotationMinutes=30;
+   });
+   try{normalizeRotationMinutes?.(t.name,true)}catch(_){}
+   try{saveState?.()}catch(_){}
+   renderCoachPagesV09159();
+ }
+ function moveDepth(slot,pid,dir){
+   const order=depthOrderStore(),arr=order[slot]||[];
+   const i=arr.findIndex(id=>String(id)===String(pid));if(i<0)return;
+   const j=i+dir;if(j<0||j>=arr.length)return;
+   [arr[i],arr[j]]=[arr[j],arr[i]];
+   order[slot]=arr;
+   try{saveState?.()}catch(_){}
+   renderCoachPagesV09159();
+ }
+ window.setCoachDepthStarterV09159=setStarter;
+ window.moveCoachDepthV09159=moveDepth;
+
+ function editableDepthHTML(){
+   normalizeDepthOrder();
+   const order=depthOrderStore(),slots=['PG','SG','SF','PF','C'];
+   return `<p class="small muted">Choose the starter at each position and arrange the backup order. Players can appear at more than one compatible position, but the starting five will use each player only once.</p>
+   <div class="coachDepthEditGrid">${slots.map(slot=>{
+     const ids=order[slot]||[];
+     const players=ids.map(playerBy).filter(Boolean);
+     return `<div class="coachDepthSlotEdit"><h3>${slot}</h3>
+       <label class="small muted">Starter</label>
+       <select onchange="setCoachDepthStarterV09159('${slot}',this.value)">
+         ${players.map((p,i)=>`<option value="${p.id}" ${i===0?'selected':''}>${p.name} · ${p.pos} · ${p.ovr} OVR</option>`).join('')}
+       </select>
+       <div style="margin-top:8px">${players.map((p,i)=>`<div class="coachDepthPlayerEdit">
+         <b>${i+1}</b>
+         <div><b>${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr}${p.healthStatus&&p.healthStatus!=='Healthy'?` · ${p.healthStatus}`:''}</div></div>
+         <div>
+           <button type="button" class="coachDepthOrderBtn" onclick="moveCoachDepthV09159('${slot}','${p.id}',-1)" ${i===0?'disabled':''}>↑</button>
+           <button type="button" class="coachDepthOrderBtn" onclick="moveCoachDepthV09159('${slot}','${p.id}',1)" ${i===players.length-1?'disabled':''}>↓</button>
+         </div>
+       </div>`).join('')}</div>
+     </div>`;
+   }).join('')}</div>`;
+ }
+
+ // ---------- Dedicated Coach page rendering ----------
+ window.renderCoachPagesV09159=function(){
+   if(!isCoach())return;
+   const t=coachTeam();if(!t)return;
+   try{initializeRotationForTeam?.(t.name)}catch(_){}
+
+   let host=document.getElementById('coachGamePlanPageV09158');
+   if(host){
+     // Re-render source Coach controls first so copied controls always have current values.
+     try{renderCoaching?.()}catch(_){}
+     const identity=document.getElementById('coachIdentityBox')?.innerHTML||'';
+     const plan=document.getElementById('coachGamePlanBox')?.innerHTML||'';
+     host.innerHTML=`<div class="grid2"><div><h3>Pace & Identity</h3>${identity}</div><div><h3>Scheme & Matchups</h3>${plan}</div></div>`;
+   }
+
+   host=document.getElementById('coachRotationPageV09158');
+   if(host){
+     const r=coachRoster().sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
+     host.innerHTML=`<p class="small muted">Set rotation size and individual minutes. Active minutes normalize to 240.</p>
+       ${rotationHealthSummary?.(t.name)||''}
+       <div class="choicebar" style="margin:10px 0"><button onclick="setRotationSize(8)">8-Man</button><button onclick="setRotationSize(9)">9-Man</button><button onclick="setRotationSize(10)">10-Man</button><button onclick="autoCoachRotation()">Auto Rotation</button></div>
+       ${r.map(p=>`<div class="rotationRow"><div><b>${p.starter?'★ ':''}${p.name}</b><div class="small muted">${p.pos} · OVR ${p.ovr} · ${p.healthStatus||'Healthy'}</div></div><div>${p.rotationRole||'Reserve'}</div><div><input class="minutesInput" type="number" min="0" max="48" value="${p.rotationMinutes||0}" onchange="setRotationMinutes('${p.id}',this.value)"></div><div class="coachHide">${p.fatigue||0} fatigue</div></div>`).join('')}`;
+   }
+
+   host=document.getElementById('coachDepthChartPageV09158');
+   if(host)host.innerHTML=editableDepthHTML();
+
+   host=document.getElementById('coachRolesPageV09158');
+   if(host){
+     try{renderCoaching?.()}catch(_){}
+     host.innerHTML=document.getElementById('coachPlayerRolesBox')?.innerHTML||'<span class="muted">No player roles available.</span>';
+   }
+
+   host=document.getElementById('coachDevelopmentPageV09158');
+   if(host){
+     try{renderCoaching?.()}catch(_){}
+     host.innerHTML=document.getElementById('coachDevelopmentBox')?.innerHTML||'<span class="muted">No development targets available.</span>';
+   }
+
+   host=document.getElementById('coachCareerPageV09158');
+   if(host)host.innerHTML=document.getElementById('coachCareerBox')?.innerHTML||'<span class="muted">No career data yet.</span>';
+   host=document.getElementById('coachResumePageV09158');
+   if(host)host.innerHTML=document.getElementById('coachResumeBox')?.innerHTML||'<span class="muted">No completed seasons yet.</span>';
+
+   const obj=document.getElementById('objectivesPageV0893');
+   if(obj){
+     let wrap=document.getElementById('coachExpectationsObjectivesV09159');
+     if(!wrap){wrap=document.createElement('div');wrap.id='coachExpectationsObjectivesV09159';wrap.style.marginTop='14px';obj.appendChild(wrap)}
+     wrap.innerHTML=`<div class="card" style="margin:0"><h3>Front Office Expectations</h3>${document.getElementById('coachExpectationsBox')?.innerHTML||'<span class="muted">No expectations yet.</span>'}</div>`;
+   }
+ };
+
+ // Override switchTab only for Coach-specific pages; delegate everything else.
+ const priorSwitch=window.switchTab;
+ window.switchTab=switchTab=function(tab){
+   if(isCoach()&&(TEAM_TABS.some(x=>x[0]===tab)||CAREER_TABS.some(x=>x[0]===tab)))return window.coachSwitchTabV09159(tab);
+   if(isCoach()&&tab==='coaching')return window.coachSwitchTabV09159('coachdepthchart');
+   if(isCoach()&&tab==='career')return window.coachSwitchTabV09159('coachcareer');
+   return priorSwitch.apply(this,arguments);
+ };
+
+ const priorAll=window.renderAll;
+ window.renderAll=renderAll=function(){
+   const r=priorAll.apply(this,arguments);
+   if(isCoach())setTimeout(()=>{repairMainNav();renderCoachPagesV09159()},0);
+   return r;
+ };
+
+ setTimeout(()=>{
+   try{
+     if(isCoach()){
+       repairMainNav();
+       const active=[...document.querySelectorAll('.section.active')][0]?.id;
+       const group=coachGroupForTab(active);
+       if(group)drawCoachSubnav(group,active);
+       renderCoachPagesV09159();
+     }
+   }catch(e){console.error('v0.91.59 init',e)}
+ },220);
 
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
