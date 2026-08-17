@@ -26762,7 +26762,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+  const LABEL='v0.91.61 · Coach Identity + Legacy';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27089,7 +27089,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+  const LABEL='v0.91.61 · Coach Identity + Legacy';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27284,7 +27284,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27479,7 +27479,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27612,7 +27612,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+  const LABEL='v0.91.61 · Coach Identity + Legacy';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27683,7 +27683,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.61 · Coach Identity + Legacy';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27739,7 +27739,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27838,7 +27838,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28006,7 +28006,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28276,7 +28276,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.60 · Interactive Coach Crunch Time';
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28436,6 +28436,52 @@ function archiveGMSeasonV09147(year,force=false){
    return r;
  };
 
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.61 Coach Identity + Legacy === -->
+<style>
+.coachAttrGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.coachAttr{padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}.coachAttr b{font-size:20px}.coachLegacyHero{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center}.coachLegacyScore{font-size:38px;font-weight:900}.coachAwardRow{padding:7px 0;border-bottom:1px solid var(--line)}@media(max-width:600px){.coachAttrGrid{grid-template-columns:repeat(2,1fr)}.coachLegacyHero{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.61 · Coach Identity + Legacy';
+ window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const ARCH={
+  'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
+  'Defensive Specialist':{defense:8,adaptability:3,desc:'Creates disciplined defenses and adjusts to opposing stars.'},
+  'Player Developer':{development:9,motivation:3,desc:'Accelerates young-player growth and builds long-term cores.'},
+  'Motivator':{motivation:9,development:2,desc:'Improves buy-in and steadies struggling teams.'},
+  'Tactician':{gameManagement:8,adaptability:6,desc:'Excels at matchups, late-game decisions and playoff adjustments.'}
+ };
+ function C(){
+  state.coachCareer=state.coachCareer||{}; let c=state.coachCareer;
+  c.history=Array.isArray(c.history)?c.history:[]; c.awards=Array.isArray(c.awards)?c.awards:[];
+  c.archetype=c.archetype||'Tactician';
+  c.attributes=c.attributes||{offense:55,defense:55,development:55,motivation:55,gameManagement:55,adaptability:55};
+  if(!c.identityInitialized){let b=ARCH[c.archetype];Object.keys(b).forEach(k=>{if(k!=='desc')c.attributes[k]=Math.min(99,+c.attributes[k]+b[k])});c.identityInitialized=true}
+  return c;
+ }
+ function T(){let h=C().history,w=h.reduce((s,x)=>s+(+x.wins||0),0),l=h.reduce((s,x)=>s+(+x.losses||0),0);return {w,l,seasons:h.length,titles:h.filter(x=>+(x.level??x.playoffLevel||0)>=5).length,finals:h.filter(x=>+(x.level??x.playoffLevel||0)>=4).length,playoffs:h.filter(x=>+(x.level??x.playoffLevel||0)>=1).length}}
+ function score(){let c=C(),t=T(),aw=c.awards.filter(a=>a.type==='Coach of the Year').length;return Math.round(t.w*.18+t.playoffs*18+t.finals*35+t.titles*100+aw*40+(+c.reputation||50)*1.5)}
+ window.setCoachArchetypeV09161=function(n){let c=C();if(ARCH[n]){c.archetype=n;try{saveState?.()}catch(_){};renderCoachIdentityLegacyV09161()}};
+ function grow(){
+  let c=C(),h=c.history;if(!h.length)return;let x=h.slice().sort((a,b)=>+b.year-+a.year)[0];if(!x||c.lastAttributeGrowthYear===x.year)return;
+  let a=c.attributes,p=(+x.wins||0)/Math.max(1,(+x.wins||0)+(+x.losses||0)),lv=+(x.level??x.playoffLevel||0);
+  a.offense=Math.min(99,a.offense+(p>=.55?1:0));a.defense=Math.min(99,a.defense+(lv>=2?1:0));a.gameManagement=Math.min(99,a.gameManagement+(lv>=1?1:0));a.adaptability=Math.min(99,a.adaptability+(lv>=3?1:0));a.development=Math.min(99,a.development+1);a.motivation=Math.min(99,a.motivation+(p>=.5?1:0));c.lastAttributeGrowthYear=x.year;
+  let cotyScore=(+x.wins||0)+lv*5+(x.met===true?5:0);
+  if(cotyScore>=58&&!c.awards.some(a=>a.type==='Coach of the Year'&&+a.year===+x.year)){c.awards.push({year:x.year,type:'Coach of the Year',teamName:x.teamName});c.reputation=Math.min(100,(+c.reputation||50)+6)}
+ }
+ window.renderCoachIdentityLegacyV09161=function(){
+  if(state?.role!=='Coach')return;grow();let c=C(),t=T(),host=document.getElementById('coachCareerPageV09158');if(!host)return;
+  let labels={offense:'Offense',defense:'Defense',development:'Development',motivation:'Motivation',gameManagement:'Game Management',adaptability:'Adaptability'};
+  let results=document.getElementById('coachCareerBox')?.innerHTML||'';
+  host.innerHTML=`<div class="coachLegacyHero"><div><div class="coachLegacyScore">${score()}</div><div class="small muted">Legacy Score</div></div><div><h3 style="margin:0 0 5px">Coaching Identity</h3><select onchange="setCoachArchetypeV09161(this.value)">${Object.keys(ARCH).map(x=>`<option ${x===c.archetype?'selected':''}>${x}</option>`).join('')}</select><div class="small muted" style="margin-top:5px">${ARCH[c.archetype].desc}</div></div></div><h3>Coach Attributes</h3><div class="coachAttrGrid">${Object.entries(labels).map(([k,l])=>`<div class="coachAttr"><b>${Math.round(c.attributes[k])}</b><div>${l}</div></div>`).join('')}</div><h3>Career Results</h3>${results}<h3>Awards</h3>${c.awards.length?c.awards.slice().sort((a,b)=>b.year-a.year).map(a=>`<div class="coachAwardRow"><b>${a.year}</b> · ${a.type}${a.teamName?' · '+a.teamName:''}</div>`).join(''):'<div class="muted">No coaching awards yet.</div>'}`;
+ };
+ const rp=window.renderCoachPagesV09159;if(typeof rp==='function')window.renderCoachPagesV09159=function(){let r=rp.apply(this,arguments);setTimeout(window.renderCoachIdentityLegacyV09161,0);return r};
+ const ra=window.renderAll;if(typeof ra==='function')window.renderAll=function(){let r=ra.apply(this,arguments);if(state?.role==='Coach')setTimeout(window.renderCoachIdentityLegacyV09161,0);return r};
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
 </script>

@@ -1,41 +1,22 @@
-# Basketballverse v0.91.60 — Interactive Coach Crunch Time
+# Basketballverse v0.91.61 — Coach Identity + Legacy
 
-## Watch Game is now interactive for Coach mode
-When the user's team is involved in a close watched playoff game, the game enters Crunch Time after the third quarter.
+## New Coach Identity
+Choose a coaching philosophy: Offensive Architect, Defensive Specialist, Player Developer, Motivator, or Tactician.
 
-At each crunch-time checkpoint the Coach can change:
+## Coach Attributes
+Career/Profile now tracks Offense, Defense, Development, Motivation, Game Management, and Adaptability. Attributes improve through completed seasons and career performance.
 
-- Closing Lineup: Best Five, Shooting, Defense, Size, or Choose Five manually
-- Offensive Focus: Primary Option, Attack Paint, Hunt Threes, Balanced, Slow It Down
-- Defense: Straight Up, Pressure Ball, Protect Paint, Switch Everything, Deny Star
-- Tempo: Push Pace, Normal, Burn Clock
-- Late Foul Strategy: Normal, Foul If Trailing, No Intentional Foul
-- Go-To Player
+## Legacy Score
+Coach careers receive a Legacy Score based on career wins, playoff appearances, Finals appearances, championships, Coach of the Year awards, and reputation.
 
-## Checkpoints
-Coach decisions can be changed at:
-- 6:00 remaining
-- 3:00 remaining
-- 1:00 remaining
-- Final possessions
+## Coach of the Year
+Strong seasons can now produce Coach of the Year recognition. Awards are stored and displayed on the Coach career profile.
 
-The selected strategy affects the probabilities used by the crunch-time simulation. Strong lineup/scheme fits help; poor fits provide less benefit. Manual lineups require exactly five healthy players.
+## Existing Coach systems retained
+Interactive crunch-time coaching, editable depth chart, rotation/minutes, game plans, player roles, development, career résumé, expectations, and AI front-office offseason handling.
 
-Coach adjustments are also written into the game's play-by-play moments so the watched game records what you changed.
-
-## Other roles
-GM, Owner, Commissioner, Player and Viewer continue to use the normal observational Watch Game flow. Interactive tactical controls are a Coach-role feature.
-
-## Previous Coach features retained
-- Editable Depth Chart
-- Separate Team subtabs
-- Rotation/minutes
-- Game Plan
-- Player Roles
-- Development
-- Coach Career and Résumé
-- Front Office Expectations
-- Coach offseason authority
+## Next
+Pregame opponent scouting and halftime adjustments.
 
 ## Version
-v0.91.60 · Interactive Coach Crunch Time
+v0.91.61 · Coach Identity + Legacy
