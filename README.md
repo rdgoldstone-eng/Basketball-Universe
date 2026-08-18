@@ -1,42 +1,64 @@
-# Basketballverse v0.91.71 — Player Contracts, Trades + Relationships
+# Basketballverse v0.91.72 — Player Life in the League
 
-Player mode now gains career influence without gaining GM authority.
+Player mode now adds events that happen TO the player instead of making every career development user-initiated.
 
-## Contracts
-The Player Career dashboard tracks salary, years remaining, and career leverage.
-Players can ask their current team about an extension. The team can accept or refuse.
+## Career events
+The Player Career can now produce:
+- Coach role changes
+- Bigger opportunities
+- Postgame media questions
+- Locker-room relationship situations
+- Playing-through-pain decisions
+- Trade rumors the player did not request
+- Front-office meetings
+- Leadership moments
 
-## Market interest
-Teams can show interest and make player-side contract offers with different:
-- salaries
-- contract lengths
-- projected roles
-- contender strength
+## Imposed decisions
+Some events are not optional outcomes.
 
-The player chooses among offers; the player does not edit team finances or create contracts.
+Example: if the coach moves the player to the bench, the role change happens. The user's choice is how the player responds to it.
 
-## Trades
-Players can request a trade. The GM is not required to honor it.
-High-leverage players can communicate up to three preferred destinations, but those preferences are not guarantees.
-Trade talks can fail, and the front office controls whether a deal actually happens.
+This is intentional: Player mode lives inside the universe rather than controlling it.
 
-## Relationships
-Persistent relationships now include:
-- Coach
-- Front Office
-- Teammates
-- Fans
+## Media
+Important stretches can create media decisions. Responses influence teammates, coaches, fans, reputation, and sometimes the front office.
 
-Career decisions can improve or damage these relationships.
+## Injuries and health
+Players can be cleared but not fully healthy and choose between:
+- Play Through It
+- Accept Limited Minutes
+- Sit and Recover
 
-## Emerging reputation
-Career identity begins to emerge from actions instead of selecting a fixed personality class. Examples include Loyal, Coachable, Good Teammate, and Requested Trade.
+These decisions affect energy, reputation, coach trust, workload, and future injury-risk groundwork.
 
-## Leverage
-Career leverage is based on ability, production, reputation, and experience. Stars therefore gain more influence over extensions and trade destinations than fringe players.
+## Trade rumors
+The player's name can appear in trade rumors without requesting a trade. The user can respond publicly, but the GM still controls roster decisions.
 
-## Philosophy
-Player mode can influence a career but cannot run a franchise. The GM and Coach remain independent actors.
+## League recognition
+The Player Career now tracks recognition such as:
+- Award-race mentions
+- All-Star selections
+- 40-point games
+- 50-point games
+
+Recognition affects reputation and is recorded on the career timeline/news feed.
+
+## Role changes
+Coach role changes can now be imposed based on career context and recent play. Player mode can react to the decision but cannot simply reject the coach's lineup authority.
+
+## Career history
+Resolved career-life events are stored permanently so the Player Career becomes a story rather than only a stat sheet.
+
+## Existing Player systems retained
+- Player game moments / check-in experience
+- Confidence and performance effects
+- Dynamic role/minutes
+- Contracts and extensions
+- Free-agent market interest
+- Trade requests and preferred destinations
+- Coach, Front Office, teammate, and fan relationships
+- Career leverage and emerging reputation
+- Persistent Career Person
 
 ## Version
-v0.91.71 · Player Contracts, Trades + Relationships
+v0.91.72 · Player Life in the League
