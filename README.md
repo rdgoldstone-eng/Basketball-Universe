@@ -1,64 +1,35 @@
-# Basketballverse v0.91.72 — Player Life in the League
+# Basketballverse v0.91.73 — Franchise Records
 
-Player mode now adds events that happen TO the player instead of making every career development user-initiated.
+## Franchise Record Books
+History now includes a dedicated **Franchise Records** page.
 
-## Career events
-The Player Career can now produce:
-- Coach role changes
-- Bigger opportunities
-- Postgame media questions
-- Locker-room relationship situations
-- Playing-through-pain decisions
-- Trade rumors the player did not request
-- Front-office meetings
-- Leadership moments
+For every active franchise, Basketballverse tracks the top 10 career leaders in:
+- Points
+- Rebounds
+- Assists
+- Steals
+- Blocks
+- Games Played
+- Minutes
 
-## Imposed decisions
-Some events are not optional outcomes.
+Records are based on the career-season history stored inside the universe, so alternate-history careers create alternate-history franchise record books.
 
-Example: if the coach moves the player to the bench, the role change happens. The user's choice is how the player responds to it.
+## Active players
+Active players continue adding to franchise totals during their current season.
 
-This is intentional: Player mode lives inside the universe rather than controlling it.
+## Player mode
+The controlled Player career now gets a **Franchise Record Chase** card showing where the player ranks in the current franchise's record book and how far away the major leaders are.
 
-## Media
-Important stretches can create media decisions. Responses influence teammates, coaches, fans, reputation, and sometimes the front office.
+This gives Player mode long-term franchise goals beyond awards and championships.
 
-## Injuries and health
-Players can be cleared but not fully healthy and choose between:
-- Play Through It
-- Accept Limited Minutes
-- Sit and Recover
+## Historical behavior
+A player's stats only count toward the franchise where those seasons were played. If a player changes teams, each franchise retains only the totals accumulated while playing there.
 
-These decisions affect energy, reputation, coach trust, workload, and future injury-risk groundwork.
+## Save compatibility
+Existing saves use whatever career-season history they already contain. Older universes may have incomplete franchise records for seasons that were never archived historically; from this build forward completed player seasons continue feeding the record books.
 
-## Trade rumors
-The player's name can appear in trade rumors without requesting a trade. The user can respond publicly, but the GM still controls roster decisions.
-
-## League recognition
-The Player Career now tracks recognition such as:
-- Award-race mentions
-- All-Star selections
-- 40-point games
-- 50-point games
-
-Recognition affects reputation and is recorded on the career timeline/news feed.
-
-## Role changes
-Coach role changes can now be imposed based on career context and recent play. Player mode can react to the decision but cannot simply reject the coach's lineup authority.
-
-## Career history
-Resolved career-life events are stored permanently so the Player Career becomes a story rather than only a stat sheet.
-
-## Existing Player systems retained
-- Player game moments / check-in experience
-- Confidence and performance effects
-- Dynamic role/minutes
-- Contracts and extensions
-- Free-agent market interest
-- Trade requests and preferred destinations
-- Coach, Front Office, teammate, and fan relationships
-- Career leverage and emerging reputation
-- Persistent Career Person
+## Existing systems retained
+All Player Life in the League, contracts/trades/relationships, game experience, Coach role work, Coach Hall of Fame, GM systems, and historical simulation work remain included.
 
 ## Version
-v0.91.72 · Player Life in the League
+v0.91.73 · Franchise Records

@@ -746,7 +746,20 @@ pre{white-space:pre-wrap}
     </div>
   </section>
 
-  <section id="records" class="section">
+  
+<section id="franchiserecords" class="section">
+  <div class="card">
+    <div class="calendarline">
+      <div>
+        <h2 style="margin:0">Franchise Records</h2>
+        <div class="small muted">All-time leaders for each franchise in this Basketballverse universe.</div>
+      </div>
+      <select id="franchiseRecordTeamSelectV09173" onchange="renderFranchiseRecordsV09173()"></select>
+    </div>
+    <div id="franchiseRecordsBodyV09173" style="margin-top:12px"></div>
+  </div>
+</section>
+<section id="records" class="section">
     <div class="card">
       <h2>Records</h2>
       <p class="small muted">League records and historical statistical marks.</p>
@@ -26776,7 +26789,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.72 · Player Life in the League';
+  const LABEL='v0.91.73 · Franchise Records';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27103,7 +27116,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.72 · Player Life in the League';
+  const LABEL='v0.91.73 · Franchise Records';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27298,7 +27311,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27493,7 +27506,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27626,7 +27639,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.72 · Player Life in the League';
+  const LABEL='v0.91.73 · Franchise Records';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27697,7 +27710,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.73 · Franchise Records';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27753,7 +27766,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27852,7 +27865,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28020,7 +28033,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28290,7 +28303,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28461,7 +28474,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28513,7 +28526,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28713,7 +28726,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
  function ensure(){
@@ -28749,7 +28762,7 @@ function archiveGMSeasonV09147(year,force=false){
 
 <script>
 (function(){
-const LABEL='v0.91.72 · Player Life in the League';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.91.73 · Franchise Records';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function P(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function era(y){y=+y||1976;return y<1980?'1970s analog basketball media-day photography':y<1990?'1980s film basketball media-day photography':y<2000?'1990s studio basketball portrait':y<2010?'2000s basketball media-day portrait':y<2020?'2010s modern basketball media-day portrait':'modern professional basketball media-day portrait'}
 function prompt(p){return ((p.portraitDescription||'').trim()+'. '+era(p.careerStartYear||state.currentYear)+'. '+(p.currentRole||state.role)+' portrait for a fictional basketball simulation. Chest-up, centered subject, neutral studio background, realistic proportions, natural expression, no text, no logos, no watermark, consistent roster portrait framing.')}
@@ -28775,7 +28788,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.65';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29107,7 +29120,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.66';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -29333,7 +29346,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.67';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
@@ -29343,7 +29356,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.68 Coach Personnel Authority Guard === -->
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.68';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29506,7 +29519,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
-const LABEL='v0.91.72 · Player Life in the League';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.91.73 · Franchise Records';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}function cp(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function pc(){state.playerCareer=state.playerCareer||{playerId:null,teamId:null,morale:70,confidence:65,coachRelationship:60,gmRelationship:55,trainingFocus:'Balanced',role:'Rotation',minutesTarget:18,careerStats:{games:0,starts:0,points:0,rebounds:0,assists:0}};return state.playerCareer}
 function all(){return(state.teams||[]).flatMap(t=>(t.roster||[]).map(p=>({p,t})))}function hit(){let c=pc();return all().find(x=>String(x.p.id)===String(c.playerId))}
@@ -29533,7 +29546,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.70';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isPlayer(){return state?.role==='Player'}
@@ -29789,7 +29802,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
-const LABEL='v0.91.72 · Player Life in the League';
+const LABEL='v0.91.73 · Franchise Records';
 window.BASKETBALLVERSE_BUILD='v0.91.71';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}
 function C(){state.playerCareer=state.playerCareer||{};let c=state.playerCareer;c.relationships=c.relationships||{coach:Number(c.coachRelationship??60),frontOffice:Number(c.gmRelationship??55),teammates:55,fans:55};c.contract=c.contract||null;c.playerOffers=Array.isArray(c.playerOffers)?c.playerOffers:[];c.promises=Array.isArray(c.promises)?c.promises:[];c.careerTraits=Array.isArray(c.careerTraits)?c.careerTraits:[];c.tradeRequest=c.tradeRequest||null;c.loyalty=Number(c.loyalty??65);c.leverage=Number(c.leverage??20);return c}
@@ -29894,7 +29907,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.72 · Player Life in the League';
+ const LABEL='v0.91.73 · Franchise Records';
  window.BASKETBALLVERSE_BUILD='v0.91.72';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30162,6 +30175,204 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
  }
 
  setTimeout(()=>{try{if(isp()){recognitionCheck();makeLifeEvent();renderPlayerCareerV09169?.()}}catch(e){console.error('v0.91.72 init',e)}},300);
+
+ try{
+   document.querySelectorAll('.pill').forEach(e=>{
+     if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL;
+   });
+ }catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.73 Franchise Records === -->
+<style id="franchiseRecordsStyleV09173">
+.frRecordGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.frRecordCard{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel2)}
+.frRecordRow{display:grid;grid-template-columns:32px minmax(0,1fr) 90px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.frRecordRow:last-child{border-bottom:0}.frRecordRank{font-weight:900}.frRecordValue{text-align:right;font-weight:900}
+.frRecordHolder{display:flex;align-items:center;gap:7px}.frRecordTag{font-size:10px;font-weight:900}
+@media(max-width:700px){.frRecordGrid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.73 · Franchise Records';
+ window.BASKETBALLVERSE_BUILD='v0.91.73';
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+ const CATS=[
+   ['pts','Points'],['reb','Rebounds'],['ast','Assists'],['stl','Steals'],['blk','Blocks'],
+   ['gp','Games Played'],['min','Minutes']
+ ];
+
+ function ensureCareer(p){
+   if(!p)return;
+   if(typeof ensurePlayerCareerHistory==='function')ensurePlayerCareerHistory(p);
+   else{
+     p.careerSeasons=Array.isArray(p.careerSeasons)?p.careerSeasons:[];
+   }
+ }
+ function playerFranchiseTotals(p,teamName){
+   ensureCareer(p);
+   const seasons=(p.careerSeasons||[]).filter(s=>s.team===teamName);
+   if(p.stats?.gp>0 && p.teamName===teamName && !seasons.some(s=>Number(s.year)===Number(p.stats.season))){
+     seasons.push({
+       year:p.stats.season,team:teamName,gp:p.stats.gp||0,min:p.stats.min||0,
+       pts:p.stats.pts||0,reb:p.stats.reb||0,ast:p.stats.ast||0,stl:p.stats.stl||0,blk:p.stats.blk||0
+     });
+   }
+   return seasons.reduce((a,s)=>{
+     for(const k of ['gp','min','pts','reb','ast','stl','blk'])a[k]+=Number(s[k]||0);
+     return a;
+   },{gp:0,min:0,pts:0,reb:0,ast:0,stl:0,blk:0});
+ }
+ function recordStore(){
+   state.franchiseRecords=state.franchiseRecords||{};
+   return state.franchiseRecords;
+ }
+ function rebuildTeam(teamName){
+   const store=recordStore();
+   const eligible=(state.players||[]).map(p=>({p,t:playerFranchiseTotals(p,teamName)}))
+     .filter(x=>x.t.gp>0 || x.t.pts>0 || x.t.reb>0 || x.t.ast>0);
+   const rec={teamName,updatedYear:Number(state.currentYear),categories:{}};
+   CATS.forEach(([key,label])=>{
+     rec.categories[key]=eligible.slice().sort((a,b)=>Number(b.t[key]||0)-Number(a.t[key]||0))
+       .filter(x=>Number(x.t[key]||0)>0).slice(0,10)
+       .map((x,i)=>({
+         rank:i+1,playerId:x.p.id,name:x.p.name,value:Number(x.t[key]||0),
+         active:!x.p.retired && x.p.teamName===teamName
+       }));
+   });
+   store[teamName]=rec;
+   return rec;
+ }
+ function rebuildAll(){
+   (state.teams||[]).filter(t=>!t.defunct).forEach(t=>rebuildTeam(t.name));
+   try{saveState?.()}catch(_){}
+ }
+ window.rebuildFranchiseRecordsV09173=rebuildAll;
+
+ function selectedTeam(){
+   const sel=document.getElementById('franchiseRecordTeamSelectV09173');
+   const name=sel?.value;
+   if(name)return (state.teams||[]).find(t=>t.name===name)||null;
+   if(state.controlledTeamId)return (state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null;
+   return (state.teams||[]).find(t=>!t.defunct)||null;
+ }
+ function fmt(k,v){
+   if(k==='min')return Math.round(v).toLocaleString();
+   return Math.round(v).toLocaleString();
+ }
+ function cardHTML(key,label,rows){
+   const controlledId=state.playerCareer?.playerId||state.careerPlayerId;
+   return `<div class="frRecordCard"><h3 style="margin-top:0">${label}</h3>${rows.length?rows.map(r=>`
+     <div class="frRecordRow">
+       <div class="frRecordRank">${r.rank}</div>
+       <div class="frRecordHolder"><div><b>${r.name}</b>${String(r.playerId)===String(controlledId)?' <span class="pill frRecordTag">YOU</span>':''}${r.active?' <span class="small muted">Active</span>':''}</div></div>
+       <div class="frRecordValue">${fmt(key,r.value)}</div>
+     </div>`).join(''):`<div class="muted">No franchise history recorded yet.</div>`}</div>`;
+ }
+ window.renderFranchiseRecordsV09173=function(){
+   if(!state)return;
+   const select=document.getElementById('franchiseRecordTeamSelectV09173');
+   if(select){
+     const current=select.value;
+     const teams=(state.teams||[]).filter(t=>!t.defunct);
+     select.innerHTML=teams.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+     if(current&&teams.some(t=>t.name===current))select.value=current;
+     else{
+       const ct=(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId));
+       if(ct)select.value=ct.name;
+     }
+   }
+   const t=selectedTeam(),host=document.getElementById('franchiseRecordsBodyV09173');
+   if(!t||!host)return;
+   const rec=rebuildTeam(t.name);
+   host.innerHTML=`<div class="notice"><b>${t.name} record book</b><br><span class="small">Records are generated from the career-season history contained in this universe. Active players continue adding to their totals.</span></div>
+   <div class="frRecordGrid" style="margin-top:10px">${CATS.map(([k,l])=>cardHTML(k,l,rec.categories[k]||[])).join('')}</div>`;
+ };
+
+ // Player career record chase summary.
+ function playerRecordChaseHTML(){
+   if(state.role!=='Player')return '';
+   const id=state.playerCareer?.playerId||state.careerPlayerId;
+   const p=(state.players||[]).find(x=>String(x.id)===String(id));if(!p||!p.teamName)return '';
+   const rec=rebuildTeam(p.teamName),tot=playerFranchiseTotals(p,p.teamName);
+   const chases=[];
+   for(const [k,label] of CATS){
+     const rows=rec.categories[k]||[];
+     const rank=rows.findIndex(r=>String(r.playerId)===String(p.id));
+     const leader=rows[0];
+     if(rank>=0&&rank<10)chases.push(`${label}: #${rank+1} in ${p.teamName} history (${fmt(k,tot[k])})`);
+     else if(leader)chases.push(`${label}: ${fmt(k,tot[k])} · Franchise leader ${leader.name}: ${fmt(k,leader.value)}`);
+   }
+   return `<div class="card" id="playerFranchiseRecordChaseV09173"><h2>Franchise Record Chase</h2>${chases.length?chases.slice(0,7).map(x=>`<div class="small" style="padding:5px 0;border-bottom:1px solid var(--line)">${x}</div>`).join(''):'<div class="muted">Build your franchise résumé to enter the record book.</div>'}</div>`;
+ }
+
+ const oldRenderPlayer=window.renderPlayerCareerV09169;
+ if(typeof oldRenderPlayer==='function'){
+   window.renderPlayerCareerV09169=function(){
+     const r=oldRenderPlayer.apply(this,arguments);
+     if(state?.role==='Player'){
+       const host=document.getElementById('playerCareerDashboardV09169');
+       if(host){
+         const old=document.getElementById('playerFranchiseRecordChaseV09173');
+         if(old)old.remove();
+         const wrap=document.createElement('div');wrap.innerHTML=playerRecordChaseHTML();
+         if(wrap.firstElementChild)host.appendChild(wrap.firstElementChild);
+       }
+     }
+     return r;
+   };
+ }
+
+ // Add Franchise Records to History navigation.
+ const oldGroup=window.navigationGroupForTab;
+ window.navigationGroupForTab=function(tab){
+   if(tab==='franchiserecords')return 'history';
+   return oldGroup.apply(this,arguments);
+ };
+ const oldSub=window.renderSubNavigation;
+ window.renderSubNavigation=function(group,active){
+   const r=oldSub.apply(this,arguments);
+   if(group==='history'){
+     const sub=document.getElementById('subNav');
+     if(sub&&!sub.querySelector('[data-subtab="franchiserecords"]')){
+       const b=document.createElement('button');
+       b.dataset.subtab='franchiserecords';b.textContent='Franchise Records';
+       b.classList.toggle('active',active==='franchiserecords');
+       b.onclick=()=>switchTab('franchiserecords');
+       const coach=sub.querySelector('[data-subtab="coachhistory"]');
+       if(coach)sub.insertBefore(b,coach);else sub.appendChild(b);
+     }
+   }
+   return r;
+ };
+
+ const oldSwitch=window.switchTab;
+ window.switchTab=function(tab){
+   const r=oldSwitch.apply(this,arguments);
+   if(tab==='franchiserecords')setTimeout(renderFranchiseRecordsV09173,0);
+   return r;
+ };
+
+ const oldArchive=window.archiveCompletedPlayerSeason;
+ if(typeof oldArchive==='function'){
+   window.archiveCompletedPlayerSeason=function(year){
+     const r=oldArchive.apply(this,arguments);
+     rebuildAll();
+     return r;
+   };
+ }
+
+ const oldAll=window.renderAll;
+ window.renderAll=function(){
+   const r=oldAll.apply(this,arguments);
+   if(document.getElementById('franchiserecords')?.classList.contains('active'))setTimeout(renderFranchiseRecordsV09173,0);
+   return r;
+ };
+
+ setTimeout(()=>{try{rebuildAll()}catch(e){console.error('franchise records init',e)}},350);
 
  try{
    document.querySelectorAll('.pill').forEach(e=>{
