@@ -26762,7 +26762,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+  const LABEL='v0.91.63 · Persistent Career Person Foundation';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27089,7 +27089,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+  const LABEL='v0.91.63 · Persistent Career Person Foundation';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27284,7 +27284,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27479,7 +27479,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27612,7 +27612,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+  const LABEL='v0.91.63 · Persistent Career Person Foundation';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27683,7 +27683,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27739,7 +27739,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27838,7 +27838,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28006,7 +28006,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28276,7 +28276,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28447,7 +28447,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28499,7 +28499,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.62 · Coach Scouting + Halftime Adjustments';
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28688,6 +28688,47 @@ function archiveGMSeasonV09147(year,force=false){
    return r;
  };
 
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
+
+
+<!-- === v0.91.63 Persistent Career Person Foundation === -->
+<style>
+.personHero{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:center}.personAvatar{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--panel2);font-size:28px;font-weight:900}.personChapter{padding:9px 0;border-bottom:1px solid var(--line)}.personCreatorGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.personCreatorGrid label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px;text-transform:uppercase}@media(max-width:600px){.personHero,.personCreatorGrid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ const LABEL='v0.91.63 · Persistent Career Person Foundation';
+ window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+ function ensure(){
+   state.careerPerson=state.careerPerson||null;
+   if(!state.careerPerson)state.careerPerson={id:uid(),name:state.userName||state.gmName||state.coachName||'Your Character',created:false,currentRole:state.role||'Viewer',careerStartYear:Number(state.currentYear||1976),chapters:[],hallOfFame:{player:false,coach:false,executive:false},portrait:null};
+   const p=state.careerPerson;p.chapters=Array.isArray(p.chapters)?p.chapters:[];p.hallOfFame=p.hallOfFame||{player:false,coach:false,executive:false};p.currentRole=state.role||p.currentRole||'Viewer';
+   if(p.currentRole!=='Viewer'&&!p.chapters.some(c=>c.active))p.chapters.push({role:p.currentRole,startYear:Number(state.currentYear||1976),endYear:null,active:true,teamId:state.controlledTeamId||null});
+   return p;
+ }
+ window.ensureCareerPersonV09163=ensure;
+ window.createCareerCharacterV09163=function(){
+   const name=(document.getElementById('careerPersonNameV09163')?.value||'').trim(),age=Number(document.getElementById('careerPersonAgeV09163')?.value||30),background=document.getElementById('careerPersonBackgroundV09163')?.value||'Basketball Lifelonger';
+   if(!name){alert('Enter a character name.');return}
+   const p=ensure();p.name=name;p.age=age;p.background=background;p.created=true;p.currentRole=state.role;p.careerStartYear=Number(state.currentYear||1976);p.chapters=[];
+   if(state.role!=='Viewer')p.chapters.push({role:state.role,startYear:p.careerStartYear,endYear:null,active:true,teamId:state.controlledTeamId||null});
+   try{saveState?.()}catch(_){};renderCareerPersonV09163();
+ };
+ window.transitionCareerRoleV09163=function(role,teamId){
+   const p=ensure(),y=Number(state.currentYear||1976);p.chapters.forEach(c=>{if(c.active){c.active=false;c.endYear=y}});p.currentRole=role;state.role=role;if(teamId!=null)state.controlledTeamId=teamId;p.chapters.push({role:role,startYear:y,endYear:null,active:true,teamId:state.controlledTeamId||null});try{saveState?.()}catch(_){};try{renderAll?.()}catch(_){}
+ };
+ window.renderCareerPersonV09163=function(){
+   const p=ensure();let host=document.getElementById('careerPersonFoundationV09163');const sec=document.getElementById('coachcareer')||document.getElementById('careerhistory');if(!sec)return;
+   if(!host){host=document.createElement('div');host.id='careerPersonFoundationV09163';host.className='card';host.style.marginBottom='12px';sec.prepend(host)}
+   const initials=(p.name||'?').split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+   const chapters=p.chapters.length?p.chapters.map(c=>`<div class="personChapter"><b>${c.role}</b> · ${c.startYear}${c.active?'–Present':'–'+(c.endYear??'?')}<div class="small muted">${c.active?'Current career chapter':'Completed career chapter'}</div></div>`).join(''):'<div class="muted">No active career chapters. Viewer mode remains outside the basketball universe.</div>';
+   host.innerHTML=`<div class="personHero"><div class="personAvatar">${initials}</div><div><h2 style="margin:0">${p.name}</h2><div class="muted">${p.currentRole==='Viewer'?'Viewer':p.currentRole+' Career'} · Began ${p.careerStartYear}</div>${p.background?'<div class="small muted">'+p.background+'</div>':''}</div></div><h3>Career Chapters</h3>${chapters}${!p.created&&p.currentRole!=='Viewer'?`<h3>Create Your Character</h3><div class="personCreatorGrid"><div><label>Name</label><input id="careerPersonNameV09163" value="${p.name==='Your Character'?'':p.name}" placeholder="Ryan Goldstone"></div><div><label>Age</label><input id="careerPersonAgeV09163" type="number" min="18" max="90" value="${p.age||35}"></div><div><label>Background</label><select id="careerPersonBackgroundV09163"><option>Basketball Lifelonger</option><option>Former Player</option><option>Business Owner</option><option>Front Office</option><option>College Basketball</option><option>Self-Made</option></select></div><div style="display:flex;align-items:end"><button class="primary" onclick="createCareerCharacterV09163()">Create Character</button></div></div>`:''}`;
+ };
+ const oldAll=window.renderAll;if(typeof oldAll==='function')window.renderAll=function(){let r=oldAll.apply(this,arguments);setTimeout(()=>{try{renderCareerPersonV09163()}catch(_){}},0);return r};
+ setTimeout(()=>{try{ensure();renderCareerPersonV09163()}catch(_){}},250);
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
 })();
 </script>

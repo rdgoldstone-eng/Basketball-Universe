@@ -1,38 +1,21 @@
-# Basketballverse v0.91.62 — Coach Scouting + Halftime Adjustments
+# Basketballverse v0.91.63 — Persistent Career Person Foundation
 
-## Pregame Opponent Scouting
-Coach mode now adds an Opponent Scouting section to Team → Game Plan when a playoff matchup is active.
+This build creates the foundation for Basketballverse's multi-career system.
 
-The scouting report shows:
-- Opponent star player
-- Offensive identity
-- Pace
-- Defensive identity
-- Shooting strength
-- Rebounding strength
-- Passing strength
-- Suggested tactical notes based on the matchup
+## Persistent Career Person
+The user is now one persistent person separate from the current role. The profile stores a permanent ID, name, age, background, current role, career start year, career chapters, future Hall of Fame status, and a future portrait reference.
 
-## Interactive Halftime Adjustments
-When watching a game in Coach mode, halftime now becomes an interactive coaching checkpoint.
+## Career Chapters
+Roles can become chapters in one basketball life. The intended progression can support Player → Coach → GM while preserving the same person and résumé.
 
-You can change:
-- Offense: Stay Course, Attack Paint, More Threes, Run Through Star
-- Defense: Stay Course, Pressure Ball, Protect Paint, Deny Star
-- Tempo: Push Pace, Normal, Slow Down
-- Rotation: Normal, Shorten Rotation, Use Bench More
+## Create Your Character
+Non-Viewer careers can create a named character with name, age, and background. This foundation is role-neutral so later creators can add role-specific details for Player, Coach, GM, Owner, and Commissioner. Viewer remains outside the universe.
 
-The game also gives contextual halftime notes based on the score and opponent profile.
+## Hall of Fame groundwork
+The schema reserves separate Player, Coach, and Executive Hall of Fame status, allowing one person to eventually be recognized in multiple categories.
 
-Halftime choices affect the third-quarter simulation. If the game remains close, the existing interactive Crunch Time system takes over in the fourth quarter.
-
-## Coach role flow
-Pregame: Scout opponent and set Game Plan
-Halftime: Make tactical adjustments
-Crunch Time: Control late-game lineup, offense, defense, tempo, fouling, and go-to player
-
-## Previous Coach features retained
-Coach Identity/Legacy, Coach of the Year, coach attributes, editable depth chart, rotations, player roles, development, career résumé, expectations, and AI front-office offseason handling.
+## Enables next
+Coach jobs/contracts/firing; Player retirement → Coach; Coach → GM opportunities; Coach Hall of Fame; Greatest Coaches rankings; combined Player/Coach/GM résumé.
 
 ## Version
-v0.91.62 · Coach Scouting + Halftime Adjustments
+v0.91.63 · Persistent Career Person Foundation
