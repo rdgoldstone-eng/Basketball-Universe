@@ -26776,7 +26776,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+  const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27103,7 +27103,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+  const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27298,7 +27298,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27493,7 +27493,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27626,7 +27626,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+  const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27697,7 +27697,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27753,7 +27753,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27852,7 +27852,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28020,7 +28020,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28290,7 +28290,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28461,7 +28461,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28478,12 +28478,12 @@ function archiveGMSeasonV09147(year,force=false){
   if(!c.identityInitialized){let b=ARCH[c.archetype];Object.keys(b).forEach(k=>{if(k!=='desc')c.attributes[k]=Math.min(99,+c.attributes[k]+b[k])});c.identityInitialized=true}
   return c;
  }
- function T(){let h=C().history,w=h.reduce((s,x)=>s+(+x.wins||0),0),l=h.reduce((s,x)=>s+(+x.losses||0),0);return {w,l,seasons:h.length,titles:h.filter(x=>+(x.level??x.playoffLevel||0)>=5).length,finals:h.filter(x=>+(x.level??x.playoffLevel||0)>=4).length,playoffs:h.filter(x=>+(x.level??x.playoffLevel||0)>=1).length}}
+ function T(){let h=C().history,w=h.reduce((s,x)=>s+(+x.wins||0),0),l=h.reduce((s,x)=>s+(+x.losses||0),0);return {w,l,seasons:h.length,titles:h.filter(x=>+((x.level ?? x.playoffLevel) || 0)>=5).length,finals:h.filter(x=>+((x.level ?? x.playoffLevel) || 0)>=4).length,playoffs:h.filter(x=>+((x.level ?? x.playoffLevel) || 0)>=1).length}}
  function score(){let c=C(),t=T(),aw=c.awards.filter(a=>a.type==='Coach of the Year').length;return Math.round(t.w*.18+t.playoffs*18+t.finals*35+t.titles*100+aw*40+(+c.reputation||50)*1.5)}
  window.setCoachArchetypeV09161=function(n){let c=C();if(ARCH[n]){c.archetype=n;try{saveState?.()}catch(_){};renderCoachIdentityLegacyV09161()}};
  function grow(){
   let c=C(),h=c.history;if(!h.length)return;let x=h.slice().sort((a,b)=>+b.year-+a.year)[0];if(!x||c.lastAttributeGrowthYear===x.year)return;
-  let a=c.attributes,p=(+x.wins||0)/Math.max(1,(+x.wins||0)+(+x.losses||0)),lv=+(x.level??x.playoffLevel||0);
+  let a=c.attributes,p=(+x.wins||0)/Math.max(1,(+x.wins||0)+(+x.losses||0)),lv=+((x.level ?? x.playoffLevel) || 0);
   a.offense=Math.min(99,a.offense+(p>=.55?1:0));a.defense=Math.min(99,a.defense+(lv>=2?1:0));a.gameManagement=Math.min(99,a.gameManagement+(lv>=1?1:0));a.adaptability=Math.min(99,a.adaptability+(lv>=3?1:0));a.development=Math.min(99,a.development+1);a.motivation=Math.min(99,a.motivation+(p>=.5?1:0));c.lastAttributeGrowthYear=x.year;
   let cotyScore=(+x.wins||0)+lv*5+(x.met===true?5:0);
   if(cotyScore>=58&&!c.awards.some(a=>a.type==='Coach of the Year'&&+a.year===+x.year)){c.awards.push({year:x.year,type:'Coach of the Year',teamName:x.teamName});c.reputation=Math.min(100,(+c.reputation||50)+6)}
@@ -28513,7 +28513,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28522,8 +28522,8 @@ function archiveGMSeasonV09147(year,force=false){
    return (state.players||[]).filter(p=>p.teamName===name&&!p.retired&&!p.deferredEntry&&p.healthStatus!=='Out');
  }
  function avgTop(name,key,n=5){
-   const r=healthy(name).slice().sort((a,b)=>Number(b[key]??b.ovr||0)-Number(a[key]??a.ovr||0)).slice(0,n);
-   return r.length?r.reduce((s,p)=>s+Number(p[key]??p.ovr||60),0)/r.length:60;
+   const r=healthy(name).slice().sort((a,b)=>Number((b[key] ?? b.ovr) || 0)-Number((a[key] ?? a.ovr) || 0)).slice(0,n);
+   return r.length?r.reduce((s,p)=>s+Number((p[key] ?? p.ovr) || 60),0)/r.length:60;
  }
  function topPlayer(name){
    return healthy(name).slice().sort((a,b)=>(b.ovr||0)-(a.ovr||0))[0]||null;
@@ -28713,7 +28713,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
  function ensure(){
@@ -28749,7 +28749,7 @@ function archiveGMSeasonV09147(year,force=false){
 
 <script>
 (function(){
-const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function P(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function era(y){y=+y||1976;return y<1980?'1970s analog basketball media-day photography':y<1990?'1980s film basketball media-day photography':y<2000?'1990s studio basketball portrait':y<2010?'2000s basketball media-day portrait':y<2020?'2010s modern basketball media-day portrait':'modern professional basketball media-day portrait'}
 function prompt(p){return ((p.portraitDescription||'').trim()+'. '+era(p.careerStartYear||state.currentYear)+'. '+(p.currentRole||state.role)+' portrait for a fictional basketball simulation. Chest-up, centered subject, neutral studio background, realistic proportions, natural expression, no text, no logos, no watermark, consistent roster portrait framing.')}
@@ -28775,7 +28775,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.65';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28808,10 +28808,10 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
    return (state.teams||[]).find(t=>String(t.id)===String(c.currentTeamId||state.controlledTeamId))||null;
  }
  function careerTitles(){
-   return coachCareer().history.filter(h=>Number(h.level??h.playoffLevel||0)>=5).length;
+   return coachCareer().history.filter(h=>Number((h.level ?? h.playoffLevel) || 0)>=5).length;
  }
  function careerPlayoffs(){
-   return coachCareer().history.filter(h=>Number(h.level??h.playoffLevel||0)>=1).length;
+   return coachCareer().history.filter(h=>Number((h.level ?? h.playoffLevel) || 0)>=1).length;
  }
  function security(){
    const t=currentTeam();
@@ -29107,7 +29107,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.66 · Coach Hall of Fame + Greatest Coaches';
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
  window.BASKETBALLVERSE_BUILD='v0.91.66';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -29173,7 +29173,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
    const key=String(p.id||'usercoach'),r=rec({id:key,personId:p.id,name:p.name||'User Coach',skill:cc.reputation||70,age:p.age||45});
    (cc.history||[]).forEach(h=>{
      const y=Number(h.year);if(r.seasons.some(x=>Number(x.year)===y))return;
-     const level=Number(h.level??h.playoffLevel||0),w=Number(h.wins||0),l=Number(h.losses||0);
+     const level=Number((h.level ?? h.playoffLevel) || 0),w=Number(h.wins||0),l=Number(h.losses||0);
      r.seasons.push({year:y,teamName:h.teamName||'Team',wins:w,losses:l,level,result:h.result||''});
      r.wins+=w;r.losses+=l;if(level>=1)r.playoffs++;if(level>=4)r.finals++;if(level>=5)r.titles++;
      r.firstYear=r.firstYear==null?y:Math.min(r.firstYear,y);r.lastYear=r.lastYear==null?y:Math.max(r.lastYear,y);
@@ -29330,6 +29330,15 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 })();
 </script>
 
+
+<script>
+(function(){
+ const LABEL='v0.91.67 · Safari Syntax Compatibility Fix';
+ window.BASKETBALLVERSE_BUILD='v0.91.67';
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
 </body>
 </html>
 
