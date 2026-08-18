@@ -1,46 +1,42 @@
-# Basketballverse v0.91.70 — Player Game Experience
+# Basketballverse v0.91.71 — Player Contracts, Trades + Relationships
 
-## Player mode now enters the game
-When the controlled player's team is involved in a watched playoff game, Watch Game becomes player-specific.
+Player mode now gains career influence without gaining GM authority.
 
-The presentation now tells you whether:
-- you are starting,
-- you are expected to come off the bench,
-- you are deep in the rotation,
-- you are likely to be trusted in crunch time.
+## Contracts
+The Player Career dashboard tracks salary, years remaining, and career leverage.
+Players can ask their current team about an extension. The team can accept or refuse.
 
-Expected workload comes from your role/minutes status rather than direct user control.
+## Market interest
+Teams can show interest and make player-side contract offers with different:
+- salaries
+- contract lengths
+- projected roles
+- contender strength
 
-## Your Moment
-At game checkpoints, the player can choose how to approach the next stint:
-- Be Aggressive
-- Create for Teammates
-- Lock In Defensively
-- Play Within the System
-- Want the Big Moment (available in appropriate crunch-time situations)
+The player chooses among offers; the player does not edit team finances or create contracts.
 
-These are not guaranteed-success buttons. Results depend partly on player ability and confidence.
+## Trades
+Players can request a trade. The GM is not required to honor it.
+High-leverage players can communicate up to three preferred destinations, but those preferences are not guarantees.
+Trade talks can fail, and the front office controls whether a deal actually happens.
 
-Successful or poor choices can affect:
-- points / rebounds / assists / steals in the final line
-- confidence
-- coach relationship
-- future role/minutes
+## Relationships
+Persistent relationships now include:
+- Coach
+- Front Office
+- Teammates
+- Fans
 
-## Check-in feel
-Bench and rotation players are told when the coach calls their number. Starters are told they are opening the game. Player mode still remains a simulation instead of turning into possession-by-possession arcade control.
+Career decisions can improve or damage these relationships.
 
-## Dynamic role
-Existing Basketballverse Player Career performance logic is now synchronized with the new Player dashboard. Real game production can move the controlled player between Bench, Rotation, Starter, Star, and franchise-level roles, with corresponding minute expectations.
+## Emerging reputation
+Career identity begins to emerge from actions instead of selecting a fixed personality class. Examples include Loyal, Coachable, Good Teammate, and Requested Trade.
 
-## Season performance
-The Player Career dashboard now shows current games, PPG, RPG, APG, and career highs.
+## Leverage
+Career leverage is based on ability, production, reputation, and experience. Stars therefore gain more influence over extensions and trade destinations than fringe players.
 
-## Compatibility repair
-v0.91.70 also synchronizes the new v0.91.69 Player foundation with Basketballverse's older Player Career engine and repairs created players so they live in the main player database used by the simulator.
-
-## Next
-Player-side contracts, free agency, trade requests/unexpected trades, destination preferences, and career leverage.
+## Philosophy
+Player mode can influence a career but cannot run a franchise. The GM and Coach remain independent actors.
 
 ## Version
-v0.91.70 · Player Game Experience
+v0.91.71 · Player Contracts, Trades + Relationships
