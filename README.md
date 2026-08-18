@@ -1,35 +1,55 @@
-# Basketballverse v0.91.73 — Franchise Records
+# Basketballverse v0.91.74 — Player Rivalries + Milestones
 
-## Franchise Record Books
-History now includes a dedicated **Franchise Records** page.
+## Player Rivalries
+The Player Career now tracks recurring individual rivalries.
 
-For every active franchise, Basketballverse tracks the top 10 career leaders in:
-- Points
-- Rebounds
-- Assists
-- Steals
-- Blocks
-- Games Played
-- Minutes
+Rivalry heat increases through:
+- repeated head-to-head meetings
+- close statistical battles
+- both players scoring 30+
+- playoff meetings
+- NBA Finals meetings
 
-Records are based on the career-season history stored inside the universe, so alternate-history careers create alternate-history franchise record books.
+Rivalries progress from competitive matchup → developing rivalry → major rivalry.
 
-## Active players
-Active players continue adding to franchise totals during their current season.
+The career dashboard records:
+- rival
+- team
+- meetings
+- head-to-head record
+- scoring totals
+- rivalry heat
 
-## Player mode
-The controlled Player career now gets a **Franchise Record Chase** card showing where the player ranks in the current franchise's record book and how far away the major leaders are.
+Major rivalry developments can become league news.
 
-This gives Player mode long-term franchise goals beyond awards and championships.
+## Career Milestones
+Player careers now recognize major milestones such as:
+- 100 / 500 / 1,000 games
+- 1,000 / 5,000 / 10,000 / 20,000 / 30,000 points
+- 5,000 / 10,000 rebounds
+- 5,000 / 10,000 assists
+- 50-point games
+- 60-point games
 
-## Historical behavior
-A player's stats only count toward the franchise where those seasons were played. If a player changes teams, each franchise retains only the totals accumulated while playing there.
+Milestones are stored permanently on the Player Career timeline and can generate news.
 
-## Save compatibility
-Existing saves use whatever career-season history they already contain. Older universes may have incomplete franchise records for seasons that were never archived historically; from this build forward completed player seasons continue feeding the record books.
+## Signature Games
+Major performances are preserved as Signature Games, including:
+- opponent
+- year
+- regular season/playoff round
+- points
+- rebounds
+- assists
+- win/loss
+
+This gives future Player Legacy and retirement systems concrete career moments to reference.
 
 ## Existing systems retained
-All Player Life in the League, contracts/trades/relationships, game experience, Coach role work, Coach Hall of Fame, GM systems, and historical simulation work remain included.
+Franchise Records, Player Life in the League, contracts/trades/relationships, Watch Game player moments, dynamic roles/minutes, created players, persistent Career Person, Coach systems, GM systems, and historical simulation.
+
+## Next
+Player awards/legacy, Greatest Players integration, retirement readiness, and eventually Player → Coach transition.
 
 ## Version
-v0.91.73 · Franchise Records
+v0.91.74 · Player Rivalries + Milestones
