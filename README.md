@@ -1,34 +1,24 @@
-# Basketballverse v0.91.68 — Coach Personnel Authority Guard
+# Basketballverse v0.91.69 — Player Career Foundation
 
-## Coach mode personnel rules
-Coach mode does NOT control:
-- Re-signings
-- Free agency
-- Roster cuts
-- Trades
-- Drafting
-- Scouting/personnel transactions
+Player mode now begins as a true one-player career rather than franchise control.
 
-Those are GM/front-office responsibilities.
+## Added
+- Create a Player or take over an existing player
+- Dedicated Player Career dashboard
+- Morale
+- Confidence
+- Coach relationship
+- Front Office relationship
+- Coach-assigned career role: Franchise Star, Starter, Rotation, Bench
+- Projected minutes controlled by the coaching side rather than directly by the user
+- Development focus: Balanced, Shooting, Defense, Strength, Conditioning, Playmaking
+- Persistent Career Person connection for future Player → Coach → GM careers
 
-## Offseason flow
-Coach mode now explicitly shows:
-- Let GM Handle Re-signings
-- Let GM Handle Free Agency
-- Let GM Finalize Roster
+## Authority
+Player mode does not control team personnel, contracts, free agency, trades, drafting, roster cuts, rotations, or coaching strategy.
 
-Selecting those actions lets the AI front office resolve the stage and advances the offseason normally.
-
-## Direct access blocked
-Coach mode is prevented from entering the GM-only Free Agency, Re-sign Players, Roster Cuts, Trade Machine, Draft Room, and Scouting transaction screens.
-
-If an older save tries to open one of those pages, Basketballverse redirects the Coach back to Offseason.
-
-## Preserved work
-All features through v0.91.67 remain, including Coach Hall of Fame, Greatest Coaches, coaching jobs/contracts, Coach → GM progression, persistent Career Person, character portrait foundation, scouting, halftime adjustments, crunch time, editable depth charts, and the Safari syntax fix.
-
-## Verification
-All inline JavaScript was parser-checked before packaging.
+## Next
+Game participation/check-in flow, performance/confidence, changing roles and minutes, player-side career events, contracts/trades/free agency, legacy, retirement, and Player → Coach.
 
 ## Version
-v0.91.68 · Coach Personnel Authority Guard
+v0.91.69 · Player Career Foundation

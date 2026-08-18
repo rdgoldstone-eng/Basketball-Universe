@@ -1087,7 +1087,7 @@ pre{white-space:pre-wrap}
     <div class="card"><h2>Coach of the Year</h2><div id="coachAwardsHistoryV09166"></div></div>
   </div>
 </section>
-<section id="career" class="section">
+<section id="playercareer" class="section"><div id="playerCareerDashboardV09169"></div></section><section id="career" class="section">
     <div class="grid2">
       <div class="card"><h2>Player Career</h2><div id="careerSummary"></div></div>
       <div class="card"><h2>Career Identity</h2><div id="careerIdentity"></div></div>
@@ -26776,7 +26776,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+  const LABEL='v0.91.69 · Player Career Foundation';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27103,7 +27103,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+  const LABEL='v0.91.69 · Player Career Foundation';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27298,7 +27298,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27493,7 +27493,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27626,7 +27626,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+  const LABEL='v0.91.69 · Player Career Foundation';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27697,7 +27697,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.69 · Player Career Foundation';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27753,7 +27753,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27852,7 +27852,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28020,7 +28020,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28290,7 +28290,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28461,7 +28461,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28513,7 +28513,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28713,7 +28713,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
  function ensure(){
@@ -28749,7 +28749,7 @@ function archiveGMSeasonV09147(year,force=false){
 
 <script>
 (function(){
-const LABEL='v0.91.68 · Coach Personnel Authority Guard';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.91.69 · Player Career Foundation';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function P(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function era(y){y=+y||1976;return y<1980?'1970s analog basketball media-day photography':y<1990?'1980s film basketball media-day photography':y<2000?'1990s studio basketball portrait':y<2010?'2000s basketball media-day portrait':y<2020?'2010s modern basketball media-day portrait':'modern professional basketball media-day portrait'}
 function prompt(p){return ((p.portraitDescription||'').trim()+'. '+era(p.careerStartYear||state.currentYear)+'. '+(p.currentRole||state.role)+' portrait for a fictional basketball simulation. Chest-up, centered subject, neutral studio background, realistic proportions, natural expression, no text, no logos, no watermark, consistent roster portrait framing.')}
@@ -28775,7 +28775,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.65';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29107,7 +29107,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.66';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -29333,7 +29333,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.67';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
@@ -29343,7 +29343,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.68 Coach Personnel Authority Guard === -->
 <script>
 (function(){
- const LABEL='v0.91.68 · Coach Personnel Authority Guard';
+ const LABEL='v0.91.69 · Player Career Foundation';
  window.BASKETBALLVERSE_BUILD='v0.91.68';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29504,6 +29504,25 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 })();
 </script>
 
+<script>
+(function(){
+const LABEL='v0.91.69 · Player Career Foundation';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+function isp(){return state?.role==='Player'}function cp(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
+function pc(){state.playerCareer=state.playerCareer||{playerId:null,teamId:null,morale:70,confidence:65,coachRelationship:60,gmRelationship:55,trainingFocus:'Balanced',role:'Rotation',minutesTarget:18,careerStats:{games:0,starts:0,points:0,rebounds:0,assists:0}};return state.playerCareer}
+function all(){return(state.teams||[]).flatMap(t=>(t.roster||[]).map(p=>({p,t})))}function hit(){let c=pc();return all().find(x=>String(x.p.id)===String(c.playerId))}
+function setrole(p,c){let s=Number(p.ovr||60)+(c.coachRelationship-50)*.08+(c.confidence-50)*.05;if(s>=82){c.role='Franchise Star';c.minutesTarget=36}else if(s>=75){c.role='Starter';c.minutesTarget=31}else if(s>=68){c.role='Rotation';c.minutesTarget=22}else{c.role='Bench';c.minutesTarget=12}}
+window.selectPlayerCareerV09169=function(id){let h=all().find(x=>String(x.p.id)===String(id));if(!h)return;let c=pc();c.playerId=h.p.id;c.teamId=h.t.id;setrole(h.p,c);let p=cp();if(p){p.name=h.p.name;p.currentRole='Player';p.chapters=p.chapters||[];p.chapters.forEach(x=>x.active=false);p.chapters.push({role:'Player',startYear:+state.currentYear,endYear:null,active:true,teamId:h.t.id,playerId:h.p.id})}try{saveState?.()}catch(_){};renderPlayerCareerV09169()}
+window.createPlayerCareerV09169=function(){let name=(document.getElementById('pcName')?.value||'').trim();if(!name){alert('Enter a player name.');return}let pos=document.getElementById('pcPos')?.value||'SG',age=+document.getElementById('pcAge')?.value||19,teams=(state.teams||[]).filter(t=>!t.defunct),t=teams[Math.floor(Math.random()*teams.length)];if(!t)return;let p={id:'created_'+Date.now().toString(36),name,pos,age,ovr:62,pot:82,created:true};t.roster=t.roster||[];t.roster.push(p);let c=pc();c.playerId=p.id;c.teamId=t.id;c.role='Bench';c.minutesTarget=12;c.morale=72;c.confidence=60;c.coachRelationship=55;c.gmRelationship=55;let q=cp();if(q){q.name=name;q.age=age;q.created=true;q.currentRole='Player';q.chapters=[{role:'Player',startYear:+state.currentYear,endYear:null,active:true,teamId:t.id,playerId:p.id}]}state.news=state.news||[];state.news.push({year:state.currentYear,title:'New player enters Basketballverse',text:name+' begins his professional career with '+t.name+'.'});try{saveState?.()}catch(_){};renderPlayerCareerV09169()}
+window.setPlayerTrainingV09169=function(f){let c=pc(),h=hit();c.trainingFocus=f;if(h){let p=h.p;if(f==='Shooting')p.shoot=Number(p.shoot||p.ovr||60)+1;if(f==='Defense'){p.def=Number(p.def||p.ovr||60)+1;c.coachRelationship=Math.min(100,c.coachRelationship+2)}if(f==='Strength')p.strength=Number(p.strength||60)+1;if(f==='Conditioning'){p.stamina=Number(p.stamina||60)+1;c.minutesTarget=Math.min(40,c.minutesTarget+1)}if(f==='Playmaking')p.pass=Number(p.pass||p.ovr||60)+1;if(f==='Balanced'){c.morale=Math.min(100,c.morale+2);c.confidence=Math.min(100,c.confidence+1)}}try{saveState?.()}catch(_){};renderPlayerCareerV09169()}
+function start(){let ps=all().sort((a,b)=>Number(b.p.ovr||0)-Number(a.p.ovr||0)).slice(0,250);return `<div class="card"><h2>Begin a Player Career</h2><div class="notice"><b>You control one player — not the franchise.</b><br><span class="small">The coach controls minutes and lineups. The GM controls contracts, trades, free agency and the roster.</span></div><h3>Create a Player</h3><div class="grid3"><div><label>Name</label><input id="pcName" placeholder="Ryan Goldstone"></div><div><label>Position</label><select id="pcPos"><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select></div><div><label>Age</label><input id="pcAge" type="number" value="19" min="18" max="30"></div></div><button class="primary" style="margin-top:8px" onclick="createPlayerCareerV09169()">Create Player</button><h3>Or Take Over an Existing Player</h3><select id="pcExisting" style="width:100%">${ps.map(x=>`<option value="${x.p.id}">${x.p.name} · ${x.t.name} · ${x.p.pos||''} · OVR ${x.p.ovr||'—'}</option>`).join('')}</select><button style="margin-top:8px" onclick="selectPlayerCareerV09169(document.getElementById('pcExisting').value)">Start Career</button></div>`}
+window.renderPlayerCareerV09169=function(){if(!isp())return;let host=document.getElementById('playerCareerDashboardV09169');if(!host)return;let c=pc(),h=hit();if(!h){host.innerHTML=start();return}setrole(h.p,c);let p=h.p,t=h.t;host.innerHTML=`<div class="card"><h1>${p.name}</h1><div class="muted">${t.name} · ${p.pos||'Player'} · Age ${p.age||'—'} · OVR ${p.ovr||'—'} / POT ${p.pot||'—'}</div><div class="choicebar"><span class="pill">${c.role}</span><span class="pill">${c.minutesTarget} MIN TARGET</span></div><div class="grid4" style="margin-top:12px"><div class="statbox"><b>${c.morale}</b><span>Morale</span></div><div class="statbox"><b>${c.confidence}</b><span>Confidence</span></div><div class="statbox"><b>${c.coachRelationship}</b><span>Coach Relationship</span></div><div class="statbox"><b>${c.gmRelationship}</b><span>Front Office</span></div></div></div><div class="grid2"><div class="card"><h2>Your Role</h2><b>${c.role}</b><p class="small muted">The coach currently projects about ${c.minutesTarget} minutes. You cannot directly set your playing time.</p><div class="notice">Earn minutes through ability, development, confidence and your relationship with the coaching staff.</div></div><div class="card"><h2>Development</h2><div class="small muted">Choose what to work on. You do not directly edit ratings.</div><div class="choicebar">${['Balanced','Shooting','Defense','Strength','Conditioning','Playmaking'].map(f=>`<button class="${c.trainingFocus===f?'primary':''}" onclick="setPlayerTrainingV09169('${f}')">${f}</button>`).join('')}</div><p class="small muted">Current focus: <b>${c.trainingFocus}</b></p></div></div><div class="card"><h2>Career Identity</h2><div class="small">This player is attached to the persistent Career Person. Future contracts, trades, awards, retirement, Hall of Fame status and Player → Coach progression can stay with the same person.</div></div>`}
+const og=window.navigationGroupForTab;window.navigationGroupForTab=function(t){if(t==='playercareer')return'career';return og.apply(this,arguments)}
+const os=window.renderSubNavigation;window.renderSubNavigation=function(g,a){let r=os.apply(this,arguments);if(g==='career'&&isp()){let s=document.getElementById('subNav');if(s&&!s.querySelector('[data-subtab="playercareer"]')){let b=document.createElement('button');b.dataset.subtab='playercareer';b.textContent='Player Career';b.onclick=()=>switchTab('playercareer');s.prepend(b)}}return r}
+const ot=window.switchTab;window.switchTab=function(t){if(isp()&&['freeagency','resignplayers','rostercuts','trademachine','draftroom','scouting','coachgameplan','coachrotation','coachdepth','coachroles','coachdevelopment'].includes(t)){alert('Your player does not control team personnel or coaching decisions.');return false}let r=ot.apply(this,arguments);if(t==='playercareer')setTimeout(renderPlayerCareerV09169,0);return r}
+const oa=window.renderAll;window.renderAll=function(){let r=oa.apply(this,arguments);if(isp())setTimeout(renderPlayerCareerV09169,0);return r}
+setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e)}},300);try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
+})();
+</script>
 </body>
 </html>
 
