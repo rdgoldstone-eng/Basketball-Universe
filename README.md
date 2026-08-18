@@ -1,50 +1,55 @@
-# Basketballverse v0.91.65 — Coach Jobs + Career Movement
+# Basketballverse v0.91.66 — Coach Hall of Fame + Greatest Coaches
 
-## Coach employment now matters
-This build connects Coach reputation, expectations, job security, and career performance to an actual employment career.
+## League-wide coaching history
+Basketballverse now maintains a permanent coaching-history registry separate from the user's Coach career.
 
-### Coach contracts
-- Coaches have multi-year contracts.
-- Contract years decrease through season reviews.
-- Successful coaches are eligible for extensions.
-- A coach in the final contract year can request an extension.
-- Contract tier is tracked as Standard or Premium.
+Beginning with this build, every completed season records the head coach of each active franchise and adds:
+- wins and losses
+- playoff appearance
+- Finals appearance
+- championship
+- teams coached
+- active career span
+- Coach of the Year awards
+- Legacy Score
 
-### Firing and non-renewal
-The existing performance/security review is now tied into the persistent Career Person.
-- Very low job security can lead to firing.
-- Missing expectations can cause dismissal.
-- An expired contract can be allowed to lapse.
-- Losing a job ends the Coach career chapter without deleting the character or résumé.
+The user's existing Coach career history is imported into this registry so prior user-controlled coaching seasons are not lost.
 
-### Coaching job market
-Career → Job Market now shows Coach openings and approaches.
-A fired, non-renewed, or resigned coach can continue the same career by accepting another head-coaching job.
+## Greatest Coaches
+History now has a **Coaches** page with all-time rankings.
 
-### Leaving for another team
-Successful coaches can be approached by other franchises. Accepting an offer closes the current team chapter and starts another Coach chapter for the same persistent person.
+Coach Legacy Score uses:
+- career wins
+- playoff appearances
+- NBA Finals appearances
+- championships
+- Coach of the Year awards
+- playoff success/reputation
 
-## Coach → GM career advancement
-Highly successful coaches can now become eligible for general-manager opportunities.
+The rankings are generated from the actual Basketballverse universe. Real-life coaching reputation does not determine the list.
 
-Current threshold:
-- strong reputation,
-- at least four completed coaching seasons,
-- and either a championship or sustained playoff success.
+## Coach of the Year
+A league-wide Coach of the Year winner is selected from the completed season's coaching performances and permanently archived.
 
-If a real GM vacancy exists, an eligible coach can receive a GM offer. Accepting it:
-- closes the Coach chapter,
-- starts a GM chapter,
-- changes Basketballverse into GM mode,
-- keeps the same Career Person, name, portrait, and prior coaching résumé.
+## Coach Hall of Fame
+Retired/inactive coaches become eligible after being away from an active head-coaching job for at least three seasons.
 
-This is the first working use of the Player → Coach → GM multi-career architecture.
+Hall of Fame standards reward multiple paths to greatness, including:
+- elite Legacy Score
+- multiple championships
+- very high career win totals
+- sustained Coach of the Year-level success
 
-## Persistent character integration
-Staff records now use the created Career Person's actual name instead of a generic “User Character” placeholder.
+Coach Hall of Fame inductees appear both on the new Coaches history page and inside the existing Hall of Fame area.
+
+## Multi-career support
+If the persistent Career Person leaves coaching for GM and later earns Coach Hall of Fame induction, that person's `hallOfFame.coach` status is preserved separately from future Player or Executive Hall of Fame status.
 
 ## Existing Coach systems retained
-Opponent scouting, halftime adjustments, interactive crunch time, Coach Identity/Legacy, Coach of the Year, attributes, editable depth chart, rotations, player roles, development, career résumé, expectations, and AI-controlled front-office roster decisions.
+Coach jobs/contracts/firing, Coach → GM advancement, created-character portrait foundation, opponent scouting, halftime adjustments, interactive crunch time, Coach Identity/Legacy, editable depth chart, rotations, player roles, development, career résumé, and objectives.
+
+## Save compatibility
+Existing saves can immediately use this build. Historical AI-coach records from before the coaching registry existed may be incomplete; future seasons are recorded directly. Existing human Coach career seasons are recovered from the user's Coach résumé.
 
 ## Version
-v0.91.65 · Coach Jobs + Career Movement
+v0.91.66 · Coach Hall of Fame + Greatest Coaches
