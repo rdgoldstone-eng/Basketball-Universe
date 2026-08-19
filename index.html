@@ -688,7 +688,21 @@ pre{white-space:pre-wrap}
 
       <label style="margin-top:10px;display:block">Describe Your Appearance <span class="small muted">(optional)</span></label>
       <textarea id="createdPlayerAppearanceV09179" rows="3" style="width:100%;margin-top:5px" placeholder="Short dark hair, trimmed beard, brown eyes, athletic build..."></textarea>
-      <div class="small muted" style="margin-top:6px">This description is saved to your Career Person for the future AI portrait system. Your first NBA team is assigned by the universe—you do not choose your destination.</div>
+
+      <div class="playerSetupPortraitV09181">
+        <div id="createdPlayerPortraitPreviewV09181" class="createdPlayerPortraitPreviewV09181">PHOTO</div>
+        <div>
+          <label><b>Player Portrait</b></label>
+          <div class="small muted" style="margin:3px 0 8px">Upload a portrait now, or leave it blank and use the default portrait. Your uploaded image stays with the same Career Person if the player later becomes a Coach or GM.</div>
+          <label class="button" style="cursor:pointer">
+            Upload Portrait
+            <input id="createdPlayerPortraitInputV09181" type="file" accept="image/*" style="display:none" onchange="previewCreatedPlayerPortraitV09181(this)">
+          </label>
+          <button type="button" id="clearCreatedPlayerPortraitV09181" class="hidden" onclick="clearCreatedPlayerPortraitV09181()">Remove Portrait</button>
+        </div>
+      </div>
+
+      <div class="small muted" style="margin-top:6px">The appearance description is saved for the future AI portrait system. Your first NBA team is assigned by the universe—you do not choose your destination.</div>
     </div>
 
     <div id="existingPlayerSetupV09179" class="hidden">
@@ -26850,7 +26864,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.80 · Setup Screen Layout';
+  const LABEL='v0.91.81 · Created Player Portrait Upload';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27177,7 +27191,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.91.80 · Setup Screen Layout';
+  const LABEL='v0.91.81 · Created Player Portrait Upload';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27372,7 +27386,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27567,7 +27581,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27700,7 +27714,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.91.80 · Setup Screen Layout';
+  const LABEL='v0.91.81 · Created Player Portrait Upload';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27771,7 +27785,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.91.81 · Created Player Portrait Upload';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27827,7 +27841,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27926,7 +27940,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28094,7 +28108,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28364,7 +28378,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28535,7 +28549,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28587,7 +28601,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28787,7 +28801,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
  function ensure(){
@@ -28823,7 +28837,7 @@ function archiveGMSeasonV09147(year,force=false){
 
 <script>
 (function(){
-const LABEL='v0.91.80 · Setup Screen Layout';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.91.81 · Created Player Portrait Upload';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function P(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function era(y){y=+y||1976;return y<1980?'1970s analog basketball media-day photography':y<1990?'1980s film basketball media-day photography':y<2000?'1990s studio basketball portrait':y<2010?'2000s basketball media-day portrait':y<2020?'2010s modern basketball media-day portrait':'modern professional basketball media-day portrait'}
 function prompt(p){return ((p.portraitDescription||'').trim()+'. '+era(p.careerStartYear||state.currentYear)+'. '+(p.currentRole||state.role)+' portrait for a fictional basketball simulation. Chest-up, centered subject, neutral studio background, realistic proportions, natural expression, no text, no logos, no watermark, consistent roster portrait framing.')}
@@ -28849,7 +28863,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.65';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29181,7 +29195,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.66';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -29407,7 +29421,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.67';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
@@ -29417,7 +29431,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.68 Coach Personnel Authority Guard === -->
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.68';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29580,7 +29594,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
-const LABEL='v0.91.80 · Setup Screen Layout';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.91.81 · Created Player Portrait Upload';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}function cp(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function pc(){state.playerCareer=state.playerCareer||{playerId:null,teamId:null,morale:70,confidence:65,coachRelationship:60,gmRelationship:55,trainingFocus:'Balanced',role:'Rotation',minutesTarget:18,careerStats:{games:0,starts:0,points:0,rebounds:0,assists:0}};return state.playerCareer}
 function all(){return(state.teams||[]).flatMap(t=>(t.roster||[]).map(p=>({p,t})))}function hit(){let c=pc();return all().find(x=>String(x.p.id)===String(c.playerId))}
@@ -29607,7 +29621,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.70';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isPlayer(){return state?.role==='Player'}
@@ -29863,7 +29877,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
-const LABEL='v0.91.80 · Setup Screen Layout';
+const LABEL='v0.91.81 · Created Player Portrait Upload';
 window.BASKETBALLVERSE_BUILD='v0.91.71';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}
 function C(){state.playerCareer=state.playerCareer||{};let c=state.playerCareer;c.relationships=c.relationships||{coach:Number(c.coachRelationship??60),frontOffice:Number(c.gmRelationship??55),teammates:55,fans:55};c.contract=c.contract||null;c.playerOffers=Array.isArray(c.playerOffers)?c.playerOffers:[];c.promises=Array.isArray(c.promises)?c.promises:[];c.careerTraits=Array.isArray(c.careerTraits)?c.careerTraits:[];c.tradeRequest=c.tradeRequest||null;c.loyalty=Number(c.loyalty??65);c.leverage=Number(c.leverage??20);return c}
@@ -29968,7 +29982,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.72';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30257,7 +30271,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.73';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30454,7 +30468,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.74';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30674,7 +30688,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.75';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30881,7 +30895,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.76';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isp(){return state?.role==='Player'}
@@ -31126,7 +31140,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.77';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -31324,7 +31338,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.78';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -31760,10 +31774,89 @@ setTimeout(()=>{
 },50);
 
 (function(){
- const LABEL='v0.91.80 · Setup Screen Layout';
+ const LABEL='v0.91.81 · Created Player Portrait Upload';
  window.BASKETBALLVERSE_BUILD='v0.91.80';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  setTimeout(()=>{try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}},0);
+})();
+</script>
+
+
+<!-- === v0.91.81 Created Player Portrait Upload === -->
+<style id="createdPlayerPortraitSetupStyleV09181">
+.playerSetupPortraitV09181{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.createdPlayerPortraitPreviewV09181{width:82px;height:98px;border:1px solid var(--line);border-radius:9px;background:var(--panel);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:12px;font-weight:900;color:var(--muted)}
+.createdPlayerPortraitPreviewV09181 img{width:100%;height:100%;object-fit:cover}
+@media(max-width:600px){.playerSetupPortraitV09181{grid-template-columns:1fr}.createdPlayerPortraitPreviewV09181{width:110px;height:132px}}
+</style>
+<script>
+let createdPlayerPortraitDataV09181=null;
+
+function previewCreatedPlayerPortraitV09181(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){
+    alert('Choose an image file.');
+    input.value='';
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    createdPlayerPortraitDataV09181=reader.result;
+    const box=document.getElementById('createdPlayerPortraitPreviewV09181');
+    if(box)box.innerHTML=`<img src="${reader.result}" alt="Created player portrait preview">`;
+    document.getElementById('clearCreatedPlayerPortraitV09181')?.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+window.previewCreatedPlayerPortraitV09181=previewCreatedPlayerPortraitV09181;
+
+function clearCreatedPlayerPortraitV09181(){
+  createdPlayerPortraitDataV09181=null;
+  const input=document.getElementById('createdPlayerPortraitInputV09181');
+  if(input)input.value='';
+  const box=document.getElementById('createdPlayerPortraitPreviewV09181');
+  if(box)box.textContent='PHOTO';
+  document.getElementById('clearCreatedPlayerPortraitV09181')?.classList.add('hidden');
+}
+window.clearCreatedPlayerPortraitV09181=clearCreatedPlayerPortraitV09181;
+
+// Extend the v0.91.79 setup creator so the upload becomes part of the persistent Career Person.
+const oldCreateSetupPlayerV09179=window.createSetupPlayerV09179;
+if(typeof oldCreateSetupPlayerV09179==='function'){
+  window.createSetupPlayerV09179=function(){
+    const p=oldCreateSetupPlayerV09179.apply(this,arguments);
+    if(p&&state?.careerPerson&&createdPlayerPortraitDataV09181){
+      state.careerPerson.portrait=createdPlayerPortraitDataV09181;
+      state.careerPerson.portraitSource='upload';
+    }
+    if(p&&state?.playerCareer){
+      state.playerCareer.portraitSource=createdPlayerPortraitDataV09181?'upload':'default';
+    }
+    try{saveState?.()}catch(_){}
+    return p;
+  };
+}
+
+// Reset portrait setup whenever the New Universe Player creator is shown for a fresh setup session.
+setTimeout(()=>{
+  const setup=document.getElementById('setupView')||document.getElementById('setup');
+  if(setup){
+    const observer=new MutationObserver(()=>{
+      const card=document.getElementById('playerChooserCard');
+      if(card&&!card.classList.contains('hidden')&&selectedRole==='Player'&&setupPlayerModeV09179==='created'){
+        // Keep an existing selection during the same setup session.
+      }
+    });
+    observer.observe(setup,{attributes:true,subtree:true,attributeFilter:['class']});
+  }
+},100);
+
+(function(){
+  const LABEL='v0.91.81 · Created Player Portrait Upload';
+  window.BASKETBALLVERSE_BUILD='v0.91.81';
+  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+  setTimeout(()=>{try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}},0);
 })();
 </script>
 

@@ -1,18 +1,24 @@
-# Basketballverse v0.91.80 — Setup Screen Layout
+# Basketballverse v0.91.81 — Created Player Portrait Upload
 
-## New Universe screen order
-The lower portion of the setup screen is now ordered:
+## Create a Player screen
+The Player setup screen now includes **Upload Portrait** directly in the created-player form.
 
-1. Role/team/player setup
-2. Create Universe
-3. Saved Universes
-4. Custom League File
+The user can:
+- upload an image
+- preview it before starting the universe
+- remove it and return to the default portrait
+- still provide a written appearance description for the future AI portrait system
 
-Custom League File is now the final section on the setup screen.
+## Persistent identity
+The uploaded portrait is stored with the persistent Career Person when the universe is created.
 
-The Create Universe button is now directly above Saved Universes.
+That means the same image follows the person through future career chapters such as:
+Player → Coach → GM.
 
-All v0.91.79 Created Player Career Setup functionality is retained.
+## Existing setup layout retained
+The setup screen still places:
+- Create Universe above Saved Universes
+- Custom League File as the final section
 
 ## Version
-v0.91.80 · Setup Screen Layout
+v0.91.81 · Created Player Portrait Upload
