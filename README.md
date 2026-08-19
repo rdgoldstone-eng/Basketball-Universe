@@ -1,55 +1,54 @@
-# Basketballverse v0.91.74 — Player Rivalries + Milestones
+# Basketballverse v0.91.75 — Player Legacy + Retirement Readiness
 
-## Player Rivalries
-The Player Career now tracks recurring individual rivalries.
-
-Rivalry heat increases through:
-- repeated head-to-head meetings
-- close statistical battles
-- both players scoring 30+
-- playoff meetings
-- NBA Finals meetings
-
-Rivalries progress from competitive matchup → developing rivalry → major rivalry.
-
-The career dashboard records:
-- rival
-- team
-- meetings
-- head-to-head record
-- scoring totals
-- rivalry heat
-
-Major rivalry developments can become league news.
-
-## Career Milestones
-Player careers now recognize major milestones such as:
-- 100 / 500 / 1,000 games
-- 1,000 / 5,000 / 10,000 / 20,000 / 30,000 points
-- 5,000 / 10,000 rebounds
-- 5,000 / 10,000 assists
-- 50-point games
-- 60-point games
-
-Milestones are stored permanently on the Player Career timeline and can generate news.
-
-## Signature Games
-Major performances are preserved as Signature Games, including:
-- opponent
-- year
-- regular season/playoff round
-- points
+## Player Legacy Score
+Player careers now receive a long-term Legacy Score based on actual Basketballverse results:
+- career points
 - rebounds
 - assists
-- win/loss
+- games played
+- MVP awards
+- championships
+- All-Star selections
+- signature games
+- career milestones
+- reputation
+- career leverage
 
-This gives future Player Legacy and retirement systems concrete career moments to reference.
+## Hall of Fame trajectory
+The Player Career dashboard now shows a live Hall of Fame projection:
+- Too Early
+- Building a Case
+- On the Hall of Fame Track
+- Strong Hall of Fame Case
+- Hall of Fame Lock
+
+This is a trajectory only. Actual retirement and Hall of Fame induction will be handled in later builds.
+
+## Greatest Players
+The league now has an all-time Greatest Players ranking generated from what happened in the Basketballverse universe.
+
+The user-controlled player is ranked alongside every other player in the universe.
+
+## Awards & Honors
+Player awards and league recognition are consolidated into the Player Legacy page.
+
+## Retirement Readiness
+Basketballverse now evaluates when the end of a playing career is approaching using:
+- age
+- seasons played
+- overall ability
+- energy
+- career stage
+
+Retirement Readiness ranges from 0–100.
+
+This build does NOT automatically retire the player. It prepares the next system, where retirement becomes an actual player-career decision.
 
 ## Existing systems retained
-Franchise Records, Player Life in the League, contracts/trades/relationships, Watch Game player moments, dynamic roles/minutes, created players, persistent Career Person, Coach systems, GM systems, and historical simulation.
+Rivalries, milestones, Signature Games, Franchise Records, Player Life in the League, contracts/trades/relationships, Watch Game player moments, dynamic role/minutes, persistent Career Person, and all Coach/GM systems.
 
 ## Next
-Player awards/legacy, Greatest Players integration, retirement readiness, and eventually Player → Coach transition.
+Actual Player retirement, career wrap-up, Hall of Fame waiting period, and Player → Coach transition.
 
 ## Version
-v0.91.74 · Player Rivalries + Milestones
+v0.91.75 · Player Legacy + Retirement Readiness
