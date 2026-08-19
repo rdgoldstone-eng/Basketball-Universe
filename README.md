@@ -1,25 +1,45 @@
-# Basketballverse v0.91.82 — Created Player Portrait Everywhere
+# Basketballverse v0.91.83 — Player Career Navigation Cleanup
 
-## Uploaded image is now the player's actual portrait
-A portrait uploaded on the Create a Player screen now feeds Basketballverse's global player portrait renderer.
+## Career navigation fixed
+Player mode now gets a dedicated Career subnavigation:
 
-That means the same uploaded image can appear wherever the game uses player portraits, including:
-- roster/player cards
-- player profiles
 - Player Career
-- career-person profile
-- portrait-enabled league/history displays
+- Profile
+- Career History
 
-## Save-size protection
-The image remains stored once on the persistent Career Person rather than duplicating the same large data URI on both the person and player record.
+The old generic Player-era Profile / Job Market navigation no longer conflicts with the newer Player Career system.
 
-The player record is marked as using the Career Person portrait, and the portrait renderer resolves it automatically.
+Both Player Career and Profile are real clickable sections.
 
-## Persistent identity
-The same image remains attached to the Career Person if the player later retires and becomes a Coach or GM.
+## Shorter Player Career page
+The large Player Career dashboard is now divided into internal tabs:
 
-## Career portrait changes
-Uploading or clearing a portrait later from Career refreshes the controlled player's displayed image as well.
+- Overview
+- Business
+- Life & Relationships
+- Legacy
+
+This keeps the Career page from becoming one giant vertical scroll while preserving all existing Player systems.
+
+## Player Profile
+A new dedicated Player Profile page shows:
+
+- player portrait
+- name / age / position / team
+- OVR / POT
+- career games / points / rebounds / assists
+- Career Person information
+- playing role / minutes
+- Coach / Front Office / teammate / fan relationships
+- morale and confidence
+
+The uploaded created-player portrait is used here as the actual player image.
+
+## Main Career button
+In Player mode the main Career button now reliably opens Player Career.
+
+## Existing systems retained
+Created-player setup, uploaded portraits, Player Career integration, Player → Coach transition, retired numbers, franchise records, legacy, rivalries, milestones, contracts, trades, life events, and all Coach/GM systems remain intact.
 
 ## Version
-v0.91.82 · Created Player Portrait Everywhere
+v0.91.83 · Player Career Navigation Cleanup
