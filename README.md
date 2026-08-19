@@ -1,52 +1,9 @@
-# Basketballverse v0.91.85 — Player In-Season Decision Loop
+# Basketballverse v0.91.86 — Role Decisions + Player Portraits + Career Card
 
-## In-season Player decisions fixed
-Player-mode career decisions now trigger from actual season progress instead of depending on a specific Career-page render path.
+- The Player decision-card presentation is now the standard visual pattern for future Coach, GM, Owner, and Commissioner decisions.
+- Player portraits are injected into common roster, rotation/depth-chart, leaders, Hall of Fame, awards/history, and other player-list rows.
+- Player Career now has a dedicated Career Stats tab styled more like an NBA 2K/baseball-card player page.
+- Career Stats includes portrait, team/position, OVR/POT, role, games, PPG/RPG/APG, career totals, MVPs, All-Stars, titles, season-by-season stats, career highs, signature games, and honors.
+- Existing v0.91.85 in-season Player decisions remain intact.
 
-Basketballverse checks the controlled player's games played using multiple sources:
-- Player Career season totals
-- player stats
-- simulator stats
-
-This prevents event droughts when one stat path is not updated.
-
-## Decision cadence
-After the first few games, Player mode targets roughly one meaningful decision every 4–7 player games.
-
-Only one decision can be pending at a time, so decisions do not pile up.
-
-## Decision types
-The regular-season loop can now produce:
-- Media Availability
-- Meeting With the Coach
-- Locker Room Moment
-- Heavy Legs / workload decision
-- Front Office Check-In
-- Team leadership situation
-
-Choices affect the established Player systems such as:
-- Coach relationship
-- Front Office relationship
-- teammate/fan relationship
-- confidence
-- morale
-- energy
-- development
-- chemistry
-- loyalty
-- ambition
-- reputation
-
-## Season screen
-Pending Player decisions now appear prominently at the TOP of the Season screen with the actual response buttons.
-
-You no longer have to go looking through Career to discover that an event is waiting.
-
-## Player Career notice
-If a decision is pending while viewing Player Career, a Decision Waiting notice directs you back to Season.
-
-## Existing saves
-If an existing Player save is already several games into the season, v0.91.85 adjusts the initial decision timer so you do not have to wait another long stretch before seeing the system work.
-
-## Version
-v0.91.85 · Player In-Season Decision Loop
+Version: v0.91.86
