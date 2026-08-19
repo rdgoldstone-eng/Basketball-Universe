@@ -1,78 +1,56 @@
-# Basketballverse v0.91.78 — Player Career Integration + Test Build
+# Basketballverse v0.91.79 — Created Player Career Setup
 
-This is the first Player-mode build intended for a serious multi-season play test.
+## Start Player mode as your own character
+The New Universe setup now gives Player mode two clear starting paths:
 
-## Integration cleanup
-The newer Player systems are synchronized with Basketballverse's original Player Career engine.
+- **Create a Player**
+- **Take Over Existing Player**
 
-The build keeps aligned:
-- controlled player ID
-- persistent Career Person
-- current team
-- contract team
-- Coach relationship
-- Front Office relationship
-- role
-- minutes target
-- season totals
-- career timeline
-- retirement state
+This happens before the universe starts rather than requiring the user to create a universe and then visit the Career tab.
 
-Safe mismatches are repaired automatically.
+## Created Player setup
+Create a Player includes:
+- Name
+- Age
+- Position
+- Play Style
+- Prospect Level
+- Optional appearance description for the future AI portrait system
 
-## Player authority
-Player mode is blocked from GM, Coach, Owner, and staff-control pages.
+Play styles:
+- Balanced
+- Scorer
+- Playmaker
+- Defender
+- Shooter
+- Inside
 
-Player mode does not control:
-- trades made by the team
-- team free-agent signings
-- re-signing teammates
-- roster cuts
-- drafting
-- coaching rotations/game plans
-- ownership decisions
+Prospect levels establish a reasonable career starting point without exposing direct rating editing:
+- Raw Prospect
+- NBA Prospect
+- Elite Prospect
 
-## Player offseason
-Re-signings, league free agency, and roster cuts are resolved by the AI front office without forcing the player into GM screens.
+## No choosing your NBA destination
+A created Player does not choose his team.
 
-The player's own contract and career choices remain on Player Career.
+Basketballverse assigns the first team when the universe begins. This preserves the Player-mode philosophy that the league happens to you rather than giving the player GM-level control.
 
-## Regular-season integration
-Regular-season results now feed the Player career layer more reliably, including:
-- player game logs
-- performance/role progression
-- milestones
-- recognition
-- life events
+A future draft/prospect build can replace this initial assignment with a full draft-night experience.
 
-## Retired-player cleanup
-Once the playing career ends, active-player life events stop firing.
+## Persistent Career Person
+The setup immediately creates the persistent Career Person and Player chapter, including:
+- permanent person identity
+- created player
+- team assignment
+- Player Career state
+- optional portrait description
+- future Player → Coach → GM continuity
 
-## Career flow display
-Player Career now shows a simple flow:
-Create → Career → Season → Playoffs → Offseason → Retired
+## Existing-player path
+Take Over Existing Player still works with the original team/player selectors.
 
-## Integration status
-The Player Career dashboard includes a status panel that detects important save inconsistencies.
-
-## Debug helper
-`playerCareerDebugV09178()` is available in the browser console during testing and returns a concise snapshot of the Player Career state.
-
-## Test milestone
-This is the recommended build for the first serious Player-mode play test.
-
-Suggested test:
-1. Start a Player career in an early historical season.
-2. Play/sim at least 2–3 seasons.
-3. Watch several games.
-4. Let role/minutes change naturally.
-5. Experience at least one career-life event.
-6. Try extension/trade-request behavior.
-7. Reach an offseason and confirm GM-only stages do not give the player control.
-8. Check Franchise Records, milestones, rivalries, Greatest Players, and Legacy.
-9. If practical, use an older player/save to test retirement and Player → Coach.
-
-Report anything that feels wrong, not only hard errors. Player mode depends heavily on pacing, frequency, and whether decisions feel believable.
+## Testing
+This supersedes v0.91.78 as the recommended Player-mode test build.
 
 ## Version
-v0.91.78 · Player Career Integration + Test Build
+v0.91.79 · Created Player Career Setup
