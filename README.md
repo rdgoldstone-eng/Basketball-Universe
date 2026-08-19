@@ -1,47 +1,48 @@
-# Basketballverse v0.91.76 — Retirement + Player → Coach
+# Basketballverse v0.91.77 — Franchise Legacy + Retired Numbers
 
-## Retirement becomes a real career decision
-When Retirement Readiness reaches an appropriate career stage, Player mode now allows:
-- Continue Playing
-- Retire
+## Retired numbers
+Each franchise now has a persistent retired-number history.
 
-Retirement ends the Player chapter without deleting the person.
+A retirement stores:
+- player
+- jersey number
+- ceremony/decision year
+- seasons with the franchise
+- franchise points/games
+- franchise legacy score
+- whether the decision was made by the user Owner or an AI Owner
 
-## Playing résumé freezes
-At retirement Basketballverse stores a permanent snapshot including:
-- career totals
-- MVP awards
+## Owner mode
+If the user owns the franchise, qualifying retired-player cases become direct ownership decisions:
+- Retire the number
+- Not Yet
+- Do Not Retire
+
+The game does not automatically force the user's ownership standard.
+
+## Other roles
+AI owners evaluate jersey retirement based on what the player actually accomplished for that franchise:
+- longevity
+- franchise production
 - championships
-- All-Star selections
-- Legacy Score
-- Greatest Players rank
-- milestones
-- signature games
-- rivalries
-- Hall of Fame projection
+- major awards
+- franchise-icon level career value
 
-## Hall of Fame waiting period
-Retired players enter a five-year waiting period.
+A Hall of Fame career with only a short stop at a franchise is not enough by itself.
 
-When eligible, Basketballverse evaluates the résumé and can induct the player into the existing Player Hall of Fame. Persistent Career Person Hall of Fame status is tracked separately from Coach/Executive honors.
+## Team display
+The controlled team's area now includes a Retired Numbers display with the numbers hanging in that franchise's Basketballverse history.
 
-## Player → Coach
-After retirement the same Career Person can choose Pursue Coaching.
+## Number protection
+If Basketballverse uses its jersey-number setter, a retired number is blocked from being assigned to future players on that franchise.
 
-Basketballverse generates coaching opportunities based on the retired player's reputation and playing legacy. Accepting a coaching job:
-- closes the Player chapter
-- starts a Coach chapter
-- switches the game into Coach mode
-- preserves the same person, name, portrait, player résumé, milestones, rivalries, and Hall of Fame waiting status
-- creates a real coaching contract and staff assignment
+## Player legacy connection
+When a Player-mode career retires, Basketballverse immediately evaluates whether that player's franchises should consider retiring the jersey.
 
-Former great players can begin with stronger coaching reputation, but playing greatness does not automatically guarantee an elite coaching career.
-
-## Walk away
-A retired player may also walk away from basketball and return the universe to spectator/Viewer mode.
+Player Hall of Fame and jersey retirement remain separate honors.
 
 ## Existing systems retained
-Player Legacy, Greatest Players, Franchise Records, Rivalries, Milestones, Signature Games, Player Life in the League, contracts/trades/relationships, Watch Game moments, persistent Career Person, and all Coach/GM systems.
+Player → Coach transition, Player Hall of Fame waiting period, Player Legacy, Greatest Players, Franchise Records, Rivalries, Milestones, Signature Games, Player Life in the League, contracts/trades/relationships, Coach systems, GM systems, and historical simulation.
 
 ## Version
-v0.91.76 · Retirement + Player → Coach
+v0.91.77 · Franchise Legacy + Retired Numbers
