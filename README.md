@@ -1,24 +1,25 @@
-# Basketballverse v0.91.81 — Created Player Portrait Upload
+# Basketballverse v0.91.82 — Created Player Portrait Everywhere
 
-## Create a Player screen
-The Player setup screen now includes **Upload Portrait** directly in the created-player form.
+## Uploaded image is now the player's actual portrait
+A portrait uploaded on the Create a Player screen now feeds Basketballverse's global player portrait renderer.
 
-The user can:
-- upload an image
-- preview it before starting the universe
-- remove it and return to the default portrait
-- still provide a written appearance description for the future AI portrait system
+That means the same uploaded image can appear wherever the game uses player portraits, including:
+- roster/player cards
+- player profiles
+- Player Career
+- career-person profile
+- portrait-enabled league/history displays
+
+## Save-size protection
+The image remains stored once on the persistent Career Person rather than duplicating the same large data URI on both the person and player record.
+
+The player record is marked as using the Career Person portrait, and the portrait renderer resolves it automatically.
 
 ## Persistent identity
-The uploaded portrait is stored with the persistent Career Person when the universe is created.
+The same image remains attached to the Career Person if the player later retires and becomes a Coach or GM.
 
-That means the same image follows the person through future career chapters such as:
-Player → Coach → GM.
-
-## Existing setup layout retained
-The setup screen still places:
-- Create Universe above Saved Universes
-- Custom League File as the final section
+## Career portrait changes
+Uploading or clearing a portrait later from Career refreshes the controlled player's displayed image as well.
 
 ## Version
-v0.91.81 · Created Player Portrait Upload
+v0.91.82 · Created Player Portrait Everywhere
