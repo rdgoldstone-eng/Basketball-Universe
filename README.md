@@ -1,48 +1,78 @@
-# Basketballverse v0.91.77 — Franchise Legacy + Retired Numbers
+# Basketballverse v0.91.78 — Player Career Integration + Test Build
 
-## Retired numbers
-Each franchise now has a persistent retired-number history.
+This is the first Player-mode build intended for a serious multi-season play test.
 
-A retirement stores:
-- player
-- jersey number
-- ceremony/decision year
-- seasons with the franchise
-- franchise points/games
-- franchise legacy score
-- whether the decision was made by the user Owner or an AI Owner
+## Integration cleanup
+The newer Player systems are synchronized with Basketballverse's original Player Career engine.
 
-## Owner mode
-If the user owns the franchise, qualifying retired-player cases become direct ownership decisions:
-- Retire the number
-- Not Yet
-- Do Not Retire
+The build keeps aligned:
+- controlled player ID
+- persistent Career Person
+- current team
+- contract team
+- Coach relationship
+- Front Office relationship
+- role
+- minutes target
+- season totals
+- career timeline
+- retirement state
 
-The game does not automatically force the user's ownership standard.
+Safe mismatches are repaired automatically.
 
-## Other roles
-AI owners evaluate jersey retirement based on what the player actually accomplished for that franchise:
-- longevity
-- franchise production
-- championships
-- major awards
-- franchise-icon level career value
+## Player authority
+Player mode is blocked from GM, Coach, Owner, and staff-control pages.
 
-A Hall of Fame career with only a short stop at a franchise is not enough by itself.
+Player mode does not control:
+- trades made by the team
+- team free-agent signings
+- re-signing teammates
+- roster cuts
+- drafting
+- coaching rotations/game plans
+- ownership decisions
 
-## Team display
-The controlled team's area now includes a Retired Numbers display with the numbers hanging in that franchise's Basketballverse history.
+## Player offseason
+Re-signings, league free agency, and roster cuts are resolved by the AI front office without forcing the player into GM screens.
 
-## Number protection
-If Basketballverse uses its jersey-number setter, a retired number is blocked from being assigned to future players on that franchise.
+The player's own contract and career choices remain on Player Career.
 
-## Player legacy connection
-When a Player-mode career retires, Basketballverse immediately evaluates whether that player's franchises should consider retiring the jersey.
+## Regular-season integration
+Regular-season results now feed the Player career layer more reliably, including:
+- player game logs
+- performance/role progression
+- milestones
+- recognition
+- life events
 
-Player Hall of Fame and jersey retirement remain separate honors.
+## Retired-player cleanup
+Once the playing career ends, active-player life events stop firing.
 
-## Existing systems retained
-Player → Coach transition, Player Hall of Fame waiting period, Player Legacy, Greatest Players, Franchise Records, Rivalries, Milestones, Signature Games, Player Life in the League, contracts/trades/relationships, Coach systems, GM systems, and historical simulation.
+## Career flow display
+Player Career now shows a simple flow:
+Create → Career → Season → Playoffs → Offseason → Retired
+
+## Integration status
+The Player Career dashboard includes a status panel that detects important save inconsistencies.
+
+## Debug helper
+`playerCareerDebugV09178()` is available in the browser console during testing and returns a concise snapshot of the Player Career state.
+
+## Test milestone
+This is the recommended build for the first serious Player-mode play test.
+
+Suggested test:
+1. Start a Player career in an early historical season.
+2. Play/sim at least 2–3 seasons.
+3. Watch several games.
+4. Let role/minutes change naturally.
+5. Experience at least one career-life event.
+6. Try extension/trade-request behavior.
+7. Reach an offseason and confirm GM-only stages do not give the player control.
+8. Check Franchise Records, milestones, rivalries, Greatest Players, and Legacy.
+9. If practical, use an older player/save to test retirement and Player → Coach.
+
+Report anything that feels wrong, not only hard errors. Player mode depends heavily on pacing, frequency, and whether decisions feel believable.
 
 ## Version
-v0.91.77 · Franchise Legacy + Retired Numbers
+v0.91.78 · Player Career Integration + Test Build
