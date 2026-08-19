@@ -1,44 +1,52 @@
-# Basketballverse v0.91.84 — Player Career UI + Draft Flow Fix
+# Basketballverse v0.91.85 — Player In-Season Decision Loop
 
-## Career UI simplified
-Player mode no longer has two stacked rows of Career submenus.
+## In-season Player decisions fixed
+Player-mode career decisions now trigger from actual season progress instead of depending on a specific Career-page render path.
 
-The only Career navigation row is:
-- Player Career
-- Profile
-- Career History
+Basketballverse checks the controlled player's games played using multiple sources:
+- Player Career season totals
+- player stats
+- simulator stats
 
-The old Job Market tab is removed from Player mode because player contracts and movement belong inside Player Career.
+This prevents event droughts when one stat path is not updated.
 
-Inside Player Career, the second submenu row (Overview / Business / Life & Relationships / Legacy) is removed.
+## Decision cadence
+After the first few games, Player mode targets roughly one meaningful decision every 4–7 player games.
 
-The page now keeps the core overview visible and uses expandable sections for:
-- Business & Contracts
-- Life & Relationships
-- Legacy & Records
+Only one decision can be pending at a time, so decisions do not pile up.
 
-This is designed specifically to reduce mobile clutter and excessive scrolling.
+## Decision types
+The regular-season loop can now produce:
+- Media Availability
+- Meeting With the Coach
+- Locker Room Moment
+- Heavy Legs / workload decision
+- Front Office Check-In
+- Team leadership situation
 
-## Player draft fixed
-Player mode no longer enters or controls Draft Room.
+Choices affect the established Player systems such as:
+- Coach relationship
+- Front Office relationship
+- teammate/fan relationship
+- confidence
+- morale
+- energy
+- development
+- chemistry
+- loyalty
+- ambition
+- reputation
 
-When the offseason reaches Draft, the Player sees:
-**Let GM Handle Draft**
+## Season screen
+Pending Player decisions now appear prominently at the TOP of the Season screen with the actual response buttons.
 
-Selecting it:
-- opens/initializes the draft internally
-- lets every franchise AI make its selections
-- includes the player's own franchise
-- completes draft history normally
-- handles undrafted players normally
-- advances to the next offseason stage
+You no longer have to go looking through Career to discover that an event is waiting.
 
-The Player never goes on the clock and cannot get trapped waiting to make a pick.
+## Player Career notice
+If a decision is pending while viewing Player Career, a Decision Waiting notice directs you back to Season.
 
-## Draft routing cleanup
-- Current Activity points Player mode back to Offseason during the draft.
-- Direct Draft Room navigation is blocked for Player mode.
-- Older auto-open Draft Room behavior is overridden for Player mode.
+## Existing saves
+If an existing Player save is already several games into the season, v0.91.85 adjusts the initial decision timer so you do not have to wait another long stretch before seeing the system work.
 
 ## Version
-v0.91.84 · Player Career UI + Draft Flow Fix
+v0.91.85 · Player In-Season Decision Loop
