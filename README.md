@@ -1,54 +1,47 @@
-# Basketballverse v0.91.75 — Player Legacy + Retirement Readiness
+# Basketballverse v0.91.76 — Retirement + Player → Coach
 
-## Player Legacy Score
-Player careers now receive a long-term Legacy Score based on actual Basketballverse results:
-- career points
-- rebounds
-- assists
-- games played
+## Retirement becomes a real career decision
+When Retirement Readiness reaches an appropriate career stage, Player mode now allows:
+- Continue Playing
+- Retire
+
+Retirement ends the Player chapter without deleting the person.
+
+## Playing résumé freezes
+At retirement Basketballverse stores a permanent snapshot including:
+- career totals
 - MVP awards
 - championships
 - All-Star selections
+- Legacy Score
+- Greatest Players rank
+- milestones
 - signature games
-- career milestones
-- reputation
-- career leverage
+- rivalries
+- Hall of Fame projection
 
-## Hall of Fame trajectory
-The Player Career dashboard now shows a live Hall of Fame projection:
-- Too Early
-- Building a Case
-- On the Hall of Fame Track
-- Strong Hall of Fame Case
-- Hall of Fame Lock
+## Hall of Fame waiting period
+Retired players enter a five-year waiting period.
 
-This is a trajectory only. Actual retirement and Hall of Fame induction will be handled in later builds.
+When eligible, Basketballverse evaluates the résumé and can induct the player into the existing Player Hall of Fame. Persistent Career Person Hall of Fame status is tracked separately from Coach/Executive honors.
 
-## Greatest Players
-The league now has an all-time Greatest Players ranking generated from what happened in the Basketballverse universe.
+## Player → Coach
+After retirement the same Career Person can choose Pursue Coaching.
 
-The user-controlled player is ranked alongside every other player in the universe.
+Basketballverse generates coaching opportunities based on the retired player's reputation and playing legacy. Accepting a coaching job:
+- closes the Player chapter
+- starts a Coach chapter
+- switches the game into Coach mode
+- preserves the same person, name, portrait, player résumé, milestones, rivalries, and Hall of Fame waiting status
+- creates a real coaching contract and staff assignment
 
-## Awards & Honors
-Player awards and league recognition are consolidated into the Player Legacy page.
+Former great players can begin with stronger coaching reputation, but playing greatness does not automatically guarantee an elite coaching career.
 
-## Retirement Readiness
-Basketballverse now evaluates when the end of a playing career is approaching using:
-- age
-- seasons played
-- overall ability
-- energy
-- career stage
-
-Retirement Readiness ranges from 0–100.
-
-This build does NOT automatically retire the player. It prepares the next system, where retirement becomes an actual player-career decision.
+## Walk away
+A retired player may also walk away from basketball and return the universe to spectator/Viewer mode.
 
 ## Existing systems retained
-Rivalries, milestones, Signature Games, Franchise Records, Player Life in the League, contracts/trades/relationships, Watch Game player moments, dynamic role/minutes, persistent Career Person, and all Coach/GM systems.
-
-## Next
-Actual Player retirement, career wrap-up, Hall of Fame waiting period, and Player → Coach transition.
+Player Legacy, Greatest Players, Franchise Records, Rivalries, Milestones, Signature Games, Player Life in the League, contracts/trades/relationships, Watch Game moments, persistent Career Person, and all Coach/GM systems.
 
 ## Version
-v0.91.75 · Player Legacy + Retirement Readiness
+v0.91.76 · Retirement + Player → Coach
