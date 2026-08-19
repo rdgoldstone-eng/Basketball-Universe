@@ -1,45 +1,44 @@
-# Basketballverse v0.91.83 — Player Career Navigation Cleanup
+# Basketballverse v0.91.84 — Player Career UI + Draft Flow Fix
 
-## Career navigation fixed
-Player mode now gets a dedicated Career subnavigation:
+## Career UI simplified
+Player mode no longer has two stacked rows of Career submenus.
 
+The only Career navigation row is:
 - Player Career
 - Profile
 - Career History
 
-The old generic Player-era Profile / Job Market navigation no longer conflicts with the newer Player Career system.
+The old Job Market tab is removed from Player mode because player contracts and movement belong inside Player Career.
 
-Both Player Career and Profile are real clickable sections.
+Inside Player Career, the second submenu row (Overview / Business / Life & Relationships / Legacy) is removed.
 
-## Shorter Player Career page
-The large Player Career dashboard is now divided into internal tabs:
-
-- Overview
-- Business
+The page now keeps the core overview visible and uses expandable sections for:
+- Business & Contracts
 - Life & Relationships
-- Legacy
+- Legacy & Records
 
-This keeps the Career page from becoming one giant vertical scroll while preserving all existing Player systems.
+This is designed specifically to reduce mobile clutter and excessive scrolling.
 
-## Player Profile
-A new dedicated Player Profile page shows:
+## Player draft fixed
+Player mode no longer enters or controls Draft Room.
 
-- player portrait
-- name / age / position / team
-- OVR / POT
-- career games / points / rebounds / assists
-- Career Person information
-- playing role / minutes
-- Coach / Front Office / teammate / fan relationships
-- morale and confidence
+When the offseason reaches Draft, the Player sees:
+**Let GM Handle Draft**
 
-The uploaded created-player portrait is used here as the actual player image.
+Selecting it:
+- opens/initializes the draft internally
+- lets every franchise AI make its selections
+- includes the player's own franchise
+- completes draft history normally
+- handles undrafted players normally
+- advances to the next offseason stage
 
-## Main Career button
-In Player mode the main Career button now reliably opens Player Career.
+The Player never goes on the clock and cannot get trapped waiting to make a pick.
 
-## Existing systems retained
-Created-player setup, uploaded portraits, Player Career integration, Player → Coach transition, retired numbers, franchise records, legacy, rivalries, milestones, contracts, trades, life events, and all Coach/GM systems remain intact.
+## Draft routing cleanup
+- Current Activity points Player mode back to Offseason during the draft.
+- Direct Draft Room navigation is blocked for Player mode.
+- Older auto-open Draft Room behavior is overridden for Player mode.
 
 ## Version
-v0.91.83 · Player Career Navigation Cleanup
+v0.91.84 · Player Career UI + Draft Flow Fix
