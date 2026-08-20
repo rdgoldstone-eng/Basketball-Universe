@@ -1,9 +1,39 @@
-# Basketballverse v0.91.86 — Role Decisions + Player Portraits + Career Card
+# Basketballverse v0.91.87 — Information Always Visible + Role Authority
 
-- The Player decision-card presentation is now the standard visual pattern for future Coach, GM, Owner, and Commissioner decisions.
-- Player portraits are injected into common roster, rotation/depth-chart, leaders, Hall of Fame, awards/history, and other player-list rows.
-- Player Career now has a dedicated Career Stats tab styled more like an NBA 2K/baseball-card player page.
-- Career Stats includes portrait, team/position, OVR/POT, role, games, PPG/RPG/APG, career totals, MVPs, All-Stars, titles, season-by-season stats, career highs, signature games, and honors.
-- Existing v0.91.85 in-season Player decisions remain intact.
+## Permanent permission rule
 
-Version: v0.91.86
+**Information is visible to every role. Authority determines what can be changed.**
+
+Menus are no longer greyed out merely because the current role lacks control.
+
+Examples:
+- Player can open Draft Room and follow the draft, but cannot make selections or draft-night trades.
+- Player can view Free Agency, contracts, roster cuts and front-office information without signing/releasing players.
+- Player can see the team's gameplan, rotation, player roles and development information without changing the Coach's choices.
+- Viewer can inspect game information without management controls.
+
+## Navigation
+Old Player-mode menu blocking is overridden. Main and submenu buttons are kept enabled and clickable.
+
+## View-only pages
+Player mode now receives read-only versions of:
+- Front Office
+- Trade information
+- Free Agency
+- Re-signings/contracts
+- Roster Cuts
+- Draft Room
+- Coaching/gameplan
+- Rotation
+- Player Roles
+- Development
+
+The information remains visible; role-specific action buttons are withheld.
+
+## Permission framework
+`roleCanEditV09187(area)` is the common authority check for future role work.
+
+This is the model future Coach, GM, Owner, Commissioner and Viewer pages should follow.
+
+## Version
+v0.91.87 · Information Always Visible + Role Authority
