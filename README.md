@@ -1,4 +1,2 @@
-# Basketballverse v0.91.88 — Portrait Fallback Crash Fix
-Fixes the `nextElementSibling.style` runtime crash caused by missing/broken player portraits.
-Portrait fallbacks are now null-safe, so historical players without portrait images cannot interrupt depth-chart, awards, leaders, Hall of Fame, or other player-list rendering.
-v0.91.87 role-authority behavior remains unchanged.
+# Basketballverse v0.91.89 — Player Offseason Decisions
+Adds contextual Player decisions throughout offseason phases: end-of-season role meetings, draft/roster reaction, free-agency priorities, summer development, and training-camp preparation. Choices affect established career relationships and attributes and are recorded in the career timeline. A pending decision must be answered before advancing the offseason. Player still does not gain GM transaction authority.
