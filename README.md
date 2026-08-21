@@ -1,2 +1,12 @@
-# Basketballverse v0.91.89 — Player Offseason Decisions
-Adds contextual Player decisions throughout offseason phases: end-of-season role meetings, draft/roster reaction, free-agency priorities, summer development, and training-camp preparation. Choices affect established career relationships and attributes and are recorded in the career timeline. A pending decision must be answered before advancing the offseason. Player still does not gain GM transaction authority.
+# Basketballverse v0.91.90 — Persistent Decision Inbox
+
+Player decisions no longer effectively disappear when the player leaves the screen where they first appeared.
+
+- Adds/uses a Player Career **Decisions** page.
+- Any unresolved Player decision remains available there until answered.
+- Offseason decisions and regular-season Player decisions are bridged into the persistent decision area.
+- Navigating to another screen does not clear the pending decision.
+- Answering the decision removes it from the inbox.
+- The original contextual decision card can still appear where the event occurs.
+
+Version: v0.91.90
