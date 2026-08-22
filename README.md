@@ -1,35 +1,54 @@
-# Basketballverse v0.91.91 — Career Decisions + Organization Requests
+# Basketballverse v0.91.92 — Owner Role Foundation
 
-## Career moved forward
-Main navigation order is now:
-Season → Team → Career → League → Front Office → History → Save
+Owner is now the next active role-development track.
 
-## Decisions moved to Career
-Decisions is no longer a Season subtab. It now belongs under Career.
+## Owner philosophy
+Owner mode does not build lineups, coach games, or negotiate every roster transaction. The Owner sets the organization's resources, direction, expectations, and leadership pressure while the GM and Coach execute basketball decisions.
 
-The Decisions page contains:
-- incoming unresolved role decisions
-- persistent Player decisions
-- role-initiated requests to the organization
-- request history and GM responses
+## Owner Career
+Career now has an Owner Career page tracking:
+- controlled franchise
+- ownership start year
+- GM Trust
+- Coach Trust
+- Fan Approval
+- Basketball Operations Budget
+- current organizational mandate
+- ownership decision history
 
-## Player requests
-Player mode can:
-- Request Trade
-- Ask GM to Pursue a Specific Star
+## GM mandate
+Owners can set:
+- Win Now
+- Balanced
+- Long-Term Build
+- Star Hunt
 
-The player makes the request but does not execute the transaction.
+This expresses what ownership wants. The GM still decides how to execute the mandate.
 
-The GM evaluates requests based partly on Player leverage and Front Office relationship. Accepted player-target requests are added to the front office's trade-target list.
+## Basketball operations budget
+Owner can increase or reduce the organizational basketball budget. This creates a foundation for future payroll willingness, staffing quality, scouting, development, and luxury-spending behavior.
 
-## Coach requests
-Coach mode can:
-- Recommend a Specific Player to the GM
+## Facilities
+Owner can invest franchise cash into:
+- Training facilities
+- Medical facilities
+- Scouting infrastructure
 
-The Coach identifies the target, but the GM decides whether to pursue the player and retains transaction authority.
+These are persistent franchise investments.
 
-## Response timing
-Organization requests remain Pending initially. After roughly two games of career progression, the GM responds. Accepted requests influence the appropriate front-office systems but do not guarantee a completed transaction.
+## Owner decisions
+The same prominent decision-card style established in Player mode now appears for Owner mode.
+
+Context can include:
+- cash-flow pressure
+- GM accountability during a losing season
+- willingness to spend during a winning season
+- organizational direction check-ins
+
+Owner decisions also remain available in Career → Decisions.
+
+## Existing ownership systems retained
+The game's existing finances, ticket pricing, fan/market health, arena investments, ownership strategy, ownership history, and retired-number decisions remain intact.
 
 ## Version
-v0.91.91 · Career Decisions + Organization Requests
+v0.91.92 · Owner Role Foundation
