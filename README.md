@@ -1,7 +1,14 @@
-# Basketballverse v0.91.93 — Owner Franchise Direction + Compact Status Bar
+# Basketballverse v0.91.94 — Compact Status Compatibility Fix
 
-Owner mode now tracks Arena, Relocation, and Rebrand pressure from franchise conditions. The Owner can proactively start a New Arena Study, Relocation Study, or Rebrand Study instead of waiting for the game to force the issue. Completed relocation/rebrand studies feed the existing candidate frameworks rather than instantly changing the franchise.
+Fixes the runtime error:
+`document.getElementById("decisionKpi").textContent ... null is not an object`
 
-The top universe status area is now much smaller. Open Decisions has been removed from that header; Season, Role, and Team remain in a compact strip.
+v0.91.93 removed Open Decisions visually by deleting its DOM element. Older game rendering code still uses `decisionKpi` internally, so deleting the element caused rendering to crash.
 
-Version: v0.91.93
+v0.91.94:
+- keeps a hidden `decisionKpi` compatibility target in the DOM
+- keeps Open Decisions invisible to the player
+- preserves the compact Season / Role / Team status presentation
+- preserves the Owner arena / relocation / rebrand systems from v0.91.93
+
+Parser check included.
