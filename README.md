@@ -1,41 +1,31 @@
-# Basketballverse v0.95.12
-## Clean Single Portrait System
+# Basketballverse v0.96.01
+## Historical Draft Database — Section 1: 1947–1954
 
-**CURRENT BUILD: v0.95.12**
+**CURRENT BUILD: v0.96.01**
 
-This build removes the stacked portrait patches from v0.95.06 through v0.95.11.
+Built directly from v0.95.12.
 
-Instead of adding another renderer, v0.95.12 changes the game's ORIGINAL v0.91.35
-portrait functions directly.
+### Installed historical draft years
+1947, 1948, 1949, 1950, 1951, 1952, 1953, 1954.
 
-### Permanent portrait rule
+This section contains 151 named historical prospects. It follows the same practical
+historical-class scope used by Basketballverse's existing later classes: the real
+territorial/first-round core plus important later selections who reached the league or
+matter to league history. It does NOT pretend every one of the hundreds of obscure
+early draft-rights selections is a normal playable pro prospect.
 
-Player portraits live in:
+### Early-draft rules preserved
+- Territorial selections are represented in the historical prospect pool.
+- Draft-day prospect strength is not a hindsight career ranking.
+- The existing draft engine may change actual selection order in an alternate universe.
+- Portrait keys use the permanent player-name convention:
+  `bob_cousy.webp`, `dolph_schayes.webp`, `bob_pettit.webp`, etc.
 
-`portraits/`
+### Next sections
+- v0.96.02: 1955–1962
+- v0.96.03: 1963–1970
+- v0.96.04: 1971–1976
+- Then rebuild the complete 1946–47 opening BAA rosters.
 
-The filename is based on the player's name:
-
-- Julius Erving → `portraits/julius_erving.webp`
-- Bill Walton → `portraits/bill_walton.webp`
-- Pete Maravich → `portraits/pete_maravich.webp`
-
-The old system used the player's internal ID first. That was the core mismatch:
-uploading `julius_erving.webp` could never work if the game was requesting an
-ID-based filename.
-
-### Exact test
-
-Keep this file in GitHub:
-
-`portraits/julius_erving.webp`
-
-Then load:
-
-Philadelphia 76ers → Team → Roster
-
-The original roster renderer now requests:
-
-`./portraits/julius_erving.webp?bv=09512`
-
-No DOM scanning, no fuzzy player matching, and no replacement roster renderer is used.
+Historical draft cross-checks: APBR early draft records, Basketball-Reference draft
+pages, and NBA draft history.
