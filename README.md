@@ -28,3 +28,19 @@ Package includes index.html, README.md, Basketballverse logo, and historical Rap
 - Commissioner can review re-signings without negotiating team contracts.
 - Team AI/front offices handle the stage.
 - Commissioner role is restored immediately after advancing.
+
+
+## v0.93.08 — Commissioner Free Agency + Roster Cuts Advance Fix
+
+### Free Agency
+- Adds **Let Teams Handle Free Agency & Continue**
+- Commissioner can review league-wide free agency without controlling team signings
+- Team AI/front offices handle the stage
+
+### Roster Cuts
+- Adds **Let Teams Handle Roster Cuts & Continue**
+- Commissioner can review roster compliance and cuts without controlling team releases
+- Team AI/front offices handle the stage
+
+### Offseason role behavior
+Re-Signings, Free Agency, and Roster Cuts now all have Commissioner-safe delegation paths so the role cannot get trapped in team-controlled offseason stages.
