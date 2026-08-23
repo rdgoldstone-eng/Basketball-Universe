@@ -36,3 +36,11 @@ All Owner systems from the previous builds remain included.
 - Uses available AI/free-agency completion logic where present.
 - Delegates only the authority needed to move the offseason forward.
 - Restores Owner role immediately afterward.
+
+
+## v0.92.05 — Owner Roster Cuts Advance Fix
+- Owner mode can review the roster-cut stage.
+- Adds **Let GM Handle Roster Cuts & Continue**.
+- Uses available AI/GM roster-cut logic where present.
+- Delegates only the authority needed to advance the offseason.
+- Restores Owner mode immediately afterward.
