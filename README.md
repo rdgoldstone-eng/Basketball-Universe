@@ -1,23 +1,30 @@
-# Basketballverse v0.95.09
-## Universal Portrait Renderer Fix
+# Basketballverse v0.95.10
+## Direct Roster Portrait Fix
 
-**CURRENT BUILD: v0.95.09**
+**CURRENT BUILD: v0.95.10**
 
-Built directly from v0.95.08.
+Built directly from v0.95.09.
 
-All player displays now use the same portrait lookup:
-- created/uploaded portrait
-- registered historical portrait
-- portraits/player_name.webp
-- portraits/player_name.png
-- portraits/player_name.jpg
-- portraits/player_name.jpeg
+## Root cause found
 
-Older roster/depth-chart/award/draft player cards are upgraded after render so they
-also use the same portrait folder.
+Team > Roster is ultimately rebuilt by the old v0.91.41 `cleanPlayerCardHTMLV09140`
+renderer. That later renderer was overriding/bypassing the previous portrait fixes.
 
-Test case:
+v0.95.10 directly replaces the final roster-card renderer and final roster rebuild
+function.
+
+It also resolves portrait URLs against `document.baseURI` and adds a version query
+string to prevent a browser/GitHub Pages cached 404 from hiding a newly uploaded image.
+
+## Exact test
+
+Keep this file in GitHub:
+
 `portraits/julius_erving.webp`
 
-Load Philadelphia 76ers > Team > Roster. Julius Erving should show the image instead
-of the JE fallback.
+Then load:
+Team > Roster > Philadelphia 76ers
+
+Julius Erving should show that image in place of the JE silhouette.
+
+No portrait folder or filename changes are required.
