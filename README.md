@@ -1,7 +1,7 @@
-# Basketballverse v0.93.14
+# Basketballverse v0.93.15
 ## Global Decisions Center
 
-**CURRENT BUILD: v0.93.14**
+**CURRENT BUILD: v0.93.15**
 
 Built through the full first Commissioner development pass.
 
@@ -113,3 +113,27 @@ That rule was intended only for fired GM/Coach careers. Commissioner legitimatel
 - No save is assigned a role based only on the existence of Player/Coach/GM/Owner/Commissioner feature data; recovery requires explicit career-role evidence.
 
 This build is designed to preserve existing saves rather than requiring new ones.
+
+
+## v0.93.15 — Commissioner Subtabs + Franchise Moves Fix
+
+Commissioner League Office is reorganized into dedicated subtabs:
+- Franchise Oversight
+- Relocation / Expansion
+- Rules & Voting
+- Economics
+- Discipline
+
+### Relocation / Expansion
+- Existing relocation and expansion controls are moved into their own dedicated Commissioner subtab.
+- Proposed identities/logo previews remain visible.
+- Changing city/identity refreshes the preview.
+
+### AI logo workflow foundation
+The relocation/expansion screen now includes an AI-logo-ready workflow:
+1. choose city
+2. choose identity/nickname
+3. build the logo-generation prompt
+4. preview/accept generated art once a secure backend is connected
+
+Basketballverse is hosted as a static GitHub Pages game. A real AI image request should not be sent directly from browser JavaScript with a private API key. The UI is ready for a serverless/backend image endpoint, while current logo/upload systems remain usable.
