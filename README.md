@@ -20,3 +20,11 @@ v0.92.02 removes that obsolete GM-only requirement. The Draft button now uses th
 - historical Raptors and Grizzlies logo assets
 
 All Owner systems from the previous builds remain included.
+
+
+## v0.92.03 — Owner Re-Signings Advance Fix
+- Owner mode can review Re-Signings but does not negotiate player contracts directly.
+- Adds a clear **Let GM Handle Re-Signings & Continue** button during the Re-Signings stage.
+- Uses available AI/GM re-signing logic when present.
+- Advances the offseason through the normal engine, temporarily delegating authority only for that transition.
+- Restores Owner role immediately afterward.
