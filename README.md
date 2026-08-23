@@ -1,11 +1,22 @@
-# Basketballverse v0.92.01 — Draft Action + Header Fix
+# Basketballverse v0.92.02 — Owner Draft Button Fix
 
-Built from the complete Owner-mode package.
+Built directly from v0.92.01.
 
-Includes all Owner systems through v0.91.99 plus:
-- Fix for the `this.nextElementSibling.style` Draft Room crash.
-- Additional normalized controlled-team comparisons for draft actions.
-- Season / Role / Control forced into one genuinely compact row.
-- Open Decisions remains hidden while legacy compatibility is preserved.
+## Exact bug fixed
+The Draft Room already recognized the Indiana Pacers as the controlled team and displayed:
+- Indiana Pacers is on the clock
+- YOUR PICK
+- Draft buttons
 
-Package includes the Basketballverse logo and historical Raptors/Grizzlies logo assets.
+However, pressing Draft called the older `gmDraftPlayerV0881()` handler. That handler required `isHumanGMV084()`, which returns true only for GM mode. Therefore Owner mode displayed the correct pick but rejected the button press with:
+`Your team is not currently on the clock.`
+
+v0.92.02 removes that obsolete GM-only requirement. The Draft button now uses the game's real `isUserDraftPick()` check, which already supports both GM and Owner.
+
+## Package
+- index.html
+- README.md
+- basketballverse-logo.jpg
+- historical Raptors and Grizzlies logo assets
+
+All Owner systems from the previous builds remain included.
