@@ -1,30 +1,32 @@
-# Basketballverse v0.95.04
-## 2003 New Generation Era
+# Basketballverse v0.95.05
+## 2019 Modern Era
 
-**CURRENT BUILD: v0.95.04**
+**CURRENT BUILD: v0.95.05**
 
-Built directly from v0.95.03.
+Built directly from v0.95.04.
 
-## 2003–04 is now playable
-- 29 NBA franchises
-- Historical Atlantic / Central / Midwest / Pacific alignment
-- 145-player historical core (5 key players per club)
-- LeBron James, Carmelo Anthony, Dwyane Wade and Chris Bosh begin as rookies
-- Established stars include Tim Duncan, Kevin Garnett, Kobe Bryant, Shaquille O'Neal, Tracy McGrady, Jason Kidd, Dirk Nowitzki, Allen Iverson and others
-- 82-game schedule target
-- salary cap, 24-second clock and three-point line
-- 8 playoff teams per conference
-- best-of-seven first round, matching the post-2003 playoff format
+## 2019–20 is now playable
+- 30 NBA franchises
+- Atlantic, Central, Southeast, Northwest, Pacific and Southwest divisions
+- 150-player historical core
+- modern salary-cap / three-point / 24-second-clock environment
+- 82-game starting target
+- 8 playoff teams per conference at the initial ruleset
+- starter 2020 historical draft class
 
-## 2004 draft
-Starter historical class includes Dwight Howard, Emeka Okafor, Ben Gordon, Shaun Livingston, Devin Harris, Luol Deng, Andre Iguodala, Al Jefferson, Josh Smith, J.R. Smith, Jameer Nelson, Tony Allen and Kevin Martin.
+The player landscape includes LeBron James and Anthony Davis in Los Angeles, Kawhi Leonard and Paul George with the Clippers, Giannis Antetokounmpo in Milwaukee, James Harden/Russell Westbrook in Houston, and the emerging Luka Doncic/Jayson Tatum/Trae Young/Ja Morant generation.
+
+## 2020 draft
+The starter class includes Anthony Edwards, James Wiseman, LaMelo Ball, Patrick Williams, Isaac Okoro, Onyeka Okongwu, Tyrese Haliburton, Tyrese Maxey, Immanuel Quickley, Jaden McDaniels and Desmond Bane.
 
 ## Historical crossroads
-Charlotte's 2004 expansion return and the 2004 six-division realignment are registered as future league decisions rather than being silently forced.
+The unusual 2020 season structure and play-in concept are registered as future Commissioner/history crossroads rather than silently rewriting the simulation.
 
 ## Portraits
-Every installed 2003 player has a stable universal portrait key.
+All 2019 historical players have universal portrait keys.
+
+## Era milestone
+The planned historical start framework now has playable packs for 1946, 1967, 1976, 1988, 2003, 2019 and 2026.
 
 ## Next
-- 2019 era
-- actual portrait packs across installed eras
+Actual historical player portrait packs become the primary development task.
