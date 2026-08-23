@@ -1,4 +1,7 @@
-# Basketballverse v0.93.06 — Commissioner Test Build
+# Basketballverse v0.93.12
+## Global Decisions Center
+
+**CURRENT BUILD: v0.93.12**
 
 Built through the full first Commissioner development pass.
 
@@ -69,3 +72,18 @@ Older Commissioner delegation boxes from v0.93.07/v0.93.08 are removed from the 
 - Pending Player season/offseason decisions, Owner decisions/city approaches, Commissioner decisions/approvals/cases, and existing Coach/GM career decisions are collected here.
 - Decision history is shown on the same page.
 - Unresolved decisions remain visible until answered.
+
+
+## v0.93.11 — Decisions Navigation Fix
+- Simulation no longer automatically jumps to the Decisions screen.
+- New decisions still remain in the Decision Center.
+- The Decisions main-menu badge still updates and highlights when something is waiting.
+- Players can continue simulating and open Decisions when they choose.
+
+
+## v0.93.12 — Expansion + Relocation Logo Previews
+- Expansion city bids now show a proposed team identity and logo preview.
+- Commissioner relocation approval cards now show the proposed destination identity/logo.
+- Owner city relocation approaches use the same visual identity preview.
+- If a matching team/logo already exists in the universe, Basketballverse reuses the existing logo.
+- If no finalized logo exists yet, the preview uses a clean city/team abbreviation placeholder until the identity is finalized.
