@@ -1,21 +1,23 @@
-# Basketballverse v0.93.01 — League Office + Franchise Oversight
+# Basketballverse v0.93.06 — Commissioner Test Build
 
-Built directly from v0.93.00.
+Built through the full first Commissioner development pass.
 
-Commissioner Career now includes a dedicated League Office with:
-- Franchise risk scores
-- Stable / Monitor / Watch / Critical franchise status
-- Attendance, market, fan support, cash and arena health
-- Persistent owner relationship scores
-- Commissioner interventions: owner meetings, arena pressure, financial monitoring, relocation watch
-- League approval queue for relocation and rebrand requests
-- Approve / Request More Information / Deny decisions
-- Existing relocation/rebrand candidate systems remain authoritative
-
-Commissioner Career navigation:
+## Commissioner systems now included
+- Commissioner career metrics and persistent decisions
 - League Office
-- Commissioner Career
-- Decisions
-- Career History
+- Franchise risk / Stable-Monitor-Watch-Critical oversight
+- Owner relationship tracking
+- Arena, financial and relocation interventions
+- Relocation and rebrand approval queue
+- Expansion Office with city bids, finalists and franchise awards
+- Board of Governors rule proposals and owner voting
+- League media-package strategy
+- Revenue-sharing policy
+- Dynamic discipline/dispute cases
+- Commissioner Career & Legacy score/history
+- League-wide attendance and franchise-health monitoring
 
-Package includes the game, README, Basketballverse logo, and historical Raptors/Grizzlies logo assets.
+## Testing target
+This is the first Commissioner build intended for an actual play-through test. The goal is to test whether Commissioner has enough meaningful work without directly controlling team basketball operations.
+
+Package includes index.html, README.md, Basketballverse logo, and historical Raptors/Grizzlies assets.
