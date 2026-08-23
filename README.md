@@ -1,32 +1,43 @@
-# Basketballverse v0.95.05
-## 2019 Modern Era
+# Basketballverse v0.95.06
+## Historical Portrait Pack 1
 
-**CURRENT BUILD: v0.95.05**
+**CURRENT BUILD: v0.95.06**
 
-Built directly from v0.95.04.
+Built directly from v0.95.05.
 
-## 2019–20 is now playable
-- 30 NBA franchises
-- Atlantic, Central, Southeast, Northwest, Pacific and Southwest divisions
-- 150-player historical core
-- modern salary-cap / three-point / 24-second-clock environment
-- 82-game starting target
-- 8 playoff teams per conference at the initial ruleset
-- starter 2020 historical draft class
+## First bundled historical portraits
+Actual image files are now packaged inside Basketballverse rather than relying on
+external URLs.
 
-The player landscape includes LeBron James and Anthony Davis in Los Angeles, Kawhi Leonard and Paul George with the Clippers, Giannis Antetokounmpo in Milwaukee, James Harden/Russell Westbrook in Houston, and the emerging Luka Doncic/Jayson Tatum/Trae Young/Ja Morant generation.
+Portrait Pack 1 includes:
+- Julius Erving
+- Bill Walton
+- Pete Maravich
+- Walt Frazier
+- Paul Silas
+- Bernard King
+- Jack Sikma
+- Marques Johnson
 
-## 2020 draft
-The starter class includes Anthony Edwards, James Wiseman, LaMelo Ball, Patrick Williams, Isaac Okoro, Onyeka Okongwu, Tyrese Haliburton, Tyrese Maxey, Immanuel Quickley, Jaden McDaniels and Desmond Bane.
+The first five strengthen the 1976/77 player pool and the latter three begin the
+1977 draft-class portrait pack.
 
-## Historical crossroads
-The unusual 2020 season structure and play-in concept are registered as future Commissioner/history crossroads rather than silently rewriting the simulation.
+## Universal portrait behavior
+The pack registers each image with the v0.95.00 universal portrait resolver, so a
+matching player image can flow to roster/depth-chart rows, awards, draft views,
+player profiles, career pages, and other screens already using the shared portrait
+system.
 
-## Portraits
-All 2019 historical players have universal portrait keys.
+Created-player uploaded images still take priority over historical pack images.
 
-## Era milestone
-The planned historical start framework now has playable packs for 1946, 1967, 1976, 1988, 2003, 2019 and 2026.
+## Image files
+Portraits are standardized to 320 x 400 WebP cards under `portraits/`.
+
+## Licensing/source tracking
+`PORTRAIT_SOURCES.md` documents the source and U.S. public-domain status for every
+bundled photograph. Players without a verified reusable image keep the existing
+Basketballverse fallback instead of using an unverified copyrighted photo.
 
 ## Next
-Actual historical player portrait packs become the primary development task.
+Continue the 1976 roster / 1977 draft portrait pack, then move through the other
+historical eras.
