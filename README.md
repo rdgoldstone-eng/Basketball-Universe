@@ -60,3 +60,12 @@ Current offseason actions are replaced with:
 Each button lets team AI/front offices handle the entire phase and advances the offseason directly.
 
 Older Commissioner delegation boxes from v0.93.07/v0.93.08 are removed from the offseason screen.
+
+## v0.93.10 — Global Decisions Center
+- Decisions is now a permanent top-level main menu item, not buried under Career.
+- A gold count badge shows unresolved decisions from anywhere in the game.
+- Decisions is removed from Career subnavigation.
+- Player, Coach, GM, Owner, and Commissioner all have role-specific decision inbox support.
+- Pending Player season/offseason decisions, Owner decisions/city approaches, Commissioner decisions/approvals/cases, and existing Coach/GM career decisions are collected here.
+- Decision history is shown on the same page.
+- Unresolved decisions remain visible until answered.

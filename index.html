@@ -621,7 +621,16 @@ pre{white-space:pre-wrap}
 .commOfficeMetricV09301{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
 .commOfficeMetricV09301 b{display:block;font-size:19px}
 @media(max-width:700px){.commOfficeMetricsV09301{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style><style>.expansionBidV09302{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin:8px 0}.expansionScoreV09302{font-size:22px;font-weight:900}</style></head>
+</style><style>.expansionBidV09302{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin:8px 0}.expansionScoreV09302{font-size:22px;font-weight:900}</style>
+<style id="globalDecisionsV09310Style">
+.decisionNavCountV09310{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:4px;border-radius:999px;background:#f2c14e;color:#111;font-size:10px;font-weight:950}
+.decisionNavCountV09310.hidden{display:none!important}
+#mainDecisionsNavV09310.hasDecisionsV09310{border-color:#f2c14e!important;box-shadow:0 0 0 1px #f2c14e inset!important}
+.globalDecisionHeroV09310{padding:14px;border:2px solid #f2c14e;border-radius:14px;background:var(--panel2);margin-bottom:12px}
+.globalDecisionHistoryV09310{padding:8px 0;border-bottom:1px solid var(--line)}
+</style>
+
+</head>
 <body>
 <div id="gameTitle" style="display:none">Basketballverse</div>
 
@@ -803,6 +812,7 @@ pre{white-space:pre-wrap}
     <button class="active" data-group="season" data-tab="season">Season</button>
     <button data-group="team" data-tab="players">Team</button>
     <button data-group="career" data-tab="career">Career</button>
+    <button data-group="decisions" data-tab="decisions" id="mainDecisionsNavV09310">Decisions <span id="mainDecisionCountV09310" class="decisionNavCountV09310 hidden">0</span></button>
     <button data-group="league" data-tab="standings">League</button>
     <button data-group="frontoffice" data-tab="scouting">Front Office</button>
     <button data-group="history" data-tab="history">History</button>
@@ -26916,7 +26926,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+  const LABEL='v0.93.10 · Global Decisions Center';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27243,7 +27253,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+  const LABEL='v0.93.10 · Global Decisions Center';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27438,7 +27448,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27633,7 +27643,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27766,7 +27776,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+  const LABEL='v0.93.10 · Global Decisions Center';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27837,7 +27847,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27893,7 +27903,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27992,7 +28002,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28160,7 +28170,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28430,7 +28440,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28601,7 +28611,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28653,7 +28663,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28853,7 +28863,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
  function ensure(){
@@ -28889,7 +28899,7 @@ function archiveGMSeasonV09147(year,force=false){
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function P(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function era(y){y=+y||1976;return y<1980?'1970s analog basketball media-day photography':y<1990?'1980s film basketball media-day photography':y<2000?'1990s studio basketball portrait':y<2010?'2000s basketball media-day portrait':y<2020?'2010s modern basketball media-day portrait':'modern professional basketball media-day portrait'}
 function prompt(p){return ((p.portraitDescription||'').trim()+'. '+era(p.careerStartYear||state.currentYear)+'. '+(p.currentRole||state.role)+' portrait for a fictional basketball simulation. Chest-up, centered subject, neutral studio background, realistic proportions, natural expression, no text, no logos, no watermark, consistent roster portrait framing.')}
@@ -28915,7 +28925,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.65';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29247,7 +29257,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.66';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -29473,7 +29483,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.67';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
@@ -29483,7 +29493,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.68 Coach Personnel Authority Guard === -->
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.68';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29646,7 +29656,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}function cp(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function pc(){state.playerCareer=state.playerCareer||{playerId:null,teamId:null,morale:70,confidence:65,coachRelationship:60,gmRelationship:55,trainingFocus:'Balanced',role:'Rotation',minutesTarget:18,careerStats:{games:0,starts:0,points:0,rebounds:0,assists:0}};return state.playerCareer}
 function all(){return(state.teams||[]).flatMap(t=>(t.roster||[]).map(p=>({p,t})))}function hit(){let c=pc();return all().find(x=>String(x.p.id)===String(c.playerId))}
@@ -29673,7 +29683,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.70';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isPlayer(){return state?.role==='Player'}
@@ -29929,7 +29939,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.71';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}
 function C(){state.playerCareer=state.playerCareer||{};let c=state.playerCareer;c.relationships=c.relationships||{coach:Number(c.coachRelationship??60),frontOffice:Number(c.gmRelationship??55),teammates:55,fans:55};c.contract=c.contract||null;c.playerOffers=Array.isArray(c.playerOffers)?c.playerOffers:[];c.promises=Array.isArray(c.promises)?c.promises:[];c.careerTraits=Array.isArray(c.careerTraits)?c.careerTraits:[];c.tradeRequest=c.tradeRequest||null;c.loyalty=Number(c.loyalty??65);c.leverage=Number(c.leverage??20);return c}
@@ -30034,7 +30044,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.72';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30323,7 +30333,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.73';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30520,7 +30530,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.74';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30740,7 +30750,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.75';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30947,7 +30957,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.76';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isp(){return state?.role==='Player'}
@@ -31192,7 +31202,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.77';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -31390,7 +31400,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.78';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -31826,7 +31836,7 @@ setTimeout(()=>{
 },50);
 
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.80';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  setTimeout(()=>{try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}},0);
@@ -31905,7 +31915,7 @@ setTimeout(()=>{
 },100);
 
 (function(){
-  const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+  const LABEL='v0.93.10 · Global Decisions Center';
   window.BASKETBALLVERSE_BUILD='v0.91.81';
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
   setTimeout(()=>{try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}},0);
@@ -31916,7 +31926,7 @@ setTimeout(()=>{
 <!-- === v0.91.82 Created Player Portrait Everywhere === -->
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.82';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32072,7 +32082,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.83';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32344,7 +32354,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.84';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32607,7 +32617,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.85';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32913,7 +32923,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.86';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function isp(){return state?.role==='Player'}
@@ -32976,7 +32986,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.91.87';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -33235,7 +33245,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.88';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 window.addEventListener('error',function(ev){
  const img=ev.target;
@@ -33248,7 +33258,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </script>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.89';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}
 function C(){state.playerCareer=state.playerCareer||{};let c=state.playerCareer;c.offseasonDecisions=Array.isArray(c.offseasonDecisions)?c.offseasonDecisions:[];c.relationships=c.relationships||{coach:60,frontOffice:55,teammates:55,fans:55};return c}
@@ -33277,7 +33287,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.90 Persistent Decision Inbox === -->
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.90';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function C(){state.playerCareer=state.playerCareer||{};return state.playerCareer}
@@ -33375,7 +33385,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.91';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function R(){return state?.role||'Viewer'}
@@ -33528,7 +33538,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.92';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function iso(){return state?.role==='Owner'}
@@ -33666,7 +33676,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.93';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}
 function T(){return(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null}
@@ -33695,7 +33705,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.94';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function ensureDecisionKpiCompatV09194(){
@@ -33735,7 +33745,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.91.95';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}
 function T(){return(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null}
@@ -33765,7 +33775,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </script>
 
 <style>.ownerHireGridV09196{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ownerCandidateV09196{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin:8px 0}@media(max-width:650px){.ownerHireGridV09196{grid-template-columns:1fr}}</style><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.96';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.96';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'} function T(){return(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null}
 function O(){state.ownerCareer=state.ownerCareer||{};let o=state.ownerCareer;o.staffSearches=o.staffSearches||{};return o}
 function seed(s){let h=0;for(let c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)}
@@ -33778,7 +33788,7 @@ function sec(k){let v=vacancy(k),s=search(k),title=k==='GM'?'General Manager Sea
 function html(){return `<div class="card" id="ownerHiringV09196"><h2>Staff Hiring</h2><div class="small muted">When you dismiss basketball leadership, you choose the replacement.</div><div class="ownerHireGridV09196">${sec('GM')}${sec('Coach')}</div></div>`}
 const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function(){let r=old?.apply(this,arguments),h=document.getElementById('ownerCareerDashboardV09192');if(h&&iso()){h.querySelector('#ownerHiringV09196')?.remove();let w=document.createElement('div');w.innerHTML=html();let e=h.querySelector('#ownerExecutiveV09195');if(e)e.after(w.firstElementChild);else h.appendChild(w.firstElementChild)}return r};setTimeout(()=>{if(iso())renderOwnerCareerV09192?.()},250);
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.97';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.97';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}function T(){return(state.teams||[]).find(x=>String(x.id)===String(state.controlledTeamId))}function O(){state.ownerCareer=state.ownerCareer||{};let o=state.ownerCareer;o.business=o.business||{sponsorStrategy:'Balanced',premiumExperience:50,communityInvestment:50,mediaInvestment:50};return o}
 function D(){try{ensureOwnership?.();return ownerData?.(T()?.id)}catch(_){return null}}
 function H(x){let o=O();o.decisionHistory=Array.isArray(o.decisionHistory)?o.decisionHistory:[];o.decisionHistory.unshift({year:state.currentYear,text:x});state.news=state.news||[];state.news.push({year:state.currentYear,title:'Ownership Business',text:x});saveState?.()}
@@ -33787,7 +33797,7 @@ window.ownerBusinessInvestV09197=function(k){let o=O(),d=D();if(d&&Number(d.cash
 function html(){let b=O().business,d=D();return `<div class="card" id="ownerBusinessV09197"><h2>Business & Revenue Strategy</h2><div class="small muted">You control the business side of the franchise without taking over the GM's roster job.</div><div class="grid2" style="margin-top:10px"><div class="ownerExecBoxV09195"><h3>Sponsorship Strategy</h3><select style="width:100%" onchange="ownerBusinessSetV09197('sponsorStrategy',this.value)"><option ${b.sponsorStrategy==='Conservative'?'selected':''}>Conservative</option><option ${b.sponsorStrategy==='Balanced'?'selected':''}>Balanced</option><option ${b.sponsorStrategy==='Aggressive'?'selected':''}>Aggressive</option><option ${b.sponsorStrategy==='National Brand Focus'?'selected':''}>National Brand Focus</option></select><div class="small muted">Sets how aggressively the franchise pursues sponsorship and commercial revenue.</div></div><div class="ownerExecBoxV09195"><h3>Franchise Snapshot</h3><div class="calendarline"><span>Cash</span><b>$${Number(d?.cash||0).toFixed(1)}M</b></div><div class="calendarline"><span>Fan Support</span><b>${Math.round(Number(d?.fanSupport||60))}</b></div><div class="calendarline"><span>Market Strength</span><b>${Math.round(Number(d?.marketStrength||60))}</b></div></div></div><div class="grid3" style="margin-top:10px"><div class="ownerExecBoxV09195"><h3>Premium Experience</h3><b>${b.premiumExperience}/100</b><button onclick="ownerBusinessInvestV09197('premiumExperience')">Invest $5M</button></div><div class="ownerExecBoxV09195"><h3>Community</h3><b>${b.communityInvestment}/100</b><button onclick="ownerBusinessInvestV09197('communityInvestment')">Invest $5M</button></div><div class="ownerExecBoxV09195"><h3>Media & Brand</h3><b>${b.mediaInvestment}/100</b><button onclick="ownerBusinessInvestV09197('mediaInvestment')">Invest $5M</button></div></div></div>`}
 const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function(){let r=old?.apply(this,arguments),h=document.getElementById('ownerCareerDashboardV09192');if(h&&iso()){h.querySelector('#ownerBusinessV09197')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}return r};setTimeout(()=>{if(iso())renderOwnerCareerV09192?.()},250);
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.98';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.98';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}function T(){return(state.teams||[]).find(x=>String(x.id)===String(state.controlledTeamId))}function O(){state.ownerCareer=state.ownerCareer||{};let o=state.ownerCareer;o.honors=Array.isArray(o.honors)?o.honors:[];return o}
 function retired(){let t=T();return t?.retiredNumbers||t?.retiredJerseys||[]}
 function score(){let o=O(),t=T(),r=retired().length;return Math.max(0,Math.round(Number(o.championships||0)*35+Number(o.playoffAppearances||0)*5+r*3+Number(o.fanApproval||60)/5+Number(o.seasons||0)*2))}
@@ -33801,10 +33811,10 @@ const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function
 #gameView .topbar .kpi span{font-size:8px!important;line-height:1!important;margin:0!important;opacity:.65!important}
 #gameView .topbar .kpi b{font-size:10px!important;line-height:1!important;margin:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
 #gameView .topbar .kpi:has(#decisionKpi){display:none!important}
-</style><script>(function(){const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.91.99';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;function f(){try{ensureDecisionKpiCompatV09194?.()}catch(_){}let d=document.getElementById('decisionKpi')?.closest('.kpi');if(d)d.style.display='none'}const old=window.renderAll;window.renderAll=function(){let r=old.apply(this,arguments);setTimeout(f,0);return r};setTimeout(f,100);})();</script>
+</style><script>(function(){const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.91.99';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;function f(){try{ensureDecisionKpiCompatV09194?.()}catch(_){}let d=document.getElementById('decisionKpi')?.closest('.kpi');if(d)d.style.display='none'}const old=window.renderAll;window.renderAll=function(){let r=old.apply(this,arguments);setTimeout(f,0);return r};setTimeout(f,100);})();</script>
 <script>
 (function(){
- const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+ const LABEL='v0.93.10 · Global Decisions Center';
  window.BASKETBALLVERSE_BUILD='v0.92.00';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -33834,12 +33844,12 @@ const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function
 </script>
 
 <script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.92.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.92.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 window.bvUserOwnsDraftPickV09201=function(p){if(!p)return false;let c=state?.controlledTeamId,s=(a,b)=>a!=null&&b!=null&&String(a)===String(b);let ids=[p.teamId,p.teamID,p.ownerTeamId,p.currentTeamId,p.originalTeamId,p.team?.id,p.ownerTeam?.id];if(ids.some(x=>s(x,c)))return true;let t=(state?.teams||[]).find(x=>s(x.id,c)),names=[p.teamName,p.ownerTeamName,p.currentTeamName,p.team?.name,p.ownerTeam?.name];return !!(t&&names.some(n=>n&&String(n)===String(t.name)))};
 })();</script>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.92.02';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -33902,7 +33912,7 @@ try{
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.92.03';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34011,7 +34021,7 @@ try{
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.92.04';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34114,7 +34124,7 @@ try{
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.92.05';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34225,7 +34235,7 @@ try{
 </style>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.92.06';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34504,7 +34514,7 @@ try{
 </script>
 
 <script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.00';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.00';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.startedYear??=Number(state.currentYear);c.ownerConfidence??=70;c.playerConfidence??=65;c.fanApproval??=65;c.leagueHealth??=70;c.competitiveBalance??=70;c.financialHealth??=70;c.legacyScore??=0;c.decisions=Array.isArray(c.decisions)?c.decisions:[];c.pending=Array.isArray(c.pending)?c.pending:[];c.history=Array.isArray(c.history)?c.history:[];c.policies=c.policies||{philosophy:'Balanced',growth:'Measured',ownerRelations:'Collaborative'};return c}
 function cl(n){return Math.max(0,Math.min(100,Math.round(Number(n)||0)))}function games(x){return Number(x.wins||x.w||0)+Number(x.losses||x.l||0)}
 function OD(x){try{ensureOwnership?.();return ownerData?.(x.id)||{}}catch(_){return{}}}
@@ -34519,7 +34529,7 @@ window.renderCommissionerOfficeV09300=function(){if(!isc())return;health();decis
 window.renderCommissionerDecisionsV09300=function(){if(!isc())return;decision();let h=document.getElementById('decisions');if(!h)return;h.querySelector('#commissionerDecisionsV09300')?.remove();let c=C(),q=document.createElement('div');q.innerHTML=`<div class="card" id="commissionerDecisionsV09300"><h2>Commissioner Decisions</h2>${c.pending.length?c.pending.map(d=>`<div class="commDecisionV09300"><h3>${d.title}</h3><div>${d.text}</div><div class="choicebar">${d.opts.map((o,i)=>`<button onclick="resolveCommissionerDecisionV09300('${d.id}',${i})">${o[0]}</button>`).join('')}</div></div>`).join(''):'<div class="muted">No league-office decisions are waiting.</div>'}</div>`;h.prepend(q.firstElementChild)}
 const old=window.renderAll;window.renderAll=function(){if(isc()){health();decision()}let r=old.apply(this,arguments);if(isc())setTimeout(()=>{renderCommissionerOfficeV09300();renderCommissionerDecisionsV09300()},0);return r};setTimeout(()=>{if(isc()){renderCommissionerOfficeV09300();renderCommissionerDecisionsV09300()}},250);
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}
 function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.ownerRelations=c.ownerRelations||{};c.pendingApprovals=Array.isArray(c.pendingApprovals)?c.pendingApprovals:[];c.approvalHistory=Array.isArray(c.approvalHistory)?c.approvalHistory:[];return c}
 function OD(t){try{ensureOwnership?.();return ownerData?.(t.id)||{}}catch(_){return{}}}
@@ -34544,7 +34554,7 @@ const ot=window.switchTab;window.switchTab=function(t){if(isc()&&t==='career')t=
 const oa=window.renderAll;window.renderAll=function(){if(isc())sync();let r=oa.apply(this,arguments);if(isc())setTimeout(()=>{if(document.getElementById('leagueoffice')?.classList.contains('active'))renderLeagueOfficeV09301()},0);return r}
 setTimeout(()=>{if(isc()){sync();renderLeagueOfficeV09301()}},250);
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.02';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.02';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.expansion=c.expansion||{open:false,slots:0,bids:[],history:[]};return c}
 const X=[['Seattle','WA',92,90,86],['Las Vegas','NV',88,84,92],['St. Louis','MO',78,77,74],['Louisville','KY',74,72,68],['Kansas City','MO',80,76,72],['San Diego','CA',86,80,81],['Nashville','TN',82,78,79],['Pittsburgh','PA',73,70,68],['Cincinnati','OH',72,69,67],['Columbus','OH',77,73,69],['Virginia Beach','VA',69,67,65],['Buffalo','NY',68,66,64]];
 function seed(){let e=C().expansion;if(e.bids.length)return;e.bids=X.map((x,i)=>({id:'bid_'+i,city:x[0],state:x[1],market:x[2],arena:x[3],ownership:x[4],status:'Interested',score:Math.round(x[2]*.38+x[3]*.32+x[4]*.30)}))}
@@ -34554,7 +34564,7 @@ window.awardExpansionV09302=function(id){let e=C().expansion,b=e.bids.find(x=>x.
 function html(){let e=C().expansion;seed();return `<div class="card" id="expansionOfficeV09302"><h2>Expansion Office</h2><div class="small muted">Open expansion, evaluate markets, select finalists, and award future franchises.</div><div class="choicebar"><button onclick="openExpansionProcessV09302(1)">Open 1-Team Expansion</button><button onclick="openExpansionProcessV09302(2)">Open 2-Team Expansion</button></div>${e.open?`<div class="notice"><b>Expansion Open</b><br><span class="small">${e.slots} slot(s) remaining</span></div>`:''}${e.bids.slice().sort((a,b)=>b.score-a.score).map(b=>`<div class="expansionBidV09302"><div class="calendarline"><div><b>${b.city}, ${b.state}</b><div class="small muted">Market ${b.market} · Arena ${b.arena} · Ownership ${b.ownership}</div></div><div class="expansionScoreV09302">${b.score}</div></div><div class="choicebar"><button onclick="expansionBidActionV09302('${b.id}','Finalist')">Finalist</button><button onclick="expansionBidActionV09302('${b.id}','Rejected')">Reject</button>${e.open&&e.slots>0?`<button class="primary" onclick="awardExpansionV09302('${b.id}')">Award Franchise</button>`:''}</div><div class="small muted">Status: ${b.status}</div></div>`).join('')}</div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(!isc())return r;let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#expansionOfficeV09302')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}return r}
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.03';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.03';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.ruleProposals=Array.isArray(c.ruleProposals)?c.ruleProposals:[];c.rulesHistory=Array.isArray(c.rulesHistory)?c.rulesHistory:[];return c}
 const RULES=[['Playoff Format','Expand Playoffs'],['Draft Lottery','Change Lottery Odds'],['Salary System','Adjust Cap Growth'],['Roster Rules','Change Roster Limit'],['Three-Point Rules','Review Three-Point Line'],['Replay','Expand Instant Replay'],['Schedule','Change Regular-Season Length']];
 window.proposeRuleV09303=function(i){let c=C(),r=RULES[i];if(!r)return;let p={id:'rule_'+Date.now().toString(36),year:state.currentYear,category:r[0],title:r[1],status:'Voting',votes:[],needed:Math.ceil((state.teams||[]).length*.51)};(state.teams||[]).forEach((t,j)=>{let rel=Number(c.ownerRelations?.[String(t.id)]??60),support=.35+rel/200+(c.policies?.philosophy==='Progressive'?.12:c.policies?.philosophy==='Traditional'?-.08:0);p.votes.push({teamId:t.id,team:t.name,vote:Math.random()<support?'Yes':'No'})});c.ruleProposals.unshift(p);saveState?.();renderAll?.()}
@@ -34562,21 +34572,21 @@ window.resolveRuleVoteV09303=function(id){let c=C(),p=c.ruleProposals.find(x=>x.
 function html(){let c=C();return `<div class="card" id="rulesOfficeV09303"><h2>Rules & Board of Governors</h2><div class="small muted">Major league changes go through ownership voting instead of acting like instant god-mode switches.</div><div class="choicebar">${RULES.map((r,i)=>`<button onclick="proposeRuleV09303(${i})">${r[1]}</button>`).join('')}</div>${c.ruleProposals.slice(0,8).map(p=>`<div class="commApprovalV09301"><div class="calendarline"><div><b>${p.title}</b><div class="small muted">${p.category} · ${p.year}</div></div><span class="pill">${p.status}</span></div>${p.status==='Voting'?`<div class="small muted">Required: ${p.needed} yes votes</div><button style="margin-top:7px" onclick="resolveRuleVoteV09303('${p.id}')">Call the Vote</button>`:`<div class="small">${p.yes} Yes · ${p.no} No</div>`}</div>`).join('')}</div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(isc()){let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#rulesOfficeV09303')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}}return r}
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.04';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.04';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.media=c.media||{dealValue:100,partner:'National Package',years:4,revenueShare:'Equal',growth:50};c.economicHistory=Array.isArray(c.economicHistory)?c.economicHistory:[];return c}
 window.setRevenueShareV09304=function(v){C().media.revenueShare=v;C().economicHistory.unshift({year:state.currentYear,text:`Revenue sharing policy changed to ${v}.`});saveState?.();renderAll?.()}
 window.negotiateMediaV09304=function(type){let c=C(),m=c.media;if(type==='Max'){m.dealValue=Math.round(m.dealValue*1.18);m.years=6;c.ownerConfidence=Math.min(100,Number(c.ownerConfidence||70)+3);c.playerConfidence=Math.max(0,Number(c.playerConfidence||65)-2)}if(type==='Flexible'){m.dealValue=Math.round(m.dealValue*1.08);m.years=3;c.fanApproval=Math.min(100,Number(c.fanApproval||65)+3)}if(type==='Reach'){m.dealValue=Math.round(m.dealValue*1.04);m.years=4;m.growth=Math.min(100,m.growth+10);c.fanApproval=Math.min(100,Number(c.fanApproval||65)+5)}c.economicHistory.unshift({year:state.currentYear,text:`Media strategy selected: ${type}. New annual package value $${m.dealValue}M.`});saveState?.();renderAll?.()}
 function html(){let c=C(),m=c.media;return `<div class="card" id="mediaOfficeV09304"><h2>League Economics & Media</h2><div class="grid2"><div class="commOfficeV09300"><h3>Media Package</h3><div class="calendarline"><span>Annual Value</span><b>$${m.dealValue}M</b></div><div class="calendarline"><span>Years</span><b>${m.years}</b></div><div class="calendarline"><span>Growth Reach</span><b>${m.growth}/100</b></div><div class="choicebar"><button onclick="negotiateMediaV09304('Max')">Max Revenue</button><button onclick="negotiateMediaV09304('Flexible')">Short & Flexible</button><button onclick="negotiateMediaV09304('Reach')">Maximize Reach</button></div></div><div class="commOfficeV09300"><h3>Revenue Sharing</h3><select onchange="setRevenueShareV09304(this.value)"><option ${m.revenueShare==='Equal'?'selected':''}>Equal</option><option ${m.revenueShare==='Market Weighted'?'selected':''}>Market Weighted</option><option ${m.revenueShare==='Small Market Support'?'selected':''}>Small Market Support</option></select><div class="small muted">Revenue policy will influence franchise health and owner politics in later seasons.</div></div></div></div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(isc()){let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#mediaOfficeV09304')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}}return r}
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.05';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.05';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.cases=Array.isArray(c.cases)?c.cases:[];c.caseHistory=Array.isArray(c.caseHistory)?c.caseHistory:[];return c}
 function makeCase(){let c=C();if(c.cases.some(x=>x.status==='Open'))return;let gp=Math.max(0,...(state.teams||[]).map(t=>Number(t.wins||t.w||0)+Number(t.losses||t.l||0)));if(gp<10||Math.random()>.18)return;let pool=[['Tampering Complaint','One ownership group accuses another club of improper contact with a player.'],['On-Court Incident','A high-profile confrontation has created pressure for league discipline.'],['Owner Conduct','An owner made public comments criticizing league officials and other clubs.'],['Scheduling Dispute','Multiple teams are challenging a league scheduling decision.'],['Player Grievance','Players are asking the league office to review a working-conditions dispute.']];let x=pool[Math.floor(Math.random()*pool.length)];c.cases.push({id:'case_'+Date.now().toString(36),year:state.currentYear,title:x[0],text:x[1],status:'Open'})}
 window.resolveCommCaseV09305=function(id,a){let c=C(),x=c.cases.find(v=>v.id===id);if(!x)return;x.status='Resolved';x.outcome=a;if(a==='Strong Discipline'){c.ownerConfidence=Math.max(0,Number(c.ownerConfidence||70)-2);c.fanApproval=Math.min(100,Number(c.fanApproval||65)+3)}if(a==='Moderate'){c.ownerConfidence=Math.min(100,Number(c.ownerConfidence||70)+1);c.playerConfidence=Math.min(100,Number(c.playerConfidence||65)+1)}if(a==='No Action'){c.playerConfidence=Math.max(0,Number(c.playerConfidence||65)-3)}c.caseHistory.unshift({year:state.currentYear,text:`${x.title}: ${a}.`});saveState?.();renderAll?.()}
 function html(){let c=C();makeCase();return `<div class="card" id="disciplineOfficeV09305"><h2>Discipline & League Disputes</h2>${c.cases.filter(x=>x.status==='Open').length?c.cases.filter(x=>x.status==='Open').map(x=>`<div class="commDecisionV09300"><h3>${x.title}</h3><div>${x.text}</div><div class="choicebar"><button onclick="resolveCommCaseV09305('${x.id}','Strong Discipline')">Strong Discipline</button><button onclick="resolveCommCaseV09305('${x.id}','Moderate')">Moderate Response</button><button onclick="resolveCommCaseV09305('${x.id}','No Action')">No League Action</button></div></div>`).join(''):'<div class="muted">No open league cases.</div>'}</div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(isc()){let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#disciplineOfficeV09305')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}}return r}
 })();</script><script>(function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';window.BASKETBALLVERSE_BUILD='v0.93.06';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.93.10 · Global Decisions Center';window.BASKETBALLVERSE_BUILD='v0.93.06';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.milestones=Array.isArray(c.milestones)?c.milestones:[];return c}
 function score(){let c=C(),yrs=Math.max(0,Number(state.currentYear)-Number(c.startedYear||state.currentYear)),exp=Number(c.expansion?.history?.filter(x=>/awarded/i.test(x.text||'')).length||0),rules=Number(c.rulesHistory?.filter(x=>/Passed/.test(x.text||'')).length||0),cases=Number(c.caseHistory?.length||0),approvals=Number(c.approvalHistory?.length||0);return Math.round(yrs*5+exp*18+rules*8+cases*4+approvals*3+Number(c.leagueHealth||70)/4+Number(c.ownerConfidence||70)/5+Number(c.fanApproval||65)/5)}
 function tier(s){return s>=300?'All-Time Commissioner':s>=200?'Legendary Commissioner':s>=125?'League Architect':s>=70?'Established Commissioner':'Building the League'}
@@ -34586,7 +34596,7 @@ setTimeout(()=>{if(isc())renderCommissionerOfficeV09300?.()},250);
 })();</script>
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.93.07';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34676,7 +34686,7 @@ setTimeout(injectCommissionerReSigningsButtonV09307,200);
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.93.08';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34841,7 +34851,7 @@ setTimeout(()=>{
 
 <script>
 (function(){
-const LABEL='v0.93.09 · Commissioner Direct Offseason Simulation';
+const LABEL='v0.93.10 · Global Decisions Center';
 window.BASKETBALLVERSE_BUILD='v0.93.09';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34988,6 +34998,175 @@ window.switchTab=function(tab){
 };
 
 setTimeout(replaceCommissionerOffseasonButtonsV09309,200);
+})();
+</script>
+
+
+<script>
+(function(){
+const LABEL='v0.93.10 · Global Decisions Center';
+window.BASKETBALLVERSE_BUILD='v0.93.10';
+window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+function role(){return state?.role||'Viewer'}
+function pc(){state.playerCareer=state.playerCareer||{};return state.playerCareer}
+function cc(){state.coachCareer=state.coachCareer||{};return state.coachCareer}
+function gc(){state.gmCareer=state.gmCareer||{};return state.gmCareer}
+function oc(){state.ownerCareer=state.ownerCareer||{};return state.ownerCareer}
+function cm(){state.commissionerCareer=state.commissionerCareer||{};return state.commissionerCareer}
+
+function collect(){
+ const r=role(), out=[];
+ if(r==='Player'){
+   const c=pc();
+   if(c.pendingLifeEvent)out.push({src:'playerSeason',data:c.pendingLifeEvent});
+   if(c.pendingOffseasonDecision)out.push({src:'playerOffseason',data:c.pendingOffseasonDecision});
+   if(c.pendingSeasonDecision)out.push({src:'playerSeason',data:c.pendingSeasonDecision});
+   if(c.pendingDecision)out.push({src:'playerGeneric',data:c.pendingDecision});
+   if(state.pendingPlayerDecision)out.push({src:'playerGeneric',data:state.pendingPlayerDecision});
+ }
+ if(r==='Coach'){
+   const c=cc();
+   if(c.pendingDecision)out.push({src:'coach',data:c.pendingDecision});
+   if(c.currentDecision)out.push({src:'coach',data:c.currentDecision});
+   if(Array.isArray(c.pendingDecisions))c.pendingDecisions.forEach(x=>out.push({src:'coach',data:x}));
+ }
+ if(r==='GM'){
+   const c=gc();
+   if(c.pendingDecision)out.push({src:'gm',data:c.pendingDecision});
+   if(c.currentDecision)out.push({src:'gm',data:c.currentDecision});
+   if(Array.isArray(c.pendingDecisions))c.pendingDecisions.forEach(x=>out.push({src:'gm',data:x}));
+ }
+ if(r==='Owner'){
+   const c=oc();
+   if(c.pendingDecision)out.push({src:'owner',data:c.pendingDecision});
+   if(Array.isArray(c.cityApproaches))c.cityApproaches.filter(x=>x.status==='Pending').forEach(x=>out.push({src:'ownerCity',data:x}));
+ }
+ if(r==='Commissioner'){
+   const c=cm();
+   if(Array.isArray(c.pending))c.pending.forEach(x=>out.push({src:'commissioner',data:x}));
+   if(Array.isArray(c.pendingApprovals))c.pendingApprovals.filter(x=>x.status==='Pending'||x.status==='More Information').forEach(x=>out.push({src:'approval',data:x}));
+   if(Array.isArray(c.cases))c.cases.filter(x=>x.status==='Open').forEach(x=>out.push({src:'case',data:x}));
+ }
+ const seen=new Set();
+ return out.filter(x=>{
+   const d=x.data||{};
+   const k=String(d.id||d.key||`${x.src}:${d.title||d.text||''}`);
+   if(seen.has(k))return false;
+   seen.add(k);return true;
+ });
+}
+window.pendingRoleDecisionsV09310=collect;
+
+function ensureButton(){
+ let b=document.getElementById('mainDecisionsNavV09310');
+ if(!b){
+   const career=[...document.querySelectorAll('.mainNav button,.nav button')].find(x=>x.dataset?.tab==='career'||x.textContent.trim()==='Career');
+   if(career){
+     b=document.createElement('button');
+     b.id='mainDecisionsNavV09310';
+     b.dataset.group='decisions';
+     b.dataset.tab='decisions';
+     b.innerHTML='Decisions <span id="mainDecisionCountV09310" class="decisionNavCountV09310 hidden">0</span>';
+     career.after(b);
+   }
+ }
+ if(!b)return;
+ b.disabled=false;
+ b.onclick=()=>switchTab('decisions');
+ let badge=document.getElementById('mainDecisionCountV09310');
+ if(!badge){
+   badge=document.createElement('span');
+   badge.id='mainDecisionCountV09310';
+   badge.className='decisionNavCountV09310 hidden';
+   b.appendChild(badge);
+ }
+ const n=collect().length;
+ badge.textContent=String(n);
+ badge.classList.toggle('hidden',n===0);
+ b.classList.toggle('hasDecisionsV09310',n>0);
+}
+
+function buttons(item){
+ const d=item.data||{}, opts=d.options||d.opts||[];
+ if(item.src==='playerOffseason')return opts.map(o=>`<button onclick="resolvePlayerOffseasonDecisionV09189('${o.id}')">${o.label||o[0]}</button>`).join('');
+ if(item.src==='playerSeason'||item.src==='playerGeneric')return opts.map(o=>`<button onclick="resolvePlayerSeasonDecisionV09185('${o.id}')">${o.label||o[0]}</button>`).join('');
+ if(item.src==='owner')return opts.map((o,i)=>`<button onclick="resolveOwnerDecisionV09192(${i})">${o.label||o[0]}</button>`).join('');
+ if(item.src==='ownerCity')return `<button onclick="ownerRespondCityPitchV09206('${d.id}','Explore')">Hear Proposal</button><button onclick="ownerRespondCityPitchV09206('${d.id}','Leverage')">Use as Leverage</button><button onclick="ownerRespondCityPitchV09206('${d.id}','Reject')">Reject</button>`;
+ if(item.src==='commissioner')return (d.opts||[]).map((o,i)=>`<button onclick="resolveCommissionerDecisionV09300('${d.id}',${i})">${o[0]}</button>`).join('');
+ if(item.src==='approval')return `<button onclick="resolveCommissionerApprovalV09301('${d.id}','Approved')">Approve</button><button onclick="resolveCommissionerApprovalV09301('${d.id}','More Information')">More Information</button><button onclick="resolveCommissionerApprovalV09301('${d.id}','Denied')">Deny</button>`;
+ if(item.src==='case')return `<button onclick="resolveCommCaseV09305('${d.id}','Strong Discipline')">Strong Discipline</button><button onclick="resolveCommCaseV09305('${d.id}','Moderate')">Moderate</button><button onclick="resolveCommCaseV09305('${d.id}','No Action')">No Action</button>`;
+ return opts.map(o=>o.action?`<button onclick="${o.action}">${o.label||o.text||o[0]||'Choose'}</button>`:`<button>${o.label||o.text||o[0]||'Choose'}</button>`).join('');
+}
+
+function history(){
+ const r=role(),rows=[];
+ if(r==='Player'){
+   (pc().lifeEvents||[]).forEach(x=>rows.push({year:x.year,text:`${x.title||x.type}: ${x.result||x.choice||''}`}));
+   (pc().offseasonDecisions||[]).forEach(x=>rows.push({year:x.year,text:`${x.title||''}: ${x.result||x.choice||''}`}));
+ }
+ if(r==='Owner')(oc().decisionHistory||[]).forEach(x=>rows.push({year:x.year,text:x.result||x.text||x.title||''}));
+ if(r==='Commissioner'){
+   (cm().history||[]).forEach(x=>rows.push({year:x.year,text:x.text||''}));
+   (cm().rulesHistory||[]).forEach(x=>rows.push({year:x.year,text:x.text||''}));
+   (cm().caseHistory||[]).forEach(x=>rows.push({year:x.year,text:x.text||''}));
+ }
+ if(r==='Coach')(cc().decisionHistory||cc().history||[]).forEach(x=>rows.push({year:x.year,text:x.text||x.result||x.title||''}));
+ if(r==='GM')(gc().decisionHistory||gc().history||[]).forEach(x=>rows.push({year:x.year,text:x.text||x.result||x.title||''}));
+ return rows.sort((a,b)=>Number(b.year||0)-Number(a.year||0)).slice(0,20).map(x=>`<div class="globalDecisionHistoryV09310"><b>${x.year??''}</b> ${x.text}</div>`).join('')||'<div class="muted">No decision history yet.</div>';
+}
+
+window.renderGlobalDecisionsV09310=function(){
+ ensureButton();
+ const sec=document.getElementById('decisions');if(!sec)return;
+ let host=document.getElementById('globalDecisionsCenterV09310');
+ if(!host){host=document.createElement('div');host.id='globalDecisionsCenterV09310';sec.prepend(host);}
+ const items=collect();
+ host.innerHTML=`<div class="card"><div class="calendarline"><div><div class="pill">DECISION CENTER</div><h1 style="margin:6px 0 2px">${role()} Decisions</h1></div><div><b style="font-size:28px">${items.length}</b><div class="small muted">Waiting</div></div></div><div class="small muted">Every unresolved decision for your current role stays here until answered.</div></div>
+ ${items.length?items.map(item=>{const d=item.data||{};return `<div class="globalDecisionHeroV09310"><div class="playerDecisionBadgeV09185">${role().toUpperCase()} DECISION</div><h2>${d.title||d.type||'Decision'}</h2><div>${d.text||d.description||d.details||'This matter requires your decision.'}</div><div class="playerSeasonChoicesV09185">${buttons(item)}</div></div>`}).join(''):`<div class="globalDecisionHeroV09310"><h2>No decisions waiting</h2><div class="small muted">When something requires your input, it will appear here and stay here until resolved.</div></div>`}
+ <div class="card"><h2>Decision History</h2>${history()}</div>`;
+};
+
+const oldGroup=window.navigationGroupForTab;
+window.navigationGroupForTab=function(tab){
+ if(tab==='decisions')return'decisions';
+ return oldGroup.apply(this,arguments);
+};
+
+const oldSub=window.renderSubNavigation;
+window.renderSubNavigation=function(group,active){
+ if(group==='decisions'){
+   const wrap=document.querySelector('.subNavWrap');
+   const sub=document.getElementById('subNav');
+   if(wrap)wrap.classList.add('hidden');
+   if(sub)sub.innerHTML='';
+   return;
+ }
+ const r=oldSub.apply(this,arguments);
+ if(group==='career')document.querySelectorAll('#subNav [data-subtab="decisions"]').forEach(x=>x.remove());
+ return r;
+};
+
+const oldSwitch=window.switchTab;
+window.switchTab=function(tab){
+ const r=oldSwitch.apply(this,arguments);
+ if(tab==='decisions')setTimeout(renderGlobalDecisionsV09310,0);
+ else setTimeout(ensureButton,0);
+ return r;
+};
+
+const oldAll=window.renderAll;
+window.renderAll=function(){
+ const r=oldAll.apply(this,arguments);
+ setTimeout(()=>{
+   ensureButton();
+   if(document.getElementById('decisions')?.classList.contains('active'))renderGlobalDecisionsV09310();
+ },0);
+ return r;
+};
+
+setInterval(()=>{try{ensureButton()}catch(_){}},1000);
+setTimeout(()=>{ensureButton();if(document.getElementById('decisions')?.classList.contains('active'))renderGlobalDecisionsV09310()},200);
 })();
 </script>
 
