@@ -1,19 +1,21 @@
-# Basketballverse v0.93.00 — Commissioner Role Foundation
+# Basketballverse v0.93.01 — League Office + Franchise Oversight
 
-Built directly from v0.92.06.
+Built directly from v0.93.00.
 
-Commissioner now has a persistent league-level career foundation:
-- Owner Confidence
-- Player Confidence
-- Fan Approval
-- League Health
-- Competitive Balance
-- Financial Health
-- Legacy Score
-- League Philosophy
-- Growth Strategy
-- Owner Relations
-- League-wide Franchise Watch with attendance grades
-- Persistent Commissioner decision cards
+Commissioner Career now includes a dedicated League Office with:
+- Franchise risk scores
+- Stable / Monitor / Watch / Critical franchise status
+- Attendance, market, fan support, cash and arena health
+- Persistent owner relationship scores
+- Commissioner interventions: owner meetings, arena pressure, financial monitoring, relocation watch
+- League approval queue for relocation and rebrand requests
+- Approve / Request More Information / Deny decisions
+- Existing relocation/rebrand candidate systems remain authoritative
 
-Commissioner is intentionally not a team-control role. This is the foundation for the large Commissioner build sequence: League Office, franchise oversight, expansion/relocation/rebrand approvals, ownership changes, owner voting, rules/historical evolution, economics/media, discipline/disputes, and career legacy.
+Commissioner Career navigation:
+- League Office
+- Commissioner Career
+- Decisions
+- Career History
+
+Package includes the game, README, Basketballverse logo, and historical Raptors/Grizzlies logo assets.
