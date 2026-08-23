@@ -33758,7 +33758,31 @@ const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function
 #gameView .topbar .kpi span{font-size:8px!important;line-height:1!important;margin:0!important;opacity:.65!important}
 #gameView .topbar .kpi b{font-size:10px!important;line-height:1!important;margin:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
 #gameView .topbar .kpi:has(#decisionKpi){display:none!important}
-</style><script>(function(){const LABEL='v0.91.99 · Single-Row Status Bar';window.BASKETBALLVERSE_BUILD='v0.91.99';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;function f(){try{ensureDecisionKpiCompatV09194?.()}catch(_){}let d=document.getElementById('decisionKpi')?.closest('.kpi');if(d)d.style.display='none'}const old=window.renderAll;window.renderAll=function(){let r=old.apply(this,arguments);setTimeout(f,0);return r};setTimeout(f,100);})();</script></body>
+</style><script>(function(){const LABEL='v0.91.99 · Single-Row Status Bar';window.BASKETBALLVERSE_BUILD='v0.91.99';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;function f(){try{ensureDecisionKpiCompatV09194?.()}catch(_){}let d=document.getElementById('decisionKpi')?.closest('.kpi');if(d)d.style.display='none'}const old=window.renderAll;window.renderAll=function(){let r=old.apply(this,arguments);setTimeout(f,0);return r};setTimeout(f,100);})();</script><script>
+/* v0.92.00 Draft clock identity fix
+   Draft assets can carry numeric or string team IDs depending on save/import history.
+   Normalize IDs so the controlled team's live pick is recognized reliably. */
+(function(){
+ const LABEL='v0.92.00 · Draft Clock Identity Fix';
+ window.BASKETBALLVERSE_BUILD='v0.92.00';
+ window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ window.isUserDraftPick=function(){
+   const pick=typeof currentDraftPick==='function'?currentDraftPick():null;
+   if(!pick || state?.controlledTeamId===undefined || state?.controlledTeamId===null)return false;
+   const sameTeam=String(pick.teamId)===String(state.controlledTeamId);
+   return sameTeam && (state.role==='GM'||state.role==='Owner');
+ };
+ // Keep the current draft team lookup equally tolerant of old/string IDs.
+ window.currentDraftTeam=function(){
+   const pick=typeof currentDraftPick==='function'?currentDraftPick():null;
+   return pick?(state.teams||[]).find(t=>String(t.id)===String(pick.teamId))||null:null;
+ };
+ // Refresh any already-open Draft Room after the compatibility override loads.
+ setTimeout(()=>{try{if(state?.draftRoom && typeof renderDraftRoom==='function')renderDraftRoom();}catch(_){}},100);
+})();
+</script>
+
+</body>
 </html>
 
 <!-- v0.91.43 Historic Newspapers: context-aware championship and MVP headlines -->
