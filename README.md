@@ -1,30 +1,51 @@
-# Basketballverse v0.95.01
-## 1946 Founding Era Data Pack
+# Basketballverse v0.95.02
+## Founding Crossroads + 1967 Rivalry Era
 
-**CURRENT BUILD: v0.95.01**
+**CURRENT BUILD: v0.95.02**
 
-Built directly from v0.95.00.
+Built directly from v0.95.01.
 
-## 1946–47 BAA era is now playable
-The Founding Era now loads its own historical snapshot instead of substituting 1976.
+## 1946 Founding Era expansion
+Historical franchise-survival crossroads now appear at vulnerable founding-era points for:
+- Pittsburgh Ironmen
+- Detroit Falcons
+- Cleveland Rebels
+- Toronto Huskies
+- Providence Steamrollers
 
-Included:
-- 11 original BAA franchises
-- Eastern and Western division alignment
-- 110-player historical roster pool (10-player playable core per club)
-- Founding-era strength ratings
-- No three-point line
-- No salary cap
-- No shot clock at the starting point
-- 3 playoff teams per division/conference slot in the current engine
-- 60-game starting-season target
-- Starter 1947 historical draft class
-- Player portrait keys wired into the universal portrait engine
+Commissioner or the relevant Owner can decide whether to continue, seek investors/new ownership, or allow the club to fold. AI-controlled franchises evaluate survival from in-universe performance/market conditions rather than blindly following history.
 
-## Portrait status
-Every 1946 player now has a stable portrait key, so an image added to the historical portrait registry automatically appears anywhere Basketballverse uses the universal portrait resolver. The actual 1946 image pack is the next portrait-data step; this build does not pretend generic placeholders are real player photographs.
+## 1967–68 Rivalry Era is now playable
+The 1967 start now loads a dedicated NBA snapshot:
+- 12 NBA franchises
+- historical East/West alignment
+- approximately 120 historical NBA players
+- no salary cap
+- 24-second shot clock
+- no NBA three-point line
+- 82-game target
+- starter 1968 historical draft class
 
-## Next era work
-- Founding-era franchise survival/contraction decision points
-- 1946 player portrait pack
-- 1967 NBA/ABA Rivalry Era snapshot
+### ABA rivalry registry
+The inaugural ABA is stored as a rival league with all 11 original franchises:
+- Anaheim Amigos
+- Dallas Chaparrals
+- Denver Rockets
+- Houston Mavericks
+- Indiana Pacers
+- Kentucky Colonels
+- Minnesota Muskies
+- New Jersey Americans
+- New Orleans Buccaneers
+- Oakland Oaks
+- Pittsburgh Pipers
+
+The ABA registry includes its three-point-line identity and can feed later player-market, merger, franchise, and Commissioner decisions. This build does not yet simulate a fully separate second standings/playoff engine.
+
+## Portraits
+Every installed 1967 NBA player has a stable portrait key tied into the universal portrait resolver. Historical image packs can be installed without rewriting individual game screens.
+
+## Next
+- 1967 ABA player pool / rivalry decisions
+- 1967 portrait pack
+- 1988 era install
