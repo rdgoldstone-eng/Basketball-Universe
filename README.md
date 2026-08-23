@@ -21,3 +21,10 @@ Built through the full first Commissioner development pass.
 This is the first Commissioner build intended for an actual play-through test. The goal is to test whether Commissioner has enough meaningful work without directly controlling team basketball operations.
 
 Package includes index.html, README.md, Basketballverse logo, and historical Raptors/Grizzlies assets.
+
+
+## v0.93.07 — Commissioner Re-Signings Advance Fix
+- Adds **Let Teams Handle Re-Signings & Continue**.
+- Commissioner can review re-signings without negotiating team contracts.
+- Team AI/front offices handle the stage.
+- Commissioner role is restored immediately after advancing.
