@@ -1,51 +1,36 @@
-# Basketballverse v0.95.02
-## Founding Crossroads + 1967 Rivalry Era
+# Basketballverse v0.95.03
+## 1988 Showtime / Bad Boys Era
 
-**CURRENT BUILD: v0.95.02**
+**CURRENT BUILD: v0.95.03**
 
-Built directly from v0.95.01.
+Built directly from v0.95.02.
 
-## 1946 Founding Era expansion
-Historical franchise-survival crossroads now appear at vulnerable founding-era points for:
-- Pittsburgh Ironmen
-- Detroit Falcons
-- Cleveland Rebels
-- Toronto Huskies
-- Providence Steamrollers
-
-Commissioner or the relevant Owner can decide whether to continue, seek investors/new ownership, or allow the club to fold. AI-controlled franchises evaluate survival from in-universe performance/market conditions rather than blindly following history.
-
-## 1967–68 Rivalry Era is now playable
-The 1967 start now loads a dedicated NBA snapshot:
-- 12 NBA franchises
-- historical East/West alignment
-- approximately 120 historical NBA players
-- no salary cap
+## 1988–89 is now playable
+- 25 NBA franchises
+- Charlotte Hornets and Miami Heat expansion teams
+- Historical Atlantic / Central / Midwest / Pacific alignment
+- 150-player historical core (6 key rotation players per club)
+- Salary cap active
+- Three-point line active
 - 24-second shot clock
-- no NBA three-point line
+- 8 playoff teams per conference
 - 82-game target
-- starter 1968 historical draft class
+- Starter 1989 draft class including Pervis Ellison, Danny Ferry, Sean Elliott, Glen Rice, Mookie Blaylock, Tim Hardaway and Shawn Kemp
 
-### ABA rivalry registry
-The inaugural ABA is stored as a rival league with all 11 original franchises:
-- Anaheim Amigos
-- Dallas Chaparrals
-- Denver Rockets
-- Houston Mavericks
-- Indiana Pacers
-- Kentucky Colonels
-- Minnesota Muskies
-- New Jersey Americans
-- New Orleans Buccaneers
-- Oakland Oaks
-- Pittsburgh Pipers
+## Era direction
+The snapshot is built to support the late-1980s transition:
+- Showtime Lakers
+- rising Bad Boys Pistons
+- Michael Jordan entering his prime
+- strong Cleveland / Atlanta / Utah contenders
+- Charlotte and Miami as new expansion markets
 
-The ABA registry includes its three-point-line identity and can feed later player-market, merger, franchise, and Commissioner decisions. This build does not yet simulate a fully separate second standings/playoff engine.
+Future expansion decision markers are registered for Orlando/Minneapolis and later Toronto/Vancouver rather than forcing those events automatically.
 
 ## Portraits
-Every installed 1967 NBA player has a stable portrait key tied into the universal portrait resolver. Historical image packs can be installed without rewriting individual game screens.
+All installed 1988 players have stable universal portrait keys. Portrait art can be added once and flow everywhere the game uses player images.
 
 ## Next
-- 1967 ABA player pool / rivalry decisions
-- 1967 portrait pack
-- 1988 era install
+- 2003 era install
+- 2019 era install
+- historical portrait packs
