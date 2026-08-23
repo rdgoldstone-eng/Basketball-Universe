@@ -1,22 +1,11 @@
-# Basketballverse v0.91.94 — Compact Status Compatibility Fix
+# Basketballverse v0.92.01 — Draft Action + Header Fix
 
-Fixes the runtime error:
-`document.getElementById("decisionKpi").textContent ... null is not an object`
+Built from the complete Owner-mode package.
 
-v0.91.93 removed Open Decisions visually by deleting its DOM element. Older game rendering code still uses `decisionKpi` internally, so deleting the element caused rendering to crash.
+Includes all Owner systems through v0.91.99 plus:
+- Fix for the `this.nextElementSibling.style` Draft Room crash.
+- Additional normalized controlled-team comparisons for draft actions.
+- Season / Role / Control forced into one genuinely compact row.
+- Open Decisions remains hidden while legacy compatibility is preserved.
 
-v0.91.94:
-- keeps a hidden `decisionKpi` compatibility target in the DOM
-- keeps Open Decisions invisible to the player
-- preserves the compact Season / Role / Team status presentation
-- preserves the Owner arena / relocation / rebrand systems from v0.91.93
-
-Parser check included.
-
-
-## v0.92.00 — Draft Clock + Compact Header Fix
-- Built directly from the known-good v0.91.99 package.
-- Role / Team / Season header is now one genuinely compact horizontal row.
-- Open Decisions remains hidden but its legacy DOM target is preserved for compatibility.
-- Draft controlled-team comparisons normalize team IDs to avoid false "not on the clock" results.
-- No Owner systems from v0.91.99 were removed.
+Package includes the Basketballverse logo and historical Raptors/Grizzlies logo assets.
