@@ -1,36 +1,30 @@
-# Basketballverse v0.95.03
-## 1988 Showtime / Bad Boys Era
+# Basketballverse v0.95.04
+## 2003 New Generation Era
 
-**CURRENT BUILD: v0.95.03**
+**CURRENT BUILD: v0.95.04**
 
-Built directly from v0.95.02.
+Built directly from v0.95.03.
 
-## 1988–89 is now playable
-- 25 NBA franchises
-- Charlotte Hornets and Miami Heat expansion teams
+## 2003–04 is now playable
+- 29 NBA franchises
 - Historical Atlantic / Central / Midwest / Pacific alignment
-- 150-player historical core (6 key rotation players per club)
-- Salary cap active
-- Three-point line active
-- 24-second shot clock
+- 145-player historical core (5 key players per club)
+- LeBron James, Carmelo Anthony, Dwyane Wade and Chris Bosh begin as rookies
+- Established stars include Tim Duncan, Kevin Garnett, Kobe Bryant, Shaquille O'Neal, Tracy McGrady, Jason Kidd, Dirk Nowitzki, Allen Iverson and others
+- 82-game schedule target
+- salary cap, 24-second clock and three-point line
 - 8 playoff teams per conference
-- 82-game target
-- Starter 1989 draft class including Pervis Ellison, Danny Ferry, Sean Elliott, Glen Rice, Mookie Blaylock, Tim Hardaway and Shawn Kemp
+- best-of-seven first round, matching the post-2003 playoff format
 
-## Era direction
-The snapshot is built to support the late-1980s transition:
-- Showtime Lakers
-- rising Bad Boys Pistons
-- Michael Jordan entering his prime
-- strong Cleveland / Atlanta / Utah contenders
-- Charlotte and Miami as new expansion markets
+## 2004 draft
+Starter historical class includes Dwight Howard, Emeka Okafor, Ben Gordon, Shaun Livingston, Devin Harris, Luol Deng, Andre Iguodala, Al Jefferson, Josh Smith, J.R. Smith, Jameer Nelson, Tony Allen and Kevin Martin.
 
-Future expansion decision markers are registered for Orlando/Minneapolis and later Toronto/Vancouver rather than forcing those events automatically.
+## Historical crossroads
+Charlotte's 2004 expansion return and the 2004 six-division realignment are registered as future league decisions rather than being silently forced.
 
 ## Portraits
-All installed 1988 players have stable universal portrait keys. Portrait art can be added once and flow everywhere the game uses player images.
+Every installed 2003 player has a stable universal portrait key.
 
 ## Next
-- 2003 era install
-- 2019 era install
-- historical portrait packs
+- 2019 era
+- actual portrait packs across installed eras
