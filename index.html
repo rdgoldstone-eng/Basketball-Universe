@@ -25356,15 +25356,26 @@ setTimeout(()=>{
 */
 
 function portraitKeyV09135(p){
-  const raw=String(p?.id || p?.playerId || p?.name || "player").toLowerCase();
-  return raw.replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  // v0.95.12: portraits are named by PLAYER NAME, not internal player ID.
+  // Julius Erving -> julius_erving
+  const raw=String(p?.name || p?.id || p?.playerId || "player")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase()
+    .replace(/['’]/g,"");
+  return raw.replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
 }
 window.portraitKeyV09135=portraitKeyV09135;
 
 function playerPortraitSrcV09135(p){
   if(!p)return "";
-  if(p.portrait)return p.portrait;
-  return `portraits/${portraitKeyV09135(p)}.webp`;
+  // Created-player uploads/data URLs still take priority.
+  if(p.customPortrait)return p.customPortrait;
+  if(typeof p.portrait==="string" && /^(data:|blob:)/i.test(p.portrait))return p.portrait;
+
+  // v0.95.12: one permanent GitHub folder, one predictable filename.
+  // The explicit ./ keeps this relative to the Basketball-Universe project path.
+  return `./portraits/${portraitKeyV09135(p)}.webp?bv=09512`;
 }
 window.playerPortraitSrcV09135=playerPortraitSrcV09135;
 
@@ -26942,7 +26953,7 @@ setTimeout(decorateAllPlayerSurfacesV09142,180);
 /* === v0.91.51 Free Agency Cap Display + unified build identity === */
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.95.11 · Portrait Mapping Repair';
+  const LABEL='v0.95.12 · Clean Single Portrait System';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27269,7 +27280,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.53';
-  const LABEL='v0.95.11 · Portrait Mapping Repair';
+  const LABEL='v0.95.12 · Clean Single Portrait System';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27464,7 +27475,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.53';
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  let nextRevealIndex=-1;
@@ -27659,7 +27670,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
  const VERSION='v0.91.54';
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD=VERSION;
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27792,7 +27803,7 @@ function archiveGMSeasonV09147(year,force=false){
 <script>
 (function(){
   const VERSION='v0.91.55';
-  const LABEL='v0.95.11 · Portrait Mapping Repair';
+  const LABEL='v0.95.12 · Clean Single Portrait System';
   window.BASKETBALLVERSE_BUILD=VERSION;
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -27863,7 +27874,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+ const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.56';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function ct(){return (state?.teams||[]).find(t=>String(t.id)===String(state?.controlledTeamId))||null}
  function store(){state.coachCareer=state.coachCareer||{reputation:50,jobSecurity:70,history:[],awards:[]};let c=state.coachCareer;c.history=c.history||[];c.awards=c.awards||[];return c}
  function rec(t){let w=Number(t?.wins??t?.w??0),l=Number(t?.losses??t?.l??0);return {w,l,p:w+l?w/(w+l):0}}
@@ -27919,7 +27930,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.57 Coach Offseason Authority Fix === -->
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.57';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28018,7 +28029,7 @@ function archiveGMSeasonV09147(year,force=false){
 <!-- === v0.91.58 Coach Navigation Reorganization === -->
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.58';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28186,7 +28197,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.59';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -28456,7 +28467,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.60';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function wgame(){return state?.season?.playoffState?.watchGame||null}
@@ -28627,7 +28638,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.61'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  const ARCH={
   'Offensive Architect':{offense:8,gameManagement:3,desc:'Builds efficient offenses and gets more from scoring talent.'},
@@ -28679,7 +28690,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.62'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function coachMode(){return state?.role==='Coach'}
@@ -28879,7 +28890,7 @@ function archiveGMSeasonV09147(year,force=false){
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.63';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  function uid(){return 'person_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
  function ensure(){
@@ -28915,7 +28926,7 @@ function archiveGMSeasonV09147(year,force=false){
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.64';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function P(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function era(y){y=+y||1976;return y<1980?'1970s analog basketball media-day photography':y<1990?'1980s film basketball media-day photography':y<2000?'1990s studio basketball portrait':y<2010?'2000s basketball media-day portrait':y<2020?'2010s modern basketball media-day portrait':'modern professional basketball media-day portrait'}
 function prompt(p){return ((p.portraitDescription||'').trim()+'. '+era(p.careerStartYear||state.currentYear)+'. '+(p.currentRole||state.role)+' portrait for a fictional basketball simulation. Chest-up, centered subject, neutral studio background, realistic proportions, natural expression, no text, no logos, no watermark, consistent roster portrait framing.')}
@@ -28941,7 +28952,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.65';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29273,7 +29284,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.66';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -29499,7 +29510,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.67';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}
@@ -29509,7 +29520,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.68 Coach Personnel Authority Guard === -->
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.68';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -29672,7 +29683,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.69';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}function cp(){return window.ensureCareerPersonV09163?ensureCareerPersonV09163():state.careerPerson}
 function pc(){state.playerCareer=state.playerCareer||{playerId:null,teamId:null,morale:70,confidence:65,coachRelationship:60,gmRelationship:55,trainingFocus:'Balanced',role:'Rotation',minutesTarget:18,careerStats:{games:0,starts:0,points:0,rebounds:0,assists:0}};return state.playerCareer}
 function all(){return(state.teams||[]).flatMap(t=>(t.roster||[]).map(p=>({p,t})))}function hit(){let c=pc();return all().find(x=>String(x.p.id)===String(c.playerId))}
@@ -29699,7 +29710,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.70';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isPlayer(){return state?.role==='Player'}
@@ -29955,7 +29966,7 @@ setTimeout(()=>{try{if(isp())renderPlayerCareerV09169()}catch(e){console.error(e
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.71';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}
 function C(){state.playerCareer=state.playerCareer||{};let c=state.playerCareer;c.relationships=c.relationships||{coach:Number(c.coachRelationship??60),frontOffice:Number(c.gmRelationship??55),teammates:55,fans:55};c.contract=c.contract||null;c.playerOffers=Array.isArray(c.playerOffers)?c.playerOffers:[];c.promises=Array.isArray(c.promises)?c.promises:[];c.careerTraits=Array.isArray(c.careerTraits)?c.careerTraits:[];c.tradeRequest=c.tradeRequest||null;c.loyalty=Number(c.loyalty??65);c.leverage=Number(c.leverage??20);return c}
@@ -30060,7 +30071,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.72';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30349,7 +30360,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.73';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30546,7 +30557,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.74';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30766,7 +30777,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.75';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -30973,7 +30984,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.76';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function isp(){return state?.role==='Player'}
@@ -31218,7 +31229,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.77';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
  function store(){
@@ -31416,7 +31427,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.78';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -31852,7 +31863,7 @@ setTimeout(()=>{
 },50);
 
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.80';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
  setTimeout(()=>{try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}},0);
@@ -31931,7 +31942,7 @@ setTimeout(()=>{
 },100);
 
 (function(){
-  const LABEL='v0.95.11 · Portrait Mapping Repair';
+  const LABEL='v0.95.12 · Clean Single Portrait System';
   window.BASKETBALLVERSE_BUILD='v0.91.81';
   window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
   setTimeout(()=>{try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e.textContent.trim()))e.textContent=LABEL})}catch(_){}},0);
@@ -31942,7 +31953,7 @@ setTimeout(()=>{
 <!-- === v0.91.82 Created Player Portrait Everywhere === -->
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.82';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32098,7 +32109,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.83';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32370,7 +32381,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.84';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32633,7 +32644,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.85';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -32939,7 +32950,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.86';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function isp(){return state?.role==='Player'}
@@ -33002,7 +33013,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.91.87';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -33261,7 +33272,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.88';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 window.addEventListener('error',function(ev){
  const img=ev.target;
@@ -33274,7 +33285,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </script>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.89';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isp(){return state?.role==='Player'}
 function C(){state.playerCareer=state.playerCareer||{};let c=state.playerCareer;c.offseasonDecisions=Array.isArray(c.offseasonDecisions)?c.offseasonDecisions:[];c.relationships=c.relationships||{coach:60,frontOffice:55,teammates:55,fans:55};return c}
@@ -33303,7 +33314,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 <!-- === v0.91.90 Persistent Decision Inbox === -->
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.90';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function C(){state.playerCareer=state.playerCareer||{};return state.playerCareer}
@@ -33401,7 +33412,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.91';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function R(){return state?.role||'Viewer'}
@@ -33554,7 +33565,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.92';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function iso(){return state?.role==='Owner'}
@@ -33692,7 +33703,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.93';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}
 function T(){return(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null}
@@ -33721,7 +33732,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.94';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 function ensureDecisionKpiCompatV09194(){
@@ -33761,7 +33772,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.91.95';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}
 function T(){return(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null}
@@ -33791,7 +33802,7 @@ try{document.querySelectorAll('.pill').forEach(e=>{if(/^v0\.91\.\d+\s*·/.test(e
 </script>
 
 <style>.ownerHireGridV09196{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ownerCandidateV09196{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin:8px 0}@media(max-width:650px){.ownerHireGridV09196{grid-template-columns:1fr}}</style><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.96';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.96';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'} function T(){return(state.teams||[]).find(t=>String(t.id)===String(state.controlledTeamId))||null}
 function O(){state.ownerCareer=state.ownerCareer||{};let o=state.ownerCareer;o.staffSearches=o.staffSearches||{};return o}
 function seed(s){let h=0;for(let c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)}
@@ -33804,7 +33815,7 @@ function sec(k){let v=vacancy(k),s=search(k),title=k==='GM'?'General Manager Sea
 function html(){return `<div class="card" id="ownerHiringV09196"><h2>Staff Hiring</h2><div class="small muted">When you dismiss basketball leadership, you choose the replacement.</div><div class="ownerHireGridV09196">${sec('GM')}${sec('Coach')}</div></div>`}
 const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function(){let r=old?.apply(this,arguments),h=document.getElementById('ownerCareerDashboardV09192');if(h&&iso()){h.querySelector('#ownerHiringV09196')?.remove();let w=document.createElement('div');w.innerHTML=html();let e=h.querySelector('#ownerExecutiveV09195');if(e)e.after(w.firstElementChild);else h.appendChild(w.firstElementChild)}return r};setTimeout(()=>{if(iso())renderOwnerCareerV09192?.()},250);
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.97';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.97';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}function T(){return(state.teams||[]).find(x=>String(x.id)===String(state.controlledTeamId))}function O(){state.ownerCareer=state.ownerCareer||{};let o=state.ownerCareer;o.business=o.business||{sponsorStrategy:'Balanced',premiumExperience:50,communityInvestment:50,mediaInvestment:50};return o}
 function D(){try{ensureOwnership?.();return ownerData?.(T()?.id)}catch(_){return null}}
 function H(x){let o=O();o.decisionHistory=Array.isArray(o.decisionHistory)?o.decisionHistory:[];o.decisionHistory.unshift({year:state.currentYear,text:x});state.news=state.news||[];state.news.push({year:state.currentYear,title:'Ownership Business',text:x});saveState?.()}
@@ -33813,7 +33824,7 @@ window.ownerBusinessInvestV09197=function(k){let o=O(),d=D();if(d&&Number(d.cash
 function html(){let b=O().business,d=D();return `<div class="card" id="ownerBusinessV09197"><h2>Business & Revenue Strategy</h2><div class="small muted">You control the business side of the franchise without taking over the GM's roster job.</div><div class="grid2" style="margin-top:10px"><div class="ownerExecBoxV09195"><h3>Sponsorship Strategy</h3><select style="width:100%" onchange="ownerBusinessSetV09197('sponsorStrategy',this.value)"><option ${b.sponsorStrategy==='Conservative'?'selected':''}>Conservative</option><option ${b.sponsorStrategy==='Balanced'?'selected':''}>Balanced</option><option ${b.sponsorStrategy==='Aggressive'?'selected':''}>Aggressive</option><option ${b.sponsorStrategy==='National Brand Focus'?'selected':''}>National Brand Focus</option></select><div class="small muted">Sets how aggressively the franchise pursues sponsorship and commercial revenue.</div></div><div class="ownerExecBoxV09195"><h3>Franchise Snapshot</h3><div class="calendarline"><span>Cash</span><b>$${Number(d?.cash||0).toFixed(1)}M</b></div><div class="calendarline"><span>Fan Support</span><b>${Math.round(Number(d?.fanSupport||60))}</b></div><div class="calendarline"><span>Market Strength</span><b>${Math.round(Number(d?.marketStrength||60))}</b></div></div></div><div class="grid3" style="margin-top:10px"><div class="ownerExecBoxV09195"><h3>Premium Experience</h3><b>${b.premiumExperience}/100</b><button onclick="ownerBusinessInvestV09197('premiumExperience')">Invest $5M</button></div><div class="ownerExecBoxV09195"><h3>Community</h3><b>${b.communityInvestment}/100</b><button onclick="ownerBusinessInvestV09197('communityInvestment')">Invest $5M</button></div><div class="ownerExecBoxV09195"><h3>Media & Brand</h3><b>${b.mediaInvestment}/100</b><button onclick="ownerBusinessInvestV09197('mediaInvestment')">Invest $5M</button></div></div></div>`}
 const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function(){let r=old?.apply(this,arguments),h=document.getElementById('ownerCareerDashboardV09192');if(h&&iso()){h.querySelector('#ownerBusinessV09197')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}return r};setTimeout(()=>{if(iso())renderOwnerCareerV09192?.()},250);
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.98';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.98';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function iso(){return state?.role==='Owner'}function T(){return(state.teams||[]).find(x=>String(x.id)===String(state.controlledTeamId))}function O(){state.ownerCareer=state.ownerCareer||{};let o=state.ownerCareer;o.honors=Array.isArray(o.honors)?o.honors:[];return o}
 function retired(){let t=T();return t?.retiredNumbers||t?.retiredJerseys||[]}
 function score(){let o=O(),t=T(),r=retired().length;return Math.max(0,Math.round(Number(o.championships||0)*35+Number(o.playoffAppearances||0)*5+r*3+Number(o.fanApproval||60)/5+Number(o.seasons||0)*2))}
@@ -33827,10 +33838,10 @@ const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function
 #gameView .topbar .kpi span{font-size:8px!important;line-height:1!important;margin:0!important;opacity:.65!important}
 #gameView .topbar .kpi b{font-size:10px!important;line-height:1!important;margin:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
 #gameView .topbar .kpi:has(#decisionKpi){display:none!important}
-</style><script>(function(){const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.91.99';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;function f(){try{ensureDecisionKpiCompatV09194?.()}catch(_){}let d=document.getElementById('decisionKpi')?.closest('.kpi');if(d)d.style.display='none'}const old=window.renderAll;window.renderAll=function(){let r=old.apply(this,arguments);setTimeout(f,0);return r};setTimeout(f,100);})();</script>
+</style><script>(function(){const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.91.99';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;function f(){try{ensureDecisionKpiCompatV09194?.()}catch(_){}let d=document.getElementById('decisionKpi')?.closest('.kpi');if(d)d.style.display='none'}const old=window.renderAll;window.renderAll=function(){let r=old.apply(this,arguments);setTimeout(f,0);return r};setTimeout(f,100);})();</script>
 <script>
 (function(){
- const LABEL='v0.95.11 · Portrait Mapping Repair';
+ const LABEL='v0.95.12 · Clean Single Portrait System';
  window.BASKETBALLVERSE_BUILD='v0.92.00';
  window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -33860,12 +33871,12 @@ const old=window.renderOwnerCareerV09192;window.renderOwnerCareerV09192=function
 </script>
 
 <script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.92.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.92.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 window.bvUserOwnsDraftPickV09201=function(p){if(!p)return false;let c=state?.controlledTeamId,s=(a,b)=>a!=null&&b!=null&&String(a)===String(b);let ids=[p.teamId,p.teamID,p.ownerTeamId,p.currentTeamId,p.originalTeamId,p.team?.id,p.ownerTeam?.id];if(ids.some(x=>s(x,c)))return true;let t=(state?.teams||[]).find(x=>s(x.id,c)),names=[p.teamName,p.ownerTeamName,p.currentTeamName,p.team?.name,p.ownerTeam?.name];return !!(t&&names.some(n=>n&&String(n)===String(t.name)))};
 })();</script>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.92.02';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -33928,7 +33939,7 @@ try{
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.92.03';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34037,7 +34048,7 @@ try{
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.92.04';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34140,7 +34151,7 @@ try{
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.92.05';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34251,7 +34262,7 @@ try{
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.92.06';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34530,7 +34541,7 @@ try{
 </script>
 
 <script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.00';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.00';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.startedYear??=Number(state.currentYear);c.ownerConfidence??=70;c.playerConfidence??=65;c.fanApproval??=65;c.leagueHealth??=70;c.competitiveBalance??=70;c.financialHealth??=70;c.legacyScore??=0;c.decisions=Array.isArray(c.decisions)?c.decisions:[];c.pending=Array.isArray(c.pending)?c.pending:[];c.history=Array.isArray(c.history)?c.history:[];c.policies=c.policies||{philosophy:'Balanced',growth:'Measured',ownerRelations:'Collaborative'};return c}
 function cl(n){return Math.max(0,Math.min(100,Math.round(Number(n)||0)))}function games(x){return Number(x.wins||x.w||0)+Number(x.losses||x.l||0)}
 function OD(x){try{ensureOwnership?.();return ownerData?.(x.id)||{}}catch(_){return{}}}
@@ -34545,7 +34556,7 @@ window.renderCommissionerOfficeV09300=function(){if(!isc())return;health();decis
 window.renderCommissionerDecisionsV09300=function(){if(!isc())return;decision();let h=document.getElementById('decisions');if(!h)return;h.querySelector('#commissionerDecisionsV09300')?.remove();let c=C(),q=document.createElement('div');q.innerHTML=`<div class="card" id="commissionerDecisionsV09300"><h2>Commissioner Decisions</h2>${c.pending.length?c.pending.map(d=>`<div class="commDecisionV09300"><h3>${d.title}</h3><div>${d.text}</div><div class="choicebar">${d.opts.map((o,i)=>`<button onclick="resolveCommissionerDecisionV09300('${d.id}',${i})">${o[0]}</button>`).join('')}</div></div>`).join(''):'<div class="muted">No league-office decisions are waiting.</div>'}</div>`;h.prepend(q.firstElementChild)}
 const old=window.renderAll;window.renderAll=function(){if(isc()){health();decision()}let r=old.apply(this,arguments);if(isc())setTimeout(()=>{renderCommissionerOfficeV09300();renderCommissionerDecisionsV09300()},0);return r};setTimeout(()=>{if(isc()){renderCommissionerOfficeV09300();renderCommissionerDecisionsV09300()}},250);
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.01';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}
 function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.ownerRelations=c.ownerRelations||{};c.pendingApprovals=Array.isArray(c.pendingApprovals)?c.pendingApprovals:[];c.approvalHistory=Array.isArray(c.approvalHistory)?c.approvalHistory:[];return c}
 function OD(t){try{ensureOwnership?.();return ownerData?.(t.id)||{}}catch(_){return{}}}
@@ -34570,7 +34581,7 @@ const ot=window.switchTab;window.switchTab=function(t){if(isc()&&t==='career')t=
 const oa=window.renderAll;window.renderAll=function(){if(isc())sync();let r=oa.apply(this,arguments);if(isc())setTimeout(()=>{if(document.getElementById('leagueoffice')?.classList.contains('active'))renderLeagueOfficeV09301()},0);return r}
 setTimeout(()=>{if(isc()){sync();renderLeagueOfficeV09301()}},250);
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.02';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.02';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.expansion=c.expansion||{open:false,slots:0,bids:[],history:[]};return c}
 const X=[['Seattle','WA',92,90,86],['Las Vegas','NV',88,84,92],['St. Louis','MO',78,77,74],['Louisville','KY',74,72,68],['Kansas City','MO',80,76,72],['San Diego','CA',86,80,81],['Nashville','TN',82,78,79],['Pittsburgh','PA',73,70,68],['Cincinnati','OH',72,69,67],['Columbus','OH',77,73,69],['Virginia Beach','VA',69,67,65],['Buffalo','NY',68,66,64]];
 function seed(){let e=C().expansion;if(e.bids.length)return;e.bids=X.map((x,i)=>({id:'bid_'+i,city:x[0],state:x[1],market:x[2],arena:x[3],ownership:x[4],status:'Interested',score:Math.round(x[2]*.38+x[3]*.32+x[4]*.30)}))}
@@ -34580,7 +34591,7 @@ window.awardExpansionV09302=function(id){let e=C().expansion,b=e.bids.find(x=>x.
 function html(){let e=C().expansion;seed();return `<div class="card" id="expansionOfficeV09302"><h2>Expansion Office</h2><div class="small muted">Open expansion, evaluate markets, select finalists, and award future franchises.</div><div class="choicebar"><button onclick="openExpansionProcessV09302(1)">Open 1-Team Expansion</button><button onclick="openExpansionProcessV09302(2)">Open 2-Team Expansion</button></div>${e.open?`<div class="notice"><b>Expansion Open</b><br><span class="small">${e.slots} slot(s) remaining</span></div>`:''}${e.bids.slice().sort((a,b)=>b.score-a.score).map(b=>`<div class="expansionBidV09302"><div class="calendarline"><div><b>${b.city}, ${b.state}</b><div class="small muted">Market ${b.market} · Arena ${b.arena} · Ownership ${b.ownership}</div></div><div class="expansionScoreV09302">${b.score}</div></div><div class="choicebar"><button onclick="expansionBidActionV09302('${b.id}','Finalist')">Finalist</button><button onclick="expansionBidActionV09302('${b.id}','Rejected')">Reject</button>${e.open&&e.slots>0?`<button class="primary" onclick="awardExpansionV09302('${b.id}')">Award Franchise</button>`:''}</div><div class="small muted">Status: ${b.status}</div></div>`).join('')}</div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(!isc())return r;let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#expansionOfficeV09302')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}return r}
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.03';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.03';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.ruleProposals=Array.isArray(c.ruleProposals)?c.ruleProposals:[];c.rulesHistory=Array.isArray(c.rulesHistory)?c.rulesHistory:[];return c}
 const RULES=[['Playoff Format','Expand Playoffs'],['Draft Lottery','Change Lottery Odds'],['Salary System','Adjust Cap Growth'],['Roster Rules','Change Roster Limit'],['Three-Point Rules','Review Three-Point Line'],['Replay','Expand Instant Replay'],['Schedule','Change Regular-Season Length']];
 window.proposeRuleV09303=function(i){let c=C(),r=RULES[i];if(!r)return;let p={id:'rule_'+Date.now().toString(36),year:state.currentYear,category:r[0],title:r[1],status:'Voting',votes:[],needed:Math.ceil((state.teams||[]).length*.51)};(state.teams||[]).forEach((t,j)=>{let rel=Number(c.ownerRelations?.[String(t.id)]??60),support=.35+rel/200+(c.policies?.philosophy==='Progressive'?.12:c.policies?.philosophy==='Traditional'?-.08:0);p.votes.push({teamId:t.id,team:t.name,vote:Math.random()<support?'Yes':'No'})});c.ruleProposals.unshift(p);saveState?.();renderAll?.()}
@@ -34588,21 +34599,21 @@ window.resolveRuleVoteV09303=function(id){let c=C(),p=c.ruleProposals.find(x=>x.
 function html(){let c=C();return `<div class="card" id="rulesOfficeV09303"><h2>Rules & Board of Governors</h2><div class="small muted">Major league changes go through ownership voting instead of acting like instant god-mode switches.</div><div class="choicebar">${RULES.map((r,i)=>`<button onclick="proposeRuleV09303(${i})">${r[1]}</button>`).join('')}</div>${c.ruleProposals.slice(0,8).map(p=>`<div class="commApprovalV09301"><div class="calendarline"><div><b>${p.title}</b><div class="small muted">${p.category} · ${p.year}</div></div><span class="pill">${p.status}</span></div>${p.status==='Voting'?`<div class="small muted">Required: ${p.needed} yes votes</div><button style="margin-top:7px" onclick="resolveRuleVoteV09303('${p.id}')">Call the Vote</button>`:`<div class="small">${p.yes} Yes · ${p.no} No</div>`}</div>`).join('')}</div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(isc()){let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#rulesOfficeV09303')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}}return r}
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.04';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.04';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.media=c.media||{dealValue:100,partner:'National Package',years:4,revenueShare:'Equal',growth:50};c.economicHistory=Array.isArray(c.economicHistory)?c.economicHistory:[];return c}
 window.setRevenueShareV09304=function(v){C().media.revenueShare=v;C().economicHistory.unshift({year:state.currentYear,text:`Revenue sharing policy changed to ${v}.`});saveState?.();renderAll?.()}
 window.negotiateMediaV09304=function(type){let c=C(),m=c.media;if(type==='Max'){m.dealValue=Math.round(m.dealValue*1.18);m.years=6;c.ownerConfidence=Math.min(100,Number(c.ownerConfidence||70)+3);c.playerConfidence=Math.max(0,Number(c.playerConfidence||65)-2)}if(type==='Flexible'){m.dealValue=Math.round(m.dealValue*1.08);m.years=3;c.fanApproval=Math.min(100,Number(c.fanApproval||65)+3)}if(type==='Reach'){m.dealValue=Math.round(m.dealValue*1.04);m.years=4;m.growth=Math.min(100,m.growth+10);c.fanApproval=Math.min(100,Number(c.fanApproval||65)+5)}c.economicHistory.unshift({year:state.currentYear,text:`Media strategy selected: ${type}. New annual package value $${m.dealValue}M.`});saveState?.();renderAll?.()}
 function html(){let c=C(),m=c.media;return `<div class="card" id="mediaOfficeV09304"><h2>League Economics & Media</h2><div class="grid2"><div class="commOfficeV09300"><h3>Media Package</h3><div class="calendarline"><span>Annual Value</span><b>$${m.dealValue}M</b></div><div class="calendarline"><span>Years</span><b>${m.years}</b></div><div class="calendarline"><span>Growth Reach</span><b>${m.growth}/100</b></div><div class="choicebar"><button onclick="negotiateMediaV09304('Max')">Max Revenue</button><button onclick="negotiateMediaV09304('Flexible')">Short & Flexible</button><button onclick="negotiateMediaV09304('Reach')">Maximize Reach</button></div></div><div class="commOfficeV09300"><h3>Revenue Sharing</h3><select onchange="setRevenueShareV09304(this.value)"><option ${m.revenueShare==='Equal'?'selected':''}>Equal</option><option ${m.revenueShare==='Market Weighted'?'selected':''}>Market Weighted</option><option ${m.revenueShare==='Small Market Support'?'selected':''}>Small Market Support</option></select><div class="small muted">Revenue policy will influence franchise health and owner politics in later seasons.</div></div></div></div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(isc()){let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#mediaOfficeV09304')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}}return r}
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.05';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.05';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.cases=Array.isArray(c.cases)?c.cases:[];c.caseHistory=Array.isArray(c.caseHistory)?c.caseHistory:[];return c}
 function makeCase(){let c=C();if(c.cases.some(x=>x.status==='Open'))return;let gp=Math.max(0,...(state.teams||[]).map(t=>Number(t.wins||t.w||0)+Number(t.losses||t.l||0)));if(gp<10||Math.random()>.18)return;let pool=[['Tampering Complaint','One ownership group accuses another club of improper contact with a player.'],['On-Court Incident','A high-profile confrontation has created pressure for league discipline.'],['Owner Conduct','An owner made public comments criticizing league officials and other clubs.'],['Scheduling Dispute','Multiple teams are challenging a league scheduling decision.'],['Player Grievance','Players are asking the league office to review a working-conditions dispute.']];let x=pool[Math.floor(Math.random()*pool.length)];c.cases.push({id:'case_'+Date.now().toString(36),year:state.currentYear,title:x[0],text:x[1],status:'Open'})}
 window.resolveCommCaseV09305=function(id,a){let c=C(),x=c.cases.find(v=>v.id===id);if(!x)return;x.status='Resolved';x.outcome=a;if(a==='Strong Discipline'){c.ownerConfidence=Math.max(0,Number(c.ownerConfidence||70)-2);c.fanApproval=Math.min(100,Number(c.fanApproval||65)+3)}if(a==='Moderate'){c.ownerConfidence=Math.min(100,Number(c.ownerConfidence||70)+1);c.playerConfidence=Math.min(100,Number(c.playerConfidence||65)+1)}if(a==='No Action'){c.playerConfidence=Math.max(0,Number(c.playerConfidence||65)-3)}c.caseHistory.unshift({year:state.currentYear,text:`${x.title}: ${a}.`});saveState?.();renderAll?.()}
 function html(){let c=C();makeCase();return `<div class="card" id="disciplineOfficeV09305"><h2>Discipline & League Disputes</h2>${c.cases.filter(x=>x.status==='Open').length?c.cases.filter(x=>x.status==='Open').map(x=>`<div class="commDecisionV09300"><h3>${x.title}</h3><div>${x.text}</div><div class="choicebar"><button onclick="resolveCommCaseV09305('${x.id}','Strong Discipline')">Strong Discipline</button><button onclick="resolveCommCaseV09305('${x.id}','Moderate')">Moderate Response</button><button onclick="resolveCommCaseV09305('${x.id}','No Action')">No League Action</button></div></div>`).join(''):'<div class="muted">No open league cases.</div>'}</div>`}
 const old=window.renderLeagueOfficeV09301;window.renderLeagueOfficeV09301=function(){let r=old?.apply(this,arguments);if(isc()){let h=document.getElementById('leagueOfficeDashboardV09301');if(h){h.querySelector('#disciplineOfficeV09305')?.remove();let q=document.createElement('div');q.innerHTML=html();h.appendChild(q.firstElementChild)}}return r}
 })();</script><script>(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.93.06';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.93.06';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 function isc(){return state?.role==='Commissioner'}function C(){state.commissionerCareer=state.commissionerCareer||{};let c=state.commissionerCareer;c.milestones=Array.isArray(c.milestones)?c.milestones:[];return c}
 function score(){let c=C(),yrs=Math.max(0,Number(state.currentYear)-Number(c.startedYear||state.currentYear)),exp=Number(c.expansion?.history?.filter(x=>/awarded/i.test(x.text||'')).length||0),rules=Number(c.rulesHistory?.filter(x=>/Passed/.test(x.text||'')).length||0),cases=Number(c.caseHistory?.length||0),approvals=Number(c.approvalHistory?.length||0);return Math.round(yrs*5+exp*18+rules*8+cases*4+approvals*3+Number(c.leagueHealth||70)/4+Number(c.ownerConfidence||70)/5+Number(c.fanApproval||65)/5)}
 function tier(s){return s>=300?'All-Time Commissioner':s>=200?'Legendary Commissioner':s>=125?'League Architect':s>=70?'Established Commissioner':'Building the League'}
@@ -34612,7 +34623,7 @@ setTimeout(()=>{if(isc())renderCommissionerOfficeV09300?.()},250);
 })();</script>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.07';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34702,7 +34713,7 @@ setTimeout(injectCommissionerReSigningsButtonV09307,200);
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.08';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -34867,7 +34878,7 @@ setTimeout(()=>{
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.09';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35020,7 +35031,7 @@ setTimeout(replaceCommissionerOffseasonButtonsV09309,200);
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.10';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35189,7 +35200,7 @@ setTimeout(()=>{ensureButton();if(document.getElementById('decisions')?.classLis
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.11';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35281,7 +35292,7 @@ setTimeout(()=>{try{refreshGlobalDecisionsV09310?.()}catch(_){}},200);
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.12';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35441,7 +35452,7 @@ setTimeout(decorateAllV09312,250);
 </style>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.13';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35557,7 +35568,7 @@ setTimeout(decorateControlsV09313,200);
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.14';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35744,7 +35755,7 @@ setTimeout(()=>{
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.93.15';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -35946,7 +35957,7 @@ setTimeout(()=>{if(isc()&&document.getElementById('franchisemoves')?.classList.c
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.95.00';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
 /* ---------- ERA REGISTRY ---------- */
@@ -36068,7 +36079,7 @@ setTimeout(decorateEraSelectV09500,100);
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.95.01';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -36145,7 +36156,7 @@ setTimeout(refresh1946SetupV09501,150);
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.95.02';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -36297,7 +36308,7 @@ document.getElementById('startYear')?.addEventListener('change',()=>{try{fillTea
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.95.03';
 window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
@@ -36360,7 +36371,7 @@ document.getElementById('startYear')?.addEventListener('change',()=>{try{fillTea
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
+const LABEL='v0.95.12 · Clean Single Portrait System';
 window.BASKETBALLVERSE_BUILD='v0.95.04'; window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 const ERA_2003_PACK_V09504={"name":"Basketballverse \u00b7 2003 New Generation Era","startYear":2003,"teams":[{"id":"e03_bos","name":"Boston Celtics","conference":"East","division":"Atlantic","abbr":"BOS","logo":null,"identityHistory":[{"from":2003,"name":"Boston Celtics"}]},{"id":"e03_njn","name":"New Jersey Nets","conference":"East","division":"Atlantic","abbr":"NJN","logo":null,"identityHistory":[{"from":2003,"name":"New Jersey Nets"}]},{"id":"e03_nyk","name":"New York Knicks","conference":"East","division":"Atlantic","abbr":"NYK","logo":null,"identityHistory":[{"from":2003,"name":"New York Knicks"}]},{"id":"e03_phi","name":"Philadelphia 76ers","conference":"East","division":"Atlantic","abbr":"PHI","logo":null,"identityHistory":[{"from":2003,"name":"Philadelphia 76ers"}]},{"id":"e03_mia","name":"Miami Heat","conference":"East","division":"Atlantic","abbr":"MIA","logo":null,"identityHistory":[{"from":2003,"name":"Miami Heat"}]},{"id":"e03_orl","name":"Orlando Magic","conference":"East","division":"Atlantic","abbr":"ORL","logo":null,"identityHistory":[{"from":2003,"name":"Orlando Magic"}]},{"id":"e03_was","name":"Washington Wizards","conference":"East","division":"Atlantic","abbr":"WAS","logo":null,"identityHistory":[{"from":2003,"name":"Washington Wizards"}]},{"id":"e03_atl","name":"Atlanta Hawks","conference":"East","division":"Central","abbr":"ATL","logo":null,"identityHistory":[{"from":2003,"name":"Atlanta Hawks"}]},{"id":"e03_chi","name":"Chicago Bulls","conference":"East","division":"Central","abbr":"CHI","logo":null,"identityHistory":[{"from":2003,"name":"Chicago Bulls"}]},{"id":"e03_cle","name":"Cleveland Cavaliers","conference":"East","division":"Central","abbr":"CLE","logo":null,"identityHistory":[{"from":2003,"name":"Cleveland Cavaliers"}]},{"id":"e03_det","name":"Detroit Pistons","conference":"East","division":"Central","abbr":"DET","logo":null,"identityHistory":[{"from":2003,"name":"Detroit Pistons"}]},{"id":"e03_ind","name":"Indiana Pacers","conference":"East","division":"Central","abbr":"IND","logo":null,"identityHistory":[{"from":2003,"name":"Indiana Pacers"}]},{"id":"e03_mil","name":"Milwaukee Bucks","conference":"East","division":"Central","abbr":"MIL","logo":null,"identityHistory":[{"from":2003,"name":"Milwaukee Bucks"}]},{"id":"e03_noh","name":"New Orleans Hornets","conference":"East","division":"Central","abbr":"NOH","logo":null,"identityHistory":[{"from":2003,"name":"New Orleans Hornets"}]},{"id":"e03_tor","name":"Toronto Raptors","conference":"East","division":"Central","abbr":"TOR","logo":null,"identityHistory":[{"from":2003,"name":"Toronto Raptors"}]},{"id":"e03_dal","name":"Dallas Mavericks","conference":"West","division":"Midwest","abbr":"DAL","logo":null,"identityHistory":[{"from":2003,"name":"Dallas Mavericks"}]},{"id":"e03_den","name":"Denver Nuggets","conference":"West","division":"Midwest","abbr":"DEN","logo":null,"identityHistory":[{"from":2003,"name":"Denver Nuggets"}]},{"id":"e03_hou","name":"Houston Rockets","conference":"West","division":"Midwest","abbr":"HOU","logo":null,"identityHistory":[{"from":2003,"name":"Houston Rockets"}]},{"id":"e03_mem","name":"Memphis Grizzlies","conference":"West","division":"Midwest","abbr":"MEM","logo":null,"identityHistory":[{"from":2003,"name":"Memphis Grizzlies"}]},{"id":"e03_min","name":"Minnesota Timberwolves","conference":"West","division":"Midwest","abbr":"MIN","logo":null,"identityHistory":[{"from":2003,"name":"Minnesota Timberwolves"}]},{"id":"e03_sas","name":"San Antonio Spurs","conference":"West","division":"Midwest","abbr":"SAS","logo":null,"identityHistory":[{"from":2003,"name":"San Antonio Spurs"}]},{"id":"e03_uta","name":"Utah Jazz","conference":"West","division":"Midwest","abbr":"UTA","logo":null,"identityHistory":[{"from":2003,"name":"Utah Jazz"}]},{"id":"e03_gsw","name":"Golden State Warriors","conference":"West","division":"Pacific","abbr":"GSW","logo":null,"identityHistory":[{"from":2003,"name":"Golden State Warriors"}]},{"id":"e03_lac","name":"Los Angeles Clippers","conference":"West","division":"Pacific","abbr":"LAC","logo":null,"identityHistory":[{"from":2003,"name":"Los Angeles Clippers"}]},{"id":"e03_lal","name":"Los Angeles Lakers","conference":"West","division":"Pacific","abbr":"LAL","logo":null,"identityHistory":[{"from":2003,"name":"Los Angeles Lakers"}]},{"id":"e03_pho","name":"Phoenix Suns","conference":"West","division":"Pacific","abbr":"PHO","logo":null,"identityHistory":[{"from":2003,"name":"Phoenix Suns"}]},{"id":"e03_por","name":"Portland Trail Blazers","conference":"West","division":"Pacific","abbr":"POR","logo":null,"identityHistory":[{"from":2003,"name":"Portland Trail Blazers"}]},{"id":"e03_sac","name":"Sacramento Kings","conference":"West","division":"Pacific","abbr":"SAC","logo":null,"identityHistory":[{"from":2003,"name":"Sacramento Kings"}]},{"id":"e03_sea","name":"Seattle SuperSonics","conference":"West","division":"Pacific","abbr":"SEA","logo":null,"identityHistory":[{"from":2003,"name":"Seattle SuperSonics"}]}],"players":[{"id":"e03_p1","name":"Paul Pierce","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"SF","age":26,"ovr":93,"pot":95,"scoring":97,"shooting":98,"passing":84,"rebounding":86,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"paul_pierce","historicalEra":"2003-04 NBA"},{"id":"e03_p2","name":"Antoine Walker","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"PF","age":27,"ovr":86,"pot":87,"scoring":90,"shooting":82,"passing":77,"rebounding":94,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"antoine_walker","historicalEra":"2003-04 NBA"},{"id":"e03_p3","name":"Raef LaFrentz","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"C","age":27,"ovr":79,"pot":80,"scoring":83,"shooting":75,"passing":70,"rebounding":92,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"raef_lafrentz","historicalEra":"2003-04 NBA"},{"id":"e03_p4","name":"Mike James","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"PG","age":28,"ovr":77,"pot":78,"scoring":81,"shooting":82,"passing":90,"rebounding":70,"defense":77,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mike_james","historicalEra":"2003-04 NBA"},{"id":"e03_p5","name":"Ricky Davis","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"SG","age":24,"ovr":81,"pot":85,"scoring":85,"shooting":86,"passing":85,"rebounding":74,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ricky_davis","historicalEra":"2003-04 NBA"},{"id":"e03_p6","name":"Jason Kidd","teamName":"New Jersey Nets","teamAbbr":"NJN","pos":"PG","age":30,"ovr":95,"pot":95,"scoring":99,"shooting":99,"passing":99,"rebounding":88,"defense":95,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jason_kidd","historicalEra":"2003-04 NBA"},{"id":"e03_p7","name":"Kenyon Martin","teamName":"New Jersey Nets","teamAbbr":"NJN","pos":"PF","age":26,"ovr":88,"pot":91,"scoring":92,"shooting":84,"passing":79,"rebounding":96,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kenyon_martin","historicalEra":"2003-04 NBA"},{"id":"e03_p8","name":"Richard Jefferson","teamName":"New Jersey Nets","teamAbbr":"NJN","pos":"SF","age":23,"ovr":87,"pot":93,"scoring":91,"shooting":92,"passing":78,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"richard_jefferson","historicalEra":"2003-04 NBA"},{"id":"e03_p9","name":"Kerry Kittles","teamName":"New Jersey Nets","teamAbbr":"NJN","pos":"SG","age":29,"ovr":83,"pot":83,"scoring":87,"shooting":88,"passing":87,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kerry_kittles","historicalEra":"2003-04 NBA"},{"id":"e03_p10","name":"Jason Collins","teamName":"New Jersey Nets","teamAbbr":"NJN","pos":"C","age":25,"ovr":76,"pot":79,"scoring":80,"shooting":72,"passing":67,"rebounding":89,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jason_collins","historicalEra":"2003-04 NBA"},{"id":"e03_p11","name":"Allan Houston","teamName":"New York Knicks","teamAbbr":"NYK","pos":"SG","age":32,"ovr":87,"pot":87,"scoring":91,"shooting":92,"passing":91,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"allan_houston","historicalEra":"2003-04 NBA"},{"id":"e03_p12","name":"Stephon Marbury","teamName":"New York Knicks","teamAbbr":"NYK","pos":"PG","age":26,"ovr":91,"pot":92,"scoring":95,"shooting":96,"passing":99,"rebounding":84,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"stephon_marbury","historicalEra":"2003-04 NBA"},{"id":"e03_p13","name":"Kurt Thomas","teamName":"New York Knicks","teamAbbr":"NYK","pos":"PF","age":31,"ovr":83,"pot":83,"scoring":87,"shooting":79,"passing":74,"rebounding":91,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kurt_thomas","historicalEra":"2003-04 NBA"},{"id":"e03_p14","name":"Keith Van Horn","teamName":"New York Knicks","teamAbbr":"NYK","pos":"SF","age":28,"ovr":82,"pot":82,"scoring":86,"shooting":87,"passing":73,"rebounding":75,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"keith_van_horn","historicalEra":"2003-04 NBA"},{"id":"e03_p15","name":"Dikembe Mutombo","teamName":"New York Knicks","teamAbbr":"NYK","pos":"C","age":37,"ovr":82,"pot":82,"scoring":86,"shooting":78,"passing":73,"rebounding":95,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dikembe_mutombo","historicalEra":"2003-04 NBA"},{"id":"e03_p16","name":"Allen Iverson","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"SG","age":28,"ovr":95,"pot":95,"scoring":99,"shooting":99,"passing":99,"rebounding":88,"defense":95,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"allen_iverson","historicalEra":"2003-04 NBA"},{"id":"e03_p17","name":"Glenn Robinson","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"SF","age":30,"ovr":86,"pot":86,"scoring":90,"shooting":91,"passing":77,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"glenn_robinson","historicalEra":"2003-04 NBA"},{"id":"e03_p18","name":"Eric Snow","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"PG","age":30,"ovr":80,"pot":80,"scoring":84,"shooting":85,"passing":93,"rebounding":73,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"eric_snow","historicalEra":"2003-04 NBA"},{"id":"e03_p19","name":"Kenny Thomas","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"PF","age":26,"ovr":80,"pot":82,"scoring":84,"shooting":76,"passing":71,"rebounding":88,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kenny_thomas","historicalEra":"2003-04 NBA"},{"id":"e03_p20","name":"Samuel Dalembert","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"C","age":22,"ovr":79,"pot":89,"scoring":83,"shooting":75,"passing":70,"rebounding":92,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"samuel_dalembert","historicalEra":"2003-04 NBA"},{"id":"e03_p21","name":"Dwyane Wade","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SG","age":21,"ovr":86,"pot":98,"scoring":90,"shooting":91,"passing":90,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dwyane_wade","historicalEra":"2003-04 NBA"},{"id":"e03_p22","name":"Lamar Odom","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SF","age":24,"ovr":87,"pot":91,"scoring":91,"shooting":92,"passing":78,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lamar_odom","historicalEra":"2003-04 NBA"},{"id":"e03_p23","name":"Eddie Jones","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SG","age":32,"ovr":85,"pot":85,"scoring":89,"shooting":90,"passing":89,"rebounding":78,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"eddie_jones","historicalEra":"2003-04 NBA"},{"id":"e03_p24","name":"Caron Butler","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SF","age":23,"ovr":83,"pot":91,"scoring":87,"shooting":88,"passing":74,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"caron_butler","historicalEra":"2003-04 NBA"},{"id":"e03_p25","name":"Brian Grant","teamName":"Miami Heat","teamAbbr":"MIA","pos":"PF","age":31,"ovr":80,"pot":80,"scoring":84,"shooting":76,"passing":71,"rebounding":88,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brian_grant","historicalEra":"2003-04 NBA"},{"id":"e03_p26","name":"Tracy McGrady","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"SG","age":24,"ovr":97,"pot":98,"scoring":99,"shooting":99,"passing":99,"rebounding":90,"defense":97,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tracy_mcgrady","historicalEra":"2003-04 NBA"},{"id":"e03_p27","name":"Juwan Howard","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"PF","age":30,"ovr":83,"pot":83,"scoring":87,"shooting":79,"passing":74,"rebounding":91,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"juwan_howard","historicalEra":"2003-04 NBA"},{"id":"e03_p28","name":"Drew Gooden","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"PF","age":22,"ovr":82,"pot":89,"scoring":86,"shooting":78,"passing":73,"rebounding":90,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"drew_gooden","historicalEra":"2003-04 NBA"},{"id":"e03_p29","name":"Tyronn Lue","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"PG","age":26,"ovr":76,"pot":78,"scoring":80,"shooting":81,"passing":89,"rebounding":69,"defense":76,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tyronn_lue","historicalEra":"2003-04 NBA"},{"id":"e03_p30","name":"Gordan Giricek","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"SG","age":26,"ovr":77,"pot":80,"scoring":81,"shooting":82,"passing":81,"rebounding":70,"defense":77,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"gordan_giricek","historicalEra":"2003-04 NBA"},{"id":"e03_p31","name":"Gilbert Arenas","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"PG","age":21,"ovr":86,"pot":95,"scoring":90,"shooting":91,"passing":99,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"gilbert_arenas","historicalEra":"2003-04 NBA"},{"id":"e03_p32","name":"Jerry Stackhouse","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"SG","age":29,"ovr":87,"pot":87,"scoring":91,"shooting":92,"passing":91,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jerry_stackhouse","historicalEra":"2003-04 NBA"},{"id":"e03_p33","name":"Kwame Brown","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"PF","age":21,"ovr":77,"pot":89,"scoring":81,"shooting":73,"passing":68,"rebounding":85,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kwame_brown","historicalEra":"2003-04 NBA"},{"id":"e03_p34","name":"Larry Hughes","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"SG","age":24,"ovr":82,"pot":87,"scoring":86,"shooting":87,"passing":86,"rebounding":75,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"larry_hughes","historicalEra":"2003-04 NBA"},{"id":"e03_p35","name":"Brendan Haywood","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"C","age":24,"ovr":77,"pot":83,"scoring":81,"shooting":73,"passing":68,"rebounding":90,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brendan_haywood","historicalEra":"2003-04 NBA"},{"id":"e03_p36","name":"Shareef Abdur-Rahim","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"PF","age":27,"ovr":88,"pot":89,"scoring":92,"shooting":84,"passing":79,"rebounding":96,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"shareef_abdur_rahim","historicalEra":"2003-04 NBA"},{"id":"e03_p37","name":"Jason Terry","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"PG","age":26,"ovr":86,"pot":89,"scoring":90,"shooting":91,"passing":99,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jason_terry","historicalEra":"2003-04 NBA"},{"id":"e03_p38","name":"Theo Ratliff","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"C","age":30,"ovr":84,"pot":84,"scoring":88,"shooting":80,"passing":75,"rebounding":97,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"theo_ratliff","historicalEra":"2003-04 NBA"},{"id":"e03_p39","name":"Stephen Jackson","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"SG","age":25,"ovr":83,"pot":87,"scoring":87,"shooting":88,"passing":87,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"stephen_jackson","historicalEra":"2003-04 NBA"},{"id":"e03_p40","name":"Boris Diaw","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"SF","age":21,"ovr":75,"pot":89,"scoring":79,"shooting":80,"passing":66,"rebounding":68,"defense":75,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"boris_diaw","historicalEra":"2003-04 NBA"},{"id":"e03_p41","name":"Jamal Crawford","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"SG","age":23,"ovr":83,"pot":91,"scoring":87,"shooting":88,"passing":87,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jamal_crawford","historicalEra":"2003-04 NBA"},{"id":"e03_p42","name":"Eddy Curry","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"C","age":21,"ovr":80,"pot":91,"scoring":84,"shooting":76,"passing":71,"rebounding":93,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"eddy_curry","historicalEra":"2003-04 NBA"},{"id":"e03_p43","name":"Tyson Chandler","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"C","age":21,"ovr":82,"pot":94,"scoring":86,"shooting":78,"passing":73,"rebounding":95,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tyson_chandler","historicalEra":"2003-04 NBA"},{"id":"e03_p44","name":"Kirk Hinrich","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"PG","age":22,"ovr":82,"pot":92,"scoring":86,"shooting":87,"passing":95,"rebounding":75,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kirk_hinrich","historicalEra":"2003-04 NBA"},{"id":"e03_p45","name":"Scottie Pippen","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"SF","age":38,"ovr":77,"pot":77,"scoring":81,"shooting":82,"passing":68,"rebounding":70,"defense":77,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"scottie_pippen","historicalEra":"2003-04 NBA"},{"id":"e03_p46","name":"LeBron James","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"SF","age":18,"ovr":88,"pot":99,"scoring":92,"shooting":93,"passing":79,"rebounding":81,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lebron_james","historicalEra":"2003-04 NBA"},{"id":"e03_p47","name":"Carlos Boozer","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"PF","age":22,"ovr":84,"pot":92,"scoring":88,"shooting":80,"passing":75,"rebounding":92,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"carlos_boozer","historicalEra":"2003-04 NBA"},{"id":"e03_p48","name":"Zydrunas Ilgauskas","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"C","age":28,"ovr":85,"pot":86,"scoring":89,"shooting":81,"passing":76,"rebounding":98,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"zydrunas_ilgauskas","historicalEra":"2003-04 NBA"},{"id":"e03_p49","name":"Dajuan Wagner","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"SG","age":20,"ovr":76,"pot":87,"scoring":80,"shooting":81,"passing":80,"rebounding":69,"defense":76,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dajuan_wagner","historicalEra":"2003-04 NBA"},{"id":"e03_p50","name":"Jeff McInnis","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"PG","age":29,"ovr":78,"pot":78,"scoring":82,"shooting":83,"passing":91,"rebounding":71,"defense":78,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jeff_mcinnis","historicalEra":"2003-04 NBA"},{"id":"e03_p51","name":"Ben Wallace","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"C","age":29,"ovr":93,"pot":93,"scoring":97,"shooting":89,"passing":84,"rebounding":99,"defense":98,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ben_wallace","historicalEra":"2003-04 NBA"},{"id":"e03_p52","name":"Chauncey Billups","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"PG","age":27,"ovr":90,"pot":93,"scoring":94,"shooting":95,"passing":99,"rebounding":83,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"chauncey_billups","historicalEra":"2003-04 NBA"},{"id":"e03_p53","name":"Richard Hamilton","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"SG","age":25,"ovr":89,"pot":92,"scoring":93,"shooting":94,"passing":93,"rebounding":82,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"richard_hamilton","historicalEra":"2003-04 NBA"},{"id":"e03_p54","name":"Rasheed Wallace","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"PF","age":29,"ovr":91,"pot":91,"scoring":95,"shooting":87,"passing":82,"rebounding":99,"defense":96,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rasheed_wallace","historicalEra":"2003-04 NBA"},{"id":"e03_p55","name":"Tayshaun Prince","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"SF","age":23,"ovr":84,"pot":92,"scoring":88,"shooting":89,"passing":75,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tayshaun_prince","historicalEra":"2003-04 NBA"},{"id":"e03_p56","name":"Jermaine O'Neal","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"PF","age":25,"ovr":94,"pot":96,"scoring":98,"shooting":90,"passing":85,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jermaine_o_neal","historicalEra":"2003-04 NBA"},{"id":"e03_p57","name":"Ron Artest","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"SF","age":24,"ovr":91,"pot":93,"scoring":95,"shooting":96,"passing":82,"rebounding":84,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ron_artest","historicalEra":"2003-04 NBA"},{"id":"e03_p58","name":"Reggie Miller","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"SG","age":38,"ovr":83,"pot":83,"scoring":87,"shooting":88,"passing":87,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"reggie_miller","historicalEra":"2003-04 NBA"},{"id":"e03_p59","name":"Jamaal Tinsley","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"PG","age":25,"ovr":82,"pot":86,"scoring":86,"shooting":87,"passing":95,"rebounding":75,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jamaal_tinsley","historicalEra":"2003-04 NBA"},{"id":"e03_p60","name":"Al Harrington","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"PF","age":23,"ovr":84,"pot":91,"scoring":88,"shooting":80,"passing":75,"rebounding":92,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"al_harrington","historicalEra":"2003-04 NBA"},{"id":"e03_p61","name":"Michael Redd","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"SG","age":24,"ovr":90,"pot":94,"scoring":94,"shooting":95,"passing":94,"rebounding":83,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"michael_redd","historicalEra":"2003-04 NBA"},{"id":"e03_p62","name":"Desmond Mason","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"SF","age":26,"ovr":83,"pot":86,"scoring":87,"shooting":88,"passing":74,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"desmond_mason","historicalEra":"2003-04 NBA"},{"id":"e03_p63","name":"T.J. Ford","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"PG","age":20,"ovr":80,"pot":93,"scoring":84,"shooting":85,"passing":93,"rebounding":73,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"t_j_ford","historicalEra":"2003-04 NBA"},{"id":"e03_p64","name":"Joe Smith","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"PF","age":28,"ovr":81,"pot":81,"scoring":85,"shooting":77,"passing":72,"rebounding":89,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"joe_smith","historicalEra":"2003-04 NBA"},{"id":"e03_p65","name":"Keith Van Horn","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"SF","age":28,"ovr":83,"pot":83,"scoring":87,"shooting":88,"passing":74,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"keith_van_horn","historicalEra":"2003-04 NBA"},{"id":"e03_p66","name":"Baron Davis","teamName":"New Orleans Hornets","teamAbbr":"NOH","pos":"PG","age":24,"ovr":92,"pot":95,"scoring":96,"shooting":97,"passing":99,"rebounding":85,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"baron_davis","historicalEra":"2003-04 NBA"},{"id":"e03_p67","name":"Jamal Mashburn","teamName":"New Orleans Hornets","teamAbbr":"NOH","pos":"SF","age":31,"ovr":89,"pot":89,"scoring":93,"shooting":94,"passing":80,"rebounding":82,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jamal_mashburn","historicalEra":"2003-04 NBA"},{"id":"e03_p68","name":"Jamaal Magloire","teamName":"New Orleans Hornets","teamAbbr":"NOH","pos":"C","age":25,"ovr":85,"pot":88,"scoring":89,"shooting":81,"passing":76,"rebounding":98,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jamaal_magloire","historicalEra":"2003-04 NBA"},{"id":"e03_p69","name":"David Wesley","teamName":"New Orleans Hornets","teamAbbr":"NOH","pos":"SG","age":33,"ovr":80,"pot":80,"scoring":84,"shooting":85,"passing":84,"rebounding":73,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"david_wesley","historicalEra":"2003-04 NBA"},{"id":"e03_p70","name":"P.J. Brown","teamName":"New Orleans Hornets","teamAbbr":"NOH","pos":"PF","age":34,"ovr":82,"pot":82,"scoring":86,"shooting":78,"passing":73,"rebounding":90,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"p_j_brown","historicalEra":"2003-04 NBA"},{"id":"e03_p71","name":"Vince Carter","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"SG","age":26,"ovr":92,"pot":94,"scoring":96,"shooting":97,"passing":96,"rebounding":85,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"vince_carter","historicalEra":"2003-04 NBA"},{"id":"e03_p72","name":"Chris Bosh","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"PF","age":19,"ovr":82,"pot":98,"scoring":86,"shooting":78,"passing":73,"rebounding":90,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"chris_bosh","historicalEra":"2003-04 NBA"},{"id":"e03_p73","name":"Jalen Rose","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"SF","age":30,"ovr":85,"pot":85,"scoring":89,"shooting":90,"passing":76,"rebounding":78,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jalen_rose","historicalEra":"2003-04 NBA"},{"id":"e03_p74","name":"Donyell Marshall","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"PF","age":30,"ovr":83,"pot":83,"scoring":87,"shooting":79,"passing":74,"rebounding":91,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"donyell_marshall","historicalEra":"2003-04 NBA"},{"id":"e03_p75","name":"Alvin Williams","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"PG","age":29,"ovr":78,"pot":78,"scoring":82,"shooting":83,"passing":91,"rebounding":71,"defense":78,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"alvin_williams","historicalEra":"2003-04 NBA"},{"id":"e03_p76","name":"Dirk Nowitzki","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"PF","age":25,"ovr":95,"pot":97,"scoring":99,"shooting":91,"passing":86,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dirk_nowitzki","historicalEra":"2003-04 NBA"},{"id":"e03_p77","name":"Steve Nash","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"PG","age":29,"ovr":92,"pot":94,"scoring":96,"shooting":97,"passing":99,"rebounding":85,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"steve_nash","historicalEra":"2003-04 NBA"},{"id":"e03_p78","name":"Michael Finley","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"SG","age":30,"ovr":88,"pot":88,"scoring":92,"shooting":93,"passing":92,"rebounding":81,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"michael_finley","historicalEra":"2003-04 NBA"},{"id":"e03_p79","name":"Antawn Jamison","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"PF","age":27,"ovr":88,"pot":89,"scoring":92,"shooting":84,"passing":79,"rebounding":96,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"antawn_jamison","historicalEra":"2003-04 NBA"},{"id":"e03_p80","name":"Antoine Walker","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"PF","age":27,"ovr":86,"pot":87,"scoring":90,"shooting":82,"passing":77,"rebounding":94,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"antoine_walker","historicalEra":"2003-04 NBA"},{"id":"e03_p81","name":"Carmelo Anthony","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"SF","age":19,"ovr":87,"pot":98,"scoring":91,"shooting":92,"passing":78,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"carmelo_anthony","historicalEra":"2003-04 NBA"},{"id":"e03_p82","name":"Andre Miller","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"PG","age":27,"ovr":86,"pot":89,"scoring":90,"shooting":91,"passing":99,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"andre_miller","historicalEra":"2003-04 NBA"},{"id":"e03_p83","name":"Nene","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"C","age":21,"ovr":82,"pot":92,"scoring":86,"shooting":78,"passing":73,"rebounding":95,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"nene","historicalEra":"2003-04 NBA"},{"id":"e03_p84","name":"Marcus Camby","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"C","age":29,"ovr":86,"pot":86,"scoring":90,"shooting":82,"passing":77,"rebounding":99,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"marcus_camby","historicalEra":"2003-04 NBA"},{"id":"e03_p85","name":"Voshon Lenard","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"SG","age":30,"ovr":79,"pot":79,"scoring":83,"shooting":84,"passing":83,"rebounding":72,"defense":79,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"voshon_lenard","historicalEra":"2003-04 NBA"},{"id":"e03_p86","name":"Yao Ming","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"C","age":23,"ovr":91,"pot":97,"scoring":95,"shooting":87,"passing":82,"rebounding":99,"defense":96,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"yao_ming","historicalEra":"2003-04 NBA"},{"id":"e03_p87","name":"Steve Francis","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"PG","age":26,"ovr":90,"pot":92,"scoring":94,"shooting":95,"passing":99,"rebounding":83,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"steve_francis","historicalEra":"2003-04 NBA"},{"id":"e03_p88","name":"Cuttino Mobley","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"SG","age":28,"ovr":84,"pot":85,"scoring":88,"shooting":89,"passing":88,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"cuttino_mobley","historicalEra":"2003-04 NBA"},{"id":"e03_p89","name":"Jim Jackson","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"SF","age":33,"ovr":80,"pot":80,"scoring":84,"shooting":85,"passing":71,"rebounding":73,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jim_jackson","historicalEra":"2003-04 NBA"},{"id":"e03_p90","name":"Kelvin Cato","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"C","age":29,"ovr":79,"pot":79,"scoring":83,"shooting":75,"passing":70,"rebounding":92,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kelvin_cato","historicalEra":"2003-04 NBA"},{"id":"e03_p91","name":"Pau Gasol","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"PF","age":23,"ovr":91,"pot":96,"scoring":95,"shooting":87,"passing":82,"rebounding":99,"defense":96,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"pau_gasol","historicalEra":"2003-04 NBA"},{"id":"e03_p92","name":"Jason Williams","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"PG","age":27,"ovr":84,"pot":86,"scoring":88,"shooting":89,"passing":97,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jason_williams","historicalEra":"2003-04 NBA"},{"id":"e03_p93","name":"Mike Miller","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"SF","age":23,"ovr":85,"pot":91,"scoring":89,"shooting":90,"passing":76,"rebounding":78,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mike_miller","historicalEra":"2003-04 NBA"},{"id":"e03_p94","name":"Shane Battier","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"SF","age":25,"ovr":84,"pot":90,"scoring":88,"shooting":89,"passing":75,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"shane_battier","historicalEra":"2003-04 NBA"},{"id":"e03_p95","name":"Bonzi Wells","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"SG","age":27,"ovr":83,"pot":84,"scoring":87,"shooting":88,"passing":87,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bonzi_wells","historicalEra":"2003-04 NBA"},{"id":"e03_p96","name":"Kevin Garnett","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"PF","age":27,"ovr":98,"pot":99,"scoring":99,"shooting":94,"passing":89,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kevin_garnett","historicalEra":"2003-04 NBA"},{"id":"e03_p97","name":"Sam Cassell","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"PG","age":34,"ovr":90,"pot":90,"scoring":94,"shooting":95,"passing":99,"rebounding":83,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"sam_cassell","historicalEra":"2003-04 NBA"},{"id":"e03_p98","name":"Latrell Sprewell","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"SG","age":33,"ovr":87,"pot":87,"scoring":91,"shooting":92,"passing":91,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"latrell_sprewell","historicalEra":"2003-04 NBA"},{"id":"e03_p99","name":"Wally Szczerbiak","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"SF","age":26,"ovr":84,"pot":85,"scoring":88,"shooting":89,"passing":75,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"wally_szczerbiak","historicalEra":"2003-04 NBA"},{"id":"e03_p100","name":"Ervin Johnson","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"C","age":36,"ovr":75,"pot":75,"scoring":79,"shooting":71,"passing":66,"rebounding":88,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ervin_johnson","historicalEra":"2003-04 NBA"},{"id":"e03_p101","name":"Tim Duncan","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"PF","age":27,"ovr":98,"pot":99,"scoring":99,"shooting":94,"passing":89,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tim_duncan","historicalEra":"2003-04 NBA"},{"id":"e03_p102","name":"Tony Parker","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"PG","age":21,"ovr":88,"pot":96,"scoring":92,"shooting":93,"passing":99,"rebounding":81,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tony_parker","historicalEra":"2003-04 NBA"},{"id":"e03_p103","name":"Manu Ginobili","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"SG","age":26,"ovr":86,"pot":94,"scoring":90,"shooting":91,"passing":90,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"manu_ginobili","historicalEra":"2003-04 NBA"},{"id":"e03_p104","name":"Bruce Bowen","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"SF","age":32,"ovr":84,"pot":84,"scoring":88,"shooting":89,"passing":75,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bruce_bowen","historicalEra":"2003-04 NBA"},{"id":"e03_p105","name":"Rasho Nesterovic","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"C","age":27,"ovr":80,"pot":81,"scoring":84,"shooting":76,"passing":71,"rebounding":93,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rasho_nesterovic","historicalEra":"2003-04 NBA"},{"id":"e03_p106","name":"Andrei Kirilenko","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"SF","age":22,"ovr":90,"pot":96,"scoring":94,"shooting":95,"passing":81,"rebounding":83,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"andrei_kirilenko","historicalEra":"2003-04 NBA"},{"id":"e03_p107","name":"Matt Harpring","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"SF","age":27,"ovr":83,"pot":84,"scoring":87,"shooting":88,"passing":74,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"matt_harpring","historicalEra":"2003-04 NBA"},{"id":"e03_p108","name":"Carlos Arroyo","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"PG","age":24,"ovr":79,"pot":84,"scoring":83,"shooting":84,"passing":92,"rebounding":72,"defense":79,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"carlos_arroyo","historicalEra":"2003-04 NBA"},{"id":"e03_p109","name":"Raja Bell","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"SG","age":27,"ovr":80,"pot":84,"scoring":84,"shooting":85,"passing":84,"rebounding":73,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"raja_bell","historicalEra":"2003-04 NBA"},{"id":"e03_p110","name":"Greg Ostertag","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"C","age":30,"ovr":77,"pot":77,"scoring":81,"shooting":73,"passing":68,"rebounding":90,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"greg_ostertag","historicalEra":"2003-04 NBA"},{"id":"e03_p111","name":"Jason Richardson","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"SG","age":22,"ovr":86,"pot":94,"scoring":90,"shooting":91,"passing":90,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jason_richardson","historicalEra":"2003-04 NBA"},{"id":"e03_p112","name":"Nick Van Exel","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"PG","age":31,"ovr":84,"pot":84,"scoring":88,"shooting":89,"passing":97,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"nick_van_exel","historicalEra":"2003-04 NBA"},{"id":"e03_p113","name":"Mike Dunleavy","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"SF","age":23,"ovr":80,"pot":90,"scoring":84,"shooting":85,"passing":71,"rebounding":73,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mike_dunleavy","historicalEra":"2003-04 NBA"},{"id":"e03_p114","name":"Troy Murphy","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"PF","age":23,"ovr":82,"pot":89,"scoring":86,"shooting":78,"passing":73,"rebounding":90,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"troy_murphy","historicalEra":"2003-04 NBA"},{"id":"e03_p115","name":"Erick Dampier","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"C","age":28,"ovr":82,"pot":83,"scoring":86,"shooting":78,"passing":73,"rebounding":95,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"erick_dampier","historicalEra":"2003-04 NBA"},{"id":"e03_p116","name":"Elton Brand","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"PF","age":24,"ovr":91,"pot":95,"scoring":95,"shooting":87,"passing":82,"rebounding":99,"defense":96,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"elton_brand","historicalEra":"2003-04 NBA"},{"id":"e03_p117","name":"Corey Maggette","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"SF","age":24,"ovr":87,"pot":92,"scoring":91,"shooting":92,"passing":78,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"corey_maggette","historicalEra":"2003-04 NBA"},{"id":"e03_p118","name":"Quentin Richardson","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"SG","age":23,"ovr":84,"pot":90,"scoring":88,"shooting":89,"passing":88,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"quentin_richardson","historicalEra":"2003-04 NBA"},{"id":"e03_p119","name":"Chris Kaman","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"C","age":21,"ovr":78,"pot":91,"scoring":82,"shooting":74,"passing":69,"rebounding":91,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"chris_kaman","historicalEra":"2003-04 NBA"},{"id":"e03_p120","name":"Marko Jaric","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"PG","age":25,"ovr":78,"pot":83,"scoring":82,"shooting":83,"passing":91,"rebounding":71,"defense":78,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"marko_jaric","historicalEra":"2003-04 NBA"},{"id":"e03_p121","name":"Shaquille O'Neal","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"C","age":31,"ovr":97,"pot":97,"scoring":99,"shooting":93,"passing":88,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"shaquille_o_neal","historicalEra":"2003-04 NBA"},{"id":"e03_p122","name":"Kobe Bryant","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"SG","age":25,"ovr":97,"pot":99,"scoring":99,"shooting":99,"passing":99,"rebounding":90,"defense":97,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kobe_bryant","historicalEra":"2003-04 NBA"},{"id":"e03_p123","name":"Karl Malone","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"PF","age":40,"ovr":87,"pot":87,"scoring":91,"shooting":83,"passing":78,"rebounding":95,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"karl_malone","historicalEra":"2003-04 NBA"},{"id":"e03_p124","name":"Gary Payton","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"PG","age":35,"ovr":87,"pot":87,"scoring":91,"shooting":92,"passing":99,"rebounding":80,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"gary_payton","historicalEra":"2003-04 NBA"},{"id":"e03_p125","name":"Derek Fisher","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"PG","age":29,"ovr":81,"pot":81,"scoring":85,"shooting":86,"passing":94,"rebounding":74,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"derek_fisher","historicalEra":"2003-04 NBA"},{"id":"e03_p126","name":"Shawn Marion","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"SF","age":25,"ovr":91,"pot":95,"scoring":95,"shooting":96,"passing":82,"rebounding":84,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"shawn_marion","historicalEra":"2003-04 NBA"},{"id":"e03_p127","name":"Amar'e Stoudemire","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"PF","age":21,"ovr":89,"pot":98,"scoring":93,"shooting":85,"passing":80,"rebounding":97,"defense":94,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"amar_e_stoudemire","historicalEra":"2003-04 NBA"},{"id":"e03_p128","name":"Stephon Marbury","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"PG","age":26,"ovr":91,"pot":92,"scoring":95,"shooting":96,"passing":99,"rebounding":84,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"stephon_marbury","historicalEra":"2003-04 NBA"},{"id":"e03_p129","name":"Joe Johnson","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"SG","age":22,"ovr":84,"pot":94,"scoring":88,"shooting":89,"passing":88,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"joe_johnson","historicalEra":"2003-04 NBA"},{"id":"e03_p130","name":"Penny Hardaway","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"SG","age":32,"ovr":82,"pot":82,"scoring":86,"shooting":87,"passing":86,"rebounding":75,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"penny_hardaway","historicalEra":"2003-04 NBA"},{"id":"e03_p131","name":"Zach Randolph","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"PF","age":22,"ovr":88,"pot":95,"scoring":92,"shooting":84,"passing":79,"rebounding":96,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"zach_randolph","historicalEra":"2003-04 NBA"},{"id":"e03_p132","name":"Rasheed Wallace","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"PF","age":29,"ovr":90,"pot":90,"scoring":94,"shooting":86,"passing":81,"rebounding":98,"defense":95,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rasheed_wallace","historicalEra":"2003-04 NBA"},{"id":"e03_p133","name":"Bonzi Wells","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"SG","age":27,"ovr":83,"pot":84,"scoring":87,"shooting":88,"passing":87,"rebounding":76,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bonzi_wells","historicalEra":"2003-04 NBA"},{"id":"e03_p134","name":"Damon Stoudamire","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"PG","age":30,"ovr":84,"pot":84,"scoring":88,"shooting":89,"passing":97,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"damon_stoudamire","historicalEra":"2003-04 NBA"},{"id":"e03_p135","name":"Dale Davis","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"C","age":34,"ovr":80,"pot":80,"scoring":84,"shooting":76,"passing":71,"rebounding":93,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dale_davis","historicalEra":"2003-04 NBA"},{"id":"e03_p136","name":"Chris Webber","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"PF","age":30,"ovr":94,"pot":94,"scoring":98,"shooting":90,"passing":85,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"chris_webber","historicalEra":"2003-04 NBA"},{"id":"e03_p137","name":"Peja Stojakovic","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"SF","age":26,"ovr":92,"pot":94,"scoring":96,"shooting":97,"passing":83,"rebounding":85,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"peja_stojakovic","historicalEra":"2003-04 NBA"},{"id":"e03_p138","name":"Mike Bibby","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"PG","age":25,"ovr":88,"pot":92,"scoring":92,"shooting":93,"passing":99,"rebounding":81,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mike_bibby","historicalEra":"2003-04 NBA"},{"id":"e03_p139","name":"Doug Christie","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"SG","age":33,"ovr":86,"pot":86,"scoring":90,"shooting":91,"passing":90,"rebounding":79,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"doug_christie","historicalEra":"2003-04 NBA"},{"id":"e03_p140","name":"Brad Miller","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"C","age":27,"ovr":87,"pot":89,"scoring":91,"shooting":83,"passing":78,"rebounding":99,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brad_miller","historicalEra":"2003-04 NBA"},{"id":"e03_p141","name":"Ray Allen","teamName":"Seattle SuperSonics","teamAbbr":"SEA","pos":"SG","age":28,"ovr":93,"pot":95,"scoring":97,"shooting":98,"passing":97,"rebounding":86,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ray_allen","historicalEra":"2003-04 NBA"},{"id":"e03_p142","name":"Rashard Lewis","teamName":"Seattle SuperSonics","teamAbbr":"SEA","pos":"SF","age":24,"ovr":88,"pot":94,"scoring":92,"shooting":93,"passing":79,"rebounding":81,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rashard_lewis","historicalEra":"2003-04 NBA"},{"id":"e03_p143","name":"Vladimir Radmanovic","teamName":"Seattle SuperSonics","teamAbbr":"SEA","pos":"PF","age":22,"ovr":81,"pot":90,"scoring":85,"shooting":77,"passing":72,"rebounding":89,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"vladimir_radmanovic","historicalEra":"2003-04 NBA"},{"id":"e03_p144","name":"Brent Barry","teamName":"Seattle SuperSonics","teamAbbr":"SEA","pos":"SG","age":32,"ovr":84,"pot":84,"scoring":88,"shooting":89,"passing":88,"rebounding":77,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brent_barry","historicalEra":"2003-04 NBA"},{"id":"e03_p145","name":"Antonio Daniels","teamName":"Seattle SuperSonics","teamAbbr":"SEA","pos":"PG","age":28,"ovr":79,"pot":80,"scoring":83,"shooting":84,"passing":92,"rebounding":72,"defense":79,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"antonio_daniels","historicalEra":"2003-04 NBA"}],"draftClasses":{"2004":[{"id":"d2004_1","historicalPick":1,"name":"Dwight Howard","pos":"C","college":"High School","age":18,"prospect":95,"ceilingLow":88,"ceilingHigh":99,"scoutUncertainty":11},{"id":"d2004_2","historicalPick":2,"name":"Emeka Okafor","pos":"PF","college":"Connecticut","age":21,"prospect":91,"ceilingLow":84,"ceilingHigh":95,"scoutUncertainty":7},{"id":"d2004_3","historicalPick":3,"name":"Ben Gordon","pos":"SG","college":"Connecticut","age":21,"prospect":88,"ceilingLow":81,"ceilingHigh":94,"scoutUncertainty":7},{"id":"d2004_4","historicalPick":4,"name":"Shaun Livingston","pos":"PG","college":"High School","age":18,"prospect":87,"ceilingLow":80,"ceilingHigh":97,"scoutUncertainty":11},{"id":"d2004_5","historicalPick":5,"name":"Devin Harris","pos":"PG","college":"Wisconsin","age":21,"prospect":87,"ceilingLow":80,"ceilingHigh":94,"scoutUncertainty":7},{"id":"d2004_6","historicalPick":6,"name":"Josh Childress","pos":"SF","college":"Stanford","age":21,"prospect":82,"ceilingLow":75,"ceilingHigh":89,"scoutUncertainty":7},{"id":"d2004_7","historicalPick":7,"name":"Luol Deng","pos":"SF","college":"Duke","age":19,"prospect":89,"ceilingLow":82,"ceilingHigh":95,"scoutUncertainty":11},{"id":"d2004_8","historicalPick":8,"name":"Rafael Araujo","pos":"C","college":"BYU","age":23,"prospect":75,"ceilingLow":68,"ceilingHigh":82,"scoutUncertainty":7},{"id":"d2004_9","historicalPick":9,"name":"Andre Iguodala","pos":"SG","college":"Arizona","age":20,"prospect":88,"ceilingLow":81,"ceilingHigh":96,"scoutUncertainty":11},{"id":"d2004_10","historicalPick":10,"name":"Luke Jackson","pos":"SG","college":"Oregon","age":22,"prospect":78,"ceilingLow":71,"ceilingHigh":86,"scoutUncertainty":7},{"id":"d2004_11","historicalPick":11,"name":"Andris Biedrins","pos":"C","college":"Latvia","age":18,"prospect":82,"ceilingLow":75,"ceilingHigh":93,"scoutUncertainty":11},{"id":"d2004_12","historicalPick":12,"name":"Robert Swift","pos":"C","college":"High School","age":18,"prospect":78,"ceilingLow":71,"ceilingHigh":91,"scoutUncertainty":11},{"id":"d2004_13","historicalPick":13,"name":"Sebastian Telfair","pos":"PG","college":"High School","age":19,"prospect":82,"ceilingLow":75,"ceilingHigh":93,"scoutUncertainty":11},{"id":"d2004_14","historicalPick":14,"name":"Kris Humphries","pos":"PF","college":"Minnesota","age":19,"prospect":81,"ceilingLow":74,"ceilingHigh":90,"scoutUncertainty":11},{"id":"d2004_15","historicalPick":15,"name":"Al Jefferson","pos":"PF","college":"High School","age":19,"prospect":86,"ceilingLow":79,"ceilingHigh":96,"scoutUncertainty":11},{"id":"d2004_16","historicalPick":17,"name":"Josh Smith","pos":"SF","college":"High School","age":18,"prospect":87,"ceilingLow":80,"ceilingHigh":97,"scoutUncertainty":11},{"id":"d2004_17","historicalPick":18,"name":"J.R. Smith","pos":"SG","college":"High School","age":18,"prospect":86,"ceilingLow":79,"ceilingHigh":96,"scoutUncertainty":11},{"id":"d2004_18","historicalPick":20,"name":"Jameer Nelson","pos":"PG","college":"Saint Joseph's","age":22,"prospect":86,"ceilingLow":79,"ceilingHigh":92,"scoutUncertainty":7},{"id":"d2004_19","historicalPick":25,"name":"Tony Allen","pos":"SG","college":"Oklahoma State","age":22,"prospect":82,"ceilingLow":75,"ceilingHigh":89,"scoutUncertainty":7},{"id":"d2004_20","historicalPick":26,"name":"Kevin Martin","pos":"SG","college":"Western Carolina","age":21,"prospect":83,"ceilingLow":76,"ceilingHigh":94,"scoutUncertainty":7}]},"identities":[],"leagueRules":{"threePointLine":true,"shotClock":24,"playoffTeamsPerConference":8,"firstRoundBestOf":7,"conferenceFinalBestOf":7,"finalsBestOf":7,"salaryCap":true,"rookieEarlyEntry":true,"paceEnvironment":0.9,"scoringEnvironment":0.91,"physicality":78,"commissionerPower":62,"pendingProposal":null,"history":[]},"eraEvents":[{"year":2004,"type":"expansion","city":"Charlotte","identity":"Charlotte Bobcats","status":"Future Decision"},{"year":2004,"type":"realignment","description":"Move from four divisions to six divisions","status":"Future Decision"}]}; window.ERA_2003_PACK_V09504=ERA_2003_PACK_V09504;
 if(window.ERA_REGISTRY_V09500?.[2003]){ERA_REGISTRY_V09500[2003].status='ready';ERA_REGISTRY_V09500[2003].description='Playable 2003-04 NBA snapshot: LeBron/Carmelo/Wade rookie class, 29 teams, four-division alignment, historical player core and 2004 draft class.';}
@@ -36385,7 +36396,7 @@ document.getElementById('startYear')?.addEventListener('change',()=>{try{fillTea
 </script>
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';window.BASKETBALLVERSE_BUILD='v0.95.05';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+const LABEL='v0.95.12 · Clean Single Portrait System';window.BASKETBALLVERSE_BUILD='v0.95.05';window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 const ERA_2019_PACK_V09505={"name":"Basketballverse \u00b7 2019 Modern Era","startYear":2019,"teams":[{"id":"e19_atl","name":"Atlanta Hawks","conference":"East","division":"Southeast","abbr":"ATL","logo":null,"identityHistory":[{"from":2019,"name":"Atlanta Hawks"}]},{"id":"e19_bos","name":"Boston Celtics","conference":"East","division":"Atlantic","abbr":"BOS","logo":null,"identityHistory":[{"from":2019,"name":"Boston Celtics"}]},{"id":"e19_bkn","name":"Brooklyn Nets","conference":"East","division":"Atlantic","abbr":"BKN","logo":null,"identityHistory":[{"from":2019,"name":"Brooklyn Nets"}]},{"id":"e19_cha","name":"Charlotte Hornets","conference":"East","division":"Southeast","abbr":"CHA","logo":null,"identityHistory":[{"from":2019,"name":"Charlotte Hornets"}]},{"id":"e19_chi","name":"Chicago Bulls","conference":"East","division":"Central","abbr":"CHI","logo":null,"identityHistory":[{"from":2019,"name":"Chicago Bulls"}]},{"id":"e19_cle","name":"Cleveland Cavaliers","conference":"East","division":"Central","abbr":"CLE","logo":null,"identityHistory":[{"from":2019,"name":"Cleveland Cavaliers"}]},{"id":"e19_dal","name":"Dallas Mavericks","conference":"West","division":"Southwest","abbr":"DAL","logo":null,"identityHistory":[{"from":2019,"name":"Dallas Mavericks"}]},{"id":"e19_den","name":"Denver Nuggets","conference":"West","division":"Northwest","abbr":"DEN","logo":null,"identityHistory":[{"from":2019,"name":"Denver Nuggets"}]},{"id":"e19_det","name":"Detroit Pistons","conference":"East","division":"Central","abbr":"DET","logo":null,"identityHistory":[{"from":2019,"name":"Detroit Pistons"}]},{"id":"e19_gsw","name":"Golden State Warriors","conference":"West","division":"Pacific","abbr":"GSW","logo":null,"identityHistory":[{"from":2019,"name":"Golden State Warriors"}]},{"id":"e19_hou","name":"Houston Rockets","conference":"West","division":"Southwest","abbr":"HOU","logo":null,"identityHistory":[{"from":2019,"name":"Houston Rockets"}]},{"id":"e19_ind","name":"Indiana Pacers","conference":"East","division":"Central","abbr":"IND","logo":null,"identityHistory":[{"from":2019,"name":"Indiana Pacers"}]},{"id":"e19_lac","name":"Los Angeles Clippers","conference":"West","division":"Pacific","abbr":"LAC","logo":null,"identityHistory":[{"from":2019,"name":"Los Angeles Clippers"}]},{"id":"e19_lal","name":"Los Angeles Lakers","conference":"West","division":"Pacific","abbr":"LAL","logo":null,"identityHistory":[{"from":2019,"name":"Los Angeles Lakers"}]},{"id":"e19_mem","name":"Memphis Grizzlies","conference":"West","division":"Southwest","abbr":"MEM","logo":null,"identityHistory":[{"from":2019,"name":"Memphis Grizzlies"}]},{"id":"e19_mia","name":"Miami Heat","conference":"East","division":"Southeast","abbr":"MIA","logo":null,"identityHistory":[{"from":2019,"name":"Miami Heat"}]},{"id":"e19_mil","name":"Milwaukee Bucks","conference":"East","division":"Central","abbr":"MIL","logo":null,"identityHistory":[{"from":2019,"name":"Milwaukee Bucks"}]},{"id":"e19_min","name":"Minnesota Timberwolves","conference":"West","division":"Northwest","abbr":"MIN","logo":null,"identityHistory":[{"from":2019,"name":"Minnesota Timberwolves"}]},{"id":"e19_nop","name":"New Orleans Pelicans","conference":"West","division":"Southwest","abbr":"NOP","logo":null,"identityHistory":[{"from":2019,"name":"New Orleans Pelicans"}]},{"id":"e19_nyk","name":"New York Knicks","conference":"East","division":"Atlantic","abbr":"NYK","logo":null,"identityHistory":[{"from":2019,"name":"New York Knicks"}]},{"id":"e19_okc","name":"Oklahoma City Thunder","conference":"West","division":"Northwest","abbr":"OKC","logo":null,"identityHistory":[{"from":2019,"name":"Oklahoma City Thunder"}]},{"id":"e19_orl","name":"Orlando Magic","conference":"East","division":"Southeast","abbr":"ORL","logo":null,"identityHistory":[{"from":2019,"name":"Orlando Magic"}]},{"id":"e19_phi","name":"Philadelphia 76ers","conference":"East","division":"Atlantic","abbr":"PHI","logo":null,"identityHistory":[{"from":2019,"name":"Philadelphia 76ers"}]},{"id":"e19_pho","name":"Phoenix Suns","conference":"West","division":"Pacific","abbr":"PHO","logo":null,"identityHistory":[{"from":2019,"name":"Phoenix Suns"}]},{"id":"e19_por","name":"Portland Trail Blazers","conference":"West","division":"Northwest","abbr":"POR","logo":null,"identityHistory":[{"from":2019,"name":"Portland Trail Blazers"}]},{"id":"e19_sac","name":"Sacramento Kings","conference":"West","division":"Pacific","abbr":"SAC","logo":null,"identityHistory":[{"from":2019,"name":"Sacramento Kings"}]},{"id":"e19_sas","name":"San Antonio Spurs","conference":"West","division":"Southwest","abbr":"SAS","logo":null,"identityHistory":[{"from":2019,"name":"San Antonio Spurs"}]},{"id":"e19_tor","name":"Toronto Raptors","conference":"East","division":"Atlantic","abbr":"TOR","logo":null,"identityHistory":[{"from":2019,"name":"Toronto Raptors"}]},{"id":"e19_uta","name":"Utah Jazz","conference":"West","division":"Northwest","abbr":"UTA","logo":null,"identityHistory":[{"from":2019,"name":"Utah Jazz"}]},{"id":"e19_was","name":"Washington Wizards","conference":"East","division":"Southeast","abbr":"WAS","logo":null,"identityHistory":[{"from":2019,"name":"Washington Wizards"}]}],"players":[{"id":"e19_p1","name":"Trae Young","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"PG","age":21,"ovr":92,"pot":97,"scoring":96,"shooting":98,"passing":99,"rebounding":86,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"trae_young","historicalEra":"2019-20 NBA"},{"id":"e19_p2","name":"John Collins","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"PF","age":22,"ovr":86,"pot":92,"scoring":90,"shooting":83,"passing":78,"rebounding":93,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"john_collins","historicalEra":"2019-20 NBA"},{"id":"e19_p3","name":"Clint Capela","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"C","age":25,"ovr":85,"pot":87,"scoring":89,"shooting":82,"passing":77,"rebounding":97,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"clint_capela","historicalEra":"2019-20 NBA"},{"id":"e19_p4","name":"De'Andre Hunter","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"SF","age":22,"ovr":80,"pot":91,"scoring":84,"shooting":86,"passing":72,"rebounding":74,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"de_andre_hunter","historicalEra":"2019-20 NBA"},{"id":"e19_p5","name":"Kevin Huerter","teamName":"Atlanta Hawks","teamAbbr":"ATL","pos":"SG","age":21,"ovr":81,"pot":90,"scoring":85,"shooting":87,"passing":85,"rebounding":75,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kevin_huerter","historicalEra":"2019-20 NBA"},{"id":"e19_p6","name":"Jayson Tatum","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"SF","age":21,"ovr":91,"pot":98,"scoring":95,"shooting":97,"passing":83,"rebounding":85,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jayson_tatum","historicalEra":"2019-20 NBA"},{"id":"e19_p7","name":"Kemba Walker","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"PG","age":29,"ovr":91,"pot":92,"scoring":95,"shooting":97,"passing":99,"rebounding":85,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kemba_walker","historicalEra":"2019-20 NBA"},{"id":"e19_p8","name":"Jaylen Brown","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"SG","age":23,"ovr":88,"pot":95,"scoring":92,"shooting":94,"passing":92,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jaylen_brown","historicalEra":"2019-20 NBA"},{"id":"e19_p9","name":"Gordon Hayward","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"SF","age":29,"ovr":86,"pot":87,"scoring":90,"shooting":92,"passing":78,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"gordon_hayward","historicalEra":"2019-20 NBA"},{"id":"e19_p10","name":"Marcus Smart","teamName":"Boston Celtics","teamAbbr":"BOS","pos":"PG","age":25,"ovr":86,"pot":89,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"marcus_smart","historicalEra":"2019-20 NBA"},{"id":"e19_p11","name":"Kyrie Irving","teamName":"Brooklyn Nets","teamAbbr":"BKN","pos":"PG","age":27,"ovr":94,"pot":95,"scoring":98,"shooting":99,"passing":99,"rebounding":88,"defense":94,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kyrie_irving","historicalEra":"2019-20 NBA"},{"id":"e19_p12","name":"Kevin Durant","teamName":"Brooklyn Nets","teamAbbr":"BKN","pos":"SF","age":31,"ovr":96,"pot":96,"scoring":99,"shooting":99,"passing":88,"rebounding":90,"defense":96,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kevin_durant","historicalEra":"2019-20 NBA"},{"id":"e19_p13","name":"Caris LeVert","teamName":"Brooklyn Nets","teamAbbr":"BKN","pos":"SG","age":25,"ovr":85,"pot":90,"scoring":89,"shooting":91,"passing":89,"rebounding":79,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"caris_levert","historicalEra":"2019-20 NBA"},{"id":"e19_p14","name":"Spencer Dinwiddie","teamName":"Brooklyn Nets","teamAbbr":"BKN","pos":"PG","age":26,"ovr":86,"pot":88,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"spencer_dinwiddie","historicalEra":"2019-20 NBA"},{"id":"e19_p15","name":"Jarrett Allen","teamName":"Brooklyn Nets","teamAbbr":"BKN","pos":"C","age":21,"ovr":83,"pot":92,"scoring":87,"shooting":80,"passing":75,"rebounding":95,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jarrett_allen","historicalEra":"2019-20 NBA"},{"id":"e19_p16","name":"Devonte' Graham","teamName":"Charlotte Hornets","teamAbbr":"CHA","pos":"PG","age":24,"ovr":84,"pot":89,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"devonte_graham","historicalEra":"2019-20 NBA"},{"id":"e19_p17","name":"Terry Rozier","teamName":"Charlotte Hornets","teamAbbr":"CHA","pos":"PG","age":25,"ovr":84,"pot":87,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"terry_rozier","historicalEra":"2019-20 NBA"},{"id":"e19_p18","name":"Miles Bridges","teamName":"Charlotte Hornets","teamAbbr":"CHA","pos":"SF","age":21,"ovr":82,"pot":91,"scoring":86,"shooting":88,"passing":74,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"miles_bridges","historicalEra":"2019-20 NBA"},{"id":"e19_p19","name":"P.J. Washington","teamName":"Charlotte Hornets","teamAbbr":"CHA","pos":"PF","age":21,"ovr":81,"pot":91,"scoring":85,"shooting":78,"passing":73,"rebounding":88,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"p_j_washington","historicalEra":"2019-20 NBA"},{"id":"e19_p20","name":"Cody Zeller","teamName":"Charlotte Hornets","teamAbbr":"CHA","pos":"C","age":27,"ovr":79,"pot":80,"scoring":83,"shooting":76,"passing":71,"rebounding":91,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"cody_zeller","historicalEra":"2019-20 NBA"},{"id":"e19_p21","name":"Zach LaVine","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"SG","age":24,"ovr":89,"pot":94,"scoring":93,"shooting":95,"passing":93,"rebounding":83,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"zach_lavine","historicalEra":"2019-20 NBA"},{"id":"e19_p22","name":"Lauri Markkanen","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"PF","age":22,"ovr":83,"pot":92,"scoring":87,"shooting":80,"passing":75,"rebounding":90,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lauri_markkanen","historicalEra":"2019-20 NBA"},{"id":"e19_p23","name":"Coby White","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"PG","age":19,"ovr":80,"pot":93,"scoring":84,"shooting":86,"passing":92,"rebounding":74,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"coby_white","historicalEra":"2019-20 NBA"},{"id":"e19_p24","name":"Wendell Carter Jr.","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"C","age":20,"ovr":81,"pot":91,"scoring":85,"shooting":78,"passing":73,"rebounding":93,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"wendell_carter_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p25","name":"Otto Porter Jr.","teamName":"Chicago Bulls","teamAbbr":"CHI","pos":"SF","age":26,"ovr":82,"pot":83,"scoring":86,"shooting":88,"passing":74,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"otto_porter_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p26","name":"Kevin Love","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"PF","age":31,"ovr":86,"pot":86,"scoring":90,"shooting":83,"passing":78,"rebounding":93,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kevin_love","historicalEra":"2019-20 NBA"},{"id":"e19_p27","name":"Collin Sexton","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"SG","age":20,"ovr":85,"pot":92,"scoring":89,"shooting":91,"passing":89,"rebounding":79,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"collin_sexton","historicalEra":"2019-20 NBA"},{"id":"e19_p28","name":"Darius Garland","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"PG","age":19,"ovr":80,"pot":94,"scoring":84,"shooting":86,"passing":92,"rebounding":74,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"darius_garland","historicalEra":"2019-20 NBA"},{"id":"e19_p29","name":"Andre Drummond","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"C","age":26,"ovr":87,"pot":88,"scoring":91,"shooting":84,"passing":79,"rebounding":99,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"andre_drummond","historicalEra":"2019-20 NBA"},{"id":"e19_p30","name":"Larry Nance Jr.","teamName":"Cleveland Cavaliers","teamAbbr":"CLE","pos":"PF","age":27,"ovr":81,"pot":83,"scoring":85,"shooting":78,"passing":73,"rebounding":88,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"larry_nance_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p31","name":"Luka Doncic","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"PG","age":20,"ovr":96,"pot":99,"scoring":99,"shooting":99,"passing":99,"rebounding":90,"defense":96,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"luka_doncic","historicalEra":"2019-20 NBA"},{"id":"e19_p32","name":"Kristaps Porzingis","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"PF","age":24,"ovr":88,"pot":94,"scoring":92,"shooting":85,"passing":80,"rebounding":95,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kristaps_porzingis","historicalEra":"2019-20 NBA"},{"id":"e19_p33","name":"Tim Hardaway Jr.","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"SG","age":27,"ovr":83,"pot":84,"scoring":87,"shooting":89,"passing":87,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tim_hardaway_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p34","name":"Seth Curry","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"SG","age":29,"ovr":82,"pot":83,"scoring":86,"shooting":88,"passing":86,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"seth_curry","historicalEra":"2019-20 NBA"},{"id":"e19_p35","name":"Dwight Powell","teamName":"Dallas Mavericks","teamAbbr":"DAL","pos":"C","age":28,"ovr":80,"pot":80,"scoring":84,"shooting":77,"passing":72,"rebounding":92,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dwight_powell","historicalEra":"2019-20 NBA"},{"id":"e19_p36","name":"Nikola Jokic","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"C","age":24,"ovr":96,"pot":99,"scoring":99,"shooting":93,"passing":88,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"nikola_jokic","historicalEra":"2019-20 NBA"},{"id":"e19_p37","name":"Jamal Murray","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"PG","age":22,"ovr":88,"pot":95,"scoring":92,"shooting":94,"passing":99,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jamal_murray","historicalEra":"2019-20 NBA"},{"id":"e19_p38","name":"Paul Millsap","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"PF","age":34,"ovr":84,"pot":84,"scoring":88,"shooting":81,"passing":76,"rebounding":91,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"paul_millsap","historicalEra":"2019-20 NBA"},{"id":"e19_p39","name":"Gary Harris","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"SG","age":25,"ovr":82,"pot":85,"scoring":86,"shooting":88,"passing":86,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"gary_harris","historicalEra":"2019-20 NBA"},{"id":"e19_p40","name":"Michael Porter Jr.","teamName":"Denver Nuggets","teamAbbr":"DEN","pos":"SF","age":21,"ovr":81,"pot":96,"scoring":85,"shooting":87,"passing":73,"rebounding":75,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"michael_porter_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p41","name":"Blake Griffin","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"PF","age":30,"ovr":88,"pot":88,"scoring":92,"shooting":85,"passing":80,"rebounding":95,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"blake_griffin","historicalEra":"2019-20 NBA"},{"id":"e19_p42","name":"Derrick Rose","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"PG","age":31,"ovr":86,"pot":86,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"derrick_rose","historicalEra":"2019-20 NBA"},{"id":"e19_p43","name":"Andre Drummond","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"C","age":26,"ovr":88,"pot":89,"scoring":92,"shooting":85,"passing":80,"rebounding":99,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"andre_drummond","historicalEra":"2019-20 NBA"},{"id":"e19_p44","name":"Luke Kennard","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"SG","age":23,"ovr":82,"pot":88,"scoring":86,"shooting":88,"passing":86,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"luke_kennard","historicalEra":"2019-20 NBA"},{"id":"e19_p45","name":"Christian Wood","teamName":"Detroit Pistons","teamAbbr":"DET","pos":"PF","age":24,"ovr":81,"pot":89,"scoring":85,"shooting":78,"passing":73,"rebounding":88,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"christian_wood","historicalEra":"2019-20 NBA"},{"id":"e19_p46","name":"Stephen Curry","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"PG","age":31,"ovr":97,"pot":97,"scoring":99,"shooting":99,"passing":99,"rebounding":91,"defense":97,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"stephen_curry","historicalEra":"2019-20 NBA"},{"id":"e19_p47","name":"Klay Thompson","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"SG","age":29,"ovr":93,"pot":93,"scoring":97,"shooting":99,"passing":97,"rebounding":87,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"klay_thompson","historicalEra":"2019-20 NBA"},{"id":"e19_p48","name":"Draymond Green","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"PF","age":29,"ovr":89,"pot":89,"scoring":93,"shooting":86,"passing":81,"rebounding":96,"defense":94,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"draymond_green","historicalEra":"2019-20 NBA"},{"id":"e19_p49","name":"D'Angelo Russell","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"PG","age":23,"ovr":88,"pot":93,"scoring":92,"shooting":94,"passing":99,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"d_angelo_russell","historicalEra":"2019-20 NBA"},{"id":"e19_p50","name":"Kevon Looney","teamName":"Golden State Warriors","teamAbbr":"GSW","pos":"C","age":23,"ovr":80,"pot":85,"scoring":84,"shooting":77,"passing":72,"rebounding":92,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kevon_looney","historicalEra":"2019-20 NBA"},{"id":"e19_p51","name":"James Harden","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"SG","age":30,"ovr":97,"pot":97,"scoring":99,"shooting":99,"passing":99,"rebounding":91,"defense":97,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"james_harden","historicalEra":"2019-20 NBA"},{"id":"e19_p52","name":"Russell Westbrook","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"PG","age":31,"ovr":94,"pot":94,"scoring":98,"shooting":99,"passing":99,"rebounding":88,"defense":94,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"russell_westbrook","historicalEra":"2019-20 NBA"},{"id":"e19_p53","name":"Clint Capela","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"C","age":25,"ovr":85,"pot":87,"scoring":89,"shooting":82,"passing":77,"rebounding":97,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"clint_capela","historicalEra":"2019-20 NBA"},{"id":"e19_p54","name":"Eric Gordon","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"SG","age":31,"ovr":84,"pot":84,"scoring":88,"shooting":90,"passing":88,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"eric_gordon","historicalEra":"2019-20 NBA"},{"id":"e19_p55","name":"P.J. Tucker","teamName":"Houston Rockets","teamAbbr":"HOU","pos":"PF","age":34,"ovr":82,"pot":82,"scoring":86,"shooting":79,"passing":74,"rebounding":89,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"p_j_tucker","historicalEra":"2019-20 NBA"},{"id":"e19_p56","name":"Victor Oladipo","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"SG","age":27,"ovr":88,"pot":91,"scoring":92,"shooting":94,"passing":92,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"victor_oladipo","historicalEra":"2019-20 NBA"},{"id":"e19_p57","name":"Domantas Sabonis","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"PF","age":23,"ovr":88,"pot":94,"scoring":92,"shooting":85,"passing":80,"rebounding":95,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"domantas_sabonis","historicalEra":"2019-20 NBA"},{"id":"e19_p58","name":"Myles Turner","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"C","age":23,"ovr":86,"pot":92,"scoring":90,"shooting":83,"passing":78,"rebounding":98,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"myles_turner","historicalEra":"2019-20 NBA"},{"id":"e19_p59","name":"T.J. Warren","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"SF","age":26,"ovr":85,"pot":87,"scoring":89,"shooting":91,"passing":77,"rebounding":79,"defense":85,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"t_j_warren","historicalEra":"2019-20 NBA"},{"id":"e19_p60","name":"Malcolm Brogdon","teamName":"Indiana Pacers","teamAbbr":"IND","pos":"PG","age":26,"ovr":86,"pot":89,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"malcolm_brogdon","historicalEra":"2019-20 NBA"},{"id":"e19_p61","name":"Kawhi Leonard","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"SF","age":28,"ovr":97,"pot":97,"scoring":99,"shooting":99,"passing":89,"rebounding":91,"defense":97,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kawhi_leonard","historicalEra":"2019-20 NBA"},{"id":"e19_p62","name":"Paul George","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"SF","age":29,"ovr":93,"pot":94,"scoring":97,"shooting":99,"passing":85,"rebounding":87,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"paul_george","historicalEra":"2019-20 NBA"},{"id":"e19_p63","name":"Lou Williams","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"SG","age":33,"ovr":86,"pot":86,"scoring":90,"shooting":92,"passing":90,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lou_williams","historicalEra":"2019-20 NBA"},{"id":"e19_p64","name":"Montrezl Harrell","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"C","age":25,"ovr":85,"pot":88,"scoring":89,"shooting":82,"passing":77,"rebounding":97,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"montrezl_harrell","historicalEra":"2019-20 NBA"},{"id":"e19_p65","name":"Patrick Beverley","teamName":"Los Angeles Clippers","teamAbbr":"LAC","pos":"PG","age":31,"ovr":83,"pot":83,"scoring":87,"shooting":89,"passing":95,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"patrick_beverley","historicalEra":"2019-20 NBA"},{"id":"e19_p66","name":"LeBron James","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"SF","age":34,"ovr":98,"pot":98,"scoring":99,"shooting":99,"passing":90,"rebounding":92,"defense":98,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lebron_james","historicalEra":"2019-20 NBA"},{"id":"e19_p67","name":"Anthony Davis","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"PF","age":26,"ovr":96,"pot":98,"scoring":99,"shooting":93,"passing":88,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"anthony_davis","historicalEra":"2019-20 NBA"},{"id":"e19_p68","name":"Kyle Kuzma","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"PF","age":24,"ovr":83,"pot":88,"scoring":87,"shooting":80,"passing":75,"rebounding":90,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kyle_kuzma","historicalEra":"2019-20 NBA"},{"id":"e19_p69","name":"Danny Green","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"SG","age":32,"ovr":82,"pot":82,"scoring":86,"shooting":88,"passing":86,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"danny_green","historicalEra":"2019-20 NBA"},{"id":"e19_p70","name":"Dwight Howard","teamName":"Los Angeles Lakers","teamAbbr":"LAL","pos":"C","age":34,"ovr":83,"pot":83,"scoring":87,"shooting":80,"passing":75,"rebounding":95,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dwight_howard","historicalEra":"2019-20 NBA"},{"id":"e19_p71","name":"Ja Morant","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"PG","age":20,"ovr":86,"pot":98,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ja_morant","historicalEra":"2019-20 NBA"},{"id":"e19_p72","name":"Jaren Jackson Jr.","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"PF","age":20,"ovr":85,"pot":95,"scoring":89,"shooting":82,"passing":77,"rebounding":92,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jaren_jackson_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p73","name":"Jonas Valanciunas","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"C","age":27,"ovr":84,"pot":85,"scoring":88,"shooting":81,"passing":76,"rebounding":96,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jonas_valanciunas","historicalEra":"2019-20 NBA"},{"id":"e19_p74","name":"Dillon Brooks","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"SG","age":23,"ovr":82,"pot":88,"scoring":86,"shooting":88,"passing":86,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dillon_brooks","historicalEra":"2019-20 NBA"},{"id":"e19_p75","name":"Brandon Clarke","teamName":"Memphis Grizzlies","teamAbbr":"MEM","pos":"PF","age":23,"ovr":81,"pot":89,"scoring":85,"shooting":78,"passing":73,"rebounding":88,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brandon_clarke","historicalEra":"2019-20 NBA"},{"id":"e19_p76","name":"Jimmy Butler","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SF","age":30,"ovr":93,"pot":94,"scoring":97,"shooting":99,"passing":85,"rebounding":87,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jimmy_butler","historicalEra":"2019-20 NBA"},{"id":"e19_p77","name":"Bam Adebayo","teamName":"Miami Heat","teamAbbr":"MIA","pos":"C","age":22,"ovr":88,"pot":96,"scoring":92,"shooting":85,"passing":80,"rebounding":99,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bam_adebayo","historicalEra":"2019-20 NBA"},{"id":"e19_p78","name":"Goran Dragic","teamName":"Miami Heat","teamAbbr":"MIA","pos":"PG","age":33,"ovr":84,"pot":84,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"goran_dragic","historicalEra":"2019-20 NBA"},{"id":"e19_p79","name":"Tyler Herro","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SG","age":19,"ovr":82,"pot":94,"scoring":86,"shooting":88,"passing":86,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tyler_herro","historicalEra":"2019-20 NBA"},{"id":"e19_p80","name":"Duncan Robinson","teamName":"Miami Heat","teamAbbr":"MIA","pos":"SF","age":25,"ovr":82,"pot":86,"scoring":86,"shooting":88,"passing":74,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"duncan_robinson","historicalEra":"2019-20 NBA"},{"id":"e19_p81","name":"Giannis Antetokounmpo","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"PF","age":25,"ovr":98,"pot":99,"scoring":99,"shooting":95,"passing":90,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"giannis_antetokounmpo","historicalEra":"2019-20 NBA"},{"id":"e19_p82","name":"Khris Middleton","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"SF","age":28,"ovr":90,"pot":92,"scoring":94,"shooting":96,"passing":82,"rebounding":84,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"khris_middleton","historicalEra":"2019-20 NBA"},{"id":"e19_p83","name":"Eric Bledsoe","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"PG","age":30,"ovr":86,"pot":86,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"eric_bledsoe","historicalEra":"2019-20 NBA"},{"id":"e19_p84","name":"Brook Lopez","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"C","age":31,"ovr":85,"pot":85,"scoring":89,"shooting":82,"passing":77,"rebounding":97,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brook_lopez","historicalEra":"2019-20 NBA"},{"id":"e19_p85","name":"George Hill","teamName":"Milwaukee Bucks","teamAbbr":"MIL","pos":"PG","age":33,"ovr":81,"pot":81,"scoring":85,"shooting":87,"passing":93,"rebounding":75,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"george_hill","historicalEra":"2019-20 NBA"},{"id":"e19_p86","name":"Karl-Anthony Towns","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"C","age":24,"ovr":94,"pot":98,"scoring":98,"shooting":91,"passing":86,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"karl_anthony_towns","historicalEra":"2019-20 NBA"},{"id":"e19_p87","name":"Andrew Wiggins","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"SF","age":24,"ovr":86,"pot":90,"scoring":90,"shooting":92,"passing":78,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"andrew_wiggins","historicalEra":"2019-20 NBA"},{"id":"e19_p88","name":"Robert Covington","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"SF","age":29,"ovr":84,"pot":84,"scoring":88,"shooting":90,"passing":76,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"robert_covington","historicalEra":"2019-20 NBA"},{"id":"e19_p89","name":"Jeff Teague","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"PG","age":31,"ovr":82,"pot":82,"scoring":86,"shooting":88,"passing":94,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jeff_teague","historicalEra":"2019-20 NBA"},{"id":"e19_p90","name":"Josh Okogie","teamName":"Minnesota Timberwolves","teamAbbr":"MIN","pos":"SG","age":21,"ovr":80,"pot":88,"scoring":84,"shooting":86,"passing":84,"rebounding":74,"defense":80,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"josh_okogie","historicalEra":"2019-20 NBA"},{"id":"e19_p91","name":"Zion Williamson","teamName":"New Orleans Pelicans","teamAbbr":"NOP","pos":"PF","age":19,"ovr":87,"pot":99,"scoring":91,"shooting":84,"passing":79,"rebounding":94,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"zion_williamson","historicalEra":"2019-20 NBA"},{"id":"e19_p92","name":"Brandon Ingram","teamName":"New Orleans Pelicans","teamAbbr":"NOP","pos":"SF","age":22,"ovr":88,"pot":96,"scoring":92,"shooting":94,"passing":80,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"brandon_ingram","historicalEra":"2019-20 NBA"},{"id":"e19_p93","name":"Jrue Holiday","teamName":"New Orleans Pelicans","teamAbbr":"NOP","pos":"PG","age":29,"ovr":89,"pot":90,"scoring":93,"shooting":95,"passing":99,"rebounding":83,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jrue_holiday","historicalEra":"2019-20 NBA"},{"id":"e19_p94","name":"Lonzo Ball","teamName":"New Orleans Pelicans","teamAbbr":"NOP","pos":"PG","age":22,"ovr":84,"pot":93,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lonzo_ball","historicalEra":"2019-20 NBA"},{"id":"e19_p95","name":"J.J. Redick","teamName":"New Orleans Pelicans","teamAbbr":"NOP","pos":"SG","age":35,"ovr":83,"pot":83,"scoring":87,"shooting":89,"passing":87,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"j_j_redick","historicalEra":"2019-20 NBA"},{"id":"e19_p96","name":"Julius Randle","teamName":"New York Knicks","teamAbbr":"NYK","pos":"PF","age":25,"ovr":85,"pot":90,"scoring":89,"shooting":82,"passing":77,"rebounding":92,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"julius_randle","historicalEra":"2019-20 NBA"},{"id":"e19_p97","name":"RJ Barrett","teamName":"New York Knicks","teamAbbr":"NYK","pos":"SG","age":19,"ovr":81,"pot":95,"scoring":85,"shooting":87,"passing":85,"rebounding":75,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rj_barrett","historicalEra":"2019-20 NBA"},{"id":"e19_p98","name":"Mitchell Robinson","teamName":"New York Knicks","teamAbbr":"NYK","pos":"C","age":21,"ovr":82,"pot":92,"scoring":86,"shooting":79,"passing":74,"rebounding":94,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mitchell_robinson","historicalEra":"2019-20 NBA"},{"id":"e19_p99","name":"Marcus Morris","teamName":"New York Knicks","teamAbbr":"NYK","pos":"SF","age":30,"ovr":83,"pot":83,"scoring":87,"shooting":89,"passing":75,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"marcus_morris","historicalEra":"2019-20 NBA"},{"id":"e19_p100","name":"Elfrid Payton","teamName":"New York Knicks","teamAbbr":"NYK","pos":"PG","age":25,"ovr":79,"pot":82,"scoring":83,"shooting":85,"passing":91,"rebounding":73,"defense":79,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"elfrid_payton","historicalEra":"2019-20 NBA"},{"id":"e19_p101","name":"Chris Paul","teamName":"Oklahoma City Thunder","teamAbbr":"OKC","pos":"PG","age":34,"ovr":92,"pot":92,"scoring":96,"shooting":98,"passing":99,"rebounding":86,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"chris_paul","historicalEra":"2019-20 NBA"},{"id":"e19_p102","name":"Shai Gilgeous-Alexander","teamName":"Oklahoma City Thunder","teamAbbr":"OKC","pos":"SG","age":21,"ovr":87,"pot":96,"scoring":91,"shooting":93,"passing":91,"rebounding":81,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"shai_gilgeous_alexander","historicalEra":"2019-20 NBA"},{"id":"e19_p103","name":"Danilo Gallinari","teamName":"Oklahoma City Thunder","teamAbbr":"OKC","pos":"PF","age":31,"ovr":86,"pot":86,"scoring":90,"shooting":83,"passing":78,"rebounding":93,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"danilo_gallinari","historicalEra":"2019-20 NBA"},{"id":"e19_p104","name":"Steven Adams","teamName":"Oklahoma City Thunder","teamAbbr":"OKC","pos":"C","age":26,"ovr":85,"pot":86,"scoring":89,"shooting":82,"passing":77,"rebounding":97,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"steven_adams","historicalEra":"2019-20 NBA"},{"id":"e19_p105","name":"Dennis Schroder","teamName":"Oklahoma City Thunder","teamAbbr":"OKC","pos":"PG","age":26,"ovr":84,"pot":86,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dennis_schroder","historicalEra":"2019-20 NBA"},{"id":"e19_p106","name":"Nikola Vucevic","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"C","age":29,"ovr":88,"pot":89,"scoring":92,"shooting":85,"passing":80,"rebounding":99,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"nikola_vucevic","historicalEra":"2019-20 NBA"},{"id":"e19_p107","name":"Aaron Gordon","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"PF","age":24,"ovr":84,"pot":90,"scoring":88,"shooting":81,"passing":76,"rebounding":91,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"aaron_gordon","historicalEra":"2019-20 NBA"},{"id":"e19_p108","name":"Jonathan Isaac","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"SF","age":22,"ovr":84,"pot":94,"scoring":88,"shooting":90,"passing":76,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jonathan_isaac","historicalEra":"2019-20 NBA"},{"id":"e19_p109","name":"Evan Fournier","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"SG","age":27,"ovr":84,"pot":85,"scoring":88,"shooting":90,"passing":88,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"evan_fournier","historicalEra":"2019-20 NBA"},{"id":"e19_p110","name":"Markelle Fultz","teamName":"Orlando Magic","teamAbbr":"ORL","pos":"PG","age":21,"ovr":81,"pot":92,"scoring":85,"shooting":87,"passing":93,"rebounding":75,"defense":81,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"markelle_fultz","historicalEra":"2019-20 NBA"},{"id":"e19_p111","name":"Joel Embiid","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"C","age":25,"ovr":96,"pot":98,"scoring":99,"shooting":93,"passing":88,"rebounding":99,"defense":99,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"joel_embiid","historicalEra":"2019-20 NBA"},{"id":"e19_p112","name":"Ben Simmons","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"PG","age":23,"ovr":92,"pot":97,"scoring":96,"shooting":98,"passing":99,"rebounding":86,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ben_simmons","historicalEra":"2019-20 NBA"},{"id":"e19_p113","name":"Tobias Harris","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"SF","age":27,"ovr":87,"pot":89,"scoring":91,"shooting":93,"passing":79,"rebounding":81,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"tobias_harris","historicalEra":"2019-20 NBA"},{"id":"e19_p114","name":"Al Horford","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"C","age":33,"ovr":87,"pot":87,"scoring":91,"shooting":84,"passing":79,"rebounding":99,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"al_horford","historicalEra":"2019-20 NBA"},{"id":"e19_p115","name":"Josh Richardson","teamName":"Philadelphia 76ers","teamAbbr":"PHI","pos":"SG","age":26,"ovr":83,"pot":86,"scoring":87,"shooting":89,"passing":87,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"josh_richardson","historicalEra":"2019-20 NBA"},{"id":"e19_p116","name":"Devin Booker","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"SG","age":23,"ovr":92,"pot":97,"scoring":96,"shooting":98,"passing":96,"rebounding":86,"defense":92,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"devin_booker","historicalEra":"2019-20 NBA"},{"id":"e19_p117","name":"Deandre Ayton","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"C","age":21,"ovr":86,"pot":96,"scoring":90,"shooting":83,"passing":78,"rebounding":98,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"deandre_ayton","historicalEra":"2019-20 NBA"},{"id":"e19_p118","name":"Ricky Rubio","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"PG","age":29,"ovr":84,"pot":85,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"ricky_rubio","historicalEra":"2019-20 NBA"},{"id":"e19_p119","name":"Kelly Oubre Jr.","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"SF","age":24,"ovr":84,"pot":89,"scoring":88,"shooting":90,"passing":76,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kelly_oubre_jr","historicalEra":"2019-20 NBA"},{"id":"e19_p120","name":"Mikal Bridges","teamName":"Phoenix Suns","teamAbbr":"PHO","pos":"SF","age":23,"ovr":82,"pot":91,"scoring":86,"shooting":88,"passing":74,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mikal_bridges","historicalEra":"2019-20 NBA"},{"id":"e19_p121","name":"Damian Lillard","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"PG","age":29,"ovr":95,"pot":96,"scoring":99,"shooting":99,"passing":99,"rebounding":89,"defense":95,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"damian_lillard","historicalEra":"2019-20 NBA"},{"id":"e19_p122","name":"CJ McCollum","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"SG","age":28,"ovr":89,"pot":91,"scoring":93,"shooting":95,"passing":93,"rebounding":83,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"cj_mccollum","historicalEra":"2019-20 NBA"},{"id":"e19_p123","name":"Jusuf Nurkic","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"C","age":25,"ovr":86,"pot":90,"scoring":90,"shooting":83,"passing":78,"rebounding":98,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"jusuf_nurkic","historicalEra":"2019-20 NBA"},{"id":"e19_p124","name":"Hassan Whiteside","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"C","age":30,"ovr":85,"pot":85,"scoring":89,"shooting":82,"passing":77,"rebounding":97,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"hassan_whiteside","historicalEra":"2019-20 NBA"},{"id":"e19_p125","name":"Carmelo Anthony","teamName":"Portland Trail Blazers","teamAbbr":"POR","pos":"SF","age":35,"ovr":83,"pot":83,"scoring":87,"shooting":89,"passing":75,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"carmelo_anthony","historicalEra":"2019-20 NBA"},{"id":"e19_p126","name":"De'Aaron Fox","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"PG","age":22,"ovr":88,"pot":95,"scoring":92,"shooting":94,"passing":99,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"de_aaron_fox","historicalEra":"2019-20 NBA"},{"id":"e19_p127","name":"Buddy Hield","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"SG","age":27,"ovr":86,"pot":88,"scoring":90,"shooting":92,"passing":90,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"buddy_hield","historicalEra":"2019-20 NBA"},{"id":"e19_p128","name":"Bogdan Bogdanovic","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"SG","age":27,"ovr":84,"pot":87,"scoring":88,"shooting":90,"passing":88,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bogdan_bogdanovic","historicalEra":"2019-20 NBA"},{"id":"e19_p129","name":"Marvin Bagley III","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"PF","age":20,"ovr":82,"pot":94,"scoring":86,"shooting":79,"passing":74,"rebounding":89,"defense":87,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"marvin_bagley_iii","historicalEra":"2019-20 NBA"},{"id":"e19_p130","name":"Harrison Barnes","teamName":"Sacramento Kings","teamAbbr":"SAC","pos":"SF","age":27,"ovr":83,"pot":84,"scoring":87,"shooting":89,"passing":75,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"harrison_barnes","historicalEra":"2019-20 NBA"},{"id":"e19_p131","name":"DeMar DeRozan","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"SG","age":30,"ovr":90,"pot":91,"scoring":94,"shooting":96,"passing":94,"rebounding":84,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"demar_derozan","historicalEra":"2019-20 NBA"},{"id":"e19_p132","name":"LaMarcus Aldridge","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"PF","age":34,"ovr":89,"pot":89,"scoring":93,"shooting":86,"passing":81,"rebounding":96,"defense":94,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"lamarcus_aldridge","historicalEra":"2019-20 NBA"},{"id":"e19_p133","name":"Dejounte Murray","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"PG","age":23,"ovr":84,"pot":93,"scoring":88,"shooting":90,"passing":96,"rebounding":78,"defense":84,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"dejounte_murray","historicalEra":"2019-20 NBA"},{"id":"e19_p134","name":"Derrick White","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"PG","age":25,"ovr":83,"pot":88,"scoring":87,"shooting":89,"passing":95,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"derrick_white","historicalEra":"2019-20 NBA"},{"id":"e19_p135","name":"Rudy Gay","teamName":"San Antonio Spurs","teamAbbr":"SAS","pos":"SF","age":33,"ovr":82,"pot":82,"scoring":86,"shooting":88,"passing":74,"rebounding":76,"defense":82,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rudy_gay","historicalEra":"2019-20 NBA"},{"id":"e19_p136","name":"Pascal Siakam","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"PF","age":25,"ovr":90,"pot":95,"scoring":94,"shooting":87,"passing":82,"rebounding":97,"defense":95,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"pascal_siakam","historicalEra":"2019-20 NBA"},{"id":"e19_p137","name":"Kyle Lowry","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"PG","age":33,"ovr":90,"pot":90,"scoring":94,"shooting":96,"passing":99,"rebounding":84,"defense":90,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"kyle_lowry","historicalEra":"2019-20 NBA"},{"id":"e19_p138","name":"Fred VanVleet","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"PG","age":25,"ovr":86,"pot":91,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"fred_vanvleet","historicalEra":"2019-20 NBA"},{"id":"e19_p139","name":"Marc Gasol","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"C","age":34,"ovr":86,"pot":86,"scoring":90,"shooting":83,"passing":78,"rebounding":98,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"marc_gasol","historicalEra":"2019-20 NBA"},{"id":"e19_p140","name":"Serge Ibaka","teamName":"Toronto Raptors","teamAbbr":"TOR","pos":"C","age":30,"ovr":84,"pot":84,"scoring":88,"shooting":81,"passing":76,"rebounding":96,"defense":89,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"serge_ibaka","historicalEra":"2019-20 NBA"},{"id":"e19_p141","name":"Donovan Mitchell","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"SG","age":23,"ovr":91,"pot":96,"scoring":95,"shooting":97,"passing":95,"rebounding":85,"defense":91,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"donovan_mitchell","historicalEra":"2019-20 NBA"},{"id":"e19_p142","name":"Rudy Gobert","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"C","age":27,"ovr":92,"pot":94,"scoring":96,"shooting":89,"passing":84,"rebounding":99,"defense":97,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rudy_gobert","historicalEra":"2019-20 NBA"},{"id":"e19_p143","name":"Mike Conley","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"PG","age":32,"ovr":86,"pot":86,"scoring":90,"shooting":92,"passing":98,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"mike_conley","historicalEra":"2019-20 NBA"},{"id":"e19_p144","name":"Bojan Bogdanovic","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"SF","age":30,"ovr":86,"pot":86,"scoring":90,"shooting":92,"passing":78,"rebounding":80,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bojan_bogdanovic","historicalEra":"2019-20 NBA"},{"id":"e19_p145","name":"Joe Ingles","teamName":"Utah Jazz","teamAbbr":"UTA","pos":"SF","age":32,"ovr":83,"pot":83,"scoring":87,"shooting":89,"passing":75,"rebounding":77,"defense":83,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"joe_ingles","historicalEra":"2019-20 NBA"},{"id":"e19_p146","name":"Bradley Beal","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"SG","age":26,"ovr":93,"pot":95,"scoring":97,"shooting":99,"passing":97,"rebounding":87,"defense":93,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"bradley_beal","historicalEra":"2019-20 NBA"},{"id":"e19_p147","name":"John Wall","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"PG","age":29,"ovr":88,"pot":88,"scoring":92,"shooting":94,"passing":99,"rebounding":82,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"john_wall","historicalEra":"2019-20 NBA"},{"id":"e19_p148","name":"Davis Bertans","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"PF","age":27,"ovr":83,"pot":85,"scoring":87,"shooting":80,"passing":75,"rebounding":90,"defense":88,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"davis_bertans","historicalEra":"2019-20 NBA"},{"id":"e19_p149","name":"Thomas Bryant","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"C","age":22,"ovr":81,"pot":88,"scoring":85,"shooting":78,"passing":73,"rebounding":93,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"thomas_bryant","historicalEra":"2019-20 NBA"},{"id":"e19_p150","name":"Rui Hachimura","teamName":"Washington Wizards","teamAbbr":"WAS","pos":"PF","age":21,"ovr":81,"pot":91,"scoring":85,"shooting":78,"passing":73,"rebounding":88,"defense":86,"rotationMinutes":35,"starter":true,"sim":{"gp":0,"min":0,"pts":0,"reb":0,"ast":0},"portraitKey":"rui_hachimura","historicalEra":"2019-20 NBA"}],"draftClasses":{"2020":[{"id":"d2020_1","historicalPick":1,"name":"Anthony Edwards","pos":"SG","college":"Georgia","age":19,"prospect":94,"ceilingLow":87,"ceilingHigh":99,"scoutUncertainty":10},{"id":"d2020_2","historicalPick":2,"name":"James Wiseman","pos":"C","college":"Memphis","age":19,"prospect":88,"ceilingLow":81,"ceilingHigh":96,"scoutUncertainty":10},{"id":"d2020_3","historicalPick":3,"name":"LaMelo Ball","pos":"PG","college":"International","age":19,"prospect":93,"ceilingLow":86,"ceilingHigh":99,"scoutUncertainty":10},{"id":"d2020_4","historicalPick":4,"name":"Patrick Williams","pos":"SF","college":"Florida State","age":19,"prospect":84,"ceilingLow":77,"ceilingHigh":94,"scoutUncertainty":10},{"id":"d2020_5","historicalPick":5,"name":"Isaac Okoro","pos":"SF","college":"Auburn","age":19,"prospect":82,"ceilingLow":75,"ceilingHigh":91,"scoutUncertainty":10},{"id":"d2020_6","historicalPick":6,"name":"Onyeka Okongwu","pos":"C","college":"USC","age":19,"prospect":86,"ceilingLow":79,"ceilingHigh":94,"scoutUncertainty":10},{"id":"d2020_7","historicalPick":7,"name":"Killian Hayes","pos":"PG","college":"France","age":19,"prospect":82,"ceilingLow":75,"ceilingHigh":93,"scoutUncertainty":10},{"id":"d2020_8","historicalPick":8,"name":"Obi Toppin","pos":"PF","college":"Dayton","age":22,"prospect":85,"ceilingLow":78,"ceilingHigh":91,"scoutUncertainty":7},{"id":"d2020_9","historicalPick":9,"name":"Deni Avdija","pos":"SF","college":"Israel","age":19,"prospect":83,"ceilingLow":76,"ceilingHigh":93,"scoutUncertainty":10},{"id":"d2020_10","historicalPick":10,"name":"Jalen Smith","pos":"PF","college":"Maryland","age":20,"prospect":80,"ceilingLow":73,"ceilingHigh":89,"scoutUncertainty":10},{"id":"d2020_11","historicalPick":11,"name":"Devin Vassell","pos":"SG","college":"Florida State","age":20,"prospect":86,"ceilingLow":79,"ceilingHigh":95,"scoutUncertainty":10},{"id":"d2020_12","historicalPick":12,"name":"Tyrese Haliburton","pos":"PG","college":"Iowa State","age":20,"prospect":91,"ceilingLow":84,"ceilingHigh":98,"scoutUncertainty":10},{"id":"d2020_13","historicalPick":13,"name":"Kira Lewis Jr.","pos":"PG","college":"Alabama","age":19,"prospect":82,"ceilingLow":75,"ceilingHigh":92,"scoutUncertainty":10},{"id":"d2020_14","historicalPick":14,"name":"Aaron Nesmith","pos":"SF","college":"Vanderbilt","age":21,"prospect":82,"ceilingLow":75,"ceilingHigh":91,"scoutUncertainty":7},{"id":"d2020_15","historicalPick":15,"name":"Cole Anthony","pos":"PG","college":"North Carolina","age":20,"prospect":85,"ceilingLow":78,"ceilingHigh":94,"scoutUncertainty":10},{"id":"d2020_16","historicalPick":16,"name":"Isaiah Stewart","pos":"C","college":"Washington","age":19,"prospect":83,"ceilingLow":76,"ceilingHigh":92,"scoutUncertainty":10},{"id":"d2020_17","historicalPick":17,"name":"Aleksej Pokusevski","pos":"PF","college":"Serbia","age":18,"prospect":78,"ceilingLow":71,"ceilingHigh":95,"scoutUncertainty":10},{"id":"d2020_18","historicalPick":18,"name":"Josh Green","pos":"SG","college":"Arizona","age":20,"prospect":80,"ceilingLow":73,"ceilingHigh":90,"scoutUncertainty":10},{"id":"d2020_19","historicalPick":19,"name":"Saddiq Bey","pos":"SF","college":"Villanova","age":21,"prospect":84,"ceilingLow":77,"ceilingHigh":92,"scoutUncertainty":7},{"id":"d2020_20","historicalPick":20,"name":"Precious Achiuwa","pos":"PF","college":"Memphis","age":21,"prospect":84,"ceilingLow":77,"ceilingHigh":93,"scoutUncertainty":7},{"id":"d2020_21","historicalPick":21,"name":"Tyrese Maxey","pos":"SG","college":"Kentucky","age":20,"prospect":90,"ceilingLow":83,"ceilingHigh":98,"scoutUncertainty":10},{"id":"d2020_22","historicalPick":25,"name":"Immanuel Quickley","pos":"PG","college":"Kentucky","age":21,"prospect":86,"ceilingLow":79,"ceilingHigh":95,"scoutUncertainty":7},{"id":"d2020_23","historicalPick":28,"name":"Jaden McDaniels","pos":"PF","college":"Washington","age":20,"prospect":84,"ceilingLow":77,"ceilingHigh":96,"scoutUncertainty":10},{"id":"d2020_24","historicalPick":30,"name":"Desmond Bane","pos":"SG","college":"TCU","age":22,"prospect":88,"ceilingLow":81,"ceilingHigh":96,"scoutUncertainty":7}]},"identities":[],"leagueRules":{"threePointLine":true,"shotClock":24,"playoffTeamsPerConference":8,"firstRoundBestOf":7,"conferenceFinalBestOf":7,"finalsBestOf":7,"salaryCap":true,"rookieEarlyEntry":true,"paceEnvironment":1.05,"scoringEnvironment":1.08,"physicality":63,"commissionerPower":58,"pendingProposal":null,"history":[]},"eraEvents":[{"year":2020,"type":"seasonDisruption","name":"2020 season disruption","status":"Historical crossroads, not forced"},{"year":2020,"type":"playInExperiment","status":"Commissioner decision"}]};window.ERA_2019_PACK_V09505=ERA_2019_PACK_V09505;
 if(window.ERA_REGISTRY_V09500?.[2019]){ERA_REGISTRY_V09500[2019].status='ready';ERA_REGISTRY_V09500[2019].description='Playable 2019-20 modern NBA snapshot with 30 teams, six divisions, historical player core and 2020 draft starter class.';}
 const pt=window.setupTeamsSource;window.setupTeamsSource=function(){if(typeof pendingLeagueFile!=='undefined'&&pendingLeagueFile)return pendingLeagueFile.teams||[];if(Number(document.getElementById('startYear')?.value)===2019)return ERA_2019_PACK_V09505.teams;return pt.apply(this,arguments);};
@@ -36407,533 +36418,28 @@ document.getElementById('startYear')?.addEventListener('change',()=>{try{fillTea
 })();
 </script>
 
-<script>
-(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
-window.BASKETBALLVERSE_BUILD='v0.95.06';
-window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
 
-const PORTRAIT_PACK_1_V09506={"julius_erving":"portraits/julius_erving.webp","julius erving":"portraits/julius_erving.webp","bill_walton":"portraits/bill_walton.webp","bill walton":"portraits/bill_walton.webp","pete_maravich":"portraits/pete_maravich.webp","pete maravich":"portraits/pete_maravich.webp","walt_frazier":"portraits/walt_frazier.webp","walt frazier":"portraits/walt_frazier.webp","bernard_king":"portraits/bernard_king.webp","bernard king":"portraits/bernard_king.webp","jack_sikma":"portraits/jack_sikma.webp","jack sikma":"portraits/jack_sikma.webp","marques_johnson":"portraits/marques_johnson.webp","marques johnson":"portraits/marques_johnson.webp","paul_silas":"portraits/paul_silas.webp","paul silas":"portraits/paul_silas.webp"};
-window.PORTRAIT_PACK_1_V09506=PORTRAIT_PACK_1_V09506;
 
-const count=registerHistoricalPortraitPackV09500?.(PORTRAIT_PACK_1_V09506)||0;
 
-function refreshPortraitsV09506(){
- try{applyPortraitPackToPlayersV09500?.();}catch(_ ){}
- try{renderAll?.();}catch(_ ){}
-}
-window.refreshPortraitsV09506=refreshPortraitsV09506;
 
-setTimeout(()=>{
- try{applyPortraitPackToPlayersV09500?.();}catch(_ ){}
-},150);
-})();
-</script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <script>
 (function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
-window.BASKETBALLVERSE_BUILD='v0.95.07';
-window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
-
-/*
-v0.95.06 correctly bundled and registered the images, but the older v0.91.35
-portrait renderer called its original lexical playerPortraitSrcV09135()
-function directly. That bypassed the universal portrait registry.
-Route the actual HTML renderer through the universal resolver too.
-*/
-window.portraitHTMLV09135=function(p,size="large"){
-  if(!p)return "";
-  const cls=size==="small"?"playerPortraitSmallV09135":"playerPortraitV09135";
-  const src=window.universalPlayerPortraitSrcV09500?.(p) || window.playerPortraitSrcV09135?.(p) || "";
-  const initials=String(p?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-  const key=window.normalizedPlayerPortraitKeyV09500?.(p) || window.portraitKeyV09135?.(p) || "";
-  return `<div class="${cls}" data-player-portrait="${key}">
-    ${src?`<img src="${src}" alt="${String(p.name||"Player").replace(/"/g,"&quot;")}" loading="lazy"
-      onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'">`:``}
-    <div class="portraitFallbackV09135" style="display:${src?'none':'flex'}">${initials}</div>
-  </div>`;
-};
-
-/* Patch common direct helper names used by later screens. */
-window.playerPortraitHTMLV09135=window.portraitHTMLV09135;
-window.playerPortraitHTMLV09507=function(p,size="small"){
-  return window.portraitHTMLV09135(p,size);
-};
-
-/* Apply registered paths to loaded players and force a clean redraw. */
-setTimeout(()=>{
-  try{window.applyPortraitPackToPlayersV09500?.()}catch(_){}
-  try{window.renderAll?.()}catch(_){}
-},100);
-})();
-</script>
-
-
-<script>
-(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
-window.BASKETBALLVERSE_BUILD='v0.95.08';
-window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
-
-/*
-Permanent portrait-folder convention:
-
-  /portraits/player_name.webp
-  /portraits/player_name.png
-  /portraits/player_name.jpg
-  /portraits/player_name.jpeg
-
-Example:
-  Julius Erving -> portraits/julius_erving.jpg
-
-The game tries the bundled/registered portrait first, then predictable files
-from the single root portraits folder. This means new portraits can be added
-to GitHub individually without rebuilding index.html or editing a registry.
-*/
-
-function portraitFileStemV09508(p){
-  return String(
-    p?.portraitKey ||
-    p?.name ||
-    ""
-  )
-  .normalize("NFKD")
-  .replace(/[\u0300-\u036f]/g,"")
-  .toLowerCase()
-  .replace(/['’]/g,"")
-  .replace(/[^a-z0-9]+/g,"_")
-  .replace(/^_+|_+$/g,"");
-}
-window.portraitFileStemV09508=portraitFileStemV09508;
-
-function portraitCandidatesV09508(p){
-  const stem=portraitFileStemV09508(p);
-  const out=[];
-
-  // Explicit/bundled portraits continue to win.
-  const explicit=[
-    p?.customPortrait,
-    p?.portraitDataUrl,
-    p?.photo,
-    p?.headshot,
-    p?.portrait,
-    p?.portraitUrl,
-    window.HISTORICAL_PORTRAITS_V09500?.[p?.portraitKey],
-    window.HISTORICAL_PORTRAITS_V09500?.[String(p?.name||"").toLowerCase()]
-  ].filter(Boolean);
-
-  explicit.forEach(x=>{if(!out.includes(x))out.push(x)});
-
-  if(stem){
-    [
-      `portraits/${stem}.webp`,
-      `portraits/${stem}.png`,
-      `portraits/${stem}.jpg`,
-      `portraits/${stem}.jpeg`
-    ].forEach(x=>{if(!out.includes(x))out.push(x)});
-  }
-  return out;
-}
-window.portraitCandidatesV09508=portraitCandidatesV09508;
-
-function escapeAttrV09508(s){
-  return String(s??"")
-    .replace(/&/g,"&amp;")
-    .replace(/"/g,"&quot;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;");
-}
-
-window.portraitHTMLV09135=function(p,size="large"){
-  if(!p)return "";
-  const cls=size==="small"?"playerPortraitSmallV09135":"playerPortraitV09135";
-  const candidates=portraitCandidatesV09508(p);
-  const initials=String(p?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-  const key=portraitFileStemV09508(p);
-  const encoded=encodeURIComponent(JSON.stringify(candidates));
-
-  return `<div class="${cls}" data-player-portrait="${escapeAttrV09508(key)}">
-    ${candidates.length?`<img
-      src="${escapeAttrV09508(candidates[0])}"
-      data-portrait-candidates="${encoded}"
-      data-portrait-index="0"
-      alt="${escapeAttrV09508(p.name||"Player")}"
-      loading="lazy"
-      onerror="window.nextPortraitCandidateV09508(this)">`:``}
-    <div class="portraitFallbackV09135" style="display:${candidates.length?'none':'flex'}">${escapeAttrV09508(initials)}</div>
-  </div>`;
-};
-window.playerPortraitHTMLV09135=window.portraitHTMLV09135;
-
-window.nextPortraitCandidateV09508=function(img){
-  if(!img)return;
-  let list=[];
-  try{list=JSON.parse(decodeURIComponent(img.dataset.portraitCandidates||"[]"))}catch(_){}
-  let i=Number(img.dataset.portraitIndex||0)+1;
-  if(i<list.length){
-    img.dataset.portraitIndex=String(i);
-    img.src=list[i];
-    return;
-  }
-  img.style.display="none";
-  const fallback=img.nextElementSibling;
-  if(fallback)fallback.style.display="flex";
-};
-
-/*
-Also expose a direct source helper for screens that do not use portraitHTML.
-It returns the first predictable candidate. Screens using <img> can then
-still use the same folder convention.
-*/
-const oldUniversalV09508=window.universalPlayerPortraitSrcV09500;
-window.universalPlayerPortraitSrcV09500=function(p){
-  const existing=oldUniversalV09508?.(p);
-  if(existing)return existing;
-  const c=portraitCandidatesV09508(p);
-  return c[0]||"";
-};
-
-setTimeout(()=>{
-  try{applyPortraitPackToPlayersV09500?.()}catch(_){}
-  try{renderAll?.()}catch(_){}
-},100);
-})();
-</script>
-
-
-<script>
-(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
-window.BASKETBALLVERSE_BUILD='v0.95.09';
-window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
-
-function stemV09509(p){
- return String(p?.portraitKey||p?.name||"")
-  .normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
-  .toLowerCase().replace(/['’]/g,"")
-  .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
-}
-function candidatesV09509(p){
- const out=[],add=x=>{if(x&&!out.includes(x))out.push(x)};
- [p?.customPortrait,p?.portraitDataUrl,p?.photo,p?.headshot,p?.portrait,p?.portraitUrl].forEach(add);
- const hist=window.HISTORICAL_PORTRAITS_V09500||{};
- add(hist[p?.portraitKey]); add(hist[String(p?.name||"").toLowerCase()]);
- const s=stemV09509(p);
- if(s){["webp","png","jpg","jpeg"].forEach(ext=>add(`portraits/${s}.${ext}`))}
- return out;
-}
-function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
-window.nextPortraitCandidateV09509=function(img){
- let list=[];try{list=JSON.parse(decodeURIComponent(img.dataset.candidates||"[]"))}catch(_){}
- const i=Number(img.dataset.candidateIndex||0)+1;
- if(i<list.length){img.dataset.candidateIndex=String(i);img.src=list[i];return}
- img.style.display="none";if(img.nextElementSibling)img.nextElementSibling.style.display="flex";
-};
-window.renderPlayerPortraitV09509=function(p,size="small"){
- const cls=size==="large"?"playerPortraitV09135":"playerPortraitSmallV09135",cs=candidatesV09509(p);
- const initials=String(p?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
- return `<div class="${cls}" data-player-portrait="${esc(stemV09509(p))}" data-v09509="1">
- ${cs.length?`<img src="${esc(cs[0])}" data-candidates="${encodeURIComponent(JSON.stringify(cs))}" data-candidate-index="0" alt="${esc(p?.name||"Player")}" loading="lazy" onerror="nextPortraitCandidateV09509(this)">`:""}
- <div class="portraitFallbackV09135" style="display:${cs.length?"none":"flex"}">${esc(initials)}</div></div>`;
-};
-window.portraitHTMLV09135=window.renderPlayerPortraitV09509;
-window.playerPortraitHTMLV09135=window.renderPlayerPortraitV09509;
-window.playerPortraitHTMLV09507=window.renderPlayerPortraitV09509;
-window.playerPortraitHTMLV09508=window.renderPlayerPortraitV09509;
-window.playerPortraitSrcV09135=p=>candidatesV09509(p)[0]||"";
-window.universalPlayerPortraitSrcV09500=p=>candidatesV09509(p)[0]||"";
-
-function findPlayerFromRow(row){
- const txt=String(row?.textContent||"");
- const all=[...(state?.players||[]),...(state?.draftClass||[]),...(state?.freeAgents||[])];
- return all.find(p=>p?.name&&txt.includes(p.name))||null;
-}
-function upgrade(){
- document.querySelectorAll('.playerPortraitSmallV09135,.playerPortraitV09135,[data-player-portrait]').forEach(old=>{
-   if(old.dataset?.v09509==="1")return;
-   const row=old.closest('.card,.playerRow,.rosterRow,tr,li')||old.parentElement?.parentElement||old.parentElement;
-   const p=findPlayerFromRow(row);if(!p)return;
-   const wrap=document.createElement('div');
-   wrap.innerHTML=window.renderPlayerPortraitV09509(p,old.classList.contains('playerPortraitV09135')?"large":"small");
-   old.replaceWith(wrap.firstElementChild);
- });
-}
-window.refreshPortraitUIV09509=upgrade;
-
-const oldAll=window.renderAll;
-window.renderAll=function(){const r=oldAll.apply(this,arguments);setTimeout(upgrade,0);return r};
-const oldSwitch=window.switchTab;
-window.switchTab=function(tab){const r=oldSwitch.apply(this,arguments);setTimeout(upgrade,0);return r};
-
-new MutationObserver(()=>{
- clearTimeout(window._portraitRefreshTimerV09509);
- window._portraitRefreshTimerV09509=setTimeout(upgrade,25);
-}).observe(document.body,{childList:true,subtree:true});
-
-setTimeout(upgrade,150);
-})();
-</script>
-
-
-<script>
-(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
-window.BASKETBALLVERSE_BUILD='v0.95.10';
-window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
-
-function portraitStemV09510(p){
- return String(p?.portraitKey||p?.name||"")
-   .normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
-   .toLowerCase().replace(/['’]/g,"")
-   .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
-}
-function portraitUrlsV09510(p){
- const out=[], add=x=>{if(x&&!out.includes(x))out.push(x)};
- [p?.customPortrait,p?.portraitDataUrl,p?.photo,p?.headshot,p?.portrait,p?.portraitUrl].forEach(add);
- const hist=window.HISTORICAL_PORTRAITS_V09500||{};
- add(hist[p?.portraitKey]);
- add(hist[String(p?.name||"").toLowerCase()]);
- const stem=portraitStemV09510(p);
- if(stem){
-   for(const ext of ["webp","png","jpg","jpeg"]){
-     // Resolve against the actual GitHub Pages document location and bust old 404 cache entries.
-     add(new URL(`portraits/${stem}.${ext}?bv=09510`,document.baseURI).href);
-   }
- }
- return out;
-}
-function escV09510(s){
- return String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-window.nextPortraitV09510=function(img){
- let list=[];try{list=JSON.parse(decodeURIComponent(img.dataset.candidates||"[]"))}catch(_){}
- let i=Number(img.dataset.index||0)+1;
- if(i<list.length){img.dataset.index=String(i);img.src=list[i];return}
- img.style.display="none";
- if(img.nextElementSibling)img.nextElementSibling.style.display="flex";
-};
-window.rosterPortraitHTMLV09510=function(p){
- const urls=portraitUrlsV09510(p);
- const initials=String(p?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
- return `<div class="playerPortraitSmallV09135" data-v09510="1">
-   ${urls.length?`<img src="${escV09510(urls[0])}" data-candidates="${encodeURIComponent(JSON.stringify(urls))}" data-index="0"
-      alt="${escV09510(p?.name||"Player")}" loading="eager" onerror="nextPortraitV09510(this)">`:""}
-   <div class="portraitFallbackV09135" style="display:${urls.length?"none":"flex"}">${escV09510(initials)}</div>
- </div>`;
-};
-
-/*
-IMPORTANT: v0.91.41 is the final function that actually builds the Team > Roster
-cards seen in testing. Override that function directly instead of relying on
-earlier portrait decorators.
-*/
-window.cleanPlayerCardHTMLV09140=function(p){
-  const age=typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—");
-  const min=Number(p.rotationMinutes??p.min??p.minutes??p.mpg??0);
-  const star=(!!p.starter || Number(p.ovr||0)>=85 || p.star===true || p.isStar===true);
-
-  const sal=Number(p?.contract?.salary ?? (typeof playerSalary==="function"?playerSalary(p):0));
-  const salary=Number.isFinite(sal)?`$${sal.toFixed(sal<10?2:1)}M`:"—";
-  const yrs=Math.max(0,Number(p?.contract?.years ?? p?.contractYears ?? 0)||0);
-  const years=yrs?`${yrs} yr${yrs===1?"":"s"}`:"Exp.";
-
-  return `<div class="playerCardCleanV09140" onclick="showPlayer('${String(p.id).replace(/'/g,"\\'")}')" style="cursor:pointer">
-    <div class="rosterCardTopV09141">
-      ${window.rosterPortraitHTMLV09510(p)}
-      <div class="playerCardMainV09140">
-        <div class="playerCardNameV09140">${star?`<span class="playerCardStarV09140">★</span>`:""}${p.name}</div>
-        <div class="playerCardMetaV09140">${p.pos||"—"} · Age ${age}${p.rotationRole?` · ${p.rotationRole}`:""}</div>
-      </div>
-    </div>
-    <div class="playerCardRatingsV09140">
-      <div class="playerCardStatV09140"><b>${p.ovr??"—"}</b><span>OVR</span></div>
-      <div class="playerCardStatV09140"><b>${p.pot??"—"}</b><span>POT</span></div>
-      <div class="playerCardStatV09140"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
-    </div>
-    <div class="playerCardContractV09141">
-      <div class="playerCardMoneyV09141"><b>${salary}</b><span>Salary</span></div>
-      <div class="playerCardYearsV09141"><b>${years}</b><span>Years Left</span></div>
-    </div>
-    <div class="rosterCardBottomV09141">
-      <div class="rosterMetricV09141"><b>${p.ovr??"—"}</b><span>OVR</span></div>
-      <div class="rosterMetricV09141"><b>${p.pot??"—"}</b><span>POT</span></div>
-      <div class="rosterMetricV09141"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
-      <div class="rosterMetricV09141"><b>${salary}</b><span>Salary</span></div>
-      <div class="rosterMetricV09141"><b>${years}</b><span>Left</span></div>
-    </div>
-  </div>`;
-};
-
-/* The final roster rebuilder must call the newly overridden card function. */
-window.rebuildRosterCardsV09140=function(){
-  const box=document.getElementById("rosterBox");
-  const sel=document.getElementById("playerTeamFilter");
-  if(!box||!sel||!state)return;
-  const teamName=sel.value;
-  if(!teamName)return;
-  const roster=(typeof rosterFor==="function"?rosterFor(teamName):teamRoster(teamName)).slice()
-    .sort((a,b)=>Number(b.rotationMinutes||0)-Number(a.rotationMinutes||0)||Number(b.ovr||0)-Number(a.ovr||0));
-  box.innerHTML=roster.length
-    ?roster.map(window.cleanPlayerCardHTMLV09140).join("")
-    :`<div class="muted">No players on ${teamName}.</div>`;
-};
-
-/* Wrap the active renderPlayers function so the direct roster fix always runs last. */
-const activeRenderPlayersV09510=window.renderPlayers;
-window.renderPlayers=function(){
- const r=activeRenderPlayersV09510.apply(this,arguments);
- setTimeout(()=>window.rebuildRosterCardsV09140?.(),0);
- return r;
-};
-
-setTimeout(()=>{
- try{window.rebuildRosterCardsV09140?.()}catch(e){console.error("v0.95.10 roster portrait fix",e)}
-},150);
-})();
-</script>
-
-
-<script>
-(function(){
-const LABEL='v0.95.11 · Portrait Mapping Repair';
-window.BASKETBALLVERSE_BUILD='v0.95.11';
-window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
-
-/*
-Repair v0.95.10:
-- Do NOT infer players from row text.
-- Do NOT replace every portrait box after render.
-- Restore each roster card's own initials/player identity.
-- Inject the portrait directly while the card is being built from that exact player object.
-*/
-
-function stemV09511(p){
- return String(p?.portraitKey||p?.name||"")
-   .normalize("NFKD")
-   .replace(/[\u0300-\u036f]/g,"")
-   .toLowerCase()
-   .replace(/['’]/g,"")
-   .replace(/[^a-z0-9]+/g,"_")
-   .replace(/^_+|_+$/g,"");
-}
-function urlsV09511(p){
- const out=[],add=x=>{if(x&&!out.includes(x))out.push(x)};
- [p?.customPortrait,p?.portraitDataUrl,p?.photo,p?.headshot,p?.portrait,p?.portraitUrl].forEach(add);
- const hist=window.HISTORICAL_PORTRAITS_V09500||{};
- add(hist[p?.portraitKey]);
- add(hist[String(p?.name||"").toLowerCase()]);
- const s=stemV09511(p);
- if(s){
-   ["webp","png","jpg","jpeg"].forEach(ext=>{
-     add(new URL(`portraits/${s}.${ext}?bv=09511`,document.baseURI).href);
-   });
- }
- return out;
-}
-function escV09511(s){
- return String(s??"")
-   .replace(/&/g,"&amp;")
-   .replace(/"/g,"&quot;")
-   .replace(/</g,"&lt;")
-   .replace(/>/g,"&gt;");
-}
-window.nextPortraitV09511=function(img){
- let list=[];
- try{list=JSON.parse(decodeURIComponent(img.dataset.candidates||"[]"))}catch(_){}
- const i=Number(img.dataset.index||0)+1;
- if(i<list.length){
-   img.dataset.index=String(i);
-   img.src=list[i];
-   return;
- }
- img.style.display="none";
- const fb=img.nextElementSibling;
- if(fb)fb.style.display="flex";
-};
-
-window.rosterPortraitHTMLV09511=function(p){
- const urls=urlsV09511(p);
- const initials=String(p?.name||"?")
-   .split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
- return `<div class="playerPortraitSmallV09135" data-player-id="${escV09511(p?.id||"")}" data-player-name="${escV09511(p?.name||"")}">
-   ${urls.length?`<img src="${escV09511(urls[0])}" data-candidates="${encodeURIComponent(JSON.stringify(urls))}" data-index="0" alt="${escV09511(p?.name||"Player")}" loading="eager" onerror="nextPortraitV09511(this)">`:""}
-   <div class="portraitFallbackV09135" style="display:${urls.length?"none":"flex"}">${escV09511(initials)}</div>
- </div>`;
-};
-
-/*
-Rebuild roster cards directly from each roster player.
-No DOM scanning, no fuzzy name matching.
-*/
-window.cleanPlayerCardHTMLV09140=function(p){
- const age=typeof tradeAgeV09112==="function"?tradeAgeV09112(p):(p.age??"—");
- const min=Number(p.rotationMinutes??p.min??p.minutes??p.mpg??0);
- const star=(!!p.starter || Number(p.ovr||0)>=85 || p.star===true || p.isStar===true);
-
- let sal=0;
- try{sal=Number(p?.contract?.salary ?? (typeof playerSalary==="function"?playerSalary(p):0))}catch(_){}
- const salary=Number.isFinite(sal)?`$${sal.toFixed(sal<10?2:1)}M`:"—";
- const yrs=Math.max(0,Number(p?.contract?.years ?? p?.contractYears ?? 0)||0);
- const years=yrs?`${yrs} yr${yrs===1?"":"s"}`:"Exp.";
-
- return `<div class="playerCardCleanV09140" data-roster-player-id="${escV09511(p.id)}" onclick="showPlayer('${String(p.id).replace(/'/g,"\\'")}')" style="cursor:pointer">
-   <div class="rosterCardTopV09141">
-     ${window.rosterPortraitHTMLV09511(p)}
-     <div class="playerCardMainV09140">
-       <div class="playerCardNameV09140">${star?`<span class="playerCardStarV09140">★</span>`:""}${p.name}</div>
-       <div class="playerCardMetaV09140">${p.pos||"—"} · Age ${age}${p.rotationRole?` · ${p.rotationRole}`:""}</div>
-     </div>
-   </div>
-   <div class="playerCardRatingsV09140">
-     <div class="playerCardStatV09140"><b>${p.ovr??"—"}</b><span>OVR</span></div>
-     <div class="playerCardStatV09140"><b>${p.pot??"—"}</b><span>POT</span></div>
-     <div class="playerCardStatV09140"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
-   </div>
-   <div class="playerCardContractV09141">
-     <div class="playerCardMoneyV09141"><b>${salary}</b><span>Salary</span></div>
-     <div class="playerCardYearsV09141"><b>${years}</b><span>Years Left</span></div>
-   </div>
-   <div class="rosterCardBottomV09141">
-     <div class="rosterMetricV09141"><b>${p.ovr??"—"}</b><span>OVR</span></div>
-     <div class="rosterMetricV09141"><b>${p.pot??"—"}</b><span>POT</span></div>
-     <div class="rosterMetricV09141"><b>${min?Math.round(min):"—"}</b><span>MIN</span></div>
-     <div class="rosterMetricV09141"><b>${salary}</b><span>Salary</span></div>
-     <div class="rosterMetricV09141"><b>${years}</b><span>Left</span></div>
-   </div>
- </div>`;
-};
-
-window.rebuildRosterCardsV09140=function(){
- const box=document.getElementById("rosterBox");
- const sel=document.getElementById("playerTeamFilter");
- if(!box||!sel||!state)return;
- const teamName=sel.value;
- if(!teamName)return;
- const roster=(typeof rosterFor==="function"?rosterFor(teamName):teamRoster(teamName)).slice()
-   .sort((a,b)=>Number(b.rotationMinutes||0)-Number(a.rotationMinutes||0)||Number(b.ovr||0)-Number(a.ovr||0));
- box.innerHTML=roster.length
-   ?roster.map(p=>window.cleanPlayerCardHTMLV09140(p)).join("")
-   :`<div class="muted">No players on ${teamName}.</div>`;
-};
-
-/* Disable the fuzzy DOM-upgrade functions from v0.95.09/10 that caused shared initials. */
-window.refreshPortraitUIV09509=function(){};
-window.upgradePortraitsInDOMV09509=function(){};
-window.upgradeRosterScreenV09509=function(){};
-
-/* Re-render roster once after normal renderPlayers finishes. */
-const rpV09511=window.renderPlayers;
-window.renderPlayers=function(){
- const r=rpV09511.apply(this,arguments);
- setTimeout(()=>window.rebuildRosterCardsV09140?.(),0);
- return r;
-};
-
-setTimeout(()=>{
- try{window.rebuildRosterCardsV09140?.()}catch(e){console.error("v0.95.11 portrait mapping repair",e)}
-},150);
+  window.BASKETBALLVERSE_BUILD='v0.95.12';
+  window.BASKETBALLVERSE_BUILD_LABEL='v0.95.12 · Clean Single Portrait System';
 })();
 </script>
 

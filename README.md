@@ -1,30 +1,41 @@
-# Basketballverse v0.95.11
-## Portrait Mapping Repair
+# Basketballverse v0.95.12
+## Clean Single Portrait System
 
-**CURRENT BUILD: v0.95.11**
+**CURRENT BUILD: v0.95.12**
 
-Built directly from v0.95.10.
+This build removes the stacked portrait patches from v0.95.06 through v0.95.11.
 
-## Fix
-v0.95.10 caused all roster portrait initials to become the same because an after-render
-DOM scan was matching the wrong player object to multiple rows.
+Instead of adding another renderer, v0.95.12 changes the game's ORIGINAL v0.91.35
+portrait functions directly.
 
-v0.95.11 removes that fuzzy row-text matching.
+### Permanent portrait rule
 
-Each roster card now receives its portrait directly from the exact player object used
-to build that card.
+Player portraits live in:
 
-This restores correct initials for every player and keeps the single-folder lookup:
+`portraits/`
+
+The filename is based on the player's name:
+
+- Julius Erving → `portraits/julius_erving.webp`
+- Bill Walton → `portraits/bill_walton.webp`
+- Pete Maravich → `portraits/pete_maravich.webp`
+
+The old system used the player's internal ID first. That was the core mismatch:
+uploading `julius_erving.webp` could never work if the game was requesting an
+ID-based filename.
+
+### Exact test
+
+Keep this file in GitHub:
 
 `portraits/julius_erving.webp`
 
-## Test
-Philadelphia 76ers > Team > Roster
+Then load:
 
-Expected:
-- Julius Erving = JE fallback if image cannot load, otherwise Dr. J image
-- George McGinnis = GM
-- Doug Collins = DC
-- Henry Bibby = HB
+Philadelphia 76ers → Team → Roster
 
-No player should inherit another player's initials.
+The original roster renderer now requests:
+
+`./portraits/julius_erving.webp?bv=09512`
+
+No DOM scanning, no fuzzy player matching, and no replacement roster renderer is used.
