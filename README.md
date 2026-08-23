@@ -44,3 +44,43 @@ All Owner systems from the previous builds remain included.
 - Uses available AI/GM roster-cut logic where present.
 - Delegates only the authority needed to advance the offseason.
 - Restores Owner mode immediately afterward.
+
+
+## v0.92.06 — Owner Trade Requests + Attendance + City Pitches
+
+### Owner trade targets
+Career → Decisions now includes an Owner-only section to ask the GM to pursue a specific player.
+- Owner selects a target.
+- GM responds after a short delay.
+- Accepted requests become real front-office trade targets.
+- Owner does not negotiate or execute the trade.
+
+### Attendance
+Owner Career now tracks:
+- Average Attendance
+- Capacity Filled
+- Attendance Grade (A+ through F)
+- Attendance Trend (Rising / Stable / Falling)
+
+Attendance responds to:
+- team performance
+- fan support
+- market strength
+- arena quality
+- ticket prices
+
+Attendance is stored in ownership data and season history.
+
+### Cities approach ownership
+Outside cities can now approach the Owner about moving the franchise when:
+- attendance is weak or falling
+- market strength is poor
+- arena pressure is high
+- relocation pressure is elevated
+
+Owner can:
+- Hear the Proposal
+- Use the offer as leverage
+- Reject the approach
+
+Hearing a proposal can place the franchise/city into the relocation-candidate framework without automatically moving the team.
