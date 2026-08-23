@@ -1,30 +1,30 @@
-# Basketballverse v0.95.10
-## Direct Roster Portrait Fix
+# Basketballverse v0.95.11
+## Portrait Mapping Repair
 
-**CURRENT BUILD: v0.95.10**
+**CURRENT BUILD: v0.95.11**
 
-Built directly from v0.95.09.
+Built directly from v0.95.10.
 
-## Root cause found
+## Fix
+v0.95.10 caused all roster portrait initials to become the same because an after-render
+DOM scan was matching the wrong player object to multiple rows.
 
-Team > Roster is ultimately rebuilt by the old v0.91.41 `cleanPlayerCardHTMLV09140`
-renderer. That later renderer was overriding/bypassing the previous portrait fixes.
+v0.95.11 removes that fuzzy row-text matching.
 
-v0.95.10 directly replaces the final roster-card renderer and final roster rebuild
-function.
+Each roster card now receives its portrait directly from the exact player object used
+to build that card.
 
-It also resolves portrait URLs against `document.baseURI` and adds a version query
-string to prevent a browser/GitHub Pages cached 404 from hiding a newly uploaded image.
-
-## Exact test
-
-Keep this file in GitHub:
+This restores correct initials for every player and keeps the single-folder lookup:
 
 `portraits/julius_erving.webp`
 
-Then load:
-Team > Roster > Philadelphia 76ers
+## Test
+Philadelphia 76ers > Team > Roster
 
-Julius Erving should show that image in place of the JE silhouette.
+Expected:
+- Julius Erving = JE fallback if image cannot load, otherwise Dr. J image
+- George McGinnis = GM
+- Doug Collins = DC
+- Henry Bibby = HB
 
-No portrait folder or filename changes are required.
+No player should inherit another player's initials.
