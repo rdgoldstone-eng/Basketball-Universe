@@ -1,44 +1,23 @@
-# Basketballverse v0.95.08
-## Single Portrait Folder System
+# Basketballverse v0.95.09
+## Universal Portrait Renderer Fix
 
-**CURRENT BUILD: v0.95.08**
+**CURRENT BUILD: v0.95.09**
 
-Built directly from v0.95.07.
+Built directly from v0.95.08.
 
-## Permanent portrait setup
+All player displays now use the same portrait lookup:
+- created/uploaded portrait
+- registered historical portrait
+- portraits/player_name.webp
+- portraits/player_name.png
+- portraits/player_name.jpg
+- portraits/player_name.jpeg
 
-Basketballverse now uses one permanent root folder:
+Older roster/depth-chart/award/draft player cards are upgraded after render so they
+also use the same portrait folder.
 
-`portraits/`
+Test case:
+`portraits/julius_erving.webp`
 
-You can add player pictures to GitHub one file at a time without rebuilding the game.
-
-Example:
-
-`Julius Erving` → `portraits/julius_erving.jpg`
-
-Supported formats:
-- WebP
-- PNG
-- JPG
-- JPEG
-
-The game automatically tries all four extensions.
-
-Existing bundled historical portraits and created-player uploaded portraits still work and take priority.
-
-See `PORTRAIT_FOLDER_INSTRUCTIONS.md` for the exact filename rules.
-
-## Correct repository structure
-
-Basketball-Universe/
-- index.html
-- README.md
-- basketballverse-logo.jpg
-- PORTRAIT_FOLDER_INSTRUCTIONS.md
-- portraits/
-  - julius_erving.webp
-  - bill_walton.webp
-  - etc.
-
-Only image files should go inside `portraits/`.
+Load Philadelphia 76ers > Team > Roster. Julius Erving should show the image instead
+of the JE fallback.
