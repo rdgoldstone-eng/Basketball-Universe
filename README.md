@@ -1,7 +1,7 @@
-# Basketballverse v0.93.12
+# Basketballverse v0.93.13
 ## Global Decisions Center
 
-**CURRENT BUILD: v0.93.12**
+**CURRENT BUILD: v0.93.13**
 
 Built through the full first Commissioner development pass.
 
@@ -87,3 +87,11 @@ Older Commissioner delegation boxes from v0.93.07/v0.93.08 are removed from the 
 - Owner city relocation approaches use the same visual identity preview.
 - If a matching team/logo already exists in the universe, Basketballverse reuses the existing logo.
 - If no finalized logo exists yet, the preview uses a clean city/team abbreviation placeholder until the identity is finalized.
+
+
+## v0.93.13 — Franchise Decisions + Identity Preview
+- The actual **Add Expansion Franchise** controls now show a large preview for the currently selected team identity.
+- The actual **Relocation** controls now show the proposed destination identity/logo before approval.
+- Changing the market or identity immediately refreshes the preview.
+- Expansion and relocation are now also surfaced in the Commissioner's **Decisions** area as major franchise decisions.
+- The existing League Office controls remain the detailed management screen; Decisions is the prominent decision/inbox entry point.
