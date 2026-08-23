@@ -28,3 +28,11 @@ All Owner systems from the previous builds remain included.
 - Uses available AI/GM re-signing logic when present.
 - Advances the offseason through the normal engine, temporarily delegating authority only for that transition.
 - Restores Owner role immediately afterward.
+
+
+## v0.92.04 — Owner Free Agency Advance Fix
+- Owner mode can view the entire Free Agency stage.
+- Adds **Let GM Handle Free Agency & Continue**.
+- Uses available AI/free-agency completion logic where present.
+- Delegates only the authority needed to move the offseason forward.
+- Restores Owner role immediately afterward.
