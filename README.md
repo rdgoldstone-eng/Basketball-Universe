@@ -1,36 +1,30 @@
-# Basketballverse v0.95.00
-## Era Framework + Universal Portrait Engine
+# Basketballverse v0.95.01
+## 1946 Founding Era Data Pack
 
-**CURRENT BUILD: v0.95.00**
+**CURRENT BUILD: v0.95.01**
 
-## Era framework
-Basketballverse now has a formal registry for all planned startup eras:
-- 1946 — The Founding Era
-- 1967 — ABA Rivalry Era
-- 1976 — Merger Era
-- 1988 — Expansion Era
-- 2003 — Realignment Era
-- 2019 — Play-In Era
-- 2026 — Current Day
+Built directly from v0.95.00.
 
-### Current playable data packs
-- 1976 — complete existing historical universe
-- 2026 — complete existing current-day snapshot
+## 1946–47 BAA era is now playable
+The Founding Era now loads its own historical snapshot instead of substituting 1976.
 
-1946, 1967, 1988, 2003, and 2019 are now registered as separate era data packs to be installed next. The game will no longer silently load the 1976 teams/players when one of those unfinished start years is selected.
+Included:
+- 11 original BAA franchises
+- Eastern and Western division alignment
+- 110-player historical roster pool (10-player playable core per club)
+- Founding-era strength ratings
+- No three-point line
+- No salary cap
+- No shot clock at the starting point
+- 3 playoff teams per division/conference slot in the current engine
+- 60-game starting-season target
+- Starter 1947 historical draft class
+- Player portrait keys wired into the universal portrait engine
 
-## Universal Player Portrait Engine
-All historical and created-player images now have one lookup path:
-1. career/created-player uploaded portrait
-2. explicit player portrait/photo/headshot
-3. historical portrait pack lookup by player ID / portrait key / player name
-4. initials fallback
+## Portrait status
+Every 1946 player now has a stable portrait key, so an image added to the historical portrait registry automatically appears anywhere Basketballverse uses the universal portrait resolver. The actual 1946 image pack is the next portrait-data step; this build does not pretend generic placeholders are real player photographs.
 
-Existing Basketballverse portrait helpers now route through this universal resolver. This means future portrait packs only need to register each image once for every compatible screen to use it.
-
-### Portrait-pack API
-Future era/draft portrait packs can call:
-- `registerHistoricalPortraitPackV09500({...})`
-- `applyPortraitPackToPlayersV09500()`
-
-This is the foundation for installing the historical era snapshots and portrait packs one era/class at a time without rewriting the UI for every picture.
+## Next era work
+- Founding-era franchise survival/contraction decision points
+- 1946 player portrait pack
+- 1967 NBA/ABA Rivalry Era snapshot
