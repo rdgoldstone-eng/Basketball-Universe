@@ -1,7 +1,7 @@
-# Basketballverse v0.93.13
+# Basketballverse v0.93.14
 ## Global Decisions Center
 
-**CURRENT BUILD: v0.93.13**
+**CURRENT BUILD: v0.93.14**
 
 Built through the full first Commissioner development pass.
 
@@ -95,3 +95,21 @@ Older Commissioner delegation boxes from v0.93.07/v0.93.08 are removed from the 
 - Changing the market or identity immediately refreshes the preview.
 - Expansion and relocation are now also surfaced in the Commissioner's **Decisions** area as major franchise decisions.
 - The existing League Office controls remain the detailed management screen; Decisions is the prominent decision/inbox entry point.
+
+
+## v0.93.14 — Save Role Recovery Fix
+
+### Root cause
+An older fired-career compatibility system (`v0.91.24`) treated "no controlled team + unemployment-style career flags" as Viewer mode.
+
+That rule was intended only for fired GM/Coach careers. Commissioner legitimately has no controlled team, so Commissioner saves could be misclassified as unemployed and rewritten to Viewer during rendering/autosave.
+
+### Fix
+- Fired/unemployed Viewer conversion is now limited to GM and Coach careers.
+- Commissioner can never be converted to Viewer merely because it has no controlled team.
+- Saves already stamped as Viewer can recover their role when an explicit persistent career field proves the intended role.
+- Legitimately fired/unemployed GM or Coach careers remain Viewer until they accept a new job.
+- Current save-list metadata is repaired from the recovered live role.
+- No save is assigned a role based only on the existence of Player/Coach/GM/Owner/Commissioner feature data; recovery requires explicit career-role evidence.
+
+This build is designed to preserve existing saves rather than requiring new ones.
