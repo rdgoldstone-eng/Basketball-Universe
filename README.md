@@ -44,3 +44,19 @@ Package includes index.html, README.md, Basketballverse logo, and historical Rap
 
 ### Offseason role behavior
 Re-Signings, Free Agency, and Roster Cuts now all have Commissioner-safe delegation paths so the role cannot get trapped in team-controlled offseason stages.
+
+
+## v0.93.09 — Commissioner Direct Offseason Simulation
+Commissioner no longer needs to open team-operation pages for:
+- Re-Signings
+- Free Agency
+- Roster Cuts
+
+Current offseason actions are replaced with:
+- **Simulate Re-Signings**
+- **Simulate Free Agency**
+- **Simulate Roster Cuts**
+
+Each button lets team AI/front offices handle the entire phase and advances the offseason directly.
+
+Older Commissioner delegation boxes from v0.93.07/v0.93.08 are removed from the offseason screen.
