@@ -1,23 +1,36 @@
-# Basketballverse v0.96.19
-## 1967–68 ABA Rosters
-**CURRENT BUILD: v0.96.19**
+# Basketballverse v0.96.21
+## ABA Franchise Health & Historical Obstacle UI
+**CURRENT BUILD: v0.96.21**
 
-Built directly from v0.96.18.
+Built directly from v0.96.20.
 
-This build loads 1967-68 ABA season rosters into the separate ABA universe when the
-player selects the 1967 Rivalry Era and chooses ABA.
+This update gives the ABA historical-obstacle system accumulated in-universe data.
 
-Important accuracy note:
-These are season-roster assignments (players who appeared for the club during 1967-68),
-not a claim that every listed player was on that club on opening night. Early ABA
-transactions were frequent. Cross-team appearances are retained where historically
-appropriate rather than deleting a player from one club's season record.
+Each ABA franchise now tracks:
+- attendance and fan interest
+- financial health / cash pressure
+- ownership stability
+- market strength
+- arena quality
+- star power
+- annual business-history snapshots
 
-Each ABA player receives the same normalized WebP portrait-key system used by the NBA.
-ABA_1967_68_ROSTER_CHECKLIST.csv is included for the portrait project.
+The inaugural 1967-68 attendance environment seeds the starting business conditions.
+After that, franchise health changes from Basketballverse results, star power, market
+conditions and prior health rather than being forced to follow real history.
 
-Next:
-- replace neutral placeholder ratings/contracts with historically grounded player values,
-- connect ABA game simulation to these rosters and standings,
-- build the ABA/NBA league-view toggle,
-- run the uncontrolled league in the background.
+At each annual review, the game can now:
+1. update every franchise's business health,
+2. check that year's real historical pressure points,
+3. attach the current Basketballverse health data to the event,
+4. recommend stay / relocate / emergency financing / fold without forcing it,
+5. feed the accumulated values into the 1976 dynamic merger negotiations.
+
+A renderABAObstaclePanelV09621(year) UI renderer is included for the season/event screens.
+The 1976 review invokes the dynamic merger model from v0.96.20.
+
+Next update:
+- wire annual reviews into the actual season-advance flow,
+- create player/owner choices when an obstacle fires,
+- persist accepted relocations/foldings into franchise identity/history,
+- add the NBA-side vote and merger negotiation screen.
