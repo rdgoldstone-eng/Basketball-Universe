@@ -1,29 +1,25 @@
-# Basketballverse v0.96.07
-## Historical Branding Timeline — 1960–1976
-**CURRENT BUILD: v0.96.07**
+# Basketballverse v0.96.11
+## Player Database Audit — 1977–1984
+**CURRENT BUILD: v0.96.11**
 
-Built directly from v0.96.06. The 1946–1959 historical branding timeline remains installed.
+Built directly from v0.96.10.
 
-This section extends the year-aware historical identity/logo resolver through 1976.
-It includes the major relocation/name transitions:
-Minneapolis -> Los Angeles Lakers;
-Philadelphia -> San Francisco -> Golden State Warriors;
-Syracuse Nationals -> Philadelphia 76ers;
-St. Louis -> Atlanta Hawks;
-Chicago Packers -> Chicago Zephyrs -> Baltimore/Capital/Washington Bullets;
-San Diego -> Houston Rockets;
-Cincinnati -> Kansas City-Omaha -> Kansas City Kings.
+This is the first player-by-player post-merger audit block. It checks 1977–1984 for
+the historically important first-round and meaningful later selections that must be
+available to Basketballverse.
 
-It also adds expansion-era identity slots for Chicago Bulls, Seattle SuperSonics,
-Milwaukee Bucks, Phoenix Suns, Cleveland Cavaliers, Buffalo Braves, Portland Trail
-Blazers and New Orleans Jazz.
+Verified anchor points include:
+1977 Kent Benson; 1978 Mychal Thompson; 1979 Magic Johnson; 1980 Joe Barry Carroll;
+1981 Mark Aguirre; 1982 James Worthy; 1983 Ralph Sampson; 1984 Hakeem Olajuwon.
 
-Historical artwork filenames are listed in:
-logos/historical/LOGO_TIMELINE_1960_1976.csv
+The audit also requires important later selections such as Larry Bird, Maurice Cheeks,
+Bill Laimbeer, Kevin McHale, Isiah Thomas, Dominique Wilkins, Clyde Drexler,
+Michael Jordan, Charles Barkley and John Stockton.
 
-The artwork is intentionally externalized into logos/historical/*.webp. The game
-selects the correct file automatically by identity and simulated year. Missing artwork
-falls through the existing UI fallback rather than breaking the page.
+Supplemental players added where the existing class did not expose the required name: 19.
 
-Alternate-history rule remains unchanged: once a franchise diverges from its real
-identity through an in-universe move/rebrand, real-world future branding is not forced.
+Files:
+PLAYER_AUDIT_1977_1984.csv
+PORTRAIT_CHECKLIST_AUDIT_1977_1984.csv
+
+Next audit block: 1985–1992.
