@@ -1,22 +1,20 @@
-# Basketballverse v0.96.14
-## Player Database Audit — 2001–2008
-**CURRENT BUILD: v0.96.14**
+# Basketballverse v0.96.17
+## 1967 Rivalry Era — NBA / ABA Selection
+**CURRENT BUILD: v0.96.17**
 
-Built directly from v0.96.13.
+Built directly from v0.96.16.
 
-Fourth post-merger audit block: 2001 through 2008.
-Required-player pool checked: 96
-Supplemental names added where the current class did not expose the player: 85
+New-game behavior:
+- For the 1967 era, a League dropdown appears directly after the era selector.
+- League choices: NBA or ABA.
+- Selecting ABA filters the team selector to the 11 inaugural 1967-68 ABA franchises.
+- Selecting NBA restores the era's existing NBA team choices.
+- For every other starting era, the League selector is hidden and NBA remains the default.
+- The selected league is exposed through getSelectedLeague() / isABAUniverse() for the next ABA simulation systems.
 
-The No. 1 sequence is Kwame Brown, Yao Ming, LeBron James, Dwight Howard,
-Andrew Bogut, Andrea Bargnani, Greg Oden and Derrick Rose.
+1967 ABA teams:
+Eastern: Indiana Pacers, Kentucky Colonels, Minnesota Muskies, New Jersey Americans, Pittsburgh Pipers.
+Western: Anaheim Amigos, Dallas Chaparrals, Denver Rockets, Houston Mavericks, New Orleans Buccaneers, Oakland Oaks.
 
-The audit also requires major later picks including Tony Parker, Gilbert Arenas,
-Carlos Boozer, Kyle Korver, Kevin Martin, Monta Ellis, Lou Williams, Rajon Rondo,
-Kyle Lowry, Paul Millsap, Marc Gasol, Goran Dragic and DeAndre Jordan.
-
-Files:
-PLAYER_AUDIT_2001_2008.csv
-PORTRAIT_CHECKLIST_AUDIT_2001_2008.csv
-
-Next audit block: 2009–2016.
+This build establishes the startup-selection layer. Next we can wire the ABA choice into
+its own standings, schedule, rules, playoffs, awards, transactions and background NBA simulation.
