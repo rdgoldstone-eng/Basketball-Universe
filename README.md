@@ -1,31 +1,31 @@
-# Basketballverse v0.96.01
-## Historical Draft Database — Section 1: 1947–1954
+# Basketballverse v0.96.02
+## Historical Draft Database — Section 2: 1955–1962
 
-**CURRENT BUILD: v0.96.01**
+**CURRENT BUILD: v0.96.02**
 
-Built directly from v0.95.12.
+Built directly from v0.96.01, so the 1947–1954 classes remain installed.
 
-### Installed historical draft years
-1947, 1948, 1949, 1950, 1951, 1952, 1953, 1954.
+### Newly installed
+1955, 1956, 1957, 1958, 1959, 1960, 1961, 1962.
 
-This section contains 151 named historical prospects. It follows the same practical
-historical-class scope used by Basketballverse's existing later classes: the real
-territorial/first-round core plus important later selections who reached the league or
-matter to league history. It does NOT pretend every one of the hundreds of obscure
-early draft-rights selections is a normal playable pro prospect.
+This section adds 100 historical prospects. The classes preserve the game's
+historical-prospect approach rather than treating every obscure early draft-rights
+selection as an NBA-caliber player.
 
-### Early-draft rules preserved
-- Territorial selections are represented in the historical prospect pool.
-- Draft-day prospect strength is not a hindsight career ranking.
-- The existing draft engine may change actual selection order in an alternate universe.
-- Portrait keys use the permanent player-name convention:
-  `bob_cousy.webp`, `dolph_schayes.webp`, `bob_pettit.webp`, etc.
+Important territorial selections and historically significant later selections are
+included. Prospect ratings are intended to reflect draft-day value rather than simply
+sorting players by eventual NBA career.
 
-### Next sections
-- v0.96.02: 1955–1962
-- v0.96.03: 1963–1970
-- v0.96.04: 1971–1976
-- Then rebuild the complete 1946–47 opening BAA rosters.
+### Portraits
+Permanent naming remains player-name based:
+`bill_russell.webp`
+`elgin_baylor.webp`
+`wilt_chamberlain.webp`
+`oscar_robertson.webp`
+`jerry_west.webp`
 
-Historical draft cross-checks: APBR early draft records, Basketball-Reference draft
-pages, and NBA draft history.
+See `PORTRAIT_CHECKLIST_1955_1962.csv`.
+
+### Next
+v0.96.03 — 1963–1970, including the player-data foundation needed for the playable
+ABA Rivalry Era beginning in 1967.
