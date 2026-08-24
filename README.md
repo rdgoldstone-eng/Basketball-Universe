@@ -1,27 +1,29 @@
-# Basketballverse v0.96.05
-## Corrected 1946–47 BAA Opening Rosters
-**CURRENT BUILD: v0.96.05**
+# Basketballverse v0.96.07
+## Historical Branding Timeline — 1960–1976
+**CURRENT BUILD: v0.96.07**
 
-Built directly from v0.96.04. Draft classes 1947–1976 remain installed.
+Built directly from v0.96.06. The 1946–1959 historical branding timeline remains installed.
 
-The 1946 Founding Era snapshot has been rebuilt around the documented opening-day
-BAA rosters rather than the previous fixed 10-player-per-team approximation.
+This section extends the year-aware historical identity/logo resolver through 1976.
+It includes the major relocation/name transitions:
+Minneapolis -> Los Angeles Lakers;
+Philadelphia -> San Francisco -> Golden State Warriors;
+Syracuse Nationals -> Philadelphia 76ers;
+St. Louis -> Atlanta Hawks;
+Chicago Packers -> Chicago Zephyrs -> Baltimore/Capital/Washington Bullets;
+San Diego -> Houston Rockets;
+Cincinnati -> Kansas City-Omaha -> Kansas City Kings.
 
-- 11 original BAA franchises
-- 129 opening-roster players
-- player/team assignments corrected to the November 1946 starting point
-- later-season acquisitions are not silently placed on opening rosters
-- permanent portrait keys remain name-based
+It also adds expansion-era identity slots for Chicago Bulls, Seattle SuperSonics,
+Milwaukee Bucks, Phoenix Suns, Cleveland Cavaliers, Buffalo Braves, Portland Trail
+Blazers and New Orleans Jazz.
 
-Examples of corrected timing:
-- Jerry Kelly and Jack Garfinkel are no longer treated as Boston opening-roster players.
-- Ed Sadowski begins with Toronto.
-- Leo Mogus begins with Cleveland.
-- Hank Rosenstein begins with New York.
-Those later movements can occur through the season rather than being baked into Nov. 1946.
+Historical artwork filenames are listed in:
+logos/historical/LOGO_TIMELINE_1960_1976.csv
 
-Sources used for roster/timing audit:
-APBR opening-day roster research; Basketball-Reference 1946-47 schedule, transactions,
-team rosters and standings; Washington/Toronto opening-roster historical records.
+The artwork is intentionally externalized into logos/historical/*.webp. The game
+selects the correct file automatically by identity and simulated year. Missing artwork
+falls through the existing UI fallback rather than breaking the page.
 
-See PORTRAIT_CHECKLIST_1946_OPENING_ROSTERS.csv.
+Alternate-history rule remains unchanged: once a franchise diverges from its real
+identity through an in-universe move/rebrand, real-world future branding is not forced.
