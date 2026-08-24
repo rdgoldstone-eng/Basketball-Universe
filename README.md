@@ -1,36 +1,31 @@
-# Basketballverse v0.96.21
-## ABA Franchise Health & Historical Obstacle UI
-**CURRENT BUILD: v0.96.21**
+# Basketballverse v0.96.25
+## Dynamic Post-Merger NBA Alignment & Schedule
+**CURRENT BUILD: v0.96.25**
 
-Built directly from v0.96.20.
+Built directly from v0.96.24.
 
-This update gives the ABA historical-obstacle system accumulated in-universe data.
+After the interactive 1976 merger/dispersal event finishes, Basketballverse now rebuilds
+the NBA around the actual franchises admitted from the ABA.
 
-Each ABA franchise now tracks:
-- attendance and fan interest
-- financial health / cash pressure
-- ownership stability
-- market strength
-- arena quality
-- star power
-- annual business-history snapshots
+Implemented:
+- admitted ABA franchises are inserted into the NBA
+- conferences are assigned from geography, then balanced to within one team
+- four NBA divisions are rebuilt: Atlantic, Central, Midwest, Pacific
+- the alignment is stored in the universe for history/save data
+- a new schedule generator targets 82 games per team
+- every opponent is scheduled home and away first
+- remaining games prioritize division opponents, then conference opponents
+- the resulting alignment is displayed after the merger is completed
+- transition state is created for the 1976-77 NBA preseason
 
-The inaugural 1967-68 attendance environment seeds the starting business conditions.
-After that, franchise health changes from Basketballverse results, star power, market
-conditions and prior health rather than being forced to follow real history.
+Historical grounding:
+The real 1976 merger produced a 22-team NBA after Denver, Indiana, New York and San Antonio
+were admitted. NBA.com's 1976-77 season review confirms the 22-team league and a restructured
+12-team playoff field. Basketballverse uses that as the historical baseline but rebuilds
+alignment dynamically if a different number or identity of ABA franchises joins.
 
-At each annual review, the game can now:
-1. update every franchise's business health,
-2. check that year's real historical pressure points,
-3. attach the current Basketballverse health data to the event,
-4. recommend stay / relocate / emergency financing / fold without forcing it,
-5. feed the accumulated values into the 1976 dynamic merger negotiations.
-
-A renderABAObstaclePanelV09621(year) UI renderer is included for the season/event screens.
-The 1976 review invokes the dynamic merger model from v0.96.20.
-
-Next update:
-- wire annual reviews into the actual season-advance flow,
-- create player/owner choices when an obstacle fires,
-- persist accepted relocations/foldings into franchise identity/history,
-- add the NBA-side vote and merger negotiation screen.
+Next:
+- make playoff qualification dynamically preserve the 1976-77 12-team structure where feasible
+- connect the generated schedule to the existing game simulation
+- make merged ABA rosters/transactions visible everywhere in the NBA UI
+- resume the 1967-76 ABA season simulation loop and player-development/rating work.
