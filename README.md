@@ -1,31 +1,22 @@
-# Basketballverse v0.96.25
-## Dynamic Post-Merger NBA Alignment & Schedule
-**CURRENT BUILD: v0.96.25**
+# Basketballverse v0.96.30
+## Playoff Finals Transition Repair
+**CURRENT BUILD: v0.96.30**
 
-Built directly from v0.96.24.
+Built directly from v0.96.29.
 
-After the interactive 1976 merger/dispersal event finishes, Basketballverse now rebuilds
-the NBA around the actual franchises admitted from the ABA.
+Fixes the playoff error:
+`TypeError: undefined is not an object (evaluating 'f.winnerId')`
 
-Implemented:
-- admitted ABA franchises are inserted into the NBA
-- conferences are assigned from geography, then balanced to within one team
-- four NBA divisions are rebuilt: Atlantic, Central, Midwest, Pacific
-- the alignment is stored in the universe for history/save data
-- a new schedule generator targets 82 games per team
-- every opponent is scheduled home and away first
-- remaining games prioritize division opponents, then conference opponents
-- the resulting alignment is displayed after the merger is completed
-- transition state is created for the 1976-77 NBA preseason
+Cause:
+The older playoff transition code could set playoff round = 4 even when both
+Conference Finals were not present/complete. That left the game labeled "NBA Finals"
+without an actual NBA Finals series. The next playoff action then tried to read
+`f.winnerId` from an undefined Finals object.
 
-Historical grounding:
-The real 1976 merger produced a 22-team NBA after Denver, Indiana, New York and San Antonio
-were admitted. NBA.com's 1976-77 season review confirms the 22-team league and a restructured
-12-team playoff field. Basketballverse uses that as the historical baseline but rebuilds
-alignment dynamically if a different number or identity of ABA franchises joins.
-
-Next:
-- make playoff qualification dynamically preserve the 1976-77 12-team structure where feasible
-- connect the generated schedule to the existing game simulation
-- make merged ABA rosters/transactions visible everywhere in the NBA UI
-- resume the 1967-76 ABA season simulation loop and player-development/rating work.
+Fix:
+- round 3 only advances when BOTH Conference Finals exist, are complete, and have winners
+- the NBA Finals series is created only once
+- round 4 no longer dereferences a missing or incomplete Finals object
+- saves already stuck at round 4 with no Finals series automatically repair back to
+  Conference Finals on load
+- all v0.96.29 ABA, portrait, logo, merger and historical systems are retained
