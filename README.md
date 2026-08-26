@@ -1,24 +1,15 @@
-# Basketballverse v0.96.36
-## Draft Room Renderer Fix
+# Basketballverse v0.96.37
+## Draft Room DOM Rescue
 
-Built after inspecting the exact uploaded stuck save.
+The v0.96.36 screenshot proved that an older/later Draft Room wrapper was still
+redrawing the visible screen after the repaired renderer. The save itself already
+contains the 1947 draft order and 30 prospects.
 
-The save already contains:
-- offseason.phase = Draft
-- draftRoom.active = true
-- draftRoom.year = 1947
-- pickIndex = 0
-- 22 draft slots
-- 30 available historical prospects
-- 0 results
+v0.96.37 therefore fixes the visible DOM directly while the Draft stage is active:
+- forces Sim This Pick and Sim Rest of Draft controls into the on-clock panel
+- forces the loaded draftRoom.available prospects into the visible board
+- refreshes the board after other legacy render wrappers run
+- uses the existing v0.82.4 hard draft-pick engine for selections
+- exposes Continue Offseason when the draft completes
 
-So the draft data was never missing. The failure was presentation/control-side.
-
-v0.96.36 adds a Viewer-specific Draft Room renderer that reads the existing
-draftRoom.available array directly and displays it without depending on the
-controlled-team/scouting presentation path. It also supplies working:
-- Sim This Pick
-- Sim Rest of Draft
-- Continue Offseason after completion
-
-No save repair or restart is required.
+No new save is required.
