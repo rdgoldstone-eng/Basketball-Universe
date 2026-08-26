@@ -1,24 +1,24 @@
-# Basketballverse v0.96.40
-## Draft Room Player Portraits
+# Basketballverse v0.96.41
+## Core Draft Portrait Loader
 
-Built directly from v0.96.39.
+This update changes the ORIGINAL Draft Room prospect row itself instead of
+trying to redraw the Draft Room afterward.
 
-The Draft Room now loads the actual player image files you already placed in
-the /portraits folder.
-
-Filename convention:
-first_last.webp
+Portrait convention is now enforced globally as:
+portraits/first_last.webp
 
 Examples:
-- clifton_mcneely.webp
-- red_rocha.webp
-- wataru_misaka.webp
-- larry_bird.webp
+- portraits/clifton_mcneely.webp
+- portraits/andy_phillip.webp
+- portraits/carl_braun.webp
+- portraits/red_rocha.webp
+- portraits/wataru_misaka.webp
 
-The Draft Room does not generate or embed new images. It requests the existing
-file at:
-portraits/<normalized_player_name>.webp
+The portrait cell is part of each draft prospect row, so legacy Draft Room
+renderers cannot erase it without rendering the same portrait-enabled row again.
 
-If a file is missing, initials remain visible as the fallback.
+Older portrait code that tried first-last.webp is overridden at the end of the
+build so the game consistently uses the underscore filenames already uploaded
+to the /portraits folder.
 
-The permanent Sim This Pick / Sim Rest of Draft controls from v0.96.39 are retained.
+The permanent Draft simulation controls from v0.96.39 remain intact.
