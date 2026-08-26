@@ -1,22 +1,20 @@
-# Basketballverse v0.96.32
-## 1947 Playoff Button / Entry Fix
+# Basketballverse v0.96.33
+## 1946-47 Playoff Entry Root Fix
 
-Built directly from v0.96.31.
+The actual failure was in the v0.96.31 historical-bracket initializer itself:
+it refused to initialize unless `state.currentYear === 1946`.
 
-Root cause found:
-v0.96.31 correctly added the historical 1947 BAA bracket, but the Season screen's
-OPEN PLAYOFFS button had already captured a reference to the older runPostseason()
-function before the v0.96.31 override was installed. Replacing window.runPostseason
-later therefore did not replace that button's saved click handler.
+The UI/end-of-season state can expose a different current calendar year while
+`state.season.year` still correctly identifies the 1946-47 season. That meant
+v0.96.32 successfully caught the button click, called the new initializer, and
+the initializer immediately returned false — visually making the button appear
+to do nothing.
 
-This build:
-- uses the actual season.year to identify the inaugural 1946-47 season
-- replaces the global runPostseason entry point
-- explicitly rewires OPEN PLAYOFFS
-- explicitly rewires BEGIN PLAYOFFS
-- uses click delegation so newly re-rendered buttons are also caught
-- creates the accurate six-team 1947 BAA bracket
-- switches immediately to the Playoffs tab
-- preserves the v0.96.31 historical playoff format and all prior game systems
-
-A clean save is NOT required for this fix.
+v0.96.33:
+- identifies the inaugural season from `state.season.year`
+- creates the six-team 1947 BAA bracket directly
+- no longer depends on the faulty v0.96.31 currentYear guard
+- directly intercepts OPEN PLAYOFFS and BEGIN PLAYOFFS
+- switches to the Playoffs tab after successful creation
+- keeps the historically correct 1947 postseason structure
+- does not require a new save
