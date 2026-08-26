@@ -1,15 +1,21 @@
-# Basketballverse v0.96.37
-## Draft Room DOM Rescue
+# Basketballverse v0.96.38
+## Stable Draft Simulation Buttons
 
-The v0.96.36 screenshot proved that an older/later Draft Room wrapper was still
-redrawing the visible screen after the repaired renderer. The save itself already
-contains the 1947 draft order and 30 prospects.
+Built directly from v0.96.37 after seeing the flashing button on iPhone.
 
-v0.96.37 therefore fixes the visible DOM directly while the Draft stage is active:
-- forces Sim This Pick and Sim Rest of Draft controls into the on-clock panel
-- forces the loaded draftRoom.available prospects into the visible board
-- refreshes the board after other legacy render wrappers run
-- uses the existing v0.82.4 hard draft-pick engine for selections
-- exposes Continue Offseason when the draft completes
+Root cause:
+v0.96.37 used a 250 ms DOM watchdog to keep the loaded draft prospects visible.
+That watchdog continuously destroyed and recreated the Sim Draft buttons. On a
+touch device, a button could disappear between touch-down and touch-up, so it
+looked like it flashed but the click never completed.
 
-No new save is required.
+v0.96.38:
+- removes the 250 ms Draft Room DOM replacement loop
+- keeps the visible Draft Room stable
+- binds Sim This Pick and Sim Rest of Draft with persistent click handlers
+- prevents click propagation from triggering unrelated redraws
+- re-renders only after the draft action finishes
+- retains the loaded 1947 prospects and draft order
+
+Player portraits in the Draft Room are the next UI addition once the simulation
+buttons are confirmed working.
