@@ -1,17 +1,24 @@
-# Basketballverse v0.96.39
-## Permanent Draft Sim Control
+# Basketballverse v0.96.40
+## Draft Room Player Portraits
 
-The Draft Room's internal markup is still being redrawn by legacy renderer layers.
-Instead of putting the simulation button inside that unstable section, v0.96.39
-adds a permanent mobile-friendly control bar directly to document.body.
+Built directly from v0.96.39.
 
-While the offseason is at Draft:
-- Sim This Pick is always available
-- Sim Rest of Draft is always available
-- remaining picks are shown on the button
-- once the draft completes, the same bar becomes Continue Offseason
+The Draft Room now loads the actual player image files you already placed in
+the /portraits folder.
 
-Because this control lives outside the Draft Room renderer, it cannot disappear
-when the old Draft Room UI redraws.
+Filename convention:
+first_last.webp
 
-Player portraits in the Draft Room will be added after this control is confirmed working.
+Examples:
+- clifton_mcneely.webp
+- red_rocha.webp
+- wataru_misaka.webp
+- larry_bird.webp
+
+The Draft Room does not generate or embed new images. It requests the existing
+file at:
+portraits/<normalized_player_name>.webp
+
+If a file is missing, initials remain visible as the fallback.
+
+The permanent Sim This Pick / Sim Rest of Draft controls from v0.96.39 are retained.
