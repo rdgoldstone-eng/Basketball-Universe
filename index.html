@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.04 · Complete Viewer Offseason Sim Controls';
+  const NEW='v0.97.05 · Viewer Personnel Sim Fix';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.04 · Complete Viewer Offseason Sim Controls';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.05 · Viewer Personnel Sim Fix';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.04 · Complete Viewer Offseason Sim Controls';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.05 · Viewer Personnel Sim Fix';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39183,6 +39183,95 @@ document.addEventListener("visibilitychange",()=>{
   if(!document.hidden)setTimeout(ensureSpecificOffseasonButtonsV09704,25);
 });
 setTimeout(ensureSpecificOffseasonButtonsV09704,300);
+})();
+</script>
+<style>
+#bvPersonnelSim09705{
+ position:fixed;left:12px;right:12px;bottom:18px;z-index:1000001;
+ display:none;padding:10px;border:2px solid #e4b82f;border-radius:18px;
+ background:rgba(12,15,23,.97);box-shadow:0 8px 30px rgba(0,0,0,.45)
+}
+#bvPersonnelSim09705 button{
+ width:100%;min-height:54px;border-radius:14px;font-weight:900;
+ background:#f1bd48;color:#111;font-size:16px
+}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.05';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.05 · Viewer Personnel Sim Fix';
+
+function personnelKind09705(){
+ const p=String(state?.offseason?.phase||"").toLowerCase();
+ if(p.includes("re-sign")||p.includes("resign"))return "resign";
+ if(p.includes("free agency"))return "fa";
+ if(p.includes("roster cut"))return "cuts";
+ return "";
+}
+
+function advancePersonnelPhase09705(){
+ const o=state.offseason;
+ o.processed=o.processed||{};
+ o.processed[o.phase]=true;
+ o.phaseIndex=Number(o.phaseIndex||0)+1;
+ o.phase=o.phases?.[o.phaseIndex]||"Next Season";
+}
+
+function simulatePersonnel09705(){
+ const kind=personnelKind09705();
+ if(!kind)return;
+ try{
+   if(kind==="resign"){
+     if(typeof runLeagueReSigningsAI==="function")runLeagueReSigningsAI();
+     else throw new Error("Re-signings AI not found");
+   }else if(kind==="fa"){
+     if(typeof runFreeAgencyAI==="function")runFreeAgencyAI();
+     else throw new Error("Free Agency AI not found");
+   }else if(kind==="cuts"){
+     if(typeof runRosterCutsAI==="function")runRosterCutsAI();
+     if(typeof refreshAllAIRotations==="function")refreshAllAIRotations();
+   }
+   advancePersonnelPhase09705();
+   saveState?.();
+   renderAll?.();
+   renderOffseason?.();
+   switchTab?.("offseason");
+ }catch(e){
+   console.error("Viewer personnel simulation failed",kind,e);
+ }
+ setTimeout(updatePersonnelButton09705,50);
+}
+window.simulatePersonnel09705=simulatePersonnel09705;
+
+function updatePersonnelButton09705(){
+ let box=document.getElementById("bvPersonnelSim09705");
+ if(!box){
+   box=document.createElement("div");
+   box.id="bvPersonnelSim09705";
+   document.body.appendChild(box);
+ }
+ const kind=personnelKind09705();
+
+ // Do not depend on offseason.active or season.phase. Those checks were why
+ // the previous buttons could disappear even while the user was visibly on
+ // one of these offseason stages.
+ if(state?.role!=="Viewer"||!kind){
+   box.style.display="none";
+   return;
+ }
+ const label=kind==="resign"?"Sim Re-sign Players":
+             kind==="fa"?"Sim Free Agency":"Sim Roster Cuts";
+ box.style.display="block";
+ box.innerHTML=`<button type="button" id="bvPersonnelBtn09705">${label}</button>`;
+ document.getElementById("bvPersonnelBtn09705").onclick=e=>{
+   e.preventDefault();e.stopPropagation();simulatePersonnel09705();
+ };
+}
+
+// A lightweight visibility check only; it never rebuilds the offseason page.
+setInterval(updatePersonnelButton09705,500);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)updatePersonnelButton09705();});
+setTimeout(updatePersonnelButton09705,100);
 })();
 </script>
 </body>
