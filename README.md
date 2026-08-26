@@ -1,30 +1,14 @@
-# Basketballverse v0.96.34
-## Core 1947 Playoff Initialization Fix
+# Basketballverse v0.96.35
+## Early Draft Room Recovery
 
-This build was made after inspecting the actual uploaded Viewer save.
+Fixes the next blocker found after the repaired 1947 postseason:
+- early historical draft class exists but Draft Room can open with an empty/stale draftRoom
+- Draft stage can then have no prospects and no usable path forward
+- Viewer mode now has an explicit Sim Rest of Draft control
+- completed drafts always expose Continue Offseason
 
-Verified save state:
-- startYear: 1946
-- currentYear: 1946
-- season.year: 1946
-- role: Viewer
-- phase: Regular Season Complete
-- 11 teams: 6 East / 5 West
-- every team completed 82 games
-- playoffState is absent
+For 1947-1976, if the offseason is at Draft and the room is empty before any picks
+have been made, the game rebuilds the Draft Room directly from the loaded historical
+class for currentYear + 1.
 
-The save is healthy. The failure is in the game code.
-
-Previous fixes were appended overrides. v0.96.34 changes the original CORE
-initPostseasonExperience() function itself. When season.year is 1946 it creates
-the historical six-team 1947 BAA bracket before the generic later-era
-6-teams-per-conference logic can run.
-
-The original runPostseason() function is also changed in place so it:
-1. initializes the postseason,
-2. verifies playoffState exists,
-3. sets phase to Playoffs,
-4. saves immediately,
-5. opens the Playoffs screen.
-
-No new save is required.
+No new universe is required.
