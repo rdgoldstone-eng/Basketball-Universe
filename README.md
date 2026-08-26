@@ -1,16 +1,22 @@
-# Basketballverse v0.97.02
-## Recovery Baseline — Visible Build Identity Fix
+# Basketballverse v0.97.03
+## Viewer Offseason Sim Controls
 
-Important finding:
-v0.97.01 *was intentionally using the exact v0.96.39 runtime* so we could return
-to the last confirmed-working game. The startup page and footer, however, had
-already rendered the old v0.96.39 label before the final recovery metadata ran.
-That made a newly uploaded recovery build look exactly like the old build.
+Built directly from the confirmed-loading v0.97.02 recovery baseline.
 
-v0.97.02 keeps the same confirmed-working runtime and explicitly refreshes the
-visible build label after the page has loaded.
+Viewer mode now gets a persistent simulation control for every non-draft
+offseason stage:
 
-If GitHub Pages is serving this file, the page will visibly show:
-v0.97.02 · Recovery Baseline
+- Sim Awards
+- Sim Retirements
+- Sim Development
+- Set Draft Order
+- Sim Re-signings
+- Sim Free Agency
+- Sim Roster Cuts
+- Start Next Season
 
-No gameplay behavior is changed in this version.
+The Draft stage keeps the already-working permanent Sim This Pick /
+Sim Rest of Draft controls from v0.96.39.
+
+Each offseason button uses the game's existing AI/offseason engine and advances
+exactly one task, so it does not bypass historical logic or alter GM behavior.

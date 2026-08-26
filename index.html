@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.02 · Recovery Baseline';
+  const NEW='v0.97.03 · Viewer Offseason Sim Controls';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -38989,6 +38989,121 @@ setTimeout(updateDraftSimBarV09639,100);
   }
   setTimeout(refreshVisibleBuildLabel,50);
   setTimeout(refreshVisibleBuildLabel,500);
+})();
+</script>
+<style id="bv09703OffseasonSimCSS">
+#bvOffseasonSimBar09703{
+  position:fixed;left:12px;right:12px;bottom:18px;z-index:999998;
+  display:none;gap:10px;align-items:center;justify-content:center;
+  padding:10px;border:2px solid #e4b82f;border-radius:18px;
+  background:rgba(12,15,23,.96);box-shadow:0 8px 30px rgba(0,0,0,.45)
+}
+#bvOffseasonSimBar09703 button{
+  min-height:52px;padding:12px 20px;border-radius:14px;font-weight:900
+}
+#bvOffseasonSimBar09703 .primary{background:#f1bd48;color:#111}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.03';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.03 · Viewer Offseason Sim Controls';
+
+const OffseasonSimV09703={
+  labels:{
+    "Awards":"Sim Awards",
+    "Retirements":"Sim Retirements",
+    "Development":"Sim Development",
+    "Draft Order":"Set Draft Order",
+    "Draft":"Open Draft Room",
+    "Re-signings":"Sim Re-signings",
+    "Free Agency":"Sim Free Agency",
+    "Roster Cuts":"Sim Roster Cuts",
+    "Next Season":"Start Next Season"
+  },
+
+  active(){
+    return !!(window.state && state.role==="Viewer" &&
+      state.season?.phase==="Season Complete" &&
+      state.offseason?.active);
+  },
+
+  bar(){
+    let el=document.getElementById("bvOffseasonSimBar09703");
+    if(!el){
+      el=document.createElement("div");
+      el.id="bvOffseasonSimBar09703";
+      document.body.appendChild(el);
+    }
+    return el;
+  },
+
+  run(){
+    if(!this.active())return;
+    const p=state.offseason?.phase;
+    try{
+      if(p==="Draft"){
+        if(typeof openScheduledDraftRoom==="function")openScheduledDraftRoom();
+        else switchTab?.("draftroom");
+      }else if(p==="Next Season"){
+        // Use the game's final protected next-season path.
+        if(typeof startNextSeasonV0892==="function")startNextSeasonV0892();
+        else if(typeof startNextSeasonV0891==="function")startNextSeasonV0891();
+        else advanceOffseason?.();
+      }else{
+        // The core advance function already performs the correct AI action for
+        // Awards, Retirements, Development, Draft Order, Re-signings,
+        // Free Agency and Roster Cuts, then advances exactly one stage.
+        advanceOffseason?.();
+      }
+    }catch(e){
+      console.error("Viewer offseason simulation failed",p,e);
+    }
+    try{saveState?.();renderAll?.();renderOffseason?.();}catch(_){}
+    setTimeout(()=>this.update(),50);
+  },
+
+  update(){
+    const bar=this.bar();
+    if(!this.active()){
+      bar.style.display="none";
+      return;
+    }
+
+    const p=state.offseason?.phase;
+    // Draft already has its own permanent simulation bar from v0.96.39.
+    if(p==="Draft"){
+      bar.style.display="none";
+      return;
+    }
+
+    const label=this.labels[p]||"Sim Offseason Task";
+    bar.style.display="flex";
+    bar.innerHTML=`<button type="button" class="primary" id="bvOffseasonSimBtn09703">${label}</button>`;
+    const b=document.getElementById("bvOffseasonSimBtn09703");
+    if(b)b.onclick=e=>{
+      e.preventDefault();e.stopPropagation();
+      OffseasonSimV09703.run();
+    };
+  }
+};
+window.OffseasonSimV09703=OffseasonSimV09703;
+
+// Keep the bar synced after normal offseason renders without replacing any
+// existing offseason UI or gameplay functions.
+const prevRenderOffseasonV09703=window.renderOffseason;
+if(typeof prevRenderOffseasonV09703==="function"){
+  window.renderOffseason=function(){
+    const r=prevRenderOffseasonV09703.apply(this,arguments);
+    setTimeout(()=>OffseasonSimV09703.update(),0);
+    return r;
+  };
+  try{renderOffseason=window.renderOffseason;}catch(_){}
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden)setTimeout(()=>OffseasonSimV09703.update(),25);
+});
+setTimeout(()=>OffseasonSimV09703.update(),250);
 })();
 </script>
 </body>
