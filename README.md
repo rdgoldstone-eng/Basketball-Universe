@@ -1,26 +1,18 @@
-# Basketballverse v0.97.00
-## Stabilization Baseline
+# Basketballverse v0.97.01
+## Recovery Baseline
 
-First cleanup/refactor build.
+The first v0.97.00 cleanup attempt removed runtime layers too aggressively and
+could prevent the game from loading.
 
-Removed the stacked Draft Room rescue layers introduced in v0.96.35-v0.96.39
-and replaced them with one authoritative DraftControllerV09700.
+v0.97.01 intentionally returns to the exact confirmed-working v0.96.39 runtime.
+No Draft Room, playoff, save, portrait, logo, historical, ABA, merger, or
+offseason logic has been removed or rewritten in this build.
 
-Preserved:
-- v0.96.34 playoff initialization fix
-- historical data and draft classes
-- save structure
-- league/ABA/merger systems
-- portraits and logo asset systems
-- established draft-pick engine
+This gives us a safe baseline before the cleanup/refactor is attempted again in
+smaller, testable pieces.
 
-Viewer Draft behavior now has one path for:
-- draft initialization recovery
-- loaded prospect visibility
-- Sim This Pick
-- Sim Rest of Draft
-- draft completion
-- Continue Offseason
-
-No Draft Room redesign or portrait UI change is intentional in this build.
-Next test: 1946 season -> 1947 playoffs -> offseason -> 1947 Draft -> next season.
+Confirmed behavior carried forward from v0.96.39:
+- game loads
+- Viewer Draft Room displays the loaded historical prospect list
+- permanent Sim This Pick / Sim Rest of Draft controls
+- existing save compatibility

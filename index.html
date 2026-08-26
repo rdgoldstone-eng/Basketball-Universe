@@ -38559,160 +38559,406 @@ function wireV09633(){
 setInterval(wireV09633,500);
 })();
 </script>
-
-
-
-
-<style id="bv09700StabilizationCSS">
-#bvDraftSimBar09700{
- position:fixed;left:12px;right:12px;bottom:18px;z-index:999999;
- display:none;gap:10px;align-items:center;justify-content:center;
- padding:10px;border:2px solid #e4b82f;border-radius:18px;
- background:rgba(12,15,23,.96);box-shadow:0 8px 30px rgba(0,0,0,.45)
-}
-#bvDraftSimBar09700 button{min-height:52px;padding:12px 18px;border-radius:14px;font-weight:800}
-#bvDraftSimBar09700 .primary{padding-left:22px;padding-right:22px;font-weight:900;background:#f1bd48;color:#111}
-</style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.00';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.00 · Stabilization Baseline';
+window.BASKETBALLVERSE_BUILD='v0.96.35';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.96.39 · Permanent Draft Sim Control';
 
-const DraftControllerV09700={
- inDraft(){return state?.offseason?.phase==="Draft";},
- room(){return state?.draftRoom||null;},
+function repairEarlyDraftRoomV09635(){
+  if(!window.state?.offseason || state.offseason.phase!=="Draft")return false;
+  if(Number(state.currentYear)>1976)return false;
+  try{ensureDraftClasses?.();}catch(_){}
+  try{window.installEarlyDraftClassesV09601?.();}catch(_){}
+  try{window.installDraftClassesV09602?.();}catch(_){}
+  try{window.installDraftClassesV09603?.();}catch(_){}
+  try{window.installDraftClassesV09604?.();}catch(_){}
+  ensureDraftRoom?.();
 
- ensure(){
-   if(!this.inDraft())return null;
-   try{ensureDraftClasses?.();ensureDraftRoom?.();}catch(_){}
-   const d=this.room();if(!d)return null;
-   const year=Number(state?.currentYear||1946)+1;
-   const cls=(state?.draftClasses?.[String(year)]||[]).filter(Boolean);
+  const year=Number(state.currentYear)+1;
+  const cls=(state.draftClasses?.[String(year)]||[]).filter(Boolean);
+  const dr=state.draftRoom;
 
-   if(!d.completed&&(!Array.isArray(d.order)||!d.order.length)){
-     try{d.order=buildDraftOrder?.()||[];}catch(_){d.order=[];}
-   }
-   if(!d.completed&&(!Array.isArray(d.available)||!d.available.length)&&
-      (!Array.isArray(d.results)||!d.results.length)&&cls.length){
-     d.active=true;d.completed=false;d.year=year;d.pickIndex=0;
-     d.available=JSON.parse(JSON.stringify(cls)).map((p,i)=>({
-       ...p,draftId:p.draftId||p.id||`draft_${year}_${i}`
-     }));
-     d.results=[];d.tradeOffers=[];
-   }
-   if(d.order?.length&&Number(d.pickIndex||0)>=d.order.length){
-     d.active=false;d.completed=true;
-   }
-   return d;
- },
+  // A stale/empty Draft Room can be carried into the offseason. Rebuild it
+  // from the loaded historical class instead of leaving the user trapped.
+  if((!dr.active&&!dr.completed) || (dr.active && !(dr.available||[]).length && !(dr.results||[]).length)){
+    if(!cls.length)return false;
+    dr.active=true;dr.completed=false;dr.year=year;dr.pickIndex=0;
+    dr.order=buildDraftOrder();
+    dr.available=JSON.parse(JSON.stringify(cls)).map((p,i)=>({
+      ...p,draftedBy:null,draftPick:null,draftId:p.id||`draft_${year}_${i}`
+    }));
+    dr.results=[];dr.tradeOffers=[];
+    try{generateDraftTradeOffers?.();}catch(_){}
+    try{saveState?.();}catch(_){}
+    return true;
+  }
 
- pick(){
-   const d=this.ensure();if(!d?.active)return false;
-   const before=Number(d.pickIndex||0);
-   let r=null;
-   if(typeof executeDraftPickV0824==="function")r=executeDraftPickV0824();
-   else{
-     const pick=d.order?.[d.pickIndex];
-     const team=pick&&state.teams?.find(t=>String(t.id)===String(pick.teamId));
-     const p=team&&typeof aiDraftChoice==="function"?aiDraftChoice(team.name):d.available?.[0];
-     if(p&&typeof makeDraftPick==="function"){makeDraftPick(p.draftId||p.id);r={ok:true};}
-   }
-   const advanced=Number(d.pickIndex||0)>before||!d.active||d.completed;
-   if(!r?.ok&&!advanced)return false;
-   try{saveState?.();}catch(_){}
-   this.refresh();return true;
- },
-
- rest(){
-   const d=this.ensure();if(!d)return 0;
-   let made=0,guard=500;
-   while(d.active&&guard--){
-     const before=Number(d.pickIndex||0);
-     let r=null;
-     if(typeof executeDraftPickV0824==="function")r=executeDraftPickV0824();
-     else{
-       const pick=d.order?.[d.pickIndex];
-       const team=pick&&state.teams?.find(t=>String(t.id)===String(pick.teamId));
-       const p=team&&typeof aiDraftChoice==="function"?aiDraftChoice(team.name):d.available?.[0];
-       if(p&&typeof makeDraftPick==="function"){makeDraftPick(p.draftId||p.id);r={ok:true};}
-     }
-     if(Number(d.pickIndex||0)<=before&&d.active){console.error("Draft stalled",r);break;}
-     made++;
-   }
-   if(d.order?.length&&Number(d.pickIndex||0)>=d.order.length){d.active=false;d.completed=true;}
-   try{saveState?.();}catch(_){}
-   this.refresh();return made;
- },
-
- finish(){
-   const d=this.ensure();if(d?.active)return;
-   try{
-     if(typeof continueAfterDraft==="function")continueAfterDraft();
-     else if(typeof advanceOffseasonPhase==="function")advanceOffseasonPhase();
-   }catch(e){console.error(e);}
-   try{saveState?.();renderAll?.();}catch(_){}
-   this.updateBar();
- },
-
- renderViewerBoard(){
-   const d=this.ensure();if(!d||state?.role!=="Viewer")return;
-   const on=document.getElementById("draftOnClockBox");
-   const board=document.getElementById("draftProspectBoard");
-   const clock=document.getElementById("draftClockLabel");
-   const results=document.getElementById("draftResultsBox");
-   const pick=d.order?.[d.pickIndex]||null;
-   const team=pick&&state.teams?.find(t=>String(t.id)===String(pick.teamId));
-
-   if(clock)clock.textContent=pick?`Round ${pick.round} · Pick ${pick.pickInRound} · #${pick.pick} overall of ${d.order.length}`:"Draft complete.";
-   if(on)on.innerHTML=d.active
-      ?`<h3>${team?.name||pick?.teamName||"Team"} is on the clock</h3><div class="small muted" style="margin-top:10px">${d.available?.length||0} prospects available.</div>`
-      :`<b>The ${d.year||""} draft is complete.</b>`;
-
-   if(board&&d.active&&d.available?.length){
-     const sorted=d.available.slice().sort((a,b)=>Number(b.prospect??b.ovr??b.rating??0)-Number(a.prospect??a.ovr??a.rating??0));
-     board.innerHTML=sorted.map((p,i)=>`<div class="draftProspect"><b>${i+1}</b><div><b>${p.name}</b><div class="small muted">${p.pos||"—"} · Age ${p.age||"—"}${p.college?` · ${p.college}`:""}</div></div><div>OVR ${p.ovr??p.rating??p.prospect??"—"}</div><div>POT ${p.pot??p.potential??p.ceilingHigh??"—"}</div><div class="draftHide"></div></div>`).join("");
-   }
-   if(results)results.innerHTML=(d.results||[]).length
-     ?d.results.slice().reverse().map(r=>`<div class="draftPickRow"><b>R${r.round||1} #${r.pickInRound||r.pick}</b><div><b>${r.teamName}</b></div><div>${r.playerName} · ${r.pos||"—"}</div></div>`).join("")
-     :`<span class="muted">No picks have been made.</span>`;
- },
-
- bar(){
-   let b=document.getElementById("bvDraftSimBar09700");
-   if(!b){b=document.createElement("div");b.id="bvDraftSimBar09700";document.body.appendChild(b);}
-   return b;
- },
-
- updateBar(){
-   const b=this.bar();
-   if(!this.inDraft()||state?.role!=="Viewer"){b.style.display="none";return;}
-   const d=this.ensure();b.style.display="flex";
-   if(d?.active){
-     const rem=Math.max(0,(d.order?.length||0)-Number(d.pickIndex||0));
-     b.innerHTML=`<button id="bvDraftOne09700">Sim This Pick</button><button class="primary" id="bvDraftRest09700">Sim Rest of Draft (${rem})</button>`;
-     document.getElementById("bvDraftOne09700").onclick=e=>{e.preventDefault();e.stopPropagation();DraftControllerV09700.pick();};
-     document.getElementById("bvDraftRest09700").onclick=e=>{e.preventDefault();e.stopPropagation();DraftControllerV09700.rest();};
-   }else{
-     b.innerHTML=`<button class="primary" id="bvDraftContinue09700">Continue Offseason</button>`;
-     document.getElementById("bvDraftContinue09700").onclick=e=>{e.preventDefault();e.stopPropagation();DraftControllerV09700.finish();};
-   }
- },
-
- refresh(){if(this.inDraft())this.renderViewerBoard();this.updateBar();}
-};
-window.DraftControllerV09700=DraftControllerV09700;
-
-const coreRenderDraftRoomV09700=window.renderDraftRoom;
-if(typeof coreRenderDraftRoomV09700==="function"){
- window.renderDraftRoom=function(){
-   const r=coreRenderDraftRoomV09700.apply(this,arguments);
-   setTimeout(()=>DraftControllerV09700.refresh(),0);
-   return r;
- };
- try{renderDraftRoom=window.renderDraftRoom;}catch(_){}
+  // If every scheduled pick has been made, normalize completion so the
+  // Continue Offseason control always appears.
+  if(dr.active && dr.order?.length && Number(dr.pickIndex||0)>=dr.order.length){
+    dr.active=false;dr.completed=true;
+    try{saveState?.();}catch(_){}
+    return true;
+  }
+  return false;
 }
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(()=>DraftControllerV09700.refresh(),25);});
-setTimeout(()=>DraftControllerV09700.refresh(),250);
+window.repairEarlyDraftRoomV09635=repairEarlyDraftRoomV09635;
+
+function simViewerDraftV09635(){
+  repairEarlyDraftRoomV09635();
+  const dr=state.draftRoom;
+  let guard=500;
+  while(dr?.active && guard--){
+    const team=currentDraftTeam?.();
+    if(!team)break;
+    const p=aiDraftChoice?.(team.name);
+    if(!p)break;
+    makeDraftPick?.(p.draftId||p.id);
+  }
+  if(dr && (!dr.active || Number(dr.pickIndex||0)>=Number(dr.order?.length||0))){
+    dr.active=false;dr.completed=true;
+  }
+  try{renderDraftRoom?.();renderAll?.();saveState?.();}catch(_){}
+}
+window.simViewerDraftV09635=simViewerDraftV09635;
+
+const oldRenderDraftRoomV09635=window.renderDraftRoom;
+window.renderDraftRoom=function(){
+  repairEarlyDraftRoomV09635();
+  const r=oldRenderDraftRoomV09635?.apply(this,arguments);
+  const dr=state?.draftRoom;
+  const on=document.getElementById("draftOnClockBox");
+  if(on && state?.offseason?.phase==="Draft"){
+    if(dr?.active && (state.role==="Viewer"||state.role==="Commissioner")){
+      const extra=document.createElement("div");
+      extra.style.marginTop="10px";
+      extra.innerHTML=`<button class="primary" onclick="simViewerDraftV09635()">Sim Rest of Draft</button>`;
+      on.appendChild(extra);
+    }else if(dr?.completed && !on.querySelector("button")){
+      on.insertAdjacentHTML("beforeend",`<div style="margin-top:10px"><button class="primary" onclick="continueAfterDraft()">Continue Offseason</button></div>`);
+    }
+  }
+  return r;
+};
+try{renderDraftRoom=window.renderDraftRoom;}catch(_){}
+
+const oldOpenScheduledDraftRoomV09635=window.openScheduledDraftRoom;
+window.openScheduledDraftRoom=function(){
+  repairEarlyDraftRoomV09635();
+  return oldOpenScheduledDraftRoomV09635?.apply(this,arguments);
+};
+try{openScheduledDraftRoom=window.openScheduledDraftRoom;}catch(_){}
+
+setTimeout(()=>{try{if(repairEarlyDraftRoomV09635()){renderDraftRoom?.();renderAll?.();}}catch(_){}},300);
+})();
+</script>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.96.36';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.96.39 · Permanent Draft Sim Control';
+
+function draftStateValidV09636(){
+  const d=window.state?.draftRoom;
+  return !!(state?.offseason?.phase==="Draft" && d && d.active &&
+            Array.isArray(d.order) && d.order.length &&
+            Array.isArray(d.available) && d.available.length);
+}
+
+function renderDraftRoomV09636(){
+  if(!draftStateValidV09636()) return false;
+  const d=state.draftRoom;
+  const pick=d.order[d.pickIndex]||null;
+  const team=pick?state.teams.find(t=>String(t.id)===String(pick.teamId)):null;
+
+  const title=document.getElementById("draftRoomTitle");
+  const clock=document.getElementById("draftClockLabel");
+  const on=document.getElementById("draftOnClockBox");
+  const need=document.getElementById("draftTeamNeed");
+  const board=document.getElementById("draftProspectBoard");
+  const offers=document.getElementById("draftTradeOffers");
+  const results=document.getElementById("draftResultsBox");
+  if(!title||!clock||!on||!board)return false;
+
+  title.textContent=`${d.year||1947} Draft Room`;
+  clock.textContent=pick
+    ? `Round ${pick.round} · Pick ${pick.pickInRound} · #${pick.pick} overall of ${d.order.length}`
+    : "Draft complete.";
+
+  on.innerHTML=pick
+    ? `<h3>${team?.name||pick.teamName||"Team"} is on the clock</h3>
+       <div style="display:flex;gap:8px;flex-wrap:wrap">
+         <button class="primary" onclick="simNextDraftPickV09636()">Sim This Pick</button>
+         <button class="primary" onclick="simRestDraftV09636()">Sim Rest of Draft</button>
+       </div>`
+    : `<b>The ${d.year||""} draft is complete.</b>
+       <div style="margin-top:10px"><button class="primary" onclick="continueAfterDraft()">Continue Offseason</button></div>`;
+
+  if(need) need.innerHTML=`<span class="muted">${team?team.name+" is selecting.":"No team on the clock."}</span>`;
+
+  const sorted=d.available.slice().sort((a,b)=>
+    Number(b.prospect??b.ovr??b.rating??0)-Number(a.prospect??a.ovr??a.rating??0)
+  );
+  board.innerHTML=sorted.length ? sorted.map((p,i)=>`
+    <div class="draftProspect">
+      <b>${i+1}</b>
+      <div><b>${p.name}</b><div class="small muted">${p.pos||"—"} · Age ${p.age||"—"}${p.college?` · ${p.college}`:""}</div></div>
+      <div>Grade ${p.prospect??p.ovr??p.rating??"—"}</div>
+      <div>Ceiling ${p.ceilingLow??"—"}-${p.ceilingHigh??"—"}</div>
+      <div class="draftHide"></div>
+    </div>`).join("") : `<span class="muted">No prospects remaining.</span>`;
+
+  if(offers) offers.innerHTML=`<span class="muted">Viewer mode — draft controlled by simulation.</span>`;
+  if(results) results.innerHTML=(d.results||[]).length
+    ? d.results.slice().reverse().map(r=>`<div class="draftPickRow"><b>R${r.round||1} #${r.pickInRound||r.pick}</b><div><b>${r.teamName}</b></div><div>${r.playerName} · ${r.pos}</div></div>`).join("")
+    : `<span class="muted">No picks have been made.</span>`;
+  return true;
+}
+
+window.simNextDraftPickV09636=function(){
+  const d=state?.draftRoom;if(!d?.active)return;
+  const pick=d.order[d.pickIndex], team=pick&&state.teams.find(t=>String(t.id)===String(pick.teamId));
+  if(!pick||!team)return;
+  const p=aiDraftChoice(team.name);
+  if(!p)return;
+  makeDraftPick(p.draftId||p.id);
+  renderDraftRoomV09636();
+};
+
+window.simRestDraftV09636=function(){
+  let guard=500;
+  while(state?.draftRoom?.active && guard--){
+    const d=state.draftRoom;
+    const pick=d.order[d.pickIndex], team=pick&&state.teams.find(t=>String(t.id)===String(pick.teamId));
+    if(!pick||!team||!d.available?.length)break;
+    const p=aiDraftChoice(team.name)||d.available[0];
+    makeDraftPick(p.draftId||p.id);
+  }
+  if(state?.draftRoom && !state.draftRoom.active){
+    state.draftRoom.completed=true;
+    if(state.offseason)state.offseason.draftComplete=true;
+    saveState();
+  }
+  renderDraftRoomV09636();
+};
+
+/* Use the simple renderer for Viewer mode. It deliberately avoids the scouting/
+   controlled-team path that was leaving the real loaded 1947 class invisible. */
+const priorRenderDraftRoomV09636=window.renderDraftRoom;
+window.renderDraftRoom=function(){
+  if(state?.role==="Viewer" && draftStateValidV09636())return renderDraftRoomV09636();
+  return priorRenderDraftRoomV09636?.apply(this,arguments);
+};
+try{renderDraftRoom=window.renderDraftRoom;}catch(_){}
+
+/* Re-render after tab changes/import/load without altering the save. */
+document.addEventListener("click",function(){
+  setTimeout(()=>{if(state?.role==="Viewer"&&draftStateValidV09636())renderDraftRoomV09636();},25);
+},true);
+setTimeout(()=>{if(state?.role==="Viewer"&&draftStateValidV09636())renderDraftRoomV09636();},350);
+})();
+</script>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.96.37';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.96.39 · Permanent Draft Sim Control';
+
+function draftRescueActiveV09637(){
+  const d=window.state?.draftRoom;
+  return state?.offseason?.phase==="Draft" && d && d.active &&
+    Array.isArray(d.order) && d.order.length>0 &&
+    Array.isArray(d.available) && d.available.length>0;
+}
+
+function executeOneV09637(){
+  if(!draftRescueActiveV09637())return;
+  try{
+    const r=(typeof executeDraftPickV0824==="function")?executeDraftPickV0824():null;
+    if(!r?.ok) console.error("Draft rescue pick failed",r);
+    saveState?.(); renderAll?.();
+  }catch(e){console.error("Draft rescue pick exception",e);}
+  setTimeout(forceDraftDOMV09637,25);
+}
+window.executeOneV09637=executeOneV09637;
+
+function executeRestV09637(){
+  const room=document.getElementById("draftroom");
+  if(room)room.style.pointerEvents="none";
+  let guard=300;
+  while(draftRescueActiveV09637() && guard--){
+    const before=Number(state.draftRoom.pickIndex||0);
+    const r=(typeof executeDraftPickV0824==="function")?executeDraftPickV0824():null;
+    if(!r?.ok || Number(state.draftRoom.pickIndex||0)<=before){
+      console.error("Sim Rest of Draft stopped",r);
+      break;
+    }
+  }
+  if(room)room.style.pointerEvents="";
+  try{saveState?.();renderAll?.();}catch(_){}
+  setTimeout(forceDraftDOMV09637,40);
+}
+window.executeRestV09637=executeRestV09637;
+
+function forceDraftDOMV09637(){
+  if(state?.offseason?.phase!=="Draft")return;
+  const d=state.draftRoom;
+  if(!d)return;
+
+  const on=document.getElementById("draftOnClockBox");
+  const board=document.getElementById("draftProspectBoard");
+  const results=document.getElementById("draftResultsBox");
+  const clock=document.getElementById("draftClockLabel");
+  if(!on||!board)return;
+
+  if(d.active){
+    const pick=d.order?.[d.pickIndex];
+    const team=pick && state.teams?.find(t=>String(t.id)===String(pick.teamId));
+    if(clock && pick) clock.textContent=`Round ${pick.round} · Pick ${pick.pickInRound} · #${pick.pick} overall of ${d.order.length}`;
+    on.innerHTML=`<h3>${team?.name||pick?.teamName||"Team"} is on the clock</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button type="button" id="bvSimThisPickBtn">Sim This Pick</button>
+        <button type="button" class="primary" id="bvSimRestDraftBtn">Sim Rest of Draft</button>
+      </div>
+      <div class="small muted" style="margin-top:10px">${d.available.length} prospects available.</div>`;
+
+    const prospects=d.available.slice().sort((a,b)=>Number(b.prospect||b.ovr||b.rating||0)-Number(a.prospect||a.ovr||a.rating||0));
+    board.innerHTML=prospects.map((p,i)=>`<div class="draftProspect">
+      <b>${i+1}</b>
+      <div><b>${p.name}</b><div class="small muted">${p.pos||"—"} · Age ${p.age||"—"}${p.college?` · ${p.college}`:""}</div></div>
+      <div>OVR ${p.ovr??p.rating??p.prospect??"—"}</div>
+      <div>POT ${p.pot??p.potential??p.ceilingHigh??"—"}</div>
+      <div class="draftHide"></div>
+    </div>`).join("");
+  }else{
+    if(clock)clock.textContent="Draft complete.";
+    on.innerHTML=`<b>The ${d.year||""} draft is complete.</b>
+      <div style="margin-top:12px"><button type="button" class="primary" onclick="continueAfterDraft()">Continue Offseason</button></div>`;
+    board.innerHTML=`<span class="muted">Draft complete.</span>`;
+  }
+
+  if(results){
+    results.innerHTML=(d.results||[]).length
+      ? d.results.slice().reverse().map(r=>`<div class="draftPickRow"><b>R${r.round||1} #${r.pickInRound||r.pick}</b><div><b>${r.teamName}</b></div><div>${r.playerName} · ${r.pos||"—"}</div></div>`).join("")
+      : `<span class="muted">No picks have been made.</span>`;
+  }
+
+  const one=document.getElementById("bvSimThisPickBtn");
+  const rest=document.getElementById("bvSimRestDraftBtn");
+  if(one) one.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();executeOneV09637();};
+  if(rest) rest.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();executeRestV09637();};
+}
+window.forceDraftDOMV09637=forceDraftDOMV09637;
+
+/* The old game has several later wrappers that redraw this screen after the
+   renderer runs. This watchdog intentionally repairs the VISIBLE DOM after
+   those wrappers finish, so the user cannot be left with an empty board. */
+/* v0.96.38: keep the Draft Room DOM stable. The old 250ms watchdog
+   continuously destroyed/recreated the buttons, which made taps flash and miss. */
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(forceDraftDOMV09637,50);});
+setTimeout(forceDraftDOMV09637,100);
+})();
+</script>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.96.39';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.96.39 · Permanent Draft Sim Control';
+
+function ensureDraftSimBarV09639(){
+  let bar=document.getElementById("bvPermanentDraftSimBar");
+  if(!bar){
+    bar=document.createElement("div");
+    bar.id="bvPermanentDraftSimBar";
+    bar.style.cssText=[
+      "position:fixed","left:12px","right:12px","bottom:18px","z-index:999999",
+      "display:none","gap:10px","align-items:center","justify-content:center",
+      "padding:10px","border:2px solid #e4b82f","border-radius:18px",
+      "background:rgba(12,15,23,.96)","box-shadow:0 8px 30px rgba(0,0,0,.45)"
+    ].join(";");
+    document.body.appendChild(bar);
+  }
+  return bar;
+}
+
+function simOnePermanentV09639(){
+  const d=state?.draftRoom;
+  if(!d?.active)return;
+  const before=Number(d.pickIndex||0);
+  const r=(typeof executeDraftPickV0824==="function")?executeDraftPickV0824():null;
+  if(!r?.ok || Number(state.draftRoom.pickIndex||0)<=before){
+    console.error("Permanent Sim This Pick failed",r);
+  }
+  try{saveState?.();renderAll?.();}catch(_){}
+  updateDraftSimBarV09639();
+}
+window.simOnePermanentV09639=simOnePermanentV09639;
+
+function simRestPermanentV09639(){
+  let guard=500, made=0;
+  while(state?.offseason?.phase==="Draft" && state?.draftRoom?.active && guard--){
+    const before=Number(state.draftRoom.pickIndex||0);
+    const r=(typeof executeDraftPickV0824==="function")?executeDraftPickV0824():null;
+    if(!r?.ok || Number(state.draftRoom.pickIndex||0)<=before){
+      console.error("Permanent Sim Rest stopped",r);
+      break;
+    }
+    made++;
+  }
+  if(state?.draftRoom && !state.draftRoom.active){
+    state.draftRoom.completed=true;
+  }
+  try{saveState?.();renderAll?.();}catch(_){}
+  updateDraftSimBarV09639();
+  return made;
+}
+window.simRestPermanentV09639=simRestPermanentV09639;
+
+function updateDraftSimBarV09639(){
+  const bar=ensureDraftSimBarV09639();
+  const inDraft=state?.offseason?.phase==="Draft";
+  if(!inDraft){
+    bar.style.display="none";
+    return;
+  }
+
+  const d=state?.draftRoom;
+  bar.style.display="flex";
+
+  if(d?.active){
+    const remaining=Math.max(0,(d.order?.length||0)-Number(d.pickIndex||0));
+    bar.innerHTML=`
+      <button id="bvPermanentSimOne" type="button"
+        style="min-height:52px;padding:12px 18px;border-radius:14px;font-weight:800">
+        Sim This Pick
+      </button>
+      <button id="bvPermanentSimRest" type="button"
+        style="min-height:52px;padding:12px 22px;border-radius:14px;font-weight:900;background:#f1bd48;color:#111">
+        Sim Rest of Draft (${remaining})
+      </button>`;
+    document.getElementById("bvPermanentSimOne").onclick=(e)=>{e.preventDefault();e.stopPropagation();simOnePermanentV09639();};
+    document.getElementById("bvPermanentSimRest").onclick=(e)=>{e.preventDefault();e.stopPropagation();simRestPermanentV09639();};
+  }else{
+    bar.innerHTML=`<button id="bvPermanentContinueDraft" type="button"
+      style="min-height:52px;padding:12px 28px;border-radius:14px;font-weight:900;background:#f1bd48;color:#111">
+      Continue Offseason
+    </button>`;
+    document.getElementById("bvPermanentContinueDraft").onclick=(e)=>{
+      e.preventDefault();e.stopPropagation();
+      try{continueAfterDraft();}catch(err){console.error(err);}
+      setTimeout(updateDraftSimBarV09639,50);
+    };
+  }
+}
+
+/* This bar lives outside the Draft Room markup, so legacy renderers cannot erase it.
+   We only update its contents; the container itself is never recreated. */
+setInterval(updateDraftSimBarV09639,500);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)updateDraftSimBarV09639();});
+setTimeout(updateDraftSimBarV09639,100);
+})();
+</script>
+<script>
+(function(){
+  window.BASKETBALLVERSE_BUILD='v0.97.01';
+  window.BASKETBALLVERSE_BUILD_LABEL='v0.97.01 · Recovery Baseline';
 })();
 </script>
 </body>
