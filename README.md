@@ -1,24 +1,26 @@
-# Basketballverse v0.96.41
-## Core Draft Portrait Loader
+# Basketballverse v0.97.00
+## Stabilization Baseline
 
-This update changes the ORIGINAL Draft Room prospect row itself instead of
-trying to redraw the Draft Room afterward.
+First cleanup/refactor build.
 
-Portrait convention is now enforced globally as:
-portraits/first_last.webp
+Removed the stacked Draft Room rescue layers introduced in v0.96.35-v0.96.39
+and replaced them with one authoritative DraftControllerV09700.
 
-Examples:
-- portraits/clifton_mcneely.webp
-- portraits/andy_phillip.webp
-- portraits/carl_braun.webp
-- portraits/red_rocha.webp
-- portraits/wataru_misaka.webp
+Preserved:
+- v0.96.34 playoff initialization fix
+- historical data and draft classes
+- save structure
+- league/ABA/merger systems
+- portraits and logo asset systems
+- established draft-pick engine
 
-The portrait cell is part of each draft prospect row, so legacy Draft Room
-renderers cannot erase it without rendering the same portrait-enabled row again.
+Viewer Draft behavior now has one path for:
+- draft initialization recovery
+- loaded prospect visibility
+- Sim This Pick
+- Sim Rest of Draft
+- draft completion
+- Continue Offseason
 
-Older portrait code that tried first-last.webp is overridden at the end of the
-build so the game consistently uses the underscore filenames already uploaded
-to the /portraits folder.
-
-The permanent Draft simulation controls from v0.96.39 remain intact.
+No Draft Room redesign or portrait UI change is intentional in this build.
+Next test: 1946 season -> 1947 playoffs -> offseason -> 1947 Draft -> next season.
