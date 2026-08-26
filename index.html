@@ -38961,6 +38961,36 @@ setTimeout(updateDraftSimBarV09639,100);
   window.BASKETBALLVERSE_BUILD_LABEL='v0.97.01 · Recovery Baseline';
 })();
 </script>
+<script>
+(function(){
+  const OLD='v0.96.39 · Permanent Draft Sim Control';
+  const NEW='v0.97.02 · Recovery Baseline';
+
+  window.BASKETBALLVERSE_BUILD='v0.97.02';
+  window.BASKETBALLVERSE_BUILD_LABEL=NEW;
+
+  function refreshVisibleBuildLabel(){
+    try{
+      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+      const nodes=[];
+      while(walker.nextNode())nodes.push(walker.currentNode);
+      nodes.forEach(n=>{
+        if(n.nodeValue && n.nodeValue.includes(OLD)){
+          n.nodeValue=n.nodeValue.split(OLD).join(NEW);
+        }
+      });
+    }catch(_){}
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',refreshVisibleBuildLabel,{once:true});
+  }else{
+    refreshVisibleBuildLabel();
+  }
+  setTimeout(refreshVisibleBuildLabel,50);
+  setTimeout(refreshVisibleBuildLabel,500);
+})();
+</script>
 </body>
 </html>
 

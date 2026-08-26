@@ -1,18 +1,16 @@
-# Basketballverse v0.97.01
-## Recovery Baseline
+# Basketballverse v0.97.02
+## Recovery Baseline — Visible Build Identity Fix
 
-The first v0.97.00 cleanup attempt removed runtime layers too aggressively and
-could prevent the game from loading.
+Important finding:
+v0.97.01 *was intentionally using the exact v0.96.39 runtime* so we could return
+to the last confirmed-working game. The startup page and footer, however, had
+already rendered the old v0.96.39 label before the final recovery metadata ran.
+That made a newly uploaded recovery build look exactly like the old build.
 
-v0.97.01 intentionally returns to the exact confirmed-working v0.96.39 runtime.
-No Draft Room, playoff, save, portrait, logo, historical, ABA, merger, or
-offseason logic has been removed or rewritten in this build.
+v0.97.02 keeps the same confirmed-working runtime and explicitly refreshes the
+visible build label after the page has loaded.
 
-This gives us a safe baseline before the cleanup/refactor is attempted again in
-smaller, testable pieces.
+If GitHub Pages is serving this file, the page will visibly show:
+v0.97.02 · Recovery Baseline
 
-Confirmed behavior carried forward from v0.96.39:
-- game loads
-- Viewer Draft Room displays the loaded historical prospect list
-- permanent Sim This Pick / Sim Rest of Draft controls
-- existing save compatibility
+No gameplay behavior is changed in this version.
