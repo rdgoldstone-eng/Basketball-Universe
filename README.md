@@ -1,14 +1,24 @@
-# Basketballverse v0.96.35
-## Early Draft Room Recovery
+# Basketballverse v0.96.36
+## Draft Room Renderer Fix
 
-Fixes the next blocker found after the repaired 1947 postseason:
-- early historical draft class exists but Draft Room can open with an empty/stale draftRoom
-- Draft stage can then have no prospects and no usable path forward
-- Viewer mode now has an explicit Sim Rest of Draft control
-- completed drafts always expose Continue Offseason
+Built after inspecting the exact uploaded stuck save.
 
-For 1947-1976, if the offseason is at Draft and the room is empty before any picks
-have been made, the game rebuilds the Draft Room directly from the loaded historical
-class for currentYear + 1.
+The save already contains:
+- offseason.phase = Draft
+- draftRoom.active = true
+- draftRoom.year = 1947
+- pickIndex = 0
+- 22 draft slots
+- 30 available historical prospects
+- 0 results
 
-No new universe is required.
+So the draft data was never missing. The failure was presentation/control-side.
+
+v0.96.36 adds a Viewer-specific Draft Room renderer that reads the existing
+draftRoom.available array directly and displays it without depending on the
+controlled-team/scouting presentation path. It also supplies working:
+- Sim This Pick
+- Sim Rest of Draft
+- Continue Offseason after completion
+
+No save repair or restart is required.
