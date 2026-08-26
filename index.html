@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.05 · Viewer Personnel Sim Fix';
+  const NEW='v0.97.06 · Early League Membership & Logo Continuity';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.05 · Viewer Personnel Sim Fix';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.06 · Early League Membership & Logo Continuity';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.05 · Viewer Personnel Sim Fix';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.06 · Early League Membership & Logo Continuity';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.05 · Viewer Personnel Sim Fix';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.06 · Early League Membership & Logo Continuity';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39272,6 +39272,330 @@ function updatePersonnelButton09705(){
 setInterval(updatePersonnelButton09705,500);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)updatePersonnelButton09705();});
 setTimeout(updatePersonnelButton09705,100);
+})();
+</script>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.06';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.06 · Early League Membership & Logo Continuity';
+
+/* =========================================================
+   EARLY LEAGUE MEMBERSHIP SYSTEM
+   1947-1951 is intentionally volatile. Historical pressure
+   points happen on schedule, but a franchise's simulated
+   health/performance can change whether it actually folds.
+   ========================================================= */
+
+const EARLY_MEMBERSHIP_V09706={
+  1947:{
+    entries:[
+      {name:"Baltimore Bullets",conference:"East",kind:"ABL champion joins BAA"}
+    ],
+    risks:[
+      {name:"Cleveland Rebels",base:72,note:"historical one-season franchise"},
+      {name:"Detroit Falcons",base:72,note:"historical one-season franchise"},
+      {name:"Pittsburgh Ironmen",base:72,note:"historical one-season franchise"},
+      {name:"Toronto Huskies",base:72,note:"historical one-season franchise"}
+    ]
+  },
+  1948:{
+    entries:[
+      {name:"Fort Wayne Pistons",conference:"West",kind:"NBL club defects to BAA"},
+      {name:"Indianapolis Jets",conference:"West",kind:"NBL club defects to BAA"},
+      {name:"Minneapolis Lakers",conference:"West",kind:"NBL club defects to BAA"},
+      {name:"Rochester Royals",conference:"West",kind:"NBL club defects to BAA"}
+    ],
+    risks:[]
+  },
+  1949:{
+    entries:[
+      {name:"Anderson Packers",conference:"West",kind:"BAA-NBL merger"},
+      {name:"Denver Nuggets",conference:"West",kind:"BAA-NBL merger"},
+      {name:"Sheboygan Red Skins",conference:"West",kind:"BAA-NBL merger"},
+      {name:"Syracuse Nationals",conference:"East",kind:"BAA-NBL merger"},
+      {name:"Tri-Cities Blackhawks",conference:"West",kind:"BAA-NBL merger"},
+      {name:"Waterloo Hawks",conference:"West",kind:"BAA-NBL merger"},
+      {name:"Indianapolis Olympians",conference:"West",kind:"new Indianapolis franchise"}
+    ],
+    risks:[
+      {name:"Providence Steamrollers",base:64,note:"historical financial pressure"},
+      {name:"Indianapolis Jets",base:68,note:"historical franchise replacement/reorganization"}
+    ]
+  },
+  1950:{
+    entries:[],
+    risks:[
+      {name:"Anderson Packers",base:68,note:"post-merger instability"},
+      {name:"Chicago Stags",base:60,note:"post-merger instability"},
+      {name:"Denver Nuggets",base:75,note:"post-merger instability"},
+      {name:"Sheboygan Red Skins",base:68,note:"post-merger instability"},
+      {name:"St. Louis Bombers",base:62,note:"post-merger instability"},
+      {name:"Waterloo Hawks",base:72,note:"post-merger instability"}
+    ]
+  },
+  1951:{
+    entries:[],
+    risks:[
+      {name:"Washington Capitols",base:70,note:"severe financial instability"}
+    ]
+  }
+};
+window.EARLY_MEMBERSHIP_V09706=EARLY_MEMBERSHIP_V09706;
+
+function earlyMembershipStateV09706(){
+  state.earlyLeagueMembership=state.earlyLeagueMembership||{processedYears:{},events:[]};
+  state.earlyLeagueMembership.processedYears=state.earlyLeagueMembership.processedYears||{};
+  state.earlyLeagueMembership.events=state.earlyLeagueMembership.events||[];
+  return state.earlyLeagueMembership;
+}
+
+function deterministic01V09706(seed){
+  let h=2166136261;
+  const s=String(seed||"");
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+  return ((h>>>0)%10000)/10000;
+}
+
+function teamHealthSnapshotV09706(team){
+  try{initFranchiseHealth?.();}catch(_){}
+  const h=state.franchiseHealth?.[team.id]||{};
+  const gp=Number(team.gp||0), pct=gp?Number(team.w||0)/gp:.5;
+  return {
+    attendance:Number(h.attendance??70),
+    stability:Number(h.stability??70),
+    fanSupport:Number(h.fanSupport??70),
+    winPct:pct,
+    consecutiveBadYears:Number(h.consecutiveBadYears||0)
+  };
+}
+
+function historicalRiskScoreV09706(team,def,year){
+  const h=teamHealthSnapshotV09706(team);
+  // Strong attendance, stability and winning can save a historically doomed club.
+  const survival=
+    h.attendance*.30+
+    h.stability*.30+
+    h.fanSupport*.18+
+    h.winPct*22-
+    h.consecutiveBadYears*5;
+  const noise=(deterministic01V09706(`${state.saveId}|${year}|${team.id}|membership`)-.5)*14;
+  const pressure=Number(def.base||65)+noise;
+  return {fold:survival<pressure,survival:Math.round(survival),pressure:Math.round(pressure),health:h};
+}
+
+function recordMembershipEventV09706(evt){
+  const m=earlyMembershipStateV09706();
+  m.events.push(evt);
+  state.news=Array.isArray(state.news)?state.news:[];
+  state.news.push({year:evt.year,title:evt.title,text:evt.text});
+}
+
+function ensureHistoricalIdentityFallbackV09706(name){
+  let ident=null;
+  try{ident=historicalIdentityByName?.(name);}catch(_){}
+  if(ident)return ident;
+  const market=String(name).replace(/\s+(Bullets|Pistons|Jets|Lakers|Royals|Packers|Nuggets|Red Skins|Nationals|Blackhawks|Hawks|Olympians)$/,"");
+  const id="early_"+name.toLowerCase().replace(/[^a-z0-9]+/g,"_");
+  state.identityLibrary=Array.isArray(state.identityLibrary)?state.identityLibrary:[];
+  ident={id,name,market,kind:"Historical Early Pro",logo:null};
+  state.identityLibrary.push(ident);
+  return ident;
+}
+
+function addEarlyEntryV09706(def,year){
+  if(state.teams.some(t=>t.name===def.name))return null;
+  ensureHistoricalIdentityFallbackV09706(def.name);
+
+  let team=null;
+  try{team=crossroadAddExpansionTeam?.(def.name,def.conference,year);}catch(e){console.warn(e);}
+  if(!team)return null;
+
+  team.earlyLeagueEntry=true;
+  team.entryKind=def.kind;
+  team.expansionYear=year;
+  // Make an incoming established club less expansion-like than a modern expansion team.
+  team.power=Math.max(Number(team.power||54),60);
+
+  recordMembershipEventV09706({
+    year,type:"entry",teamId:team.id,title:`${def.name} joins the league`,
+    text:`${def.name} enters Basketballverse in ${year} (${def.kind}).`
+  });
+  return team;
+}
+
+function dispersalAllocateV09706(team,year){
+  const roster=(state.players||[]).filter(p=>p.teamName===team.name&&!p.retired);
+  const destinations=()=>state.teams.filter(t=>t.id!==team.id).slice().sort((a,b)=>{
+    const ar=(state.players||[]).filter(p=>p.teamName===a.name&&!p.retired).length;
+    const br=(state.players||[]).filter(p=>p.teamName===b.name&&!p.retired).length;
+    return ar-br || Number(a.power||65)-Number(b.power||65);
+  });
+
+  const allocations=[];
+  roster.sort((a,b)=>Number(b.ovr||0)-Number(a.ovr||0)).forEach((p,i)=>{
+    const clubs=destinations();
+    // Best players are claimed; fringe players can become free agents.
+    if(i<Math.min(roster.length,10) && clubs.length){
+      const dest=clubs[i%clubs.length];
+      const old=team.name;
+      p.teamName=dest.name;
+      p.faEligible=false;
+      if(!p.contract||Number(p.contract.years||0)<=0)p.contract={years:1,salary:Math.max(1,Math.round((Number(p.ovr||60)-50)*.18))};
+      allocations.push({player:p.name,to:dest.name});
+      try{recordPlayerTransaction?.(p,"Dispersal Allocation",old,dest.name,year,`${p.name} was allocated after ${old} ceased operations.`);}catch(_){}
+    }else{
+      p.teamName="Free Agent";
+      p.faEligible=true;
+      p.contract={years:0,salary:0};
+      state.freeAgents=Array.isArray(state.freeAgents)?state.freeAgents:[];
+      if(!state.freeAgents.includes(p.id))state.freeAgents.push(p.id);
+      allocations.push({player:p.name,to:"Free Agent"});
+    }
+  });
+  return allocations;
+}
+
+function foldEarlyTeamV09706(team,year,assessment,def){
+  const allocations=dispersalAllocateV09706(team,year);
+  try{
+    ensureFranchiseHistory?.();
+    if(state.franchiseHistory?.[team.id]){
+      state.franchiseHistory[team.id].identityEvents=state.franchiseHistory[team.id].identityEvents||[];
+      state.franchiseHistory[team.id].identityEvents.push({
+        year,type:"Franchise Ceased Operations",name:team.name,
+        reason:def.note||"Financial instability"
+      });
+    }
+  }catch(_){}
+
+  state.teams=state.teams.filter(t=>t.id!==team.id);
+  if(state.teamDirections)delete state.teamDirections[team.id];
+
+  recordMembershipEventV09706({
+    year,type:"fold",teamId:team.id,title:`${team.name} ceases operations`,
+    text:`${team.name} could not survive the early-league financial environment. Survival score ${assessment.survival} vs. pressure ${assessment.pressure}. ${allocations.length} players entered the dispersal process.`
+  });
+}
+
+function processEarlyMembershipV09706(year){
+  year=Number(year);
+  if(year<1947||year>1951)return;
+  const m=earlyMembershipStateV09706();
+  if(m.processedYears[year])return;
+  const plan=EARLY_MEMBERSHIP_V09706[year];
+  if(!plan){m.processedYears[year]=true;return;}
+
+  // Existing clubs face their historical stress point first.
+  (plan.risks||[]).forEach(def=>{
+    const team=state.teams.find(t=>t.name===def.name);
+    if(!team)return;
+    const result=historicalRiskScoreV09706(team,def,year);
+    if(result.fold){
+      foldEarlyTeamV09706(team,year,result,def);
+    }else{
+      if(state.franchiseHealth?.[team.id]){
+        state.franchiseHealth[team.id].stability=Math.min(100,Number(state.franchiseHealth[team.id].stability||70)+5);
+        state.franchiseHealth[team.id].relocationPressure=Math.max(0,Number(state.franchiseHealth[team.id].relocationPressure||0)-10);
+      }
+      recordMembershipEventV09706({
+        year,type:"survive",teamId:team.id,title:`${team.name} survives its historical crisis`,
+        text:`Alternate history changes the outcome: ${team.name} remains in the league. Survival score ${result.survival} vs. pressure ${result.pressure}.`
+      });
+    }
+  });
+
+  const added=[];
+  (plan.entries||[]).forEach(def=>{
+    const t=addEarlyEntryV09706(def,year);
+    if(t)added.push(t);
+  });
+
+  // New clubs need playable rosters. Use the game's historical multi-team
+  // allocation engine until full incoming NBL/ABL roster packs are installed.
+  if(added.length){
+    try{runHistoricalMultiTeamExpansionDraft?.(added,year);}catch(e){console.warn("Early entry roster allocation",e);}
+  }
+
+  // Re-align after volatile membership changes.
+  try{if(state.role!=="Commissioner")autoRealignLeague?.();}catch(_){}
+  m.processedYears[year]=true;
+  try{repairEarlyHistoricalLogosV09706();}catch(_){}
+}
+window.processEarlyMembershipV09706=processEarlyMembershipV09706;
+
+
+/* =========================================================
+   HISTORICAL LOGO CONTINUITY
+   If alternate history keeps a team alive beyond its real
+   final season, continue using that team's last real logo.
+   ========================================================= */
+
+const originalHistoricalLogoForV09706=window.historicalLogoFor||historicalLogoFor;
+
+function carriedHistoricalLogoV09706(name,year){
+  const branding=window.HISTORICAL_BRANDING_1946_1959?.[name];
+  if(!branding?.logoEras?.length)return null;
+  const eras=branding.logoEras
+    .filter(e=>Number(e.from)<=Number(year))
+    .sort((a,b)=>Number(b.from)-Number(a.from));
+  return eras[0]?.src||null;
+}
+
+window.historicalLogoFor=function(name,year){
+  const normal=originalHistoricalLogoForV09706?.(name,year);
+  if(normal)return normal;
+
+  // Only carry an expired logo forward when this exact identity is still an
+  // active team in the alternate universe.
+  if(state?.teams?.some(t=>t.name===name)){
+    const carried=carriedHistoricalLogoV09706(name,year);
+    if(carried)return carried;
+  }
+  return null;
+};
+try{historicalLogoFor=window.historicalLogoFor;}catch(_){}
+
+function repairEarlyHistoricalLogosV09706(){
+  if(!state?.teams)return;
+  const y=Number(state.currentYear||1946);
+  state.teams.forEach(t=>{
+    const src=window.historicalLogoFor(t.name,y);
+    if(src){
+      t.logo=src;
+      t.logoLibrary=t.logoLibrary||{};
+      t.logoLibrary.early=src;
+      if(Array.isArray(t.identityHistory)&&t.identityHistory.length){
+        const h=t.identityHistory.slice().sort((a,b)=>Number(b.from||0)-Number(a.from||0))[0];
+        if(h)h.logo=src;
+      }
+    }
+  });
+  try{applyHistoricalIdentityAssets?.();}catch(_){}
+}
+window.repairEarlyHistoricalLogosV09706=repairEarlyHistoricalLogosV09706;
+
+
+/* Hook at the existing historical-expansion point. This runs after the new
+   year has been assigned but BEFORE the new season is initialized. */
+const processPendingHistoricalExpansionsBeforeV09706=window.processPendingHistoricalExpansions||processPendingHistoricalExpansions;
+window.processPendingHistoricalExpansions=function(){
+  const r=processPendingHistoricalExpansionsBeforeV09706?.apply(this,arguments);
+  try{processEarlyMembershipV09706(Number(state?.currentYear));}catch(e){console.error("Early membership transition",e);}
+  try{repairEarlyHistoricalLogosV09706();}catch(e){console.warn("Logo continuity repair",e);}
+  return r;
+};
+try{processPendingHistoricalExpansions=window.processPendingHistoricalExpansions;}catch(_){}
+
+/* Existing 1947-48 saves can receive the logo repair immediately without
+   replaying membership events. */
+setTimeout(()=>{
+  try{
+    if(state && Number(state.currentYear)>=1947 && Number(state.currentYear)<=1959){
+      repairEarlyHistoricalLogosV09706();
+      renderAll?.();
+    }
+  }catch(_){}
+},350);
 })();
 </script>
 </body>
