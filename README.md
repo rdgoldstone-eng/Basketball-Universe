@@ -1,22 +1,17 @@
-# Basketballverse v0.97.03
-## Viewer Offseason Sim Controls
+# Basketballverse v0.97.04
+## Complete Viewer Offseason Sim Controls
 
-Built directly from the confirmed-loading v0.97.02 recovery baseline.
+Built from the confirmed-loading v0.97.03 build.
 
-Viewer mode now gets a persistent simulation control for every non-draft
-offseason stage:
+This pass specifically checks and guarantees Viewer simulation controls for:
+- Re-sign Players
+- Free Agency
+- Roster Cuts
 
-- Sim Awards
-- Sim Retirements
-- Sim Development
-- Set Draft Order
-- Sim Re-signings
-- Sim Free Agency
-- Sim Roster Cuts
-- Start Next Season
+The controls recognize small differences in the game's historical phase labels
+(e.g. Re-signings vs Re-Sign Players) instead of relying on one exact string.
 
-The Draft stage keeps the already-working permanent Sim This Pick /
-Sim Rest of Draft controls from v0.96.39.
+They reuse the existing v0.97.03 persistent offseason control bar and the game's
+existing offseason advance engine, so no second competing offseason UI is added.
 
-Each offseason button uses the game's existing AI/offseason engine and advances
-exactly one task, so it does not bypass historical logic or alter GM behavior.
+The working Draft simulation controls remain unchanged.

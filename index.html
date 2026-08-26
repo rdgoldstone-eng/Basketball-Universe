@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.03 · Viewer Offseason Sim Controls';
+  const NEW='v0.97.04 · Complete Viewer Offseason Sim Controls';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.03 · Viewer Offseason Sim Controls';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.04 · Complete Viewer Offseason Sim Controls';
 
 const OffseasonSimV09703={
   labels:{
@@ -39104,6 +39104,85 @@ document.addEventListener("visibilitychange",()=>{
   if(!document.hidden)setTimeout(()=>OffseasonSimV09703.update(),25);
 });
 setTimeout(()=>OffseasonSimV09703.update(),250);
+})();
+</script>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.04';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.04 · Complete Viewer Offseason Sim Controls';
+
+const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
+  .replace(/[–—]/g,"-").replace(/\s+/g," ");
+
+function offseasonTaskKindV09704(p){
+  const s=normalizeOffseasonPhaseV09704(p);
+  if(s.includes("re-sign")||s.includes("resign")) return "resign";
+  if(s.includes("free agency")||s==="freeagency") return "freeagency";
+  if(s.includes("roster cut")||s.includes("cuts")) return "cuts";
+  return "";
+}
+
+function ensureSpecificOffseasonButtonsV09704(){
+  if(!window.state || state.role!=="Viewer" || !state.offseason?.active)return;
+
+  const phase=state.offseason?.phase;
+  const kind=offseasonTaskKindV09704(phase);
+  if(!kind)return;
+
+  // Reuse the v0.97.03 persistent offseason bar so we don't create another
+  // competing UI layer.
+  let bar=document.getElementById("bvOffseasonSimBar09703");
+  if(!bar){
+    bar=document.createElement("div");
+    bar.id="bvOffseasonSimBar09703";
+    document.body.appendChild(bar);
+  }
+  bar.style.display="flex";
+
+  const labels={
+    resign:"Sim Re-sign Players",
+    freeagency:"Sim Free Agency",
+    cuts:"Sim Roster Cuts"
+  };
+  bar.innerHTML=`<button type="button" class="primary" id="bvSpecificOffseasonSim09704">${labels[kind]}</button>`;
+
+  const btn=document.getElementById("bvSpecificOffseasonSim09704");
+  btn.onclick=e=>{
+    e.preventDefault();e.stopPropagation();
+    try{
+      // Use the game's established one-stage offseason engine. This is the
+      // same path the manual task-completion UI ultimately advances through.
+      if(typeof advanceOffseason==="function"){
+        advanceOffseason();
+      }else if(typeof advanceOffseasonPhase==="function"){
+        advanceOffseasonPhase();
+      }else{
+        throw new Error("No offseason advance engine is available.");
+      }
+      try{saveState?.();renderAll?.();renderOffseason?.();}catch(_){}
+    }catch(err){
+      console.error("Offseason sim failed for",phase,err);
+    }
+    setTimeout(ensureSpecificOffseasonButtonsV09704,50);
+  };
+}
+window.ensureSpecificOffseasonButtonsV09704=ensureSpecificOffseasonButtonsV09704;
+
+// Run after the existing v0.97.03 renderer so exact phase-name mismatches
+// cannot hide these three required Viewer controls.
+const renderOffseasonBefore09704=window.renderOffseason;
+if(typeof renderOffseasonBefore09704==="function"){
+  window.renderOffseason=function(){
+    const r=renderOffseasonBefore09704.apply(this,arguments);
+    setTimeout(ensureSpecificOffseasonButtonsV09704,5);
+    return r;
+  };
+  try{renderOffseason=window.renderOffseason;}catch(_){}
+}
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden)setTimeout(ensureSpecificOffseasonButtonsV09704,25);
+});
+setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 })();
 </script>
 </body>
