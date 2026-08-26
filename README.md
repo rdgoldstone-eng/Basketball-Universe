@@ -1,20 +1,30 @@
-# Basketballverse v0.96.33
-## 1946-47 Playoff Entry Root Fix
+# Basketballverse v0.96.34
+## Core 1947 Playoff Initialization Fix
 
-The actual failure was in the v0.96.31 historical-bracket initializer itself:
-it refused to initialize unless `state.currentYear === 1946`.
+This build was made after inspecting the actual uploaded Viewer save.
 
-The UI/end-of-season state can expose a different current calendar year while
-`state.season.year` still correctly identifies the 1946-47 season. That meant
-v0.96.32 successfully caught the button click, called the new initializer, and
-the initializer immediately returned false — visually making the button appear
-to do nothing.
+Verified save state:
+- startYear: 1946
+- currentYear: 1946
+- season.year: 1946
+- role: Viewer
+- phase: Regular Season Complete
+- 11 teams: 6 East / 5 West
+- every team completed 82 games
+- playoffState is absent
 
-v0.96.33:
-- identifies the inaugural season from `state.season.year`
-- creates the six-team 1947 BAA bracket directly
-- no longer depends on the faulty v0.96.31 currentYear guard
-- directly intercepts OPEN PLAYOFFS and BEGIN PLAYOFFS
-- switches to the Playoffs tab after successful creation
-- keeps the historically correct 1947 postseason structure
-- does not require a new save
+The save is healthy. The failure is in the game code.
+
+Previous fixes were appended overrides. v0.96.34 changes the original CORE
+initPostseasonExperience() function itself. When season.year is 1946 it creates
+the historical six-team 1947 BAA bracket before the generic later-era
+6-teams-per-conference logic can run.
+
+The original runPostseason() function is also changed in place so it:
+1. initializes the postseason,
+2. verifies playoffState exists,
+3. sets phase to Playoffs,
+4. saves immediately,
+5. opens the Playoffs screen.
+
+No new save is required.
