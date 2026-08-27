@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.15 · League Player Lookup';
+  const NEW='v0.97.16 · Scouting Draft Class Player Cards';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39706,7 +39706,7 @@ setTimeout(markViewer09708,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.09';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function personnelKind09709(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39810,7 +39810,7 @@ body.bv-viewer-player-modal-09710 #playerProfile:closest(.card){display:none!imp
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.10';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 let bvProfileScrollY09710=0;
 
@@ -39923,7 +39923,7 @@ setTimeout(hideLegacyProfileCard09710,250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.11';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function moveRotationToDepthChart09711(){
   if(!window.state)return;
@@ -40019,7 +40019,7 @@ setTimeout(apply09711,350);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.12';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function moveActualRotationCard09712(){
   const rotationCard=document.getElementById("rotationCard");
@@ -40111,7 +40111,7 @@ body.bv-viewer-coach-readonly-09713 #teamdepthchart textarea{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.13';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function selectedTeamForViewerCoach09713(){
   const ids=[
@@ -40238,7 +40238,7 @@ setTimeout(replaceCoachInactiveCards09713,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.14';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function viewerTeam09714(){
   const vals=[
@@ -40390,7 +40390,7 @@ setTimeout(renderViewerCoaching09714,150);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.15';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.15 · League Player Lookup';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
 
 function lookupPortraitKey09715(name){
  return String(name||"player").normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
@@ -40472,6 +40472,144 @@ if(typeof renderAllBefore09715==="function"){
 }
 document.addEventListener("click",()=>setTimeout(installPlayerLookup09715,80),true);
 setTimeout(installPlayerLookup09715,250);
+})();
+</script>
+<style id="bv09716ScoutingCardsCSS">
+#bvScoutingDraftCards09716{margin-top:12px}
+.bvScoutCard09716{
+  display:grid;grid-template-columns:54px 68px minmax(0,1fr) auto auto;
+  gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);
+}
+.bvScoutCard09716:last-child{border-bottom:0}
+.bvScoutPortrait09716{
+  width:62px;height:76px;border-radius:10px;overflow:hidden;position:relative;
+  background:var(--panel2);border:1px solid var(--line)
+}
+.bvScoutPortrait09716 img{width:100%;height:100%;object-fit:cover;display:block}
+.bvScoutInitials09716{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:var(--muted)
+}
+.bvScoutName09716{font-weight:900;font-size:17px;line-height:1.05}
+.bvScoutMeta09716{font-size:12px;color:var(--muted);margin-top:3px}
+.bvScoutBadge09716{
+  min-width:46px;text-align:center;padding:7px 8px;border-radius:10px;
+  background:var(--panel2);border:1px solid var(--line);font-weight:900
+}
+@media(max-width:700px){
+  .bvScoutCard09716{
+    grid-template-columns:32px 58px minmax(0,1fr) auto;
+  }
+  .bvScoutPot09716{display:none}
+  .bvScoutPortrait09716{width:54px;height:66px}
+}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.16';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.16 · Scouting Draft Class Player Cards';
+
+function scoutPortraitKey09716(name){
+  return String(name||"player").normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase().replace(/['’]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+}
+function scoutPortraitSrc09716(p){
+  if(typeof portraitSrc09707==="function")return portraitSrc09707(p);
+  if(typeof universalPlayerPortraitSrcV09500==="function"){
+    const s=universalPlayerPortraitSrcV09500(p); if(s)return s;
+  }
+  return `./portraits/${scoutPortraitKey09716(p?.name)}.webp`;
+}
+function scoutPortraitHTML09716(p){
+  const src=scoutPortraitSrc09716(p);
+  const initials=String(p?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+  return `<div class="bvScoutPortrait09716">
+    <div class="bvScoutInitials09716">${initials}</div>
+    <img src="${src}" alt="${String(p?.name||"Player").replace(/"/g,"&quot;")}" loading="lazy"
+      onerror="this.style.display='none'">
+  </div>`;
+}
+function currentDraftYear09716(){
+  if(state?.draftRoom?.year)return Number(state.draftRoom.year);
+  if(state?.offseason?.phase==="Draft")return Number(state.currentYear||1946)+1;
+  return Number(state?.currentYear||1946)+1;
+}
+function draftClass09716(){
+  try{ensureDraftClasses?.();}catch(_){}
+  const y=currentDraftYear09716();
+  return (state?.draftClasses?.[String(y)]||[]).filter(Boolean);
+}
+function grade09716(p){
+  const v=Number(p.prospect??p.ovr??p.rating??0);
+  if(v>=84)return "A+";
+  if(v>=80)return "A";
+  if(v>=76)return "A-";
+  if(v>=72)return "B+";
+  if(v>=68)return "B";
+  if(v>=64)return "B-";
+  if(v>=60)return "C+";
+  return "C";
+}
+function scoutingCardsHTML09716(){
+  const y=currentDraftYear09716();
+  const cls=draftClass09716().slice().sort((a,b)=>
+    Number(b.prospect??b.ovr??b.rating??0)-Number(a.prospect??a.ovr??a.rating??0)
+  );
+  if(!cls.length)return `<div class="muted">No ${y} draft prospects loaded.</div>`;
+  return `<div id="bvScoutingDraftCards09716">
+    <div class="small muted" style="margin-bottom:8px">${y} Draft Class · ${cls.length} prospects</div>
+    ${cls.map((p,i)=>`
+      <div class="bvScoutCard09716">
+        <div><b>${i+1}</b></div>
+        ${scoutPortraitHTML09716(p)}
+        <div>
+          <div class="bvScoutName09716">${p.name}</div>
+          <div class="bvScoutMeta09716">${p.pos||"—"} · Age ${p.age??"—"}${p.college?` · ${p.college}`:""}</div>
+        </div>
+        <div class="bvScoutBadge09716">OVR ${p.ovr??p.rating??p.prospect??"—"}</div>
+        <div class="bvScoutBadge09716 bvScoutPot09716">POT ${p.pot??p.potential??p.ceilingHigh??grade09716(p)}</div>
+      </div>`).join("")}
+  </div>`;
+}
+window.scoutingCardsHTML09716=scoutingCardsHTML09716;
+
+function installScoutingCards09716(){
+  const section=document.getElementById("scouting")||document.querySelector('section[id*="scout" i]');
+  if(!section)return;
+
+  const y=currentDraftYear09716();
+  const candidates=[
+    document.getElementById("draftClassBox"),
+    document.getElementById("scoutingDraftClass"),
+    document.getElementById("scoutingBody"),
+    section.querySelector('[id*="draft" i]'),
+    section.querySelector(".card")
+  ].filter(Boolean);
+
+  let host=candidates.find(Boolean);
+  if(!host)return;
+
+  let box=document.getElementById("bvScoutingDraftClass09716");
+  if(!box){
+    box=document.createElement("div");
+    box.id="bvScoutingDraftClass09716";
+    host.prepend(box);
+  }
+  box.innerHTML=`<h2 style="margin-top:0">${y} Draft Class</h2>${scoutingCardsHTML09716()}`;
+}
+window.installScoutingCards09716=installScoutingCards09716;
+
+const oldRenderAll09716=window.renderAll;
+if(typeof oldRenderAll09716==="function"){
+  window.renderAll=function(){
+    const r=oldRenderAll09716.apply(this,arguments);
+    setTimeout(installScoutingCards09716,20);
+    return r;
+  };
+  try{renderAll=window.renderAll;}catch(_){}
+}
+document.addEventListener("click",()=>setTimeout(installScoutingCards09716,80),true);
+setTimeout(installScoutingCards09716,250);
 })();
 </script>
 </body>

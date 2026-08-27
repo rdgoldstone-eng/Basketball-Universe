@@ -1,13 +1,13 @@
-# Basketballverse v0.97.15
-## League Player Lookup
+# Basketballverse v0.97.16
+## Scouting Draft Class Player Cards
 
-League -> Players now has a Player Lookup search box.
+Front Office -> Scouting now shows the upcoming draft class in the same visual
+language as the Team roster player cards.
 
-- Search by any part of a player's name.
-- Results show the player's existing portrait, team, position, age and OVR.
-- Tapping a result opens the existing player profile pop-up.
-- Searches the active Basketballverse player database only; retired/deferred
-  players are excluded from the default lookup.
-- Uses the same first_last.webp portrait convention already used elsewhere.
+- Existing player/prospect portraits are loaded from /portraits using first_last.webp.
+- Each prospect row shows rank, portrait, name, position, age, college, OVR and POT.
+- The class year updates automatically from the active Basketballverse timeline.
+- Mobile layout collapses cleanly while keeping the portrait prominent.
+- No generated replacement faces are used; missing portraits fall back to initials.
 
-No player data or simulation logic changed.
+No draft logic or ratings are changed.
