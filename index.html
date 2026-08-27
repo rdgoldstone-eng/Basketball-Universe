@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.11 · Profile Close & Depth Chart Rotation';
+  const NEW='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39706,7 +39706,7 @@ setTimeout(markViewer09708,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.09';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 function personnelKind09709(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39810,7 +39810,7 @@ body.bv-viewer-player-modal-09710 #playerProfile:closest(.card){display:none!imp
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.10';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 let bvProfileScrollY09710=0;
 
@@ -39923,7 +39923,7 @@ setTimeout(hideLegacyProfileCard09710,250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.11';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
 
 function moveRotationToDepthChart09711(){
   if(!window.state)return;
@@ -40009,6 +40009,89 @@ if(typeof prevRenderAll09711==="function"){
 
 document.addEventListener("click",()=>setTimeout(apply09711,100),true);
 setTimeout(apply09711,350);
+})();
+</script>
+<style id="bv09712RotationPlacementCSS">
+/* Rotation must never render in the Roster panel. */
+#players #rotationCard{display:none!important}
+#bvTeamDepthRotation09712 #rotationCard{display:block!important;margin-top:14px}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.12';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.12 · Rotation Actually Moved to Depth Chart';
+
+function moveActualRotationCard09712(){
+  const rotationCard=document.getElementById("rotationCard");
+  if(!rotationCard)return;
+
+  /* Find the Team -> Depth Chart page/panel by its actual heading/tab content.
+     Do not use the old generic id search that failed in v0.97.11. */
+  const sections=[...document.querySelectorAll("section,.section")];
+  let depthSection=sections.find(sec=>{
+    const heading=sec.querySelector("h1,h2,h3");
+    return String(heading?.textContent||"").trim().toLowerCase()==="depth chart";
+  });
+
+  if(!depthSection){
+    const heading=[...document.querySelectorAll("h1,h2,h3")].find(h=>
+      String(h.textContent||"").trim().toLowerCase()==="depth chart"
+    );
+    depthSection=heading?.closest("section,.section,.card")||heading?.parentElement;
+  }
+  if(!depthSection)return;
+
+  let holder=document.getElementById("bvTeamDepthRotation09712");
+  if(!holder){
+    holder=document.createElement("div");
+    holder.id="bvTeamDepthRotation09712";
+    depthSection.appendChild(holder);
+  }
+
+  if(rotationCard.parentElement!==holder)holder.appendChild(rotationCard);
+  rotationCard.style.display="";
+}
+window.moveActualRotationCard09712=moveActualRotationCard09712;
+
+function enforceRotationPlacement09712(){
+  moveActualRotationCard09712();
+
+  /* If another renderer recreates a Rotation card inside the Roster/Players
+     section, remove that duplicate. The canonical #rotationCard is retained
+     only inside the Depth Chart holder. */
+  const players=document.getElementById("players");
+  if(players){
+    [...players.querySelectorAll(".card")].forEach(card=>{
+      if(card.id==="rotationCard")return;
+      const h=card.querySelector("h1,h2,h3");
+      if(String(h?.textContent||"").trim().toLowerCase()==="rotation"){
+        card.remove();
+      }
+    });
+  }
+}
+
+const oldRenderAll09712=window.renderAll;
+if(typeof oldRenderAll09712==="function"){
+  window.renderAll=function(){
+    const r=oldRenderAll09712.apply(this,arguments);
+    setTimeout(enforceRotationPlacement09712,20);
+    return r;
+  };
+  try{renderAll=window.renderAll;}catch(_){}
+}
+const oldRenderPlayers09712=window.renderPlayers;
+if(typeof oldRenderPlayers09712==="function"){
+  window.renderPlayers=function(){
+    const r=oldRenderPlayers09712.apply(this,arguments);
+    setTimeout(enforceRotationPlacement09712,20);
+    return r;
+  };
+  try{renderPlayers=window.renderPlayers;}catch(_){}
+}
+
+document.addEventListener("click",()=>setTimeout(enforceRotationPlacement09712,80),true);
+setTimeout(enforceRotationPlacement09712,250);
 })();
 </script>
 </body>

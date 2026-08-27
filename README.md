@@ -1,11 +1,16 @@
-# Basketballverse v0.97.11
-## Profile Close & Depth Chart Rotation
+# Basketballverse v0.97.12
+## Rotation Actually Moved to Depth Chart
 
-Changes:
-- Player-profile modal now starts below iPhone/Safari top chrome so the X is reachable.
-- The modal is top-aligned and uses a reduced max height to keep controls accessible.
-- Rotation is moved out of Team -> Roster.
-- Rotation is placed under Team -> Depth Chart.
-- Any leftover rotation copy still rendered inside Roster is hidden.
+v0.97.11 fixed the player-profile modal correctly, but its Rotation relocation
+targeted the wrong DOM container.
 
-No player data, rotation logic, or simulation behavior changed.
+v0.97.12 fixes the actual Team UI structure:
+- The canonical existing #rotationCard is physically moved out of the Players /
+  Roster section.
+- It is appended to the actual Team -> Depth Chart section.
+- CSS guarantees #rotationCard cannot display while it is under #players.
+- Duplicate Rotation cards recreated in the Roster section are removed.
+- The working v0.97.11 player-profile pop-up is unchanged.
+
+No rotation calculations, minutes, depth-chart logic, player data, or simulation
+logic changed.
