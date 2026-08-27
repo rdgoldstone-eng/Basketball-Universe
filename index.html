@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.07 · Viewer Timeline Visual Baseline';
+  const NEW='v0.97.08 · Inline Viewer Continue';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.07 · Viewer Timeline Visual Baseline';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.07 · Viewer Timeline Visual Baseline';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.07 · Viewer Timeline Visual Baseline';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.07 · Viewer Timeline Visual Baseline';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.07 · Viewer Timeline Visual Baseline';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39622,6 +39622,76 @@ document.addEventListener('click',()=>setTimeout(()=>{installLineup09707();insta
 })();
 </script>
 
+<style id="bv09708NoFloatingContinue">
+/* v0.97.08: Viewer navigation belongs in the page, not as a floating Continue button. */
+body.viewer-mode .floating-continue,
+body.viewer-mode #floatingContinue,
+body.viewer-mode #continueFloating,
+body.viewer-mode [data-floating-continue="true"]{
+  display:none!important;
+}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.08';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+
+function removeFloatingContinue09708(){
+  if(state?.role!=="Viewer")return;
+
+  // Do NOT touch the dedicated simulation bars.
+  const protectedIds=new Set([
+    "bvPermanentDraftSimBar",
+    "bvDraftSimBar09700",
+    "bvOffseasonSimBar09703",
+    "bvPersonnelSim09705"
+  ]);
+
+  document.querySelectorAll("button").forEach(btn=>{
+    const parent=btn.parentElement;
+    if(parent?.id && protectedIds.has(parent.id))return;
+
+    const label=String(btn.textContent||"").trim().toLowerCase();
+    if(!(label==="continue"||label==="continue season"||label==="continue offseason"||label==="advance"))return;
+
+    const cs=getComputedStyle(btn);
+    const ps=parent?getComputedStyle(parent):null;
+    const floating=cs.position==="fixed"||cs.position==="sticky"||
+      ps?.position==="fixed"||ps?.position==="sticky";
+
+    if(floating){
+      // Hide the floating copy only. Existing inline/page navigation remains.
+      if(parent && (ps?.position==="fixed"||ps?.position==="sticky") &&
+         parent.children.length<=2){
+        parent.style.display="none";
+        parent.dataset.bvHiddenFloatingContinue09708="1";
+      }else{
+        btn.style.display="none";
+        btn.dataset.bvHiddenFloatingContinue09708="1";
+      }
+    }
+  });
+}
+
+function markViewer09708(){
+  document.body.classList.toggle("viewer-mode",state?.role==="Viewer");
+  removeFloatingContinue09708();
+}
+
+const oldRenderAll09708=window.renderAll;
+if(typeof oldRenderAll09708==="function"){
+  window.renderAll=function(){
+    const r=oldRenderAll09708.apply(this,arguments);
+    setTimeout(markViewer09708,20);
+    return r;
+  };
+  try{renderAll=window.renderAll;}catch(_){}
+}
+
+document.addEventListener("click",()=>setTimeout(markViewer09708,80),true);
+setTimeout(markViewer09708,300);
+})();
+</script>
 </body>
 </html>
 

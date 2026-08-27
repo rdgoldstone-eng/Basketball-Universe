@@ -1,8 +1,13 @@
-# Basketballverse v0.97.07
-## Viewer Timeline Visual Baseline
+# Basketballverse v0.97.08
+## Inline Viewer Continue
 
-Baseline for the new full 1946-to-modern Viewer timeline test.
+Built directly from v0.97.07.
 
-Added NBA 2K-style horizontal player cards for Viewer team/roster views, split into Starting Five and Bench. Portraits load from /portraits/first_last.webp. Missing portraits are visibly marked during testing instead of silently disappearing. Logo/portrait image failures are also flagged for the timeline asset audit.
+Change:
+- Removes the generic floating Continue / Advance button in Viewer mode.
+- Existing inline/page navigation remains available.
+- Dedicated Draft simulation and offseason personnel simulation controls are
+  intentionally protected and remain available.
+- No simulation, historical, roster, portrait, logo, or franchise logic changed.
 
-All v0.97.06 early-league membership, franchise survival, dispersal, logo continuity, and Viewer simulation systems are retained.
+This keeps the Viewer interface cleaner for the full 1946-to-modern timeline run.
