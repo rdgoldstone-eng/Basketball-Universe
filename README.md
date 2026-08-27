@@ -1,19 +1,23 @@
-# Basketballverse v0.97.13
-## Viewer Read-Only Coaching Info
+# Basketballverse v0.97.14
+## Viewer Depth Chart Read-Only Fix
 
-Viewer mode should observe the whole basketball universe, not be told that
-Coach mode is inactive.
+Two concrete fixes from the v0.97.13 test:
 
-Team -> Depth Chart now shows real view-only information for:
-- Team Identity
-- Game Plan
-- Rotation
-- Player Roles & Buy-In
-- Development Focus
-- Depth Chart where available
+1. Viewer coaching information
+v0.97.13 targeted the wrong visible containers. The actual Team -> Depth Chart
+screen is populated from coachIdentityBox, coachGamePlanBox, coachRotationBox,
+coachPlayerRolesBox and coachDevelopmentBox.
 
-Viewer cannot edit coaching settings, minutes, roles, or strategy. Any controls
-inside this area are disabled/read-only.
+v0.97.14 writes the read-only Viewer information directly into those real boxes
+after renderCoaching runs. Viewer can see team coaching identity, game plan,
+rotation/minutes, roles & buy-in, development and depth chart, but cannot edit them.
 
-The v0.97.11 player-profile modal remains unchanged and the v0.97.12 Rotation
-placement remains under Depth Chart.
+2. Season advance crash
+The screenshot showed:
+TypeError: null is not an object (evaluating 'this.parentElement.textContent=...')
+
+That came from image fallback handlers firing after their image row had already
+been replaced. Those handlers now verify parentElement still exists before
+writing initials.
+
+No simulation rules or player data changed.

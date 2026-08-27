@@ -3442,7 +3442,7 @@ function logoHTML(obj){
   const src=resolvedLogoSrc(obj,year);
   const fallback=expansionEraIdentityCatalog?.[obj?.name]?.logo||generatedIdentityLogos[obj?.id]||generatedTeamLogos[obj?.name]||"";
   const fb=fallback?String(fallback).replace(/'/g,"&#39;"):"";
-  return `<div class="logo">${src?`<img src="${src}" alt="${obj?.name||"Team"} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`this.parentElement.textContent='${initials(obj?.name||"Team")}'`}">`:initials(obj?.name||"Team")}</div>`;
+  return `<div class="logo">${src?`<img src="${src}" alt="${obj?.name||"Team"} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`if(this.parentElement)this.parentElement.textContent='${initials(obj?.name||"Team")}'`}">`:initials(obj?.name||"Team")}</div>`;
 }
 
 function ensureIdentityLogos(){
@@ -4902,7 +4902,7 @@ function logoHTMLForYear(obj,year){
  const src=resolvedLogoSrc(obj,year);
  const fallback=generatedIdentityLogos[obj?.id]||generatedTeamLogos[obj?.name]||"";
  const fb=fallback?String(fallback).replace(/'/g,"&#39;"):"";
- return `<div class="logo">${src?`<img src="${src}" alt="${obj?.name||"Team"} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`this.parentElement.textContent='${initials(obj?.name||"Team")}'`}">`:initials(obj?.name||"Team")}</div>`;
+ return `<div class="logo">${src?`<img src="${src}" alt="${obj?.name||"Team"} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`if(this.parentElement)this.parentElement.textContent='${initials(obj?.name||"Team")}'`}">`:initials(obj?.name||"Team")}</div>`;
 }
 window.renderLogoBrowser=renderLogoBrowser;
 
@@ -10480,7 +10480,7 @@ function historicalChampionLogoHTML(champ){
  let src=resolvedLogoSrc(obj,year);
  let fallback=generatedTeamLogos[champ.team]||generatedIdentityLogos[obj.id]||"";
  let fb=fallback?String(fallback).replace(/'/g,"&#39;"):"";
- return `<div class="historyChampionLogo">${src?`<img src="${src}" alt="${champ.team} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`this.parentElement.textContent='${initials(champ.team)}'`}">`:initials(champ.team)}</div>`;
+ return `<div class="historyChampionLogo">${src?`<img src="${src}" alt="${champ.team} logo" onerror="${fb?`this.onerror=null;this.src='${fb}'`:`if(this.parentElement)this.parentElement.textContent='${initials(champ.team)}'`}">`:initials(champ.team)}</div>`;
 }
 function ensureSeasonNewspaperArchive(){
  state.seasonNewspapers=state.seasonNewspapers||[];
@@ -36098,7 +36098,7 @@ window.universalPlayerPortraitSrcV09500=function(p){
 window.universalPlayerPortraitHTMLV09500=function(p,size=48,cls=''){
  const src=universalPlayerPortraitSrcV09500(p);
  const initials=String(p?.name||'?').split(/\s+/).filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase();
- return `<span class="playerPortraitUniversalV09500 ${cls}" style="width:${size}px;height:${Math.round(size*1.18)}px;border-radius:${Math.max(7,Math.round(size*.18))}px">${src?`<img src="${src}" alt="${p?.name||'Player'}" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">`:initials}</span>`;
+ return `<span class="playerPortraitUniversalV09500 ${cls}" style="width:${size}px;height:${Math.round(size*1.18)}px;border-radius:${Math.max(7,Math.round(size*.18))}px">${src?`<img src="${src}" alt="${p?.name||'Player'}" onerror="this.style.display='none';if(this.parentElement)this.parentElement.textContent='${initials}'">`:initials}</span>`;
 };
 
 /* Route the existing portrait systems through the universal resolver. */
@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.13 · Viewer Read-Only Coaching Info';
+  const NEW='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39706,7 +39706,7 @@ setTimeout(markViewer09708,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.09';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 function personnelKind09709(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39810,7 +39810,7 @@ body.bv-viewer-player-modal-09710 #playerProfile:closest(.card){display:none!imp
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.10';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 let bvProfileScrollY09710=0;
 
@@ -39923,7 +39923,7 @@ setTimeout(hideLegacyProfileCard09710,250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.11';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 function moveRotationToDepthChart09711(){
   if(!window.state)return;
@@ -40019,7 +40019,7 @@ setTimeout(apply09711,350);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.12';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 function moveActualRotationCard09712(){
   const rotationCard=document.getElementById("rotationCard");
@@ -40111,7 +40111,7 @@ body.bv-viewer-coach-readonly-09713 #teamdepthchart textarea{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.13';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.13 · Viewer Read-Only Coaching Info';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
 
 function selectedTeamForViewerCoach09713(){
   const ids=[
@@ -40221,6 +40221,145 @@ if(typeof renderAllBefore09713==="function"){
 }
 document.addEventListener("click",()=>setTimeout(replaceCoachInactiveCards09713,100),true);
 setTimeout(replaceCoachInactiveCards09713,300);
+})();
+</script>
+<style id="bv09714ViewerDepthReadOnlyCSS">
+.bvViewerReadOnly09714{
+  margin-bottom:10px;padding:9px 11px;border:1px solid var(--line);
+  border-radius:10px;background:var(--panel2);color:var(--muted);font-size:12px
+}
+#coaching.bvViewerDepth09714 button,
+#coaching.bvViewerDepth09714 input,
+#coaching.bvViewerDepth09714 select,
+#coaching.bvViewerDepth09714 textarea{
+  display:none!important;
+}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.14';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.14 · Viewer Depth Chart Read-Only Fix';
+
+function viewerTeam09714(){
+  const vals=[
+    document.getElementById("playerTeamFilter")?.value,
+    document.getElementById("teamSelect")?.value,
+    state?.selectedTeamId,
+    state?.ui?.selectedTeamId,
+    state?.selectedTeam,
+    state?.controlledTeamId
+  ].filter(Boolean);
+  for(const v of vals){
+    const t=(state?.teams||[]).find(x=>String(x.id)===String(v)||String(x.name)===String(v));
+    if(t)return t;
+  }
+  return state?.teams?.[0]||null;
+}
+
+function roster09714(team){
+  return (state?.players||[]).filter(p=>!p.retired&&!p.deferredEntry&&(
+    p.teamName===team.name || String(p.teamId||"")===String(team.id)
+  )).sort((a,b)=>(b.rotationMinutes||0)-(a.rotationMinutes||0)||(b.ovr||0)-(a.ovr||0));
+}
+
+function settings09714(team){
+  try{
+    if(typeof ensureCoaching==="function")ensureCoaching();
+    if(typeof coachSettings==="function")return coachSettings(team.id)||{};
+  }catch(_){}
+  return state?.coaching?.teams?.[team.id]||{};
+}
+
+function note09714(label="Information"){
+  return `<div class="bvViewerReadOnly09714">Viewer mode · ${label} is view-only.</div>`;
+}
+
+function renderViewerCoaching09714(){
+  if(state?.role!=="Viewer")return;
+  const team=viewerTeam09714(); if(!team)return;
+  const r=roster09714(team);
+  const s=settings09714(team);
+
+  const coaching=document.getElementById("coaching");
+  if(coaching)coaching.classList.add("bvViewerDepth09714");
+
+  const identity=document.getElementById("coachIdentityBox");
+  if(identity){
+    identity.innerHTML=note09714("team coaching")+
+      `<div class="coachChoice"><b>${team.name}</b>`+
+      `<div class="small muted">Pace: ${s.pace||"Balanced"} · Offense: ${s.offense||"Balanced"} · Defense: ${s.defense||"Balanced"}</div></div>`;
+  }
+
+  const game=document.getElementById("coachGamePlanBox");
+  if(game){
+    game.innerHTML=note09714("game plan")+
+      `<div class="grid2">`+
+      `<div class="kpi"><b>${s.pace||"Balanced"}</b><span>Pace</span></div>`+
+      `<div class="kpi"><b>${s.offense||"Balanced"}</b><span>Offense</span></div>`+
+      `<div class="kpi"><b>${s.defense||"Balanced"}</b><span>Defense</span></div>`+
+      `</div>`;
+  }
+
+  const rotation=document.getElementById("coachRotationBox");
+  if(rotation){
+    let summary="";
+    try{summary=rotationHealthSummary?.(team.name)||"";}catch(_){}
+    rotation.innerHTML=note09714("rotation")+summary+
+      r.map(p=>`<div class="rotationRow"><div><b>${p.starter?"★ ":""}${p.name}</b>`+
+      `<div class="small muted">${p.pos||"—"} · OVR ${p.ovr??"—"} · ${p.healthStatus||"Healthy"}</div></div>`+
+      `<div>${p.rotationRole||"Reserve"}</div><div>${Math.round(p.rotationMinutes||0)} min</div></div>`).join("");
+  }
+
+  const roles=document.getElementById("coachPlayerRolesBox");
+  if(roles){
+    roles.innerHTML=note09714("player roles & buy-in")+
+      r.map(p=>`<div class="staffCard"><b>${p.name}</b>`+
+      `<div class="small muted">${p.pos||"—"} · ${p.starter?"Starter":"Reserve"} · ${p.rotationRole||"Reserve"}</div>`+
+      `${p.roleBuyIn!=null?`<div class="small">Buy-in: ${Math.round(p.roleBuyIn)}%</div>`:""}</div>`).join("");
+  }
+
+  const dev=document.getElementById("coachDevelopmentBox");
+  if(dev){
+    const prospects=r.slice().sort((a,b)=>(b.pot||0)-(a.pot||0)||(a.age||99)-(b.age||99));
+    dev.innerHTML=note09714("development")+
+      prospects.map(p=>`<div class="staffCard"><b>${p.name}</b>`+
+      `<div class="small muted">${p.pos||"—"} · Age ${p.age??"—"} · OVR ${p.ovr??"—"} · POT ${p.pot??"—"}</div>`+
+      `${p.developmentFocus?`<div class="small">Focus: ${p.developmentFocus}</div>`:""}</div>`).join("");
+  }
+
+  const depth=document.getElementById("coachDepthChartPageV09158");
+  if(depth){
+    let html="";
+    try{html=depthChartHTML?.(team.name)||"";}catch(_){}
+    depth.innerHTML=note09714("depth chart")+html;
+  }
+}
+window.renderViewerCoaching09714=renderViewerCoaching09714;
+
+/* renderCoaching is the function that keeps writing "Coach mode is not active."
+   Wrap it directly, then overwrite only the Viewer presentation immediately. */
+const oldRenderCoaching09714=window.renderCoaching;
+if(typeof oldRenderCoaching09714==="function"){
+  window.renderCoaching=function(){
+    const r=oldRenderCoaching09714.apply(this,arguments);
+    if(state?.role==="Viewer")renderViewerCoaching09714();
+    return r;
+  };
+  try{renderCoaching=window.renderCoaching;}catch(_){}
+}
+
+const oldRenderAll09714=window.renderAll;
+if(typeof oldRenderAll09714==="function"){
+  window.renderAll=function(){
+    const r=oldRenderAll09714.apply(this,arguments);
+    setTimeout(renderViewerCoaching09714,0);
+    return r;
+  };
+  try{renderAll=window.renderAll;}catch(_){}
+}
+
+document.addEventListener("click",()=>setTimeout(renderViewerCoaching09714,50),true);
+setTimeout(renderViewerCoaching09714,150);
 })();
 </script>
 </body>
