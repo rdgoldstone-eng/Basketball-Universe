@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.10 · Roster Player Profile Pop-up';
+  const NEW='v0.97.11 · Profile Close & Depth Chart Rotation';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39706,7 +39706,7 @@ setTimeout(markViewer09708,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.09';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 function personnelKind09709(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39810,7 +39810,7 @@ body.bv-viewer-player-modal-09710 #playerProfile:closest(.card){display:none!imp
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.10';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
 
 let bvProfileScrollY09710=0;
 
@@ -39899,6 +39899,116 @@ if(typeof renderPlayersBefore09710==="function"){
 }
 
 setTimeout(hideLegacyProfileCard09710,250);
+})();
+</script>
+<style id="bv09711ProfileAndDepthCSS">
+/* Keep the close control below Safari's top chrome / dynamic island area. */
+#bvPlayerProfileModal09710{
+  padding-top:max(74px, env(safe-area-inset-top, 0px) + 56px)!important;
+  align-items:flex-start!important;
+}
+#bvPlayerProfileDialog09710{
+  max-height:calc(100vh - 110px)!important;
+}
+#bvPlayerProfileClose09710{
+  position:sticky!important;
+  top:0!important;
+  margin-top:0!important;
+  transform:none!important;
+}
+
+/* Rotation belongs under Depth Chart, not Roster. */
+#bvDepthRotation09711{margin-top:14px}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.11';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.11 · Profile Close & Depth Chart Rotation';
+
+function moveRotationToDepthChart09711(){
+  if(!window.state)return;
+
+  const rotationCandidates=[
+    document.getElementById("rotationBox"),
+    document.getElementById("teamRotation"),
+    document.getElementById("rotationContent"),
+    document.querySelector('[id*="rotation" i]')
+  ].filter(Boolean);
+
+  const rotation=rotationCandidates.find(el=>{
+    if(!el || el.id==="bvDepthRotation09711")return false;
+    const txt=String(el.textContent||"").toLowerCase();
+    return txt.includes("rotation") || el.id?.toLowerCase().includes("rotation");
+  });
+  if(!rotation)return;
+
+  const depthCandidates=[
+    document.getElementById("depthChart"),
+    document.getElementById("depthChartBox"),
+    document.getElementById("depthContent"),
+    document.querySelector('[id*="depth" i]')
+  ].filter(Boolean);
+  const depth=depthCandidates.find(Boolean);
+  if(!depth)return;
+
+  let holder=document.getElementById("bvDepthRotation09711");
+  if(!holder){
+    holder=document.createElement("div");
+    holder.id="bvDepthRotation09711";
+    depth.appendChild(holder);
+  }
+
+  if(rotation.parentElement!==holder){
+    holder.appendChild(rotation);
+  }
+}
+window.moveRotationToDepthChart09711=moveRotationToDepthChart09711;
+
+function hideRosterRotationCopies09711(){
+  const roster=document.getElementById("rosterBox")||
+               document.getElementById("teamRoster")||
+               document.querySelector('[id*="roster" i]');
+  if(!roster)return;
+
+  [...roster.querySelectorAll('*')].forEach(el=>{
+    if(el.id==="bvDepthRotation09711")return;
+    const id=String(el.id||"").toLowerCase();
+    const cls=String(el.className||"").toLowerCase();
+    if(id.includes("rotation")||cls.includes("rotation")){
+      // only hide if this is still inside the roster view
+      if(roster.contains(el))el.style.display="none";
+    }
+  });
+}
+window.hideRosterRotationCopies09711=hideRosterRotationCopies09711;
+
+function apply09711(){
+  moveRotationToDepthChart09711();
+  hideRosterRotationCopies09711();
+}
+
+const prevRenderPlayers09711=window.renderPlayers;
+if(typeof prevRenderPlayers09711==="function"){
+  window.renderPlayers=function(){
+    const r=prevRenderPlayers09711.apply(this,arguments);
+    setTimeout(apply09711,20);
+    return r;
+  };
+  try{renderPlayers=window.renderPlayers;}catch(_){}
+}
+
+const prevRenderAll09711=window.renderAll;
+if(typeof prevRenderAll09711==="function"){
+  window.renderAll=function(){
+    const r=prevRenderAll09711.apply(this,arguments);
+    setTimeout(apply09711,30);
+    return r;
+  };
+  try{renderAll=window.renderAll;}catch(_){}
+}
+
+document.addEventListener("click",()=>setTimeout(apply09711,100),true);
+setTimeout(apply09711,350);
 })();
 </script>
 </body>

@@ -1,15 +1,11 @@
-# Basketballverse v0.97.10
-## Roster Player Profile Pop-up
+# Basketballverse v0.97.11
+## Profile Close & Depth Chart Rotation
 
-Viewer Team -> Roster now behaves like a sports-game roster screen:
+Changes:
+- Player-profile modal now starts below iPhone/Safari top chrome so the X is reachable.
+- The modal is top-aligned and uses a reduced max height to keep controls accessible.
+- Rotation is moved out of Team -> Roster.
+- Rotation is placed under Team -> Depth Chart.
+- Any leftover rotation copy still rendered inside Roster is hidden.
 
-- Tap/click any player row to open that player's full profile in a modal.
-- The existing Basketballverse player-profile content is preserved, including
-  portraits, ratings, career totals, season history, awards and transactions.
-- A large X in the upper-right closes the profile.
-- Closing returns the user to the same roster scroll position.
-- Tapping outside the dialog or pressing Escape also closes it.
-- The old separate Player Profile card is hidden in Viewer mode so the roster
-  remains the primary page.
-
-No player data or simulation logic changed.
+No player data, rotation logic, or simulation behavior changed.
