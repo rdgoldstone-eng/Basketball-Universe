@@ -1,16 +1,19 @@
-# Basketballverse v0.97.12
-## Rotation Actually Moved to Depth Chart
+# Basketballverse v0.97.13
+## Viewer Read-Only Coaching Info
 
-v0.97.11 fixed the player-profile modal correctly, but its Rotation relocation
-targeted the wrong DOM container.
+Viewer mode should observe the whole basketball universe, not be told that
+Coach mode is inactive.
 
-v0.97.12 fixes the actual Team UI structure:
-- The canonical existing #rotationCard is physically moved out of the Players /
-  Roster section.
-- It is appended to the actual Team -> Depth Chart section.
-- CSS guarantees #rotationCard cannot display while it is under #players.
-- Duplicate Rotation cards recreated in the Roster section are removed.
-- The working v0.97.11 player-profile pop-up is unchanged.
+Team -> Depth Chart now shows real view-only information for:
+- Team Identity
+- Game Plan
+- Rotation
+- Player Roles & Buy-In
+- Development Focus
+- Depth Chart where available
 
-No rotation calculations, minutes, depth-chart logic, player data, or simulation
-logic changed.
+Viewer cannot edit coaching settings, minutes, roles, or strategy. Any controls
+inside this area are disabled/read-only.
+
+The v0.97.11 player-profile modal remains unchanged and the v0.97.12 Rotation
+placement remains under Depth Chart.
