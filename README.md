@@ -1,23 +1,13 @@
-# Basketballverse v0.97.14
-## Viewer Depth Chart Read-Only Fix
+# Basketballverse v0.97.15
+## League Player Lookup
 
-Two concrete fixes from the v0.97.13 test:
+League -> Players now has a Player Lookup search box.
 
-1. Viewer coaching information
-v0.97.13 targeted the wrong visible containers. The actual Team -> Depth Chart
-screen is populated from coachIdentityBox, coachGamePlanBox, coachRotationBox,
-coachPlayerRolesBox and coachDevelopmentBox.
+- Search by any part of a player's name.
+- Results show the player's existing portrait, team, position, age and OVR.
+- Tapping a result opens the existing player profile pop-up.
+- Searches the active Basketballverse player database only; retired/deferred
+  players are excluded from the default lookup.
+- Uses the same first_last.webp portrait convention already used elsewhere.
 
-v0.97.14 writes the read-only Viewer information directly into those real boxes
-after renderCoaching runs. Viewer can see team coaching identity, game plan,
-rotation/minutes, roles & buy-in, development and depth chart, but cannot edit them.
-
-2. Season advance crash
-The screenshot showed:
-TypeError: null is not an object (evaluating 'this.parentElement.textContent=...')
-
-That came from image fallback handlers firing after their image row had already
-been replaced. Those handlers now verify parentElement still exists before
-writing initials.
-
-No simulation rules or player data changed.
+No player data or simulation logic changed.
