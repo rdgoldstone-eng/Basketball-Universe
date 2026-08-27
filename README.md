@@ -1,13 +1,11 @@
-# Basketballverse v0.97.08
-## Inline Viewer Continue
+# Basketballverse v0.97.09
+## Inline Offseason Sim Actions
 
-Built directly from v0.97.07.
+The large fixed yellow personnel simulation button is removed.
 
-Change:
-- Removes the generic floating Continue / Advance button in Viewer mode.
-- Existing inline/page navigation remains available.
-- Dedicated Draft simulation and offseason personnel simulation controls are
-  intentionally protected and remain available.
-- No simulation, historical, roster, portrait, logo, or franchise logic changed.
+Re-signings, Free Agency, and Roster Cuts still have Viewer simulation controls,
+but those controls now appear inside the selected offseason task area beside the
+normal task controls. They scroll naturally with the page and no longer cover
+content or the iPhone browser controls.
 
-This keeps the Viewer interface cleaner for the full 1946-to-modern timeline run.
+No simulation logic changed.

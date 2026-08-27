@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.08 · Inline Viewer Continue';
+  const NEW='v0.97.09 · Inline Offseason Sim Actions';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.08 · Inline Viewer Continue';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39690,6 +39690,84 @@ if(typeof oldRenderAll09708==="function"){
 
 document.addEventListener("click",()=>setTimeout(markViewer09708,80),true);
 setTimeout(markViewer09708,300);
+})();
+</script>
+<style id="bv09709InlinePersonnel">
+/* The old personnel sim control was useful but visually intrusive.
+   v0.97.09 turns it into a normal page-level action beside the existing task UI. */
+#bvPersonnelSim09705{display:none!important}
+#bvInlinePersonnel09709{
+  display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 4px;
+}
+#bvInlinePersonnel09709 button{
+  min-height:46px;padding:10px 16px;border-radius:12px;font-weight:800;
+}
+</style>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.09';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+
+function personnelKind09709(){
+ const p=String(state?.offseason?.phase||"").toLowerCase();
+ if(p.includes("re-sign")||p.includes("resign"))return "resign";
+ if(p.includes("free agency"))return "fa";
+ if(p.includes("roster cut"))return "cuts";
+ return "";
+}
+function label09709(kind){
+ return kind==="resign"?"Sim Re-sign Players":kind==="fa"?"Sim Free Agency":"Sim Roster Cuts";
+}
+function installInlinePersonnel09709(){
+ const old=document.getElementById("bvPersonnelSim09705");
+ if(old)old.style.display="none";
+
+ const existing=document.getElementById("bvInlinePersonnel09709");
+ const kind=state?.role==="Viewer"?personnelKind09709():"";
+ if(!kind){existing?.remove();return;}
+
+ // Put the simulation action inside the selected task card, directly next to
+ // the normal Open task control instead of floating over the screen.
+ const headings=[...document.querySelectorAll("h1,h2,h3,h4")];
+ const phaseWords=kind==="resign"?["re-sign","resign"]:
+                  kind==="fa"?["free agency"]:["roster cuts","roster cut"];
+ const heading=headings.find(h=>phaseWords.some(w=>String(h.textContent||"").toLowerCase().includes(w)));
+ let host=heading?.parentElement;
+ if(!host){
+   const openBtn=[...document.querySelectorAll("button")].find(b=>{
+     const s=String(b.textContent||"").toLowerCase();
+     return kind==="resign"?s.includes("open re-sign"):
+            kind==="fa"?s.includes("open free agency"):s.includes("open roster");
+   });
+   host=openBtn?.parentElement;
+ }
+ if(!host)return;
+
+ let box=existing;
+ if(!box){box=document.createElement("div");box.id="bvInlinePersonnel09709";}
+ box.innerHTML=`<button type="button" id="bvInlinePersonnelBtn09709">${label09709(kind)}</button>`;
+ host.appendChild(box);
+
+ document.getElementById("bvInlinePersonnelBtn09709").onclick=e=>{
+   e.preventDefault();e.stopPropagation();
+   if(typeof simulatePersonnel09705==="function")simulatePersonnel09705();
+   else if(typeof advanceOffseason==="function")advanceOffseason();
+   setTimeout(installInlinePersonnel09709,80);
+ };
+}
+
+const oldRenderAll09709=window.renderAll;
+if(typeof oldRenderAll09709==="function"){
+ window.renderAll=function(){
+   const r=oldRenderAll09709.apply(this,arguments);
+   setTimeout(installInlinePersonnel09709,30);
+   return r;
+ };
+ try{renderAll=window.renderAll;}catch(_){}
+}
+document.addEventListener("click",()=>setTimeout(installInlinePersonnel09709,100),true);
+setInterval(installInlinePersonnel09709,700);
+setTimeout(installInlinePersonnel09709,250);
 })();
 </script>
 </body>
