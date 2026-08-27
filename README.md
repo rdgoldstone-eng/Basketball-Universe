@@ -1,39 +1,55 @@
-# Basketballverse v0.97.17
-## Wikipedia 1947 Draft Class
+# Basketballverse v0.97.18
+## Clean Repository Structure
 
-The 1947 class is now rebuilt from the English Wikipedia 1947 BAA draft page.
+From this build forward, Basketballverse uses this repository layout:
 
-Wikipedia states that the real draft had 80 total selections in 10 rounds, but
-the page does NOT enumerate all 80 names. It explicitly lists:
-- all 10 first-round selections
-- 27 additional drafted players who appeared in at least one BAA/NBA game
+Basketballverse/
+├── index.html
+├── README.md
+├── portraits/
+│   └── first_last.webp
+├── logos/
+│   ├── game/
+│   │   └── basketballverse-logo.jpg
+│   └── teams/
+│       └── city-team-year.webp
+└── files/
+    └── static checklists, audits, instructions, and reference files
 
-Basketballverse therefore contains all 37 players explicitly identified
-as drafted on that Wikipedia page. It does not invent the missing names.
+### Naming standards
 
-Also stored separately:
-- all 32 players in Wikipedia's "Notable undrafted players" table
-  under state.wikipediaUndrafted["1947"].
-- They are NOT treated as drafted selections.
+Player portraits:
+- lowercase
+- underscore between first and last name
+- `.webp`
+- Example: `clifton_mcneely.webp`
 
-Historical source fields preserved where Wikipedia provides them:
-- round
-- overall pick
-- player name
-- position
-- drafting team
-- school / prior club
+Team logos:
+- lowercase
+- hyphenated city-team-year
+- `.webp`
+- Example: `boston-celtics-1946.webp`
 
-Wikipedia does not provide player age or Basketballverse ratings in this table.
-For gameplay, new records use age 22 as an explicitly marked estimate and
-draft-time prospect ratings derived from selection position. Those are game
-values, not Wikipedia claims.
+### Transition behavior
 
-1947 Draft Room:
-- 10 rounds
-- capped at the real 80 total selection slots
-- alternate-universe teams still draft by Basketballverse standings/order
-- all listed prospects can now remain on the board instead of being cut down to
-  the old 22-pick draft.
+v0.97.18 treats the new folders as canonical, but temporarily falls back to old
+locations while the GitHub repository is being reorganized:
 
-Portrait filenames continue to use first_last.webp.
+- portraits first try `/portraits/`
+- misplaced player portraits can temporarily fall back to `/logos/historical/`
+- team logos first try `/logos/teams/`
+- old team logos can temporarily fall back to `/logos/historical/`
+- the Basketballverse brand logo first tries `/logos/game/`
+- the old root `basketballverse-logo.jpg` remains a temporary fallback
+
+Once the GitHub cleanup is complete, the legacy fallbacks can be removed.
+
+### Future ZIP rule
+
+Starting with v0.97.18, update ZIPs contain ONLY:
+
+- `index.html`
+- `README.md`
+
+Portraits, team logos, the game logo, CSV checklists, and other static files stay
+in GitHub and are not recopied into every update ZIP.

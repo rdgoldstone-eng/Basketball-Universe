@@ -662,7 +662,7 @@ pre{white-space:pre-wrap}
 <section id="setupView">
   <div class="card hero">
     <div class="pill">v0.91.46 · Lottery Stability Fix</div>
-    <img id="startupBasketballverseLogoV0909" src="basketballverse-logo.jpg" alt="Basketballverse">
+    <img id="startupBasketballverseLogoV0909" src="logos/game/basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
   </div>
@@ -19702,7 +19702,7 @@ function placeStartupLogoV0909(){
     if(card && !card.querySelector("#startupBasketballverseLogoV0909")){
       const img=document.createElement("img");
       img.id="startupBasketballverseLogoV0909";
-      img.src="basketballverse-logo.jpg";
+      img.src="logos/game/basketballverse-logo.jpg";
       img.alt="Basketballverse";
       card.insertBefore(img,heading);
     }
@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.17 · Wikipedia 1947 Draft Class';
+  const NEW='v0.97.18 · Clean Repository Structure';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39706,7 +39706,7 @@ setTimeout(markViewer09708,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.09';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function personnelKind09709(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39810,7 +39810,7 @@ body.bv-viewer-player-modal-09710 #playerProfile:closest(.card){display:none!imp
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.10';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 let bvProfileScrollY09710=0;
 
@@ -39923,7 +39923,7 @@ setTimeout(hideLegacyProfileCard09710,250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.11';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function moveRotationToDepthChart09711(){
   if(!window.state)return;
@@ -40019,7 +40019,7 @@ setTimeout(apply09711,350);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.12';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function moveActualRotationCard09712(){
   const rotationCard=document.getElementById("rotationCard");
@@ -40111,7 +40111,7 @@ body.bv-viewer-coach-readonly-09713 #teamdepthchart textarea{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.13';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function selectedTeamForViewerCoach09713(){
   const ids=[
@@ -40238,7 +40238,7 @@ setTimeout(replaceCoachInactiveCards09713,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.14';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function viewerTeam09714(){
   const vals=[
@@ -40390,7 +40390,7 @@ setTimeout(renderViewerCoaching09714,150);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.15';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function lookupPortraitKey09715(name){
  return String(name||"player").normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
@@ -40507,7 +40507,7 @@ setTimeout(installPlayerLookup09715,250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.16';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 function scoutPortraitKey09716(name){
   return String(name||"player").normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
@@ -40615,7 +40615,7 @@ setTimeout(installScoutingCards09716,250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.17';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.17 · Wikipedia 1947 Draft Class';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
 
 const WIKIPEDIA_1947_DRAFT_V09717=[{"id":"d1947_wiki_1","historicalPick":1,"historicalRound":1,"name":"Clifton McNeely","pos":"F","wikipediaPosition":"F","college":"Texas Wesleyan","historicalDraftTeam":"Pittsburgh Ironmen","age":22,"ageEstimated":true,"prospect":84,"ceilingLow":77,"ceilingHigh":92,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"clifton_mcneely","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_2","historicalPick":2,"historicalRound":1,"name":"Glen Selbo","pos":"G/F","wikipediaPosition":"G/F","college":"Wisconsin","historicalDraftTeam":"Toronto Huskies","age":22,"ageEstimated":true,"prospect":84,"ceilingLow":77,"ceilingHigh":92,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"glen_selbo","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_3","historicalPick":3,"historicalRound":1,"name":"Bulbs Ehlers","pos":"G/F","wikipediaPosition":"G/F","college":"Purdue","historicalDraftTeam":"Boston Celtics","age":22,"ageEstimated":true,"prospect":83,"ceilingLow":76,"ceilingHigh":91,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"bulbs_ehlers","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_4","historicalPick":4,"historicalRound":1,"name":"Walt Dropo","pos":"F","wikipediaPosition":"\u2014","college":"Connecticut","historicalDraftTeam":"Providence Steamrollers","age":22,"ageEstimated":true,"prospect":83,"ceilingLow":76,"ceilingHigh":91,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"walt_dropo","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_5","historicalPick":5,"historicalRound":1,"name":"Dick Holub","pos":"C","wikipediaPosition":"C","college":"Long Island","historicalDraftTeam":"New York Knicks","age":22,"ageEstimated":true,"prospect":83,"ceilingLow":76,"ceilingHigh":91,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"dick_holub","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_6","historicalPick":6,"historicalRound":1,"name":"Chink Crossin","pos":"G","wikipediaPosition":"G","college":"Pennsylvania","historicalDraftTeam":"Philadelphia Warriors","age":22,"ageEstimated":true,"prospect":83,"ceilingLow":76,"ceilingHigh":91,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"chink_crossin","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_7","historicalPick":7,"historicalRound":1,"name":"Jack Underman","pos":"F","wikipediaPosition":"\u2014","college":"Ohio State","historicalDraftTeam":"St. Louis Bombers","age":22,"ageEstimated":true,"prospect":82,"ceilingLow":75,"ceilingHigh":90,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"jack_underman","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_8","historicalPick":8,"historicalRound":1,"name":"Paul Huston","pos":"F","wikipediaPosition":"F","college":"Ohio State","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":82,"ceilingLow":75,"ceilingHigh":90,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"paul_huston","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_9","historicalPick":9,"historicalRound":1,"name":"Dick O'Keefe","pos":"G/F","wikipediaPosition":"G/F","college":"Santa Clara","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":82,"ceilingLow":75,"ceilingHigh":90,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"dick_okeefe","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_10","historicalPick":10,"historicalRound":1,"name":"Larry Killick","pos":"F","wikipediaPosition":"\u2014","college":"Vermont","historicalDraftTeam":"Baltimore Bullets","age":22,"ageEstimated":true,"prospect":82,"ceilingLow":75,"ceilingHigh":90,"scoutUncertainty":8,"draftedBy":null,"draftPick":null,"portraitKey":"larry_killick","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_11","historicalPick":11,"historicalRound":2,"name":"Fritz Nagy","pos":"G/F","wikipediaPosition":"G/F","college":"Akron","historicalDraftTeam":"Pittsburgh Ironmen","age":22,"ageEstimated":true,"prospect":81,"ceilingLow":74,"ceilingHigh":89,"scoutUncertainty":9,"draftedBy":null,"draftPick":null,"portraitKey":"fritz_nagy","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_12","historicalPick":12,"historicalRound":2,"name":"Red Rocha","pos":"F/C","wikipediaPosition":"F/C","college":"Oregon State","historicalDraftTeam":"Toronto Huskies","age":22,"ageEstimated":true,"prospect":81,"ceilingLow":74,"ceilingHigh":89,"scoutUncertainty":9,"draftedBy":null,"draftPick":null,"portraitKey":"red_rocha","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_13","historicalPick":13,"historicalRound":2,"name":"Hank Biasatti","pos":"G","wikipediaPosition":"G","college":"Toronto Huskies (BAA)","historicalDraftTeam":"Boston Celtics","age":22,"ageEstimated":true,"prospect":81,"ceilingLow":74,"ceilingHigh":89,"scoutUncertainty":9,"draftedBy":null,"draftPick":null,"portraitKey":"hank_biasatti","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_14","historicalPick":14,"historicalRound":2,"name":"Bob Hubbard","pos":"F/C","wikipediaPosition":"F/C","college":"Springfield","historicalDraftTeam":"Providence Steamrollers","age":22,"ageEstimated":true,"prospect":81,"ceilingLow":74,"ceilingHigh":89,"scoutUncertainty":9,"draftedBy":null,"draftPick":null,"portraitKey":"bob_hubbard","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_18","historicalPick":18,"historicalRound":2,"name":"Ben Schadler","pos":"F","wikipediaPosition":"F","college":"Northwestern","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":80,"ceilingLow":73,"ceilingHigh":88,"scoutUncertainty":9,"draftedBy":null,"draftPick":null,"portraitKey":"ben_schadler","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_19","historicalPick":19,"historicalRound":2,"name":"Jack Tingle","pos":"F","wikipediaPosition":"F","college":"Kentucky","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":79,"ceilingLow":72,"ceilingHigh":87,"scoutUncertainty":9,"draftedBy":null,"draftPick":null,"portraitKey":"jack_tingle","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_23","historicalPick":23,"historicalRound":3,"name":"Gene Stump","pos":"G/F","wikipediaPosition":"G/F","college":"DePaul","historicalDraftTeam":"Boston Celtics","age":22,"ageEstimated":true,"prospect":78,"ceilingLow":71,"ceilingHigh":86,"scoutUncertainty":10,"draftedBy":null,"draftPick":null,"portraitKey":"gene_stump","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_28","historicalPick":28,"historicalRound":3,"name":"Jimmy Darden","pos":"G","wikipediaPosition":"G","college":"Denver","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":77,"ceilingLow":70,"ceilingHigh":85,"scoutUncertainty":10,"draftedBy":null,"draftPick":null,"portraitKey":"jimmy_darden","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_33","historicalPick":33,"historicalRound":4,"name":"Johnny Ezersky","pos":"G/F","wikipediaPosition":"G/F","college":"Brooklyn Gothams (ABL)","historicalDraftTeam":"Boston Celtics","age":22,"ageEstimated":true,"prospect":76,"ceilingLow":69,"ceilingHigh":84,"scoutUncertainty":11,"draftedBy":null,"draftPick":null,"portraitKey":"johnny_ezersky","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_38","historicalPick":38,"historicalRound":4,"name":"Gene Vance","pos":"G/F","wikipediaPosition":"G/F","college":"Illinois","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":74,"ceilingLow":67,"ceilingHigh":82,"scoutUncertainty":11,"draftedBy":null,"draftPick":null,"portraitKey":"gene_vance","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_40","historicalPick":40,"historicalRound":4,"name":"Harry Gallatin","pos":"F/C","wikipediaPosition":"F/C","college":"Northeast Missouri","historicalDraftTeam":"Baltimore Bullets","age":22,"ageEstimated":true,"prospect":74,"ceilingLow":67,"ceilingHigh":82,"scoutUncertainty":11,"draftedBy":null,"draftPick":null,"portraitKey":"harry_gallatin","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_42","historicalPick":42,"historicalRound":5,"name":"Paul Hoffman","pos":"G/F","wikipediaPosition":"G/F","college":"Purdue","historicalDraftTeam":"Toronto Huskies","age":22,"ageEstimated":true,"prospect":73,"ceilingLow":66,"ceilingHigh":81,"scoutUncertainty":12,"draftedBy":null,"draftPick":null,"portraitKey":"paul_hoffman","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_43","historicalPick":43,"historicalRound":5,"name":"Jack Hewson","pos":"F/C","wikipediaPosition":"F/C","college":"Philadelphia Sphas (ABL)","historicalDraftTeam":"Boston Celtics","age":22,"ageEstimated":true,"prospect":73,"ceilingLow":66,"ceilingHigh":81,"scoutUncertainty":12,"draftedBy":null,"draftPick":null,"portraitKey":"jack_hewson","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_45","historicalPick":45,"historicalRound":5,"name":"Ron Livingstone","pos":"C","wikipediaPosition":"C","college":"Wyoming","historicalDraftTeam":"New York Knicks","age":22,"ageEstimated":true,"prospect":73,"ceilingLow":66,"ceilingHigh":81,"scoutUncertainty":12,"draftedBy":null,"draftPick":null,"portraitKey":"ron_livingstone","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_47","historicalPick":47,"historicalRound":5,"name":"Andy Phillip","pos":"G/F","wikipediaPosition":"G/F","college":"Illinois","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":72,"ceilingLow":65,"ceilingHigh":80,"scoutUncertainty":12,"draftedBy":null,"draftPick":null,"portraitKey":"andy_phillip","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_48","historicalPick":48,"historicalRound":5,"name":"Matt Zunic","pos":"G/F","wikipediaPosition":"G/F","college":"George Washington","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":72,"ceilingLow":65,"ceilingHigh":80,"scoutUncertainty":12,"draftedBy":null,"draftPick":null,"portraitKey":"matt_zunic","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_53","historicalPick":53,"historicalRound":6,"name":"Andy Duncan","pos":"F/C","wikipediaPosition":"F/C","college":"William & Mary","historicalDraftTeam":"New York Knicks","age":22,"ageEstimated":true,"prospect":70,"ceilingLow":63,"ceilingHigh":78,"scoutUncertainty":13,"draftedBy":null,"draftPick":null,"portraitKey":"andy_duncan","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_54","historicalPick":54,"historicalRound":6,"name":"Paul Napolitano","pos":"G/F","wikipediaPosition":"G/F","college":"San Francisco","historicalDraftTeam":"St. Louis Bombers","age":22,"ageEstimated":true,"prospect":70,"ceilingLow":63,"ceilingHigh":78,"scoutUncertainty":13,"draftedBy":null,"draftPick":null,"portraitKey":"paul_napolitano","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_56","historicalPick":56,"historicalRound":6,"name":"Irv Rothenberg","pos":"C","wikipediaPosition":"C","college":"Cleveland Rebels (BAA)","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":70,"ceilingLow":63,"ceilingHigh":78,"scoutUncertainty":13,"draftedBy":null,"draftPick":null,"portraitKey":"irv_rothenberg","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_61","historicalPick":61,"historicalRound":7,"name":"Wataru Misaka","pos":"G","wikipediaPosition":"G","college":"Utah","historicalDraftTeam":"New York Knicks","age":22,"ageEstimated":true,"prospect":68,"ceilingLow":61,"ceilingHigh":76,"scoutUncertainty":14,"draftedBy":null,"draftPick":null,"portraitKey":"wataru_misaka","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_62","historicalPick":62,"historicalRound":7,"name":"Jim Pollard","pos":"F/C","wikipediaPosition":"F/C","college":"Stanford","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":68,"ceilingLow":61,"ceilingHigh":76,"scoutUncertainty":14,"draftedBy":null,"draftPick":null,"portraitKey":"jim_pollard","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_63","historicalPick":63,"historicalRound":7,"name":"Saul Mariaschin","pos":"G","wikipediaPosition":"G","college":"Harvard","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":68,"ceilingLow":61,"ceilingHigh":76,"scoutUncertainty":14,"draftedBy":null,"draftPick":null,"portraitKey":"saul_mariaschin","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_68","historicalPick":68,"historicalRound":8,"name":"Don Smith","pos":"G/F","wikipediaPosition":"G/F","college":"Indianapolis Kautskys (NBL)","historicalDraftTeam":"Chicago Stags","age":22,"ageEstimated":true,"prospect":67,"ceilingLow":60,"ceilingHigh":75,"scoutUncertainty":15,"draftedBy":null,"draftPick":null,"portraitKey":"don_smith","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_69","historicalPick":69,"historicalRound":8,"name":"Paul Cloyd","pos":"G/F","wikipediaPosition":"G/F","college":"Wisconsin","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":66,"ceilingLow":59,"ceilingHigh":74,"scoutUncertainty":15,"draftedBy":null,"draftPick":null,"portraitKey":"paul_cloyd","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_70","historicalPick":70,"historicalRound":8,"name":"Elmer Gainer","pos":"F/C","wikipediaPosition":"F/C","college":"Anderson Duffey Packers (NBL)","historicalDraftTeam":"Baltimore Bullets","age":22,"ageEstimated":true,"prospect":66,"ceilingLow":59,"ceilingHigh":74,"scoutUncertainty":15,"draftedBy":null,"draftPick":null,"portraitKey":"elmer_gainer","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_74","historicalPick":74,"historicalRound":9,"name":"John Mandic","pos":"F/C","wikipediaPosition":"F/C","college":"Portland Indians (PCPBL)","historicalDraftTeam":"Washington Capitols","age":22,"ageEstimated":true,"prospect":65,"ceilingLow":58,"ceilingHigh":73,"scoutUncertainty":16,"draftedBy":null,"draftPick":null,"portraitKey":"john_mandic","source":"Wikipedia 1947 BAA draft"},{"id":"d1947_wiki_75","historicalPick":75,"historicalRound":9,"name":"Chick Reiser","pos":"G/F","wikipediaPosition":"G/F","college":"Fort Wayne Zollner Pistons (NBL)","historicalDraftTeam":"Baltimore Bullets","age":22,"ageEstimated":true,"prospect":65,"ceilingLow":58,"ceilingHigh":73,"scoutUncertainty":16,"draftedBy":null,"draftPick":null,"portraitKey":"chick_reiser","source":"Wikipedia 1947 BAA draft"}];
 const WIKIPEDIA_1947_UNDRAFTED_V09717=[{"id":"u1947_wiki_1","name":"Don Barksdale","pos":"F/C","college":"UCLA","portraitKey":"don_barksdale","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_2","name":"Charles B. Black","pos":"F/C","college":"Kansas","portraitKey":"charles_b_black","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_3","name":"Jake Bornheimer","pos":"F/C","college":"Muhlenberg","portraitKey":"jake_bornheimer","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_4","name":"Harry Boykoff","pos":"C","college":"St. John's","portraitKey":"harry_boykoff","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_5","name":"Carl Braun","pos":"G","college":"Colgate","portraitKey":"carl_braun","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_6","name":"Fran Curran","pos":"G","college":"Notre Dame","portraitKey":"fran_curran","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_7","name":"Jack Dwan","pos":"F/G","college":"Loyola (IL)","portraitKey":"jack_dwan","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_8","name":"Hoot Gibson","pos":"F/C","college":"Creighton","portraitKey":"hoot_gibson","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_9","name":"Ralph Hamilton","pos":"G/F","college":"Indiana","portraitKey":"ralph_hamilton","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_10","name":"John Hargis","pos":"G/F","college":"Texas","portraitKey":"john_hargis","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_11","name":"Doug Holcomb","pos":"F","college":"Wisconsin","portraitKey":"doug_holcomb","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_12","name":"Boag Johnson","pos":"G","college":"Huntington","portraitKey":"boag_johnson","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_13","name":"Walt Kirk","pos":"G","college":"Illinois","portraitKey":"walt_kirk","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_14","name":"Bob Knight","pos":"G/F","college":"Weaver HS (Hartford, Connecticut)","portraitKey":"bob_knight","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_15","name":"Ray Kuka","pos":"F","college":"Montana State","portraitKey":"ray_kuka","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_16","name":"Walt Lautenbach","pos":"G/F","college":"Wisconsin","portraitKey":"walt_lautenbach","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_17","name":"Matt Mazza","pos":"G/F","college":"Michigan State","portraitKey":"matt_mazza","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_18","name":"Dick Mehen","pos":"F/C","college":"Tennessee","portraitKey":"dick_mehen","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_19","name":"Ken Menke","pos":"G","college":"Illinois","portraitKey":"ken_menke","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_20","name":"Fred Paine","pos":"F","college":"Westminster (PA)","portraitKey":"fred_paine","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_21","name":"Les Pugh","pos":"F/C","college":"Ohio State","portraitKey":"les_pugh","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_22","name":"Ray Ramsey","pos":"G/F","college":"Bradley","portraitKey":"ray_ramsey","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_23","name":"Lee Robbins","pos":"F","college":"Colorado","portraitKey":"lee_robbins","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_24","name":"Gene Rock","pos":"G","college":"USC","portraitKey":"gene_rock","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_25","name":"Jack Rocker","pos":"F/C","college":"California","portraitKey":"jack_rocker","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_26","name":"Jack Smiley","pos":"F/G","college":"Illinois","portraitKey":"jack_smiley","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_27","name":"Jim Springer","pos":"C","college":"Canterbury","portraitKey":"jim_springer","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_28","name":"Sid Tanenbaum","pos":"G/F","college":"NYU","portraitKey":"sid_tanenbaum","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_29","name":"Mike Todorovich","pos":"F/C","college":"Wyoming","portraitKey":"mike_todorovich","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_30","name":"Jack Toomay","pos":"F/C","college":"Pacific","portraitKey":"jack_toomay","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_31","name":"Floyd Volker","pos":"F/C","college":"Wyoming","portraitKey":"floyd_volker","source":"Wikipedia 1947 BAA draft - notable undrafted"},{"id":"u1947_wiki_32","name":"Danny Wagner","pos":"G","college":"Texas","portraitKey":"danny_wagner","source":"Wikipedia 1947 BAA draft - notable undrafted"}];
@@ -40716,6 +40716,110 @@ setTimeout(()=>{
     }
   }catch(e){console.error("1947 Wikipedia class install",e);}
 },250);
+})();
+</script>
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.18';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.18 · Clean Repository Structure';
+
+window.BV_PATHS_V09718={
+  portraits:"./portraits/",
+  gameLogos:"./logos/game/",
+  teamLogos:"./logos/teams/",
+  files:"./files/"
+};
+
+function bvFirstExistingImageV09718(img, paths, index=0){
+  if(!img || !Array.isArray(paths) || index>=paths.length)return;
+  img.onerror=function(){
+    const next=index+1;
+    if(next<paths.length){
+      this.onerror=null;
+      bvFirstExistingImageV09718(this,paths,next);
+      this.src=paths[next];
+    }
+  };
+  img.src=paths[index];
+}
+window.bvFirstExistingImageV09718=bvFirstExistingImageV09718;
+
+function portraitFileV09718(p){
+  const key=String(p?.portraitKey||p?.name||"player")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase().replace(/['’]/g,"")
+    .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+  return key+".webp";
+}
+window.portraitFileV09718=portraitFileV09718;
+
+function portraitPathsV09718(p){
+  const file=portraitFileV09718(p);
+  return [
+    `./portraits/${file}`,
+    `./logos/historical/${file}`
+  ];
+}
+window.portraitPathsV09718=portraitPathsV09718;
+
+window.universalPlayerPortraitSrcV09500=function(p){
+  if(p?.customPortrait)return p.customPortrait;
+  if(typeof p?.portrait==="string" && /^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;
+  return portraitPathsV09718(p)[0];
+};
+try{universalPlayerPortraitSrcV09500=window.universalPlayerPortraitSrcV09500;}catch(_){}
+
+window.portraitSrc09707=function(p){
+  if(p?.customPortrait)return p.customPortrait;
+  if(typeof p?.portrait==="string" && /^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;
+  return portraitPathsV09718(p)[0];
+};
+try{portraitSrc09707=window.portraitSrc09707;}catch(_){}
+
+function fixRepositoryImagesV09718(){
+  document.querySelectorAll("img").forEach(img=>{
+    const src=String(img.getAttribute("src")||"");
+
+    if(/basketballverse-logo\.jpg$/i.test(src)){
+      if(!img.dataset.bvRepoBrand09718){
+        img.dataset.bvRepoBrand09718="1";
+        bvFirstExistingImageV09718(img,["./logos/game/basketballverse-logo.jpg","./basketballverse-logo.jpg"],0);
+      }
+      return;
+    }
+
+    if(/\/portraits\/[^/]+\.webp$/i.test(src)){
+      if(!img.dataset.bvRepoPortrait09718){
+        img.dataset.bvRepoPortrait09718="1";
+        const file=src.split("/").pop();
+        bvFirstExistingImageV09718(img,[`./portraits/${file}`,`./logos/historical/${file}`],0);
+      }
+      return;
+    }
+
+    if(/logos\/historical\/[^/]+\.webp$/i.test(src)){
+      if(!img.dataset.bvRepoTeamLogo09718){
+        img.dataset.bvRepoTeamLogo09718="1";
+        const file=src.split("/").pop();
+        bvFirstExistingImageV09718(img,[`./logos/teams/${file}`,`./logos/historical/${file}`],0);
+      }
+    }
+  });
+}
+window.fixRepositoryImagesV09718=fixRepositoryImagesV09718;
+
+const renderAllBefore09718=window.renderAll;
+if(typeof renderAllBefore09718==="function"){
+  window.renderAll=function(){
+    const r=renderAllBefore09718.apply(this,arguments);
+    setTimeout(fixRepositoryImagesV09718,20);
+    return r;
+  };
+  try{renderAll=window.renderAll;}catch(_){}
+}
+
+document.addEventListener("click",()=>setTimeout(fixRepositoryImagesV09718,80),true);
+setTimeout(fixRepositoryImagesV09718,250);
 })();
 </script>
 </body>
