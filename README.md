@@ -1,11 +1,15 @@
-# Basketballverse v0.97.09
-## Inline Offseason Sim Actions
+# Basketballverse v0.97.10
+## Roster Player Profile Pop-up
 
-The large fixed yellow personnel simulation button is removed.
+Viewer Team -> Roster now behaves like a sports-game roster screen:
 
-Re-signings, Free Agency, and Roster Cuts still have Viewer simulation controls,
-but those controls now appear inside the selected offseason task area beside the
-normal task controls. They scroll naturally with the page and no longer cover
-content or the iPhone browser controls.
+- Tap/click any player row to open that player's full profile in a modal.
+- The existing Basketballverse player-profile content is preserved, including
+  portraits, ratings, career totals, season history, awards and transactions.
+- A large X in the upper-right closes the profile.
+- Closing returns the user to the same roster scroll position.
+- Tapping outside the dialog or pressing Escape also closes it.
+- The old separate Player Profile card is hidden in Viewer mode so the roster
+  remains the primary page.
 
-No simulation logic changed.
+No player data or simulation logic changed.

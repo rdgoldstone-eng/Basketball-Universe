@@ -38964,7 +38964,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
   const OLD='v0.96.39 · Permanent Draft Sim Control';
-  const NEW='v0.97.09 · Inline Offseason Sim Actions';
+  const NEW='v0.97.10 · Roster Player Profile Pop-up';
 
   window.BASKETBALLVERSE_BUILD='v0.97.02';
   window.BASKETBALLVERSE_BUILD_LABEL=NEW;
@@ -39006,7 +39006,7 @@ setTimeout(updateDraftSimBarV09639,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.03';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 
 const OffseasonSimV09703={
   labels:{
@@ -39109,7 +39109,7 @@ setTimeout(()=>OffseasonSimV09703.update(),250);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.04';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 
 const normalizeOffseasonPhaseV09704=p=>String(p||"").trim().toLowerCase()
   .replace(/[–—]/g,"-").replace(/\s+/g," ");
@@ -39199,7 +39199,7 @@ setTimeout(ensureSpecificOffseasonButtonsV09704,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.05';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 
 function personnelKind09705(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39277,7 +39277,7 @@ setTimeout(updatePersonnelButton09705,100);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.06';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 
 /* =========================================================
    EARLY LEAGUE MEMBERSHIP SYSTEM
@@ -39603,7 +39603,7 @@ setTimeout(()=>{
 </style>
 <script>
 (function(){
-window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD='v0.97.07';window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 function portraitKey09707(name){return String(name||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
 function portraitSrc09707(p){if(p?.customPortrait)return p.customPortrait;if(typeof p?.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;return `./portraits/${portraitKey09707(p?.name)}.webp`}
 window.portraitSrc09707=portraitSrc09707;
@@ -39634,7 +39634,7 @@ body.viewer-mode [data-floating-continue="true"]{
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.08';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 
 function removeFloatingContinue09708(){
   if(state?.role!=="Viewer")return;
@@ -39706,7 +39706,7 @@ setTimeout(markViewer09708,300);
 <script>
 (function(){
 window.BASKETBALLVERSE_BUILD='v0.97.09';
-window.BASKETBALLVERSE_BUILD_LABEL='v0.97.09 · Inline Offseason Sim Actions';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
 
 function personnelKind09709(){
  const p=String(state?.offseason?.phase||"").toLowerCase();
@@ -39768,6 +39768,137 @@ if(typeof oldRenderAll09709==="function"){
 document.addEventListener("click",()=>setTimeout(installInlinePersonnel09709,100),true);
 setInterval(installInlinePersonnel09709,700);
 setTimeout(installInlinePersonnel09709,250);
+})();
+</script>
+<style id="bv09710PlayerProfileModalCSS">
+#bvPlayerProfileModal09710{
+  position:fixed;inset:0;z-index:1000005;display:none;
+  background:rgba(4,7,12,.78);padding:18px;
+  align-items:center;justify-content:center;
+}
+#bvPlayerProfileModal09710.open{display:flex}
+#bvPlayerProfileDialog09710{
+  width:min(760px,100%);max-height:88vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  box-shadow:0 24px 70px rgba(0,0,0,.55);position:relative;
+}
+#bvPlayerProfileClose09710{
+  position:sticky;top:10px;float:right;z-index:3;
+  width:44px;height:44px;margin:10px 10px 0 0;border-radius:50%;
+  font-size:24px;font-weight:900;line-height:1;
+  background:var(--panel2);border:1px solid var(--line);color:var(--text);
+}
+#bvPlayerProfileBody09710{padding:18px 20px 24px;clear:both}
+#players #rosterBox .playerline:not(.header){cursor:pointer}
+#players #rosterBox .playerline:not(.header):active{transform:scale(.995)}
+body.bv-viewer-player-modal-09710 #playerProfile{display:none!important}
+body.bv-viewer-player-modal-09710 #playerProfile:closest(.card){display:none!important}
+@media(max-width:600px){
+  #bvPlayerProfileModal09710{padding:8px}
+  #bvPlayerProfileDialog09710{max-height:92vh;border-radius:16px}
+  #bvPlayerProfileBody09710{padding:12px 14px 20px}
+}
+</style>
+
+<div id="bvPlayerProfileModal09710" aria-hidden="true">
+  <div id="bvPlayerProfileDialog09710" role="dialog" aria-modal="true" aria-label="Player profile">
+    <button type="button" id="bvPlayerProfileClose09710" aria-label="Close player profile">×</button>
+    <div id="bvPlayerProfileBody09710"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+window.BASKETBALLVERSE_BUILD='v0.97.10';
+window.BASKETBALLVERSE_BUILD_LABEL='v0.97.10 · Roster Player Profile Pop-up';
+
+let bvProfileScrollY09710=0;
+
+function hideLegacyProfileCard09710(){
+  if(state?.role!=="Viewer")return;
+  document.body.classList.add("bv-viewer-player-modal-09710");
+  const legacy=document.getElementById("playerProfile");
+  const card=legacy?.closest(".card");
+  if(card)card.style.display="none";
+}
+window.hideLegacyProfileCard09710=hideLegacyProfileCard09710;
+
+function openPlayerProfileModal09710(){
+  const legacy=document.getElementById("playerProfile");
+  const modal=document.getElementById("bvPlayerProfileModal09710");
+  const body=document.getElementById("bvPlayerProfileBody09710");
+  if(!legacy||!modal||!body)return;
+
+  body.innerHTML=legacy.innerHTML;
+  bvProfileScrollY09710=window.scrollY||0;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+  document.getElementById("bvPlayerProfileClose09710")?.focus();
+}
+window.openPlayerProfileModal09710=openPlayerProfileModal09710;
+
+function closePlayerProfileModal09710(){
+  const modal=document.getElementById("bvPlayerProfileModal09710");
+  if(!modal)return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+  window.scrollTo(0,bvProfileScrollY09710);
+}
+window.closePlayerProfileModal09710=closePlayerProfileModal09710;
+
+document.getElementById("bvPlayerProfileClose09710")?.addEventListener("click",closePlayerProfileModal09710);
+document.getElementById("bvPlayerProfileModal09710")?.addEventListener("click",e=>{
+  if(e.target?.id==="bvPlayerProfileModal09710")closePlayerProfileModal09710();
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape" && document.getElementById("bvPlayerProfileModal09710")?.classList.contains("open")){
+    closePlayerProfileModal09710();
+  }
+});
+
+/* Preserve every existing player-profile builder and portrait injector.
+   After the normal showPlayer() finishes, copy that completed profile into
+   the modal instead of navigating the user away from the roster. */
+const showPlayerBefore09710=window.showPlayer;
+window.showPlayer=function(id){
+  const r=showPlayerBefore09710?.apply(this,arguments);
+  setTimeout(()=>{
+    try{
+      openPlayerProfileModal09710();
+      hideLegacyProfileCard09710();
+    }catch(e){console.error("Player profile modal",e);}
+  },0);
+  return r;
+};
+try{showPlayer=window.showPlayer;}catch(_){}
+
+/* Make the whole roster row tappable, NBA 2K-style, not just the player name. */
+document.addEventListener("click",e=>{
+  if(state?.role!=="Viewer")return;
+  const row=e.target?.closest?.("#rosterBox .playerline:not(.header)");
+  if(!row)return;
+  if(e.target?.closest?.(".playername"))return;
+  const playerName=row.querySelector(".playername");
+  if(playerName){
+    e.preventDefault();
+    e.stopPropagation();
+    playerName.click();
+  }
+},true);
+
+const renderPlayersBefore09710=window.renderPlayers;
+if(typeof renderPlayersBefore09710==="function"){
+  window.renderPlayers=function(){
+    const r=renderPlayersBefore09710.apply(this,arguments);
+    setTimeout(hideLegacyProfileCard09710,0);
+    return r;
+  };
+  try{renderPlayers=window.renderPlayers;}catch(_){}
+}
+
+setTimeout(hideLegacyProfileCard09710,250);
 })();
 </script>
 </body>
