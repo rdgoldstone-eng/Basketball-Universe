@@ -1,11 +1,17 @@
 # Basketballverse
 
-**Current build:** v0.97.19 — Expanded 1947 Draft Pool
+## Current build
+**v0.97.20 · 1947 Draft Pool Repair**
 
-Basketballverse is a historical basketball universe simulation that begins in the BAA/NBA's early years and allows league history to branch into an alternate timeline.
+### What changed
+- Repairs the 1947 draft class to use all **78 documented named selections** currently included in the historical source data.
+- Removes the old procedurally generated filler prospects from the 1947 pool.
+- Repairs already-saved 1946-47 universes when they are loaded, including an already-created 1947 Draft Room.
+- Preserves already-completed 1947 draft results while rebuilding the remaining available player pool from the real historical class.
+- Updates the visible build label so the running game clearly shows v0.97.20.
+- Keeps the clean repository asset structure introduced in v0.97.18.
 
 ## Repository structure
-
 ```text
 Basketball-Universe/
 ├── index.html
@@ -18,28 +24,17 @@ Basketball-Universe/
 │   └── teams/
 │       └── city-team-year.webp
 └── files/
-    └── checklists, audits, and reference files
 ```
 
 ## Asset naming
+Player portraits use lowercase underscore-separated names, for example:
+- `clifton_mcneely.webp`
+- `andy_phillip.webp`
+- `larry_bird.webp`
 
-- Player portraits: lowercase `.webp` using underscores, for example `larry_bird.webp` and `clifton_mcneely.webp`.
-- Team logos: lowercase `.webp` using hyphens and the historical year, for example `boston-celtics-1946.webp`.
-- Basketballverse game logo: `logos/game/basketballverse-logo.jpg`.
+Team logos use the historical city-team-year naming format, for example:
+- `boston-celtics-1946.webp`
+- `baltimore-bullets-1947.webp`
 
-## v0.97.19
-
-- Expanded the 1947 historical draft pool to 78 documented players across 10 rounds.
-- Preserves documented historical players instead of inventing players simply to fill draft slots.
-- Scouting and Draft Room use the expanded 1947 class.
-- Player portraits continue to resolve through the canonical `portraits/first_last.webp` convention.
-- Canonical repository asset paths remain `portraits/`, `logos/game/`, `logos/teams/`, and `files/`.
-
-## Updating the game
-
-Normal Basketballverse update ZIPs contain only:
-
-- `index.html`
-- `README.md`
-
-Do not replace or re-upload the `portraits`, `logos`, or `files` folders when installing a normal game update.
+## Updating GitHub
+Future Basketballverse update ZIPs contain only `index.html` and `README.md`. Replace those two files in the repository. Keep `portraits/`, `logos/`, and `files/` in place.
