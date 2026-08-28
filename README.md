@@ -1,9 +1,13 @@
-# Basketballverse v0.97.18
-## Clean Repository Structure
+# Basketballverse
 
-From this build forward, Basketballverse uses this repository layout:
+**Current build:** v0.97.19 — Expanded 1947 Draft Pool
 
-Basketballverse/
+Basketballverse is a historical basketball universe simulation that begins in the BAA/NBA's early years and allows league history to branch into an alternate timeline.
+
+## Repository structure
+
+```text
+Basketball-Universe/
 ├── index.html
 ├── README.md
 ├── portraits/
@@ -14,42 +18,28 @@ Basketballverse/
 │   └── teams/
 │       └── city-team-year.webp
 └── files/
-    └── static checklists, audits, instructions, and reference files
+    └── checklists, audits, and reference files
+```
 
-### Naming standards
+## Asset naming
 
-Player portraits:
-- lowercase
-- underscore between first and last name
-- `.webp`
-- Example: `clifton_mcneely.webp`
+- Player portraits: lowercase `.webp` using underscores, for example `larry_bird.webp` and `clifton_mcneely.webp`.
+- Team logos: lowercase `.webp` using hyphens and the historical year, for example `boston-celtics-1946.webp`.
+- Basketballverse game logo: `logos/game/basketballverse-logo.jpg`.
 
-Team logos:
-- lowercase
-- hyphenated city-team-year
-- `.webp`
-- Example: `boston-celtics-1946.webp`
+## v0.97.19
 
-### Transition behavior
+- Expanded the 1947 historical draft pool to 78 documented players across 10 rounds.
+- Preserves documented historical players instead of inventing players simply to fill draft slots.
+- Scouting and Draft Room use the expanded 1947 class.
+- Player portraits continue to resolve through the canonical `portraits/first_last.webp` convention.
+- Canonical repository asset paths remain `portraits/`, `logos/game/`, `logos/teams/`, and `files/`.
 
-v0.97.18 treats the new folders as canonical, but temporarily falls back to old
-locations while the GitHub repository is being reorganized:
+## Updating the game
 
-- portraits first try `/portraits/`
-- misplaced player portraits can temporarily fall back to `/logos/historical/`
-- team logos first try `/logos/teams/`
-- old team logos can temporarily fall back to `/logos/historical/`
-- the Basketballverse brand logo first tries `/logos/game/`
-- the old root `basketballverse-logo.jpg` remains a temporary fallback
-
-Once the GitHub cleanup is complete, the legacy fallbacks can be removed.
-
-### Future ZIP rule
-
-Starting with v0.97.18, update ZIPs contain ONLY:
+Normal Basketballverse update ZIPs contain only:
 
 - `index.html`
 - `README.md`
 
-Portraits, team logos, the game logo, CSV checklists, and other static files stay
-in GitHub and are not recopied into every update ZIP.
+Do not replace or re-upload the `portraits`, `logos`, or `files` folders when installing a normal game update.
