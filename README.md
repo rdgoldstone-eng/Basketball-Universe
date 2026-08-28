@@ -1,40 +1,35 @@
 # Basketballverse
 
-## Current build
-**v0.97.20 · 1947 Draft Pool Repair**
-
-### What changed
-- Repairs the 1947 draft class to use all **78 documented named selections** currently included in the historical source data.
-- Removes the old procedurally generated filler prospects from the 1947 pool.
-- Repairs already-saved 1946-47 universes when they are loaded, including an already-created 1947 Draft Room.
-- Preserves already-completed 1947 draft results while rebuilding the remaining available player pool from the real historical class.
-- Updates the visible build label so the running game clearly shows v0.97.20.
-- Keeps the clean repository asset structure introduced in v0.97.18.
+Current build: **v0.97.21 · 1947 Real-Name Draft Repair**
 
 ## Repository structure
+
 ```text
 Basketball-Universe/
 ├── index.html
 ├── README.md
 ├── portraits/
-│   └── first_last.webp
 ├── logos/
 │   ├── game/
-│   │   └── basketballverse-logo.jpg
 │   └── teams/
-│       └── city-team-year.webp
 └── files/
 ```
 
-## Asset naming
-Player portraits use lowercase underscore-separated names, for example:
-- `clifton_mcneely.webp`
-- `andy_phillip.webp`
-- `larry_bird.webp`
+## Asset paths
 
-Team logos use the historical city-team-year naming format, for example:
-- `boston-celtics-1946.webp`
-- `baltimore-bullets-1947.webp`
+- Player portraits: `portraits/first_last.webp`
+- Basketballverse logo: `logos/game/basketballverse-logo.jpg`
+- Historical/team logos: `logos/teams/`
+- Static audits/checklists/reference files: `files/`
 
-## Updating GitHub
-Future Basketballverse update ZIPs contain only `index.html` and `README.md`. Replace those two files in the repository. Keep `portraits/`, `logos/`, and `files/` in place.
+## v0.97.21
+
+- Fixes the 1947 scouting pool so it displays the 78 documented real draft names instead of the old procedural filler pool.
+- Specifically eliminates malformed names such as `Damon undefined` and `Desmond undefined` from the 1947 class.
+- Forces existing 1946-47 saves to replace the stale 1947 draft-class state with the authoritative historical list.
+- Rebuilds the 1947 Draft Room available list from the same authoritative class when applicable.
+- Keeps portrait naming as lowercase underscore-separated `.webp` files.
+
+## Update workflow
+
+Normal Basketballverse update ZIPs contain only `index.html` and `README.md`. Static assets stay in GitHub and should not be re-uploaded with every build.
