@@ -661,7 +661,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.97.23 · Playoff + Logo Stability</div>
+    <div class="pill">v0.97.24 · Stable Version Badge</div>
     <img id="startupBasketballverseLogoV0909" src="logos/game/basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -41119,6 +41119,62 @@ if(typeof rp09723==='function'){
 }
 window.addEventListener('load',()=>setTimeout(wire09723,100));
 setTimeout(wire09723,250);
+})();
+</script>
+
+
+<script id="v09724StableVersionBadge">
+(function(){
+  const BUILD='v0.97.24';
+  const LABEL='v0.97.24 · Stable Version Badge';
+
+  /* This file contains many historical patch blocks. Some of those blocks still
+     assign old build labels when their render/init hooks run. Make the current
+     build identity immutable after all patches have loaded. */
+  try{
+    Object.defineProperty(window,'BASKETBALLVERSE_BUILD',{
+      configurable:false,
+      enumerable:true,
+      get:()=>BUILD,
+      set:()=>{}
+    });
+  }catch(_){ window.BASKETBALLVERSE_BUILD=BUILD; }
+
+  try{
+    Object.defineProperty(window,'BASKETBALLVERSE_BUILD_LABEL',{
+      configurable:false,
+      enumerable:true,
+      get:()=>LABEL,
+      set:()=>{}
+    });
+  }catch(_){ window.BASKETBALLVERSE_BUILD_LABEL=LABEL; }
+
+  function enforceStableVersionV09724(){
+    const setupPill=document.querySelector('#setupView .pill');
+    if(setupPill && setupPill.textContent!==LABEL) setupPill.textContent=LABEL;
+
+    /* If a current-build badge is rendered anywhere else, keep that badge on
+       the current version without touching season/phase/role pills. */
+    document.querySelectorAll('[data-bv-build-label]').forEach(el=>{
+      if(el.textContent!==LABEL) el.textContent=LABEL;
+    });
+  }
+
+  /* Historical render hooks may mutate the setup badge after a game, tab change,
+     or saved-state load. Observe only that badge instead of running another timer. */
+  const installObserver=()=>{
+    enforceStableVersionV09724();
+    const pill=document.querySelector('#setupView .pill');
+    if(!pill)return;
+    const obs=new MutationObserver(()=>enforceStableVersionV09724());
+    obs.observe(pill,{childList:true,characterData:true,subtree:true});
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',installObserver,{once:true});
+  }else{
+    installObserver();
+  }
 })();
 </script>
 

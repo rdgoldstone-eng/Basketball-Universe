@@ -1,4 +1,4 @@
-# Basketballverse — v0.97.23
+# Basketballverse — v0.97.24
 
 ## Current Build
 **v0.97.22 · Portrait Stability Fix**
@@ -38,3 +38,9 @@ Future update ZIPs contain only `index.html` and `README.md`; static assets rema
 ### v0.97.23
 - Fixed team logos disappearing after game simulation by resolving historical artwork directly from `logos/teams/` on every render.
 - Repaired `Open Playoffs` and `Begin Playoffs`, including the special 1946-47 BAA playoff initializer.
+
+
+### v0.97.24
+- Fixed the version badge changing while the game is running.
+- The current build number and build label are now immutable after startup, so older historical patch hooks cannot overwrite them.
+- Replaced repeated version-badge polling with a targeted observer on the startup badge.
