@@ -661,7 +661,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.97.20 · 1947 Draft Pool Repair</div>
+    <div class="pill">v0.97.23 · Playoff + Logo Stability</div>
     <img id="startupBasketballverseLogoV0909" src="logos/game/basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -41027,6 +41027,101 @@ if(pill)pill.textContent=window.BASKETBALLVERSE_BUILD_LABEL;
   // loaded portraits to blink and re-exposed the initials fallback underneath them.
 })();
 </script>
+
+<script id="v09723PlayoffLogoStability">
+(function(){
+const BUILD='v0.97.23',LABEL='v0.97.23 · Playoff + Logo Stability';
+window.BASKETBALLVERSE_BUILD=BUILD;window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+
+function canonicalLogo09723(src){
+ const s=String(src||'');
+ return s.replace(/^\.\/logos\/historical\//i,'./logos/teams/').replace(/^logos\/historical\//i,'./logos/teams/');
+}
+window.canonicalLogo09723=canonicalLogo09723;
+
+const oldResolved09723=window.resolvedLogoSrc;
+if(typeof oldResolved09723==='function'){
+ window.resolvedLogoSrc=function(obj,year){return canonicalLogo09723(oldResolved09723.call(this,obj,year));};
+ try{resolvedLogoSrc=window.resolvedLogoSrc;}catch(_){}
+}
+const oldHistorical09723=window.historicalLogoFor;
+if(typeof oldHistorical09723==='function'){
+ window.historicalLogoFor=function(name,year){return canonicalLogo09723(oldHistorical09723.call(this,name,year));};
+ try{historicalLogoFor=window.historicalLogoFor;}catch(_){}
+}
+
+window.logoHTML=function(obj){
+ const y=Number(state?.currentYear||1946),name=String(obj?.name||obj?.teamName||'Team');
+ const src=canonicalLogo09723(window.resolvedLogoSrc?.(obj,y)||'');
+ const abbr=(typeof initials==='function'?initials(name):name.slice(0,3).toUpperCase());
+ if(!src)return `<div class="logo">${abbr}</div>`;
+ const legacy=src.replace(/^\.\/logos\/teams\//i,'./logos/historical/').replace(/'/g,"&#39;");
+ return `<div class="logo"><img src="${src}" alt="${name.replace(/"/g,'&quot;')} logo" onerror="if(!this.dataset.bvLegacyTry){this.dataset.bvLegacyTry='1';this.src='${legacy}';}else if(this.parentElement){this.parentElement.textContent='${abbr}';}"></div>`;
+};
+try{logoHTML=window.logoHTML;}catch(_){}
+
+function startPlayoffs09723(){
+ if(!state?.season)return false;
+ if(state.season.phase==='Season Complete'){try{switchTab('playoffs');}catch(_){}return true;}
+ if(state.season.phase!=='Playoffs')state.season.phase='Regular Season Complete';
+
+ if(!state.season.playoffState){
+  let ok=false;
+  if(Number(state.season.year)===1946){
+   try{ok=!!window.create1947BracketV09633?.();}catch(_){}
+   if(!ok)try{ok=!!window.init1947BAAPlayoffsV09631?.(true);}catch(_){}
+  }else{
+   try{initPostseasonExperience?.();}catch(e){console.error('v0.97.23 postseason init',e);}
+   ok=!!state.season.playoffState;
+  }
+  if(!ok&&!state.season.playoffState){
+   console.error('v0.97.23 playoff initialization failed',{seasonYear:state.season.year,currentYear:state.currentYear,teams:(state.teams||[]).length});
+   return false;
+  }
+ }
+ state.season.phase='Playoffs';
+ try{switchTab('playoffs');}catch(_){}
+ try{renderPlayoffs?.();renderSeason?.();saveState?.();}catch(e){console.error(e);}
+ return true;
+}
+window.startPlayoffs09723=startPlayoffs09723;
+window.runPostseason=startPlayoffs09723;
+try{runPostseason=startPlayoffs09723;}catch(_){}
+
+function wire09723(){
+ document.querySelectorAll('button').forEach(b=>{
+  if(/open playoffs|begin playoffs/i.test(String(b.textContent||''))){
+   b.onclick=e=>{e?.preventDefault?.();startPlayoffs09723();};
+  }
+ });
+ const b=document.getElementById('advanceBtn');
+ if(b&&state?.season?.phase==='Regular Season Complete'){
+  b.textContent='🏆 OPEN PLAYOFFS';b.onclick=e=>{e?.preventDefault?.();startPlayoffs09723();};
+ }
+ const pill=document.querySelector('#setupView .pill');if(pill)pill.textContent=LABEL;
+}
+
+document.addEventListener('click',e=>{
+ const b=e.target?.closest?.('button');
+ if(!b||!/open playoffs|begin playoffs/i.test(String(b.textContent||'')))return;
+ e.preventDefault();e.stopImmediatePropagation();startPlayoffs09723();
+},true);
+
+const rs09723=window.renderSeason;
+if(typeof rs09723==='function'){
+ window.renderSeason=function(){const r=rs09723.apply(this,arguments);wire09723();return r;};
+ try{renderSeason=window.renderSeason;}catch(_){}
+}
+const rp09723=window.renderPlayoffs;
+if(typeof rp09723==='function'){
+ window.renderPlayoffs=function(){const r=rp09723.apply(this,arguments);wire09723();return r;};
+ try{renderPlayoffs=window.renderPlayoffs;}catch(_){}
+}
+window.addEventListener('load',()=>setTimeout(wire09723,100));
+setTimeout(wire09723,250);
+})();
+</script>
+
 </body>
 </html>
 

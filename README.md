@@ -1,4 +1,4 @@
-# Basketballverse
+# Basketballverse — v0.97.23
 
 ## Current Build
 **v0.97.22 · Portrait Stability Fix**
@@ -33,3 +33,8 @@ Player portraits use lowercase underscore-separated filenames, for example:
 - `wataru_misaka.webp`
 
 Future update ZIPs contain only `index.html` and `README.md`; static assets remain in the GitHub repository.
+
+
+### v0.97.23
+- Fixed team logos disappearing after game simulation by resolving historical artwork directly from `logos/teams/` on every render.
+- Repaired `Open Playoffs` and `Begin Playoffs`, including the special 1946-47 BAA playoff initializer.
