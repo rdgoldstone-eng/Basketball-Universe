@@ -1,4 +1,4 @@
-# Basketballverse — v0.97.24
+# Basketballverse — v0.97.26
 
 ## Current Build
 **v0.97.22 · Portrait Stability Fix**
@@ -44,3 +44,10 @@ Future update ZIPs contain only `index.html` and `README.md`; static assets rema
 - Fixed the version badge changing while the game is running.
 - The current build number and build label are now immutable after startup, so older historical patch hooks cannot overwrite them.
 - Replaced repeated version-badge polling with a targeted observer on the startup badge.
+
+
+### v0.97.26
+- Fixed the real 1946-47 playoff-entry regression: an older capture-level click handler was calling a stale playoff function before the later repair could run.
+- The 1947 postseason initializer now keys off `season.year` as well as `currentYear`, so it still works if the calendar year has already rolled forward at the end of the season.
+- `Open Playoffs` and `Begin Playoffs` now point to the current global playoff entry function after each season render.
+- Synced the startup version pill and the bottom-right build badge to the same current version.

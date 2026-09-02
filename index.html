@@ -661,7 +661,7 @@ pre{white-space:pre-wrap}
 
 <section id="setupView">
   <div class="card hero">
-    <div class="pill">v0.97.24 · Stable Version Badge</div>
+    <div class="pill">v0.97.26 · Playoff Entry + Version Sync</div>
     <img id="startupBasketballverseLogoV0909" src="logos/game/basketballverse-logo.jpg" alt="Basketballverse">
     <h1 style="margin-top:10px">Create Your Universe</h1>
     <p class="muted">Choose an era, choose your job, and let history branch from there.</p>
@@ -38161,7 +38161,7 @@ function make1947SeriesV09631(a,b,round,bestOf){
 }
 
 function init1947BAAPlayoffsV09631(forceReset=false){
-  if(!window.state || Number(state.currentYear)!==1946)return false;
+  if(!window.state || (Number(state?.season?.year)!==1946 && Number(state.currentYear)!==1946))return false;
   if(!state.season)return false;
   if(state.season.playoffState && !forceReset && state.season.playoffState?.format?.type==="BAA1947")return true;
 
@@ -38450,7 +38450,7 @@ document.addEventListener("click",function(e){
   if(!b || state?.season?.phase!=="Regular Season Complete")return;
   if(/open playoffs|begin playoffs/i.test(b.textContent||"")){
     e.preventDefault();e.stopImmediatePropagation();
-    forceEnter1947PlayoffsV09632();
+    window.forceEnter1947PlayoffsV09632();
   }
 },true);
 
@@ -41125,8 +41125,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.24';
-  const LABEL='v0.97.24 · Stable Version Badge';
+  const BUILD='v0.97.26';
+  const LABEL='v0.97.26 · Playoff Entry + Version Sync';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41153,6 +41153,13 @@ setTimeout(wire09723,250);
     const setupPill=document.querySelector('#setupView .pill');
     if(setupPill && setupPill.textContent!==LABEL) setupPill.textContent=LABEL;
 
+    const bottomBadge=document.getElementById('buildBadgeV0904');
+    if(bottomBadge){
+      const bottomText='Basketballverse '+LABEL;
+      if(bottomBadge.textContent!==bottomText) bottomBadge.textContent=bottomText;
+      bottomBadge.title='Game script loaded completely';
+    }
+
     /* If a current-build badge is rendered anywhere else, keep that badge on
        the current version without touching season/phase/role pills. */
     document.querySelectorAll('[data-bv-build-label]').forEach(el=>{
@@ -41165,15 +41172,68 @@ setTimeout(wire09723,250);
   const installObserver=()=>{
     enforceStableVersionV09724();
     const pill=document.querySelector('#setupView .pill');
-    if(!pill)return;
+    const badge=document.getElementById('buildBadgeV0904');
+    if(!pill && !badge)return;
     const obs=new MutationObserver(()=>enforceStableVersionV09724());
-    obs.observe(pill,{childList:true,characterData:true,subtree:true});
+    if(pill)obs.observe(pill,{childList:true,characterData:true,subtree:true});
+    if(badge)obs.observe(badge,{childList:true,characterData:true,subtree:true});
   };
 
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',installObserver,{once:true});
   }else{
     installObserver();
+  }
+})();
+</script>
+
+
+<script id="v09726FinalRepair">
+(function(){
+  const LABEL='v0.97.26 · Playoff Entry + Version Sync';
+
+  function syncBuild09726(){
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom){
+      bottom.textContent='Basketballverse '+LABEL;
+      bottom.title='Game script loaded completely';
+    }
+  }
+
+  /* Button wiring is deliberately simple. The actual playoff engine remains
+     the existing historical engine; this only guarantees both visible entry
+     controls reach the current global playoff function. */
+  function wirePlayoffButtons09726(){
+    document.querySelectorAll('button').forEach(btn=>{
+      if(!/open playoffs|begin playoffs/i.test(String(btn.textContent||'')))return;
+      btn.onclick=function(e){
+        e?.preventDefault?.();
+        return window.forceEnter1947PlayoffsV09632?.();
+      };
+    });
+  }
+
+  const oldRenderSeason09726=window.renderSeason;
+  if(typeof oldRenderSeason09726==='function'){
+    window.renderSeason=function(){
+      const r=oldRenderSeason09726.apply(this,arguments);
+      wirePlayoffButtons09726();
+      syncBuild09726();
+      return r;
+    };
+    try{renderSeason=window.renderSeason;}catch(_){}
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{
+      wirePlayoffButtons09726();
+      syncBuild09726();
+    },{once:true});
+  }else{
+    wirePlayoffButtons09726();
+    syncBuild09726();
   }
 })();
 </script>
