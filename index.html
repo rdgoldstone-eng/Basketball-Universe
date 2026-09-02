@@ -7340,6 +7340,10 @@ window.viewOffseasonStep=viewOffseasonStep;
 
 function renderOffseason(){
  if(!state)return;ensureDraftClasses();
+ /* v0.97.27: later offseason UI rebuilds remove the original offseasonStatus
+    element. Initialize the offseason state before checking that legacy DOM so
+    a completed season can still create Awards as the first task. */
+ if(state.season?.phase==="Season Complete" && !state.offseason) initOffseason();
  let status=document.getElementById("offseasonStatus"),steps=document.getElementById("offseasonSteps"),btn=document.getElementById("advanceOffseasonBtn");
  if(!status)return;
  if(!state.season || state.season.phase!=="Season Complete"){
@@ -41125,8 +41129,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.26';
-  const LABEL='v0.97.26 · Playoff Entry + Version Sync';
+  const BUILD='v0.97.27';
+  const LABEL='v0.97.27 · Offseason Initialization Repair';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41190,7 +41194,7 @@ setTimeout(wire09723,250);
 
 <script id="v09726FinalRepair">
 (function(){
-  const LABEL='v0.97.26 · Playoff Entry + Version Sync';
+  const LABEL='v0.97.27 · Offseason Initialization Repair';
 
   function syncBuild09726(){
     const top=document.querySelector('#setupView .pill');
@@ -41234,6 +41238,87 @@ setTimeout(wire09723,250);
   }else{
     wirePlayoffButtons09726();
     syncBuild09726();
+  }
+})();
+</script>
+
+
+<script id="v09727OffseasonInitializationRepair">
+(function(){
+  const LABEL='v0.97.27 · Offseason Initialization Repair';
+
+  function ensureOffseason09727(){
+    if(!window.state || state.season?.phase!=='Season Complete')return false;
+    if(!state.offseason && typeof initOffseason==='function'){
+      initOffseason();
+    }
+    if(state.offseason){
+      state.offseason.active=true;
+      if(!Array.isArray(state.offseason.phases) || !state.offseason.phases.length){
+        state.offseason.phases=[
+          'Awards','Retirements','Development','Draft Order','Draft',
+          'Re-signings','Free Agency','Roster Cuts','Next Season'
+        ];
+      }
+      if(!state.offseason.phase){
+        state.offseason.phase='Awards';
+        state.offseason.phaseIndex=0;
+      }
+      if(state.offseason.phaseIndex==null){
+        const i=state.offseason.phases.indexOf(state.offseason.phase);
+        state.offseason.phaseIndex=i>=0?i:0;
+      }
+      if(!state.offseason.uiSelectedActivity){
+        state.offseason.uiSelectedActivity=state.offseason.phase;
+      }
+      return true;
+    }
+    return false;
+  }
+  window.ensureOffseason09727=ensureOffseason09727;
+
+  const priorRender=window.renderOffseason;
+  if(typeof priorRender==='function'){
+    window.renderOffseason=function(){
+      ensureOffseason09727();
+      const r=priorRender.apply(this,arguments);
+      /* v0.91.1 is the intended checklist renderer after the old hub markup
+         has been replaced. Force it once state now exists. */
+      if(state?.offseason && typeof window.renderOffseasonChecklistOnlyV0911==='function'){
+        try{window.renderOffseasonChecklistOnlyV0911();}catch(e){console.error('v0.97.27 checklist render',e);}
+      }
+      return r;
+    };
+    try{renderOffseason=window.renderOffseason;}catch(_){}
+  }
+
+  const priorSwitch=window.switchTab;
+  if(typeof priorSwitch==='function'){
+    window.switchTab=function(tab){
+      if(tab==='offseason')ensureOffseason09727();
+      const r=priorSwitch.apply(this,arguments);
+      if(tab==='offseason'){
+        setTimeout(()=>{
+          ensureOffseason09727();
+          try{window.renderOffseason?.();}catch(e){console.error('v0.97.27 offseason entry',e);}
+        },0);
+      }
+      return r;
+    };
+    try{switchTab=window.switchTab;}catch(_){}
+  }
+
+  function sync(){
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom)bottom.textContent='Basketballverse '+LABEL;
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{ensureOffseason09727();sync();},{once:true});
+  }else{
+    ensureOffseason09727();sync();
   }
 })();
 </script>

@@ -1,4 +1,4 @@
-# Basketballverse — v0.97.26
+# Basketballverse — v0.97.27
 
 ## Current Build
 **v0.97.22 · Portrait Stability Fix**
@@ -51,3 +51,11 @@ Future update ZIPs contain only `index.html` and `README.md`; static assets rema
 - The 1947 postseason initializer now keys off `season.year` as well as `currentYear`, so it still works if the calendar year has already rolled forward at the end of the season.
 - `Open Playoffs` and `Begin Playoffs` now point to the current global playoff entry function after each season render.
 - Synced the startup version pill and the bottom-right build badge to the same current version.
+
+
+### v0.97.27
+- Fixed the blank Offseason Hub at Season Complete.
+- Root cause: the newer checklist UI removes the original `offseasonStatus` element, while the old core renderer was returning before `initOffseason()` could run.
+- Offseason state is now initialized before any legacy DOM checks.
+- Existing saves already stuck at Season Complete with no offseason state are repaired automatically.
+- Viewer should enter the offseason with Awards as the first task, followed by Retirements, Development, Draft Order, Draft, Re-signings, Free Agency, Roster Cuts, and Next Season.
