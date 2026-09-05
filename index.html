@@ -24900,7 +24900,36 @@ window.advanceOffseason=advanceOffseason;
    cannot expose or trigger Re-signings / Free Agency / Roster Cuts / Next Season. */
 
 function offseasonIsActuallyOpenV09130(){
-  return !!state && state.season?.phase==="Season Complete";
+  if(!state || !state.season)return false;
+  if(state.season.phase==="Season Complete")return true;
+
+  /* v0.97.28: older playoff wrappers can leave phase at Playoffs /
+     Regular Season Complete even after the postseason has actually produced
+     a champion. Recognize canonical completion evidence instead of locking
+     a finished season out of its offseason. */
+  const ps=state.season.playoffState;
+  const champion=
+    state.season.champion ||
+    state.season.championId ||
+    state.season.championTeamId ||
+    ps?.champion ||
+    ps?.championId ||
+    ps?.championTeamId ||
+    ps?.winner ||
+    ps?.winnerId;
+  const postseasonDone=!!(
+    champion ||
+    ps?.complete===true ||
+    ps?.completed===true ||
+    ps?.isComplete===true ||
+    ps?.finished===true
+  );
+
+  if(postseasonDone){
+    state.season.phase="Season Complete";
+    return true;
+  }
+  return false;
 }
 window.offseasonIsActuallyOpenV09130=offseasonIsActuallyOpenV09130;
 
@@ -41129,8 +41158,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.27';
-  const LABEL='v0.97.27 · Offseason Initialization Repair';
+  const BUILD='v0.97.28';
+  const LABEL='v0.97.28 · Postseason-Offseason Transition Repair';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41194,7 +41223,7 @@ setTimeout(wire09723,250);
 
 <script id="v09726FinalRepair">
 (function(){
-  const LABEL='v0.97.27 · Offseason Initialization Repair';
+  const LABEL='v0.97.28 · Postseason-Offseason Transition Repair';
 
   function syncBuild09726(){
     const top=document.querySelector('#setupView .pill');
@@ -41245,7 +41274,7 @@ setTimeout(wire09723,250);
 
 <script id="v09727OffseasonInitializationRepair">
 (function(){
-  const LABEL='v0.97.27 · Offseason Initialization Repair';
+  const LABEL='v0.97.28 · Postseason-Offseason Transition Repair';
 
   function ensureOffseason09727(){
     if(!window.state || state.season?.phase!=='Season Complete')return false;
@@ -41319,6 +41348,54 @@ setTimeout(wire09723,250);
     document.addEventListener('DOMContentLoaded',()=>{ensureOffseason09727();sync();},{once:true});
   }else{
     ensureOffseason09727();sync();
+  }
+})();
+</script>
+
+
+<script id="v09728PostseasonOffseasonTransitionRepair">
+(function(){
+  const LABEL='v0.97.28 · Postseason-Offseason Transition Repair';
+
+  function repairCompletedSeason09728(){
+    if(!window.state || !state.season)return false;
+
+    /* The header's Season Complete state is authoritative for an already-finished
+       universe. Do not reopen playoffs merely because a legacy playoff flag is stale. */
+    if(state.season.phase==='Season Complete'){
+      if(!state.offseason && typeof initOffseason==='function')initOffseason();
+      return !!state.offseason;
+    }
+
+    if(typeof window.offseasonIsActuallyOpenV09130==='function' &&
+       window.offseasonIsActuallyOpenV09130()){
+      if(!state.offseason && typeof initOffseason==='function')initOffseason();
+      try{saveState?.();}catch(_){}
+      return true;
+    }
+    return false;
+  }
+  window.repairCompletedSeason09728=repairCompletedSeason09728;
+
+  const oldSwitch09728=window.switchTab;
+  if(typeof oldSwitch09728==='function'){
+    window.switchTab=function(tab){
+      if(tab==='offseason')repairCompletedSeason09728();
+      return oldSwitch09728.apply(this,arguments);
+    };
+    try{switchTab=window.switchTab;}catch(_){}
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{
+      repairCompletedSeason09728();
+      const top=document.querySelector('#setupView .pill');
+      if(top)top.textContent=LABEL;
+      const bottom=document.getElementById('buildBadgeV0904');
+      if(bottom)bottom.textContent='Basketballverse '+LABEL;
+    },{once:true});
+  }else{
+    repairCompletedSeason09728();
   }
 })();
 </script>

@@ -1,4 +1,4 @@
-# Basketballverse — v0.97.27
+# Basketballverse — v0.97.28
 
 ## Current Build
 **v0.97.22 · Portrait Stability Fix**
@@ -59,3 +59,10 @@ Future update ZIPs contain only `index.html` and `README.md`; static assets rema
 - Offseason state is now initialized before any legacy DOM checks.
 - Existing saves already stuck at Season Complete with no offseason state are repaired automatically.
 - Viewer should enter the offseason with Awards as the first task, followed by Retirements, Development, Draft Order, Draft, Re-signings, Free Agency, Roster Cuts, and Next Season.
+
+
+### v0.97.28
+- Repaired the postseason-to-offseason transition.
+- Fixed the v0.91.30 hard offseason lock so a season with canonical playoff-completion/champion evidence is normalized to `Season Complete`.
+- Existing saves already showing `Season Complete` are treated as finished and the offseason is initialized instead of being sent back to the playoff lock screen.
+- Does not bypass an actually unfinished postseason.
