@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.32';
-  const LABEL='v0.97.32 · Visible Sim Re-signings';
+  const BUILD='v0.97.33';
+  const LABEL='v0.97.33 · One-Conference Finals Repair';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.32 · Visible Sim Re-signings';
+  const LABEL='v0.97.33 · One-Conference Finals Repair';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.32';
-  const LABEL='v0.97.32 · Visible Sim Re-signings';
+  const BUILD='v0.97.33';
+  const LABEL='v0.97.33 · One-Conference Finals Repair';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.32 · Visible Sim Re-signings';
+  const LABEL='v0.97.33 · One-Conference Finals Repair';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41771,6 +41771,161 @@ setTimeout(wire09723,250);
   setInterval(installPersonnelButtonV09731,500);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncVersionV09731,{once:true});
   else syncVersionV09731();
+})();
+</script>
+
+<script id="v09733OneConferenceFinalsRepair">
+(function(){
+  const LABEL='v0.97.33 · One-Conference Finals Repair';
+  const previousBuildNextV09733=window.buildNextPlayoffRound;
+
+  function conferenceKeyV09733(value){
+    const key=String(value||'').toLowerCase();
+    if(key.startsWith('e'))return 'East';
+    if(key.startsWith('w'))return 'West';
+    return '';
+  }
+
+  function conferenceTeamsV09733(conf){
+    return (state?.teams||[])
+      .filter(t=>t.active!==false&&!t.folded&&!t.defunct&&conferenceKeyV09733(t.conference)===conf)
+      .slice()
+      .sort((a,b)=>{
+        const ap=Number(a.gp||0)?Number(a.w||0)/Number(a.gp):0;
+        const bp=Number(b.gp||0)?Number(b.w||0)/Number(b.gp):0;
+        return bp-ap||Number(b.w||0)-Number(a.w||0)||Number(b.power||0)-Number(a.power||0);
+      });
+  }
+
+  function noteRepairV09733(text){
+    const ps=state?.season?.playoffState;
+    if(!ps||ps.oneConferenceRepairNewsV09733)return;
+    ps.oneConferenceRepairNewsV09733=true;
+    state.news=Array.isArray(state.news)?state.news:[];
+    state.news.push({
+      year:state.currentYear,
+      title:'Postseason bracket adjusted',
+      text
+    });
+  }
+
+  function finishPromotedFinalV09733(){
+    const ps=state?.season?.playoffState;
+    const finals=(ps?.series||[]).find(s=>s.round==='NBA Finals');
+    if(ps?.round===4&&finals?.complete&&finals.winnerId&&
+       typeof previousBuildNextV09733==='function'){
+      previousBuildNextV09733();
+    }
+  }
+
+  function repairConferenceGapV09733(){
+    if(!window.state||state.season?.phase!=='Playoffs')return false;
+    const ps=state.season?.playoffState;
+    if(!ps||ps.format?.type==='BAA1947'||Number(ps.round)!==3)return false;
+    ps.series=Array.isArray(ps.series)?ps.series:[];
+
+    const finals=ps.series.find(s=>s.round==='NBA Finals');
+    if(finals){
+      ps.round=4;
+      finishPromotedFinalV09733();
+      return true;
+    }
+
+    const conferenceFinals=ps.series.filter(s=>
+      s.round==='Conference Finals'&&conferenceKeyV09733(s.conf)
+    );
+    if(conferenceFinals.length!==1)return false;
+
+    const existing=conferenceFinals[0];
+    const existingConf=conferenceKeyV09733(existing.conf);
+    const missingConf=existingConf==='East'?'West':'East';
+    const missingTeams=conferenceTeamsV09733(missingConf);
+
+    /* A small conference can be omitted by the legacy six-team bracket builder.
+       Give its two best clubs a real conference championship series so the
+       winner can still meet the other conference champion in the Finals. */
+    if(missingTeams.length>=2){
+      const alreadyThere=ps.series.some(s=>
+        s.round==='Conference Finals'&&conferenceKeyV09733(s.conf)===missingConf
+      );
+      if(!alreadyThere){
+        ps.series.push(playoffSeriesObj(
+          missingTeams[0],missingTeams[1],'Conference Finals',missingConf,7
+        ));
+        ps.slateCursor=0;
+        ps.oneConferenceRepairV09733='rebuilt-'+missingConf.toLowerCase();
+        noteRepairV09733(`${missingConf} had too few teams for the legacy playoff bracket. Its top two clubs will decide the conference title and a place in the Finals.`);
+        return true;
+      }
+      return false;
+    }
+
+    /* A one-team conference receives a bye into the league Finals. */
+    if(missingTeams.length===1){
+      if(!existing.complete||!existing.winnerId)return false;
+      const existingWinner=teamById(existing.winnerId);
+      if(!existingWinner)return false;
+      ps.series.push(playoffSeriesObj(
+        existingWinner,missingTeams[0],'NBA Finals','Finals',7
+      ));
+      ps.round=4;
+      ps.slateCursor=0;
+      ps.oneConferenceRepairV09733='single-team-bye';
+      noteRepairV09733(`${missingTeams[0].name} advances from the one-team ${missingConf} into the Finals.`);
+      return true;
+    }
+
+    /* If the other conference does not exist at all, the sole conference-final
+       matchup is already the last two surviving clubs. Promote that series to
+       the league Finals instead of waiting forever for an impossible opponent. */
+    existing.promotedFromRoundV09733='Conference Finals';
+    existing.promotedFromConferenceV09733=existingConf;
+    existing.round='NBA Finals';
+    existing.conf='Finals';
+    ps.round=4;
+    ps.slateCursor=0;
+    ps.oneConferenceRepairV09733='promoted-sole-final';
+    noteRepairV09733(`The league has no ${missingConf} conference this season, so the ${existingConf} championship series is also the league Finals.`);
+    finishPromotedFinalV09733();
+    return true;
+  }
+  window.repairConferenceGapV09733=repairConferenceGapV09733;
+
+  if(typeof previousBuildNextV09733==='function'){
+    window.buildNextPlayoffRound=function(){
+      const result=previousBuildNextV09733.apply(this,arguments);
+      repairConferenceGapV09733();
+      return result;
+    };
+    try{buildNextPlayoffRound=window.buildNextPlayoffRound;}catch(_){ }
+  }
+
+  const previousRenderPlayoffsV09733=window.renderPlayoffs;
+  if(typeof previousRenderPlayoffsV09733==='function'){
+    window.renderPlayoffs=function(){
+      const repaired=repairConferenceGapV09733();
+      if(repaired)try{saveState?.();}catch(_){ }
+      return previousRenderPlayoffsV09733.apply(this,arguments);
+    };
+    try{renderPlayoffs=window.renderPlayoffs;}catch(_){ }
+  }
+
+  function repairLoadedSaveV09733(){
+    const repaired=repairConferenceGapV09733();
+    if(repaired){
+      try{saveState?.();}catch(_){ }
+      try{renderSeason?.();}catch(_){ }
+      try{renderAll?.();}catch(_){ }
+    }
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom)bottom.textContent='Basketballverse '+LABEL;
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(repairLoadedSaveV09733,80),{once:true});
+  }else setTimeout(repairLoadedSaveV09733,80);
 })();
 </script>
 

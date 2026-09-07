@@ -1,22 +1,22 @@
-# Basketballverse — v0.97.32
+# Basketballverse — v0.97.33
 
 ## Current Build
 
-**v0.97.32 · Visible Sim Re-signings**
+**v0.97.33 · One-Conference Finals Repair**
 
 Basketballverse is a browser-based professional basketball universe simulator spanning the league's historical eras. Create or load a universe, choose a role, and let league history develop through simulation and alternate-history decisions.
 
-## Changes in v0.97.32
+## Changes in v0.97.33
 
-- Fixed the missing Viewer-mode Sim Re-signings button.
-- The button now appears near the top of the selected Re-signings task, directly below Open Re-sign Players.
-- Fresh Re-signings stages no longer simulate automatically when the page is opened.
-- Pressing Sim Re-signings processes league contracts exactly once and advances to Free Agency.
-- Saves in which Re-signings already ran automatically show Continue to Free Agency instead, preventing duplicate contract processing.
-- Removed the competing floating and hidden personnel controls.
-- Preserved the championship-to-offseason repair and championship newspaper from v0.97.30.
-- Preserved the matching transparent home-page, favicon, and web-app logo.
-- Synchronized `v0.97.32` on the main page and persistent watermark.
+- Fixed the 1947–48 postseason becoming stuck when the bracket has no Western Conference series.
+- A conference with at least two remaining teams now receives a valid conference-final series even when the older six-team bracket builder omitted it.
+- A one-team conference receives a bye into the league Finals.
+- When the league truly has only one conference, its final two survivors now play a valid league championship series instead of waiting for an impossible second conference champion.
+- Completed one-conference series now crown the champion and advance normally to the championship newspaper and Offseason.
+- Existing saved universes already stuck at this point are repaired automatically when loaded; a new universe is not required.
+- Preserved the visible Viewer Sim Re-signings control and duplicate-processing protection from v0.97.32.
+- Preserved the championship newspaper transition and matching transparent home-page, favicon, and web-app logo.
+- Synchronized `v0.97.33` on the main page and persistent watermark.
 
 ## Repository Structure
 
@@ -44,4 +44,4 @@ Keep the existing `logos/` and `portraits/` folders in the repository.
 
 ## Save Compatibility
 
-Existing saved universes remain compatible. A save that already displays completed Re-signings results will continue safely to Free Agency without running those contract decisions again.
+Existing saved universes remain compatible. On load, v0.97.33 checks a stalled playoff bracket and supplies the correct path based on the available conferences: a rebuilt missing conference final, a conference bye, or a promoted one-conference league Finals.
