@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.34';
-  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const BUILD='v0.97.35';
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.34';
-  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const BUILD='v0.97.35';
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41931,7 +41931,7 @@ setTimeout(wire09723,250);
 
 <script id="v09734EarlyPlayoffFieldRepair">
 (function(){
-  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
   const previousInitV09734=window.initPostseasonExperience;
   const previousBuildV09734=window.buildNextPlayoffRound;
 
@@ -41958,7 +41958,9 @@ setTimeout(wire09723,250);
   }
 
   function createCompact1948FieldV09734(){
-    if(!window.state||Number(state.currentYear)!==1947||!state.season)return false;
+    if(!window.state||!state.season)return false;
+    const seasonStart=Number(state.season.year??state.currentYear);
+    if(seasonStart!==1947)return false;
     if(!['Regular Season Complete','Playoffs'].includes(state.season.phase))return false;
 
     const old=state.season.playoffState;
@@ -42131,6 +42133,283 @@ setTimeout(wire09723,250);
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',()=>setTimeout(repairLoaded1948SaveV09734,100),{once:true});
   }else setTimeout(repairLoaded1948SaveV09734,100);
+})();
+</script>
+
+<script id="v09735Historical1948BAAPlayoffs">
+(function(){
+  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const previousInitV09735=window.initPostseasonExperience;
+  const previousBuildV09735=window.buildNextPlayoffRound;
+  const previousActiveV09735=window.activeSeriesInSlateOrder;
+  const previousAdvanceV09735=window.advancePlayoffs;
+  const previousRenderV09735=window.renderPlayoffs;
+  const previousStartV09735=window.startPlayoffs09723;
+
+  function seasonStartV09735(){
+    return Number(state?.season?.year??state?.currentYear);
+  }
+
+  function pctV09735(team){
+    const gp=Number(team?.gp||0);
+    return gp?Number(team?.w||0)/gp:0;
+  }
+
+  function divisionV09735(conf){
+    const initial=String(conf||'').toLowerCase().charAt(0);
+    return (state?.teams||[])
+      .filter(t=>t.active!==false&&!t.folded&&!t.defunct&&
+        String(t.conference||'').toLowerCase().charAt(0)===initial)
+      .slice()
+      .sort((a,b)=>pctV09735(b)-pctV09735(a)||
+        Number(b.w||0)-Number(a.w||0)||
+        Number(b.power||0)-Number(a.power||0)||
+        String(a.name||'').localeCompare(String(b.name||'')));
+  }
+
+  function untouchedBracketV09735(ps){
+    if(!ps)return true;
+    if(ps.championId)return false;
+    if((ps.gameLog||[]).length)return false;
+    return !(ps.series||[]).some(s=>(s.games||[]).length||s.aw||s.bw||s.complete);
+  }
+
+  function seriesV09735(a,b,round,bestOf){
+    return playoffSeriesObj(a,b,round,'BAA',bestOf);
+  }
+
+  function initHistorical1948V09735(){
+    if(!window.state||!state.season||seasonStartV09735()!==1947)return false;
+    if(!['Regular Season Complete','Playoffs'].includes(state.season.phase))return false;
+
+    const existing=state.season.playoffState;
+    if(existing?.format?.type==='BAA1948'&&(existing.series||[]).length)return true;
+    if(!untouchedBracketV09735(existing))return false;
+
+    const east=divisionV09735('East').slice(0,3);
+    const west=divisionV09735('West').slice(0,3);
+    if(east.length<3||west.length<3)return false;
+
+    const ps={
+      round:1,gameNo:1,series:[],gameLog:[],championId:null,slateCursor:0,
+      seedByTeam:{},
+      format:{
+        type:'BAA1948',teamsTotal:6,firstRoundBestOf:3,
+        note:'1948 BAA: division champions meet in a best-of-seven semifinal; second- and third-place teams play cross-division best-of-three series; the winners meet in another best-of-three semifinal; Finals are best-of-seven.'
+      }
+    };
+    east.forEach((t,i)=>ps.seedByTeam[t.id]=`E${i+1}`);
+    west.forEach((t,i)=>ps.seedByTeam[t.id]=`W${i+1}`);
+
+    ps.series.push(seriesV09735(east[0],west[0],'Champions Semifinal',7));
+    ps.series.push(seriesV09735(east[1],west[1],'Runners-Up First Round',3));
+    ps.series.push(seriesV09735(east[2],west[2],'Runners-Up First Round',3));
+
+    state.season.playoffState=ps;
+    state.season.phase='Playoffs';
+    state.playoffPlayerStats={};
+    state.finalsMvp=null;
+    state.news=Array.isArray(state.news)?state.news:[];
+    state.news.push({
+      year:1948,
+      title:'1948 BAA Playoffs begin',
+      text:'Six teams qualify under the original BAA format. The division champions meet in a best-of-seven semifinal while the second- and third-place teams play cross-division best-of-three series.'
+    });
+    return true;
+  }
+  window.initHistorical1948V09735=initHistorical1948V09735;
+
+  function active1948V09735(){
+    const ps=state?.season?.playoffState;
+    if(ps?.format?.type!=='BAA1948')return [];
+    if(ps.round===1)return ps.series.filter(s=>
+      ['Champions Semifinal','Runners-Up First Round'].includes(s.round)&&!s.complete);
+    if(ps.round===2)return ps.series.filter(s=>
+      ['Champions Semifinal','Runners-Up Semifinal'].includes(s.round)&&!s.complete);
+    if(ps.round===3)return ps.series.filter(s=>s.round==='NBA Finals'&&!s.complete);
+    return [];
+  }
+
+  function finalize1948V09735(ps,finals){
+    const champion=teamById(finals.winnerId);
+    if(!champion)return false;
+    ps.championId=champion.id;
+    ps.round=4;
+    state.season.champion=champion.name;
+    state.season.phase='Season Complete';
+    try{chooseFinalsMvp?.();}catch(_){ }
+    try{recordSeasonHonors?.();}catch(_){ }
+    state.season.postseason=ps.series.filter(s=>s.complete).map(s=>{
+      const winner=teamById(s.winnerId);
+      return `${s.round}: ${winner?.name||'Winner'} won ${Math.max(s.aw,s.bw)}-${Math.min(s.aw,s.bw)}`;
+    });
+    try{updateFranchiseHealthAfterSeason?.();}catch(_){ }
+    try{maybeCreateRelocationDecision?.();}catch(_){ }
+    try{boostChampionFranchise?.(champion.name);}catch(_){ }
+    state.news=Array.isArray(state.news)?state.news:[];
+    state.news.push({
+      year:1948,
+      title:`${champion.name} are BAA champions`,
+      text:`They win the ${typeof seasonName==='function'?seasonName():'1947–48'} championship${state.finalsMvp?`, with ${state.finalsMvp.name} named Finals MVP`:''}.`
+    });
+    return true;
+  }
+
+  function buildNext1948V09735(){
+    const ps=state?.season?.playoffState;
+    if(ps?.format?.type!=='BAA1948')return false;
+
+    if(ps.round===1){
+      const opening=ps.series.filter(s=>s.round==='Runners-Up First Round');
+      if(opening.length!==2||opening.some(s=>!s.complete||!s.winnerId))return false;
+      if(!ps.series.some(s=>s.round==='Runners-Up Semifinal')){
+        const a=teamById(opening[0].winnerId),b=teamById(opening[1].winnerId);
+        if(!a||!b)return false;
+        ps.series.push(seriesV09735(a,b,'Runners-Up Semifinal',3));
+      }
+      ps.round=2;ps.slateCursor=0;return true;
+    }
+
+    if(ps.round===2){
+      const champions=ps.series.find(s=>s.round==='Champions Semifinal');
+      const runnersUp=ps.series.find(s=>s.round==='Runners-Up Semifinal');
+      if(!(champions?.complete&&champions.winnerId&&runnersUp?.complete&&runnersUp.winnerId))return false;
+      if(!ps.series.some(s=>s.round==='NBA Finals')){
+        const a=teamById(champions.winnerId),b=teamById(runnersUp.winnerId);
+        if(!a||!b)return false;
+        ps.series.push(playoffSeriesObj(a,b,'NBA Finals','Finals',7));
+      }
+      ps.round=3;ps.slateCursor=0;return true;
+    }
+
+    if(ps.round===3){
+      const finals=ps.series.find(s=>s.round==='NBA Finals');
+      if(!(finals?.complete&&finals.winnerId))return false;
+      return finalize1948V09735(ps,finals);
+    }
+    return false;
+  }
+  window.buildNext1948V09735=buildNext1948V09735;
+
+  window.initPostseasonExperience=function(){
+    if(seasonStartV09735()===1947&&initHistorical1948V09735()){
+      try{saveState?.();}catch(_){ }
+      return state.season.playoffState;
+    }
+    const result=previousInitV09735?.apply(this,arguments);
+    if(seasonStartV09735()===1947&&initHistorical1948V09735()){
+      try{saveState?.();}catch(_){ }
+      return state.season.playoffState;
+    }
+    return result;
+  };
+  try{initPostseasonExperience=window.initPostseasonExperience;}catch(_){ }
+
+  window.buildNextPlayoffRound=function(){
+    if(state?.season?.playoffState?.format?.type==='BAA1948')return buildNext1948V09735();
+    return previousBuildV09735?.apply(this,arguments);
+  };
+  try{buildNextPlayoffRound=window.buildNextPlayoffRound;}catch(_){ }
+
+  window.activeSeriesInSlateOrder=function(){
+    if(state?.season?.playoffState?.format?.type==='BAA1948')return active1948V09735();
+    return previousActiveV09735?.apply(this,arguments)||[];
+  };
+  try{activeSeriesInSlateOrder=window.activeSeriesInSlateOrder;}catch(_){ }
+
+  window.advancePlayoffs=function(mode){
+    const ps=state?.season?.playoffState;
+    if(ps?.format?.type!=='BAA1948')return previousAdvanceV09735?.call(this,mode);
+    if(state.season.phase!=='Playoffs')return;
+
+    function nextSeries(){
+      const active=active1948V09735();
+      if(!active.length)return null;
+      if(ps.slateCursor==null||ps.slateCursor>=active.length)ps.slateCursor=0;
+      const series=active[ps.slateCursor];
+      ps.slateCursor=(ps.slateCursor+1)%active.length;
+      return series;
+    }
+
+    if(mode==='game'){
+      const series=nextSeries();if(series)playOnePlayoffGame(series);
+    }else if(mode==='day'){
+      active1948V09735().forEach(playOnePlayoffGame);ps.slateCursor=0;
+    }else if(mode==='series'){
+      const series=nextSeries();while(series&&!series.complete)playOnePlayoffGame(series);
+    }else if(mode==='round'){
+      let guard=250;
+      while(guard--){
+        const active=active1948V09735();
+        if(!active.length)break;
+        active.forEach(playOnePlayoffGame);
+      }
+      ps.slateCursor=0;
+    }
+
+    let changed=true,guard=6;
+    while(changed&&guard--){
+      const before=ps.round;
+      changed=buildNext1948V09735()&&ps.round!==before;
+    }
+    try{renderSeason?.();renderPlayoffs?.();renderAll?.();saveState?.();}catch(_){ }
+  };
+  try{advancePlayoffs=window.advancePlayoffs;}catch(_){ }
+
+  window.renderPlayoffs=function(){
+    if(seasonStartV09735()===1947)initHistorical1948V09735();
+    const ps=state?.season?.playoffState;
+    if(ps?.format?.type!=='BAA1948')return previousRenderV09735?.apply(this,arguments);
+    const controls=document.getElementById('playoffControls');
+    if(!controls)return;
+    const stage=ps.round===1?'Opening Round / Division Champions Semifinal':
+      ps.round===2?'BAA Semifinals':ps.round===3?'BAA Finals':'Complete';
+    const title=document.getElementById('playoffRoundTitle');
+    if(title)title.textContent=state.season.phase==='Season Complete'?`${state.season.champion} — BAA Champions`:stage;
+    const label=document.getElementById('playoffGameLabel');
+    if(label)label.textContent=state.season.phase==='Season Complete'?'Postseason complete':'1948 BAA postseason · six qualifiers';
+    controls.innerHTML=state.season.phase==='Playoffs'?
+      `<button class="primary" onclick="advancePlayoffs('game')">Sim Next Game</button><button onclick="startWatchGame()">Watch Next Game</button><button onclick="advancePlayoffs('day')">Next Playoff Day</button><button onclick="advancePlayoffs('series')">Finish Current Series</button><button onclick="advancePlayoffs('round')">Finish Current Stage</button>`:
+      `<button onclick="switchTab('offseason')">Go to Offseason</button>`;
+
+    const champions=ps.series.filter(s=>s.round==='Champions Semifinal');
+    const opening=ps.series.filter(s=>s.round==='Runners-Up First Round');
+    const runnersUp=ps.series.filter(s=>s.round==='Runners-Up Semifinal');
+    const finals=ps.series.filter(s=>s.round==='NBA Finals');
+    const east=document.getElementById('eastBracket');
+    const west=document.getElementById('westBracket');
+    const finalBox=document.getElementById('finalsBracket');
+    if(east)east.innerHTML=`<h4>Division Champions</h4>${champions.map(seriesCard).join('')}<h4>Cross-Division First Round</h4>${opening.map(seriesCard).join('')}`;
+    if(west)west.innerHTML=`<h4>Runners-Up Semifinal</h4>${runnersUp.length?runnersUp.map(seriesCard).join(''):'TBD'}`;
+    if(finalBox)finalBox.innerHTML=finals.length?finals.map(seriesCard).join(''):'The BAA Finals matchup has not been determined.';
+    const log=document.getElementById('playoffGameLog');
+    if(log)log.innerHTML=ps.gameLog?.length?ps.gameLog.map(g=>`<div class="playoffLogGame"><b>${g.round} · Game ${g.game}</b><div>${g.a} ${g.as} — ${g.b} ${g.bs}</div></div>`).join(''):'No playoff games played yet.';
+    try{renderLatestPlayoffResult?.();renderWatchGame?.();renderPlayoffLeaders?.();renderFinalsMvp?.();}catch(_){ }
+  };
+  try{renderPlayoffs=window.renderPlayoffs;}catch(_){ }
+
+  window.startPlayoffs09723=function(){
+    if(seasonStartV09735()===1947&&initHistorical1948V09735()){
+      try{switchTab?.('playoffs');renderPlayoffs?.();renderSeason?.();saveState?.();}catch(_){ }
+      return true;
+    }
+    return previousStartV09735?.apply(this,arguments);
+  };
+  window.runPostseason=window.startPlayoffs09723;
+  try{runPostseason=window.startPlayoffs09723;}catch(_){ }
+
+  function repairLoadedSaveV09735(){
+    if(initHistorical1948V09735()){
+      try{saveState?.();renderSeason?.();renderPlayoffs?.();}catch(_){ }
+    }
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom)bottom.textContent='Basketballverse '+LABEL;
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(repairLoadedSaveV09735,40),{once:true});
+  }else setTimeout(repairLoadedSaveV09735,40);
 })();
 </script>
 
