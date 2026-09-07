@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.35';
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const BUILD='v0.97.36';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.35';
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const BUILD='v0.97.36';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41819,7 +41819,7 @@ setTimeout(wire09723,250);
   }
 
   function repairConferenceGapV09733(){
-    if(!window.state||state.season?.phase!=='Playoffs')return false;
+    if(!state||state.season?.phase!=='Playoffs')return false;
     const ps=state.season?.playoffState;
     if(!ps||ps.format?.type==='BAA1947'||Number(ps.round)!==3)return false;
     ps.series=Array.isArray(ps.series)?ps.series:[];
@@ -41931,7 +41931,7 @@ setTimeout(wire09723,250);
 
 <script id="v09734EarlyPlayoffFieldRepair">
 (function(){
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
   const previousInitV09734=window.initPostseasonExperience;
   const previousBuildV09734=window.buildNextPlayoffRound;
 
@@ -41958,7 +41958,7 @@ setTimeout(wire09723,250);
   }
 
   function createCompact1948FieldV09734(){
-    if(!window.state||!state.season)return false;
+    if(!state||!state.season)return false;
     const seasonStart=Number(state.season.year??state.currentYear);
     if(seasonStart!==1947)return false;
     if(!['Regular Season Complete','Playoffs'].includes(state.season.phase))return false;
@@ -42138,7 +42138,7 @@ setTimeout(wire09723,250);
 
 <script id="v09735Historical1948BAAPlayoffs">
 (function(){
-  const LABEL='v0.97.35 · Historical 1948 BAA Playoffs';
+  const LABEL='v0.97.36 · Browser-State Playoff Repair';
   const previousInitV09735=window.initPostseasonExperience;
   const previousBuildV09735=window.buildNextPlayoffRound;
   const previousActiveV09735=window.activeSeriesInSlateOrder;
@@ -42179,7 +42179,7 @@ setTimeout(wire09723,250);
   }
 
   function initHistorical1948V09735(){
-    if(!window.state||!state.season||seasonStartV09735()!==1947)return false;
+    if(!state||!state.season||seasonStartV09735()!==1947)return false;
     if(!['Regular Season Complete','Playoffs'].includes(state.season.phase))return false;
 
     const existing=state.season.playoffState;
