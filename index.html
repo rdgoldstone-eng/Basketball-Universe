@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.36';
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const BUILD='v0.97.37';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.36';
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const BUILD='v0.97.37';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41931,7 +41931,7 @@ setTimeout(wire09723,250);
 
 <script id="v09734EarlyPlayoffFieldRepair">
 (function(){
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
   const previousInitV09734=window.initPostseasonExperience;
   const previousBuildV09734=window.buildNextPlayoffRound;
 
@@ -42138,7 +42138,7 @@ setTimeout(wire09723,250);
 
 <script id="v09735Historical1948BAAPlayoffs">
 (function(){
-  const LABEL='v0.97.36 · Browser-State Playoff Repair';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
   const previousInitV09735=window.initPostseasonExperience;
   const previousBuildV09735=window.buildNextPlayoffRound;
   const previousActiveV09735=window.activeSeriesInSlateOrder;
@@ -42410,6 +42410,83 @@ setTimeout(wire09723,250);
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',()=>setTimeout(repairLoadedSaveV09735,40),{once:true});
   }else setTimeout(repairLoadedSaveV09735,40);
+})();
+</script>
+
+<script id="v09737MinneapolisLakersLogoRepair">
+(function(){
+  const BUILD='v0.97.37';
+  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const HISTORICAL_SRC='logos/historical/minneapolis-lakers-1948.webp';
+  const DISPLAY_SRC='./logos/teams/minneapolis-lakers-1948.webp';
+
+  /* Minneapolis joined the BAA timeline in 1948. The old manifest entry was
+     one year early and requested a file that does not exist in the asset set. */
+  if(window.HISTORICAL_BRANDING_1946_1959){
+    window.HISTORICAL_BRANDING_1946_1959['Minneapolis Lakers']={
+      activeFrom:1948,
+      activeTo:1959,
+      logoEras:[{from:1948,to:1959,src:HISTORICAL_SRC}]
+    };
+  }
+
+  const previousHistoricalLogoV09737=window.historicalLogoFor;
+  window.historicalLogoFor=function(name,year){
+    const y=Number(year??state?.currentYear);
+    if(name==='Minneapolis Lakers'&&y>=1948&&y<=1959)return DISPLAY_SRC;
+    return previousHistoricalLogoV09737?.apply(this,arguments)||null;
+  };
+  try{historicalLogoFor=window.historicalLogoFor;}catch(_){ }
+
+  function repairMinneapolisLogoV09737(){
+    const y=Number(state?.currentYear);
+    if(!state?.teams||y<1948||y>1959)return false;
+    let changed=false;
+    state.teams.forEach(team=>{
+      if(team?.name!=='Minneapolis Lakers')return;
+      if(team.logo!==DISPLAY_SRC){team.logo=DISPLAY_SRC;changed=true;}
+      team.logoLibrary=team.logoLibrary||{};
+      if(team.logoLibrary.early!==DISPLAY_SRC){team.logoLibrary.early=DISPLAY_SRC;changed=true;}
+      (team.identityHistory||[]).forEach(identity=>{
+        if(identity?.name!=='Minneapolis Lakers')return;
+        if(identity.logo!==DISPLAY_SRC){identity.logo=DISPLAY_SRC;changed=true;}
+        if(identity.logoLibrary){
+          if(identity.logoLibrary.early!==DISPLAY_SRC){
+            identity.logoLibrary.early=DISPLAY_SRC;
+            changed=true;
+          }
+        }
+      });
+    });
+    return changed;
+  }
+  window.repairMinneapolisLogoV09737=repairMinneapolisLogoV09737;
+
+  const previousRenderAllV09737=window.renderAll;
+  if(typeof previousRenderAllV09737==='function'){
+    window.renderAll=function(){
+      repairMinneapolisLogoV09737();
+      return previousRenderAllV09737.apply(this,arguments);
+    };
+    try{renderAll=window.renderAll;}catch(_){ }
+  }
+
+  function installV09737(){
+    const changed=repairMinneapolisLogoV09737();
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom)bottom.textContent='Basketballverse '+LABEL;
+    if(changed){
+      try{saveState?.();}catch(_){ }
+      try{renderAll?.();}catch(_){ }
+    }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(installV09737,60),{once:true});
+  }else setTimeout(installV09737,60);
+  window.addEventListener('load',()=>setTimeout(installV09737,120),{once:true});
 })();
 </script>
 
