@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.33';
-  const LABEL='v0.97.33 · One-Conference Finals Repair';
+  const BUILD='v0.97.34';
+  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.33 · One-Conference Finals Repair';
+  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.33';
-  const LABEL='v0.97.33 · One-Conference Finals Repair';
+  const BUILD='v0.97.34';
+  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.33 · One-Conference Finals Repair';
+  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.33 · One-Conference Finals Repair';
+  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41926,6 +41926,211 @@ setTimeout(wire09723,250);
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',()=>setTimeout(repairLoadedSaveV09733,80),{once:true});
   }else setTimeout(repairLoadedSaveV09733,80);
+})();
+</script>
+
+<script id="v09734EarlyPlayoffFieldRepair">
+(function(){
+  const LABEL='v0.97.34 · 1947–48 Playoff Field Repair';
+  const previousInitV09734=window.initPostseasonExperience;
+  const previousBuildV09734=window.buildNextPlayoffRound;
+
+  function liveTeamsV09734(){
+    return (state?.teams||[]).filter(t=>t.active!==false&&!t.folded&&!t.defunct);
+  }
+
+  function recordPctV09734(team){
+    const gp=Number(team?.gp||0);
+    return gp?Number(team?.w||0)/gp:0;
+  }
+
+  function rankedTeamsV09734(){
+    return liveTeamsV09734().slice().sort((a,b)=>
+      recordPctV09734(b)-recordPctV09734(a)||
+      Number(b.w||0)-Number(a.w||0)||
+      Number(b.power||0)-Number(a.power||0)||
+      String(a.name||'').localeCompare(String(b.name||''))
+    );
+  }
+
+  function compactSeriesV09734(a,b,round,conf='East'){
+    return playoffSeriesObj(a,b,round,conf,round==='First Round'?3:7);
+  }
+
+  function createCompact1948FieldV09734(){
+    if(!window.state||Number(state.currentYear)!==1947||!state.season)return false;
+    if(!['Regular Season Complete','Playoffs'].includes(state.season.phase))return false;
+
+    const old=state.season.playoffState;
+    if(old?.championId||(old?.series||[]).length)return false;
+
+    const qualifiers=rankedTeamsV09734().slice(0,6);
+    if(!qualifiers.length)return false;
+
+    const confs=[...new Set(qualifiers.map(t=>String(t.conference||'')).filter(Boolean))];
+    const displayConf=confs.length===1&&/^west/i.test(confs[0])?'West':'East';
+    const ps={
+      round:1,gameNo:1,series:[],gameLog:[],championId:null,slateCursor:0,
+      seedByTeam:{},
+      format:{
+        type:'Compact1948',
+        teamsTotal:qualifiers.length,
+        teamsPerConference:null,
+        firstRoundBestOf:3,
+        firstRoundByes:Math.min(2,qualifiers.length),
+        qualifierIds:qualifiers.map(t=>t.id),
+        displayConf,
+        note:'Flexible 1947–48 field for a league too small to fill two six-team conference brackets.'
+      }
+    };
+    qualifiers.forEach((t,i)=>ps.seedByTeam[t.id]=i+1);
+
+    if(qualifiers.length>=5){
+      if(qualifiers.length===6){
+        ps.series.push(compactSeriesV09734(qualifiers[2],qualifiers[5],'First Round',displayConf));
+        ps.series.push(compactSeriesV09734(qualifiers[3],qualifiers[4],'First Round',displayConf));
+      }else{
+        ps.series.push(compactSeriesV09734(qualifiers[3],qualifiers[4],'First Round',displayConf));
+      }
+      ps.round=1;
+    }else if(qualifiers.length>=3){
+      if(qualifiers.length===4){
+        ps.series.push(compactSeriesV09734(qualifiers[0],qualifiers[3],'Semifinals',displayConf));
+        ps.series.push(compactSeriesV09734(qualifiers[1],qualifiers[2],'Semifinals',displayConf));
+      }else{
+        ps.format.semifinalByeIds=[qualifiers[0].id];
+        ps.series.push(compactSeriesV09734(qualifiers[1],qualifiers[2],'Semifinals',displayConf));
+      }
+      ps.round=2;
+    }else if(qualifiers.length===2){
+      ps.series.push(compactSeriesV09734(qualifiers[0],qualifiers[1],'NBA Finals','Finals'));
+      ps.round=4;
+    }else{
+      /* A one-club league cannot stage a series, but it must still be able to
+         close the year instead of remaining permanently in Playoffs. */
+      ps.championId=qualifiers[0].id;
+      state.season.champion=qualifiers[0].name;
+      state.season.phase='Season Complete';
+    }
+
+    state.season.playoffState=ps;
+    state.playoffPlayerStats={};
+    state.finalsMvp=null;
+    state.news=Array.isArray(state.news)?state.news:[];
+    state.news.push({
+      year:state.currentYear,
+      title:'1947–48 playoff field set',
+      text:`The ${qualifiers.length}-team early-league postseason is seeded by the full league standings, with byes adjusted to the number of surviving clubs.`
+    });
+    return true;
+  }
+  window.createCompact1948FieldV09734=createCompact1948FieldV09734;
+
+  function compactSurvivorsV09734(ps,round){
+    const winners=ps.series
+      .filter(s=>s.round===round&&s.complete&&s.winnerId)
+      .map(s=>teamById(s.winnerId))
+      .filter(Boolean);
+    return winners;
+  }
+
+  function buildCompactNextV09734(){
+    const ps=state?.season?.playoffState;
+    if(!ps||ps.format?.type!=='Compact1948')return false;
+    const current=ps.series.filter(s=>s.round===roundName(ps.round));
+    if(current.some(s=>!s.complete))return false;
+
+    const qualifierIds=ps.format.qualifierIds||[];
+    const seed=id=>Number(ps.seedByTeam?.[id]||999);
+    const displayConf=ps.format.displayConf||'East';
+
+    if(ps.round===1){
+      const firstRoundWinners=compactSurvivorsV09734(ps,'First Round');
+      const playedIds=new Set(ps.series
+        .filter(s=>s.round==='First Round')
+        .flatMap(s=>[s.aId,s.bId]));
+      const byes=qualifierIds.filter(id=>!playedIds.has(id)).map(teamById).filter(Boolean);
+      const survivors=[...byes,...firstRoundWinners].sort((a,b)=>seed(a.id)-seed(b.id));
+      if(survivors.length<4)return false;
+      ps.series.push(compactSeriesV09734(survivors[0],survivors[3],'Semifinals',displayConf));
+      ps.series.push(compactSeriesV09734(survivors[1],survivors[2],'Semifinals',displayConf));
+      ps.round=2;
+      ps.slateCursor=0;
+      return true;
+    }
+
+    if(ps.round===2){
+      const byeTeams=(ps.format.semifinalByeIds||[]).map(teamById).filter(Boolean);
+      const winners=compactSurvivorsV09734(ps,'Semifinals');
+      const finalists=[...byeTeams,...winners].sort((a,b)=>seed(a.id)-seed(b.id));
+      if(finalists.length!==2)return false;
+      ps.series.push(compactSeriesV09734(finalists[0],finalists[1],'NBA Finals','Finals'));
+      ps.round=4;
+      ps.slateCursor=0;
+      return true;
+    }
+
+    if(ps.round===4&&typeof previousBuildV09734==='function'){
+      previousBuildV09734();
+      return state.season.phase==='Season Complete';
+    }
+    return false;
+  }
+  window.buildCompactNextV09734=buildCompactNextV09734;
+
+  window.initPostseasonExperience=function(){
+    const result=typeof previousInitV09734==='function'
+      ?previousInitV09734.apply(this,arguments):undefined;
+    const repaired=createCompact1948FieldV09734();
+    if(repaired){
+      try{saveState?.();}catch(_){ }
+      return state.season.playoffState;
+    }
+    return result||state?.season?.playoffState;
+  };
+  try{initPostseasonExperience=window.initPostseasonExperience;}catch(_){ }
+
+  window.buildNextPlayoffRound=function(){
+    const ps=state?.season?.playoffState;
+    if(ps?.format?.type==='Compact1948')return buildCompactNextV09734();
+    return typeof previousBuildV09734==='function'
+      ?previousBuildV09734.apply(this,arguments):undefined;
+  };
+  try{buildNextPlayoffRound=window.buildNextPlayoffRound;}catch(_){ }
+
+  const previousStartPlayoffsV09734=window.startPlayoffs09723;
+  window.startPlayoffs09723=function(){
+    createCompact1948FieldV09734();
+    return previousStartPlayoffsV09734?.apply(this,arguments);
+  };
+  window.runPostseason=window.startPlayoffs09723;
+  try{runPostseason=window.startPlayoffs09723;}catch(_){ }
+
+  const previousRenderPlayoffsV09734=window.renderPlayoffs;
+  if(typeof previousRenderPlayoffsV09734==='function'){
+    window.renderPlayoffs=function(){
+      const repaired=createCompact1948FieldV09734();
+      if(repaired)try{saveState?.();}catch(_){ }
+      return previousRenderPlayoffsV09734.apply(this,arguments);
+    };
+    try{renderPlayoffs=window.renderPlayoffs;}catch(_){ }
+  }
+
+  function repairLoaded1948SaveV09734(){
+    const repaired=createCompact1948FieldV09734();
+    if(repaired){
+      try{saveState?.();}catch(_){ }
+      try{renderSeason?.();renderPlayoffs?.();renderAll?.();}catch(_){ }
+    }
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom)bottom.textContent='Basketballverse '+LABEL;
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(repairLoaded1948SaveV09734,100),{once:true});
+  }else setTimeout(repairLoaded1948SaveV09734,100);
 })();
 </script>
 
