@@ -1,6 +1,6 @@
+v0.97.30 · Championship Newspaper Transition
+
 BASKETBALLVERSE
-Version: v0.97.29
-Build: Basketballverse Web-App Icons
 
 FILES
 -----
@@ -15,17 +15,30 @@ INSTALLATION
 
 WHAT CHANGED
 ------------
-- Added the transparent Basketballverse logo as the browser-tab favicon.
-- Added the Basketballverse Apple home-screen icon.
-- Added 192x192 and 512x512 installable web-app icons.
-- Embedded the icons directly inside index.html, so separate icon files are not required.
-- Added web-app name, display, theme-color, and mobile-app metadata.
-- Updated the visible build label to:
-  v0.97.29 · Basketballverse Web-App Icons
+- Fixed the championship-to-offseason handoff.
+- A crowned champion now makes the completed postseason authoritative, even if
+  an older playoff path left the season phase marked as Playoffs.
+- Offseason initializes at Awards immediately after the completed championship.
+- The season newspaper now appears between the championship and Offseason.
+- The newspaper button now says Continue to Offseason.
+- A championship newspaper shown at this point will not repeat at Game 1 of the
+  following season.
+- The home-page Basketballverse logo now uses the same transparent image as the
+  favicon and web-app icon.
+- The current version is synchronized on the main page and persistent watermark.
 
-NOTES
------
+CURRENT VERSION LOCATIONS
+-------------------------
+- First line of this README
+- Main/start page version badge
+- Persistent in-game watermark
+- ZIP filename
+
+VERSION
+-------
+v0.97.30
+
+SAVE COMPATIBILITY
+------------------
 - Existing saved universes remain compatible.
-- No simulation, roster, league-history, or gameplay systems were changed.
-- A browser may temporarily show its previously cached favicon. Refreshing the page,
-  reopening the tab, or removing and re-adding a home-screen shortcut will update it.
+- Existing saves stuck after a crowned champion are repaired when Offseason is opened.

@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.28';
-  const LABEL='v0.97.28 · Postseason-Offseason Transition Repair';
+  const BUILD='v0.97.30';
+  const LABEL='v0.97.30 · Championship Newspaper Transition';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.29 · Basketballverse Web-App Icons';
+  const LABEL='v0.97.30 · Championship Newspaper Transition';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41419,6 +41419,196 @@ setTimeout(wire09723,250);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncVersion09729,{once:true});
   else syncVersion09729();
+})();
+</script>
+
+<style id="v09730ChampionshipNewspaperStyle">
+#seasonClosingPaperV09730{
+  position:fixed;inset:0;z-index:10080;overflow:auto;
+  padding:24px 14px 48px;background:rgba(5,7,11,.96);
+}
+#seasonClosingPaperV09730 .closingPaperShell{max-width:920px;margin:0 auto}
+#seasonClosingPaperV09730 .closingPaperTop{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:12px;color:var(--text)
+}
+#seasonClosingPaperV09730 .closingPaperContinue{
+  display:block;width:100%;margin-top:14px;padding:14px;font-size:16px
+}
+#startupBasketballverseLogoV0909{
+  object-fit:contain;background:transparent!important
+}
+</style>
+
+<script id="v09730ChampionshipNewspaperTransition">
+(function(){
+  const BUILD='v0.97.30';
+  const LABEL='v0.97.30 · Championship Newspaper Transition';
+
+  function syncBrandingAndVersionV09730(){
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom){
+      bottom.textContent='Basketballverse '+LABEL;
+      bottom.title='Game script loaded completely';
+    }
+
+    /* Use the exact same transparent artwork already embedded for the app icon. */
+    const homeLogo=document.getElementById('startupBasketballverseLogoV0909');
+    const appIcon=document.querySelector('link[rel="apple-touch-icon"]');
+    if(homeLogo&&appIcon?.href&&homeLogo.src!==appIcon.href)homeLogo.src=appIcon.href;
+  }
+
+  function closingPaperYearsV09730(){
+    if(!Array.isArray(state.championshipNewspaperYearsV09730))
+      state.championshipNewspaperYearsV09730=[];
+    return state.championshipNewspaperYearsV09730;
+  }
+
+  function currentChampionV09730(){
+    if(!state?.season)return null;
+    const ps=state.season.playoffState;
+    const finals=(ps?.series||[]).find(s=>
+      (s.round==='NBA Finals'||s.conf==='Finals')&&s.complete&&s.winnerId
+    );
+    const championId=ps?.championId||state.season.championId||
+      state.season.championTeamId||finals?.winnerId||null;
+    const championTeam=championId&&typeof teamById==='function'?teamById(championId):null;
+    const historyChampion=(state.history?.champions||[]).find(c=>
+      Number(c.year)===Number(state.currentYear)
+    );
+    const name=state.season.champion||championTeam?.name||historyChampion?.team||null;
+    return name?{name,id:championTeam?.id||championId||historyChampion?.teamId||null}:null;
+  }
+
+  function finalizeChampionshipV09730(){
+    if(!state?.season)return false;
+    const champion=currentChampionV09730();
+    if(!champion)return state.season.phase==='Season Complete';
+
+    state.season.champion=champion.name;
+    if(champion.id)state.season.championId=champion.id;
+    state.season.phase='Season Complete';
+
+    const ps=state.season.playoffState;
+    if(ps&&champion.id)ps.championId=champion.id;
+
+    try{chooseFinalsMvp?.();}catch(_){ }
+    try{recordSeasonHonors?.();}catch(e){console.warn('v0.97.30 season honors',e);}
+    try{repairCompletedFinalsHistory?.();}catch(_){ }
+
+    if(!state.offseason&&typeof initOffseason==='function')initOffseason();
+    if(state.offseason){
+      state.offseason.active=true;
+      if(!state.offseason.phase){state.offseason.phase='Awards';state.offseason.phaseIndex=0;}
+    }
+
+    try{createSeasonNewspaper?.(Number(state.currentYear));}catch(e){
+      console.warn('v0.97.30 championship newspaper creation',e);
+    }
+    try{saveState?.();}catch(_){ }
+    return true;
+  }
+  window.finalizeChampionshipV09730=finalizeChampionshipV09730;
+
+  function championshipPaperV09730(){
+    const y=Number(state.currentYear);
+    let paper=(state.seasonNewspapers||[]).find(p=>Number(p.year)===y)||null;
+    if(!paper){try{paper=createSeasonNewspaper?.(y)||null;}catch(_){ }}
+    if(paper)return paper;
+    if(Number(state.latestSeasonNewspaper?.year)===y)return state.latestSeasonNewspaper;
+    const champion=currentChampionV09730();
+    const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===y)||{};
+    if(!champion)return null;
+    return {
+      year:y,
+      seasonLabel:`${y}-${String((y+1)%100).padStart(2,'0')}`,
+      era:typeof eraInfoForYear==='function'?eraInfoForYear(y).name:'',
+      champion:champion.name,
+      runnerUp:hs.runnerUp||null,
+      finalsMvp:hs.finalsMvp||state.finalsMvp?.name||null,
+      awards:{mvp:hs.mvp||null,rookie:hs.rookie||null,dpoy:hs.dpoy||null,sixth:hs.sixth||null},
+      topPick:null,
+      changes:[]
+    };
+  }
+
+  function showChampionshipNewspaperV09730(){
+    if(!finalizeChampionshipV09730())return false;
+    const year=Number(state.currentYear);
+    if(closingPaperYearsV09730().includes(year))return false;
+    const paper=championshipPaperV09730();
+    if(!paper)return false;
+
+    document.getElementById('seasonClosingPaperV09730')?.remove();
+    const overlay=document.createElement('div');
+    overlay.id='seasonClosingPaperV09730';
+    overlay.innerHTML=`<div class="closingPaperShell">
+      <div class="closingPaperTop">
+        <div><b>${paper.seasonLabel||seasonName()}</b><div class="small muted">Championship Edition</div></div>
+      </div>
+      ${seasonNewspaperHTML(paper)}
+      <button type="button" class="primary closingPaperContinue" onclick="continueFromChampionshipNewspaperV09730()">Continue to Offseason</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    try{saveState?.();}catch(_){ }
+    return true;
+  }
+  window.showChampionshipNewspaperV09730=showChampionshipNewspaperV09730;
+
+  let bypassClosingPaperV09730=false;
+  const previousSwitchV09730=window.switchTab;
+
+  function continueFromChampionshipNewspaperV09730(){
+    const year=Number(state.currentYear);
+    const years=closingPaperYearsV09730();
+    if(!years.includes(year))years.push(year);
+    state.seasonNewspaper=state.seasonNewspaper||{};
+    state.seasonNewspaper.pending=false;
+    document.getElementById('seasonClosingPaperV09730')?.remove();
+    finalizeChampionshipV09730();
+    try{saveState?.();}catch(_){ }
+
+    bypassClosingPaperV09730=true;
+    try{previousSwitchV09730?.call(window,'offseason');}
+    finally{bypassClosingPaperV09730=false;}
+    try{window.renderOffseason?.();}catch(e){console.error('v0.97.30 offseason render',e);}
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  window.continueFromChampionshipNewspaperV09730=continueFromChampionshipNewspaperV09730;
+
+  window.switchTab=function(tab){
+    if(tab==='offseason'&&!bypassClosingPaperV09730){
+      const completed=finalizeChampionshipV09730();
+      const year=Number(state?.currentYear);
+      if(completed&&!closingPaperYearsV09730().includes(year)&&showChampionshipNewspaperV09730())
+        return false;
+    }
+    return previousSwitchV09730?.apply(this,arguments);
+  };
+  try{switchTab=window.switchTab;}catch(_){ }
+
+  /* The final newspaper is now shown after the title, so do not repeat it at Game 1. */
+  const previousOpeningPaperV09730=window.showSeasonOpeningPaperV08212;
+  if(typeof previousOpeningPaperV09730==='function'){
+    window.showSeasonOpeningPaperV08212=function(force=false){
+      const completedYear=Number(state?.currentYear)-1;
+      if(Array.isArray(state?.championshipNewspaperYearsV09730)&&
+         state.championshipNewspaperYearsV09730.includes(completedYear)){
+        if(state.seasonNewspaper)state.seasonNewspaper.pending=false;
+        if(state.openingPaper)state.openingPaper.acknowledgedSeason=state.currentYear;
+        document.getElementById('seasonOpeningPaperV08212')?.remove();
+        return false;
+      }
+      return previousOpeningPaperV09730.apply(this,arguments);
+    };
+    try{showSeasonOpeningPaperV08212=window.showSeasonOpeningPaperV08212;}catch(_){ }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',syncBrandingAndVersionV09730,{once:true});
+  }else syncBrandingAndVersionV09730();
 })();
 </script>
 
