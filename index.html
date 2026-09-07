@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.30';
-  const LABEL='v0.97.30 · Championship Newspaper Transition';
+  const BUILD='v0.97.31';
+  const LABEL='v0.97.31 · Stable Sim Re-signings';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.30 · Championship Newspaper Transition';
+  const LABEL='v0.97.31 · Stable Sim Re-signings';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.30';
-  const LABEL='v0.97.30 · Championship Newspaper Transition';
+  const BUILD='v0.97.31';
+  const LABEL='v0.97.31 · Stable Sim Re-signings';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41609,6 +41609,145 @@ setTimeout(wire09723,250);
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',syncBrandingAndVersionV09730,{once:true});
   }else syncBrandingAndVersionV09730();
+})();
+</script>
+
+<style id="v09731StablePersonnelSimStyle">
+/* Retire all competing floating/legacy Viewer personnel controls. */
+#bvOffseasonSimBar09703,
+#bvPersonnelSim09705,
+#bvInlinePersonnel09709{display:none!important}
+#bvPersonnelSimV09731{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 4px}
+#bvPersonnelSimV09731 button{
+  min-height:48px;padding:11px 18px;border-radius:12px;font-weight:900
+}
+#bvPersonnelSimV09731 .personnelSimStatusV09731{width:100%;margin-top:2px}
+</style>
+
+<script id="v09731StablePersonnelSim">
+(function(){
+  const LABEL='v0.97.31 · Stable Sim Re-signings';
+  let busyV09731=false;
+
+  function personnelKindV09731(){
+    const phase=String(state?.offseason?.phase||'').toLowerCase();
+    if(phase.includes('re-sign')||phase.includes('resign'))return 'resign';
+    if(phase.includes('free agency'))return 'fa';
+    if(phase.includes('roster cut'))return 'cuts';
+    return '';
+  }
+
+  function personnelLabelV09731(kind){
+    return kind==='resign'?'Sim Re-signings':
+           kind==='fa'?'Sim Free Agency':'Sim Roster Cuts';
+  }
+
+  function removeLegacyPersonnelControlsV09731(){
+    ['bvOffseasonSimBar09703','bvPersonnelSim09705','bvInlinePersonnel09709']
+      .forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  }
+
+  function advancePersonnelStageV09731(expectedPhase){
+    const o=state.offseason;
+    if(!o||o.phase!==expectedPhase)return false;
+    o.processed=o.processed||{};
+    o.processed[expectedPhase]=true;
+    const phases=Array.isArray(o.phases)?o.phases:[];
+    let index=phases.indexOf(expectedPhase);
+    if(index<0)index=Number(o.phaseIndex||0);
+    const nextIndex=Math.min(index+1,Math.max(0,phases.length-1));
+    o.phaseIndex=nextIndex;
+    o.phase=phases[nextIndex]||'Next Season';
+    o.uiSelectedActivity=o.phase;
+    return true;
+  }
+
+  function simulatePersonnelV09731(){
+    if(busyV09731||state?.role!=='Viewer'||!state?.offseason)return false;
+    const kind=personnelKindV09731();
+    if(!kind)return false;
+    const phase=state.offseason.phase;
+    const button=document.getElementById('bvPersonnelSimBtnV09731');
+    busyV09731=true;
+    if(button){button.disabled=true;button.textContent='Simulating…';}
+
+    try{
+      if(kind==='resign'){
+        if(typeof window.runLeagueReSigningsAI!=='function')throw new Error('Re-signings engine unavailable.');
+        window.runLeagueReSigningsAI();
+      }else if(kind==='fa'){
+        if(typeof window.runFreeAgencyAI!=='function')throw new Error('Free-agency engine unavailable.');
+        window.runFreeAgencyAI();
+      }else{
+        if(typeof window.runRosterCutsAI!=='function')throw new Error('Roster-cuts engine unavailable.');
+        window.runRosterCutsAI();
+        try{window.refreshAllAIRotations?.();}catch(_){ }
+      }
+
+      advancePersonnelStageV09731(phase);
+      try{saveState?.();}catch(_){ }
+      try{renderAll?.();}catch(_){ }
+      try{window.renderOffseason?.();}catch(_){ }
+      try{window.switchTab?.('offseason');}catch(_){ }
+      return true;
+    }catch(error){
+      console.error('v0.97.31 personnel simulation',error);
+      if(button){
+        button.disabled=false;
+        button.textContent=personnelLabelV09731(kind);
+      }
+      const status=document.querySelector('#bvPersonnelSimV09731 .personnelSimStatusV09731');
+      if(status)status.textContent=error?.message||'The simulation could not be completed.';
+      return false;
+    }finally{
+      busyV09731=false;
+      setTimeout(installPersonnelButtonV09731,30);
+    }
+  }
+  window.simulatePersonnelV09731=simulatePersonnelV09731;
+
+  function installPersonnelButtonV09731(){
+    removeLegacyPersonnelControlsV09731();
+    const existing=document.getElementById('bvPersonnelSimV09731');
+    const kind=state?.role==='Viewer'?personnelKindV09731():'';
+    if(!kind){existing?.remove();return;}
+
+    const host=document.getElementById('offseasonDetailBox')||
+               document.getElementById('offseasonStatus')?.parentElement;
+    if(!host)return;
+
+    let box=existing;
+    if(!box){box=document.createElement('div');box.id='bvPersonnelSimV09731';}
+    box.innerHTML=`<button type="button" class="primary" id="bvPersonnelSimBtnV09731">${personnelLabelV09731(kind)}</button>
+      <div class="small muted personnelSimStatusV09731">Simulates this stage once, then advances to the next offseason task.</div>`;
+    host.appendChild(box);
+    const button=document.getElementById('bvPersonnelSimBtnV09731');
+    if(button)button.onclick=e=>{e.preventDefault();e.stopPropagation();simulatePersonnelV09731();};
+  }
+  window.installPersonnelButtonV09731=installPersonnelButtonV09731;
+
+  const previousRenderOffseasonV09731=window.renderOffseason;
+  if(typeof previousRenderOffseasonV09731==='function'){
+    window.renderOffseason=function(){
+      const result=previousRenderOffseasonV09731.apply(this,arguments);
+      setTimeout(installPersonnelButtonV09731,0);
+      return result;
+    };
+    try{renderOffseason=window.renderOffseason;}catch(_){ }
+  }
+
+  function syncVersionV09731(){
+    const top=document.querySelector('#setupView .pill');
+    if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');
+    if(bottom)bottom.textContent='Basketballverse '+LABEL;
+    installPersonnelButtonV09731();
+  }
+
+  document.addEventListener('click',()=>setTimeout(installPersonnelButtonV09731,40),true);
+  setInterval(installPersonnelButtonV09731,500);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncVersionV09731,{once:true});
+  else syncVersionV09731();
 })();
 </script>
 

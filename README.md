@@ -1,14 +1,22 @@
-# Basketballverse — v0.97.28
+# Basketballverse — v0.97.31
 
 ## Current Build
-**v0.97.22 · Portrait Stability Fix**
 
-### Changes in v0.97.22
-- Keeps the expanded 1947 draft class at 78 documented real players.
-- Stops the 1947 scouting list from rebuilding itself every second, which caused portrait flickering.
-- Hides the initials/default portrait layer whenever a real portrait loads successfully.
-- Shows initials only when the portrait file actually fails to load.
-- Preserves the clean repository asset paths introduced in v0.97.18.
+**v0.97.31 · Stable Sim Re-signings**
+
+Basketballverse is a browser-based professional basketball universe simulator spanning the league's historical eras. Create or load a universe, choose a role, and let league history develop through simulation and alternate-history decisions.
+
+## Changes in v0.97.31
+
+- Replaced the competing Viewer-mode Re-signings simulation controls with one stable inline button.
+- Removed the duplicate floating Sim Re-signings control.
+- Sim Re-signings now processes league re-signings exactly once.
+- After simulation, the offseason advances exactly once from Re-signings to Free Agency.
+- Added a short explanation beneath the personnel simulation button.
+- Preserved the v0.97.30 championship-to-offseason repair.
+- Preserved the championship-edition newspaper before Offseason.
+- Preserved the matching transparent home-page, favicon, and web-app logo.
+- Synchronized `v0.97.31` on the main page and persistent watermark.
 
 ## Repository Structure
 
@@ -16,53 +24,24 @@
 Basketball-Universe/
 ├── index.html
 ├── README.md
-├── portraits/
-│   └── first_last.webp
 ├── logos/
-│   ├── game/
-│   │   └── basketballverse-logo.jpg
-│   └── teams/
-│       └── city-team-year.webp
-└── files/
+└── portraits/
 ```
 
-### Portrait naming
-Player portraits use lowercase underscore-separated filenames, for example:
-- `glen_selbo.webp`
-- `walt_dropo.webp`
-- `wataru_misaka.webp`
+The ZIP contains only the two files that change with this build:
 
-Future update ZIPs contain only `index.html` and `README.md`; static assets remain in the GitHub repository.
+- `index.html`
+- `README.md`
 
+Keep the existing `logos/` and `portraits/` folders in the repository.
 
-### v0.97.23
-- Fixed team logos disappearing after game simulation by resolving historical artwork directly from `logos/teams/` on every render.
-- Repaired `Open Playoffs` and `Begin Playoffs`, including the special 1946-47 BAA playoff initializer.
+## Updating the GitHub Repository
 
+1. Extract the ZIP.
+2. Upload `index.html` and `README.md` to the repository root.
+3. Allow GitHub to replace the existing files with the same names.
+4. The old `README.txt` is no longer used by Basketballverse updates and can be removed from the repository.
 
-### v0.97.24
-- Fixed the version badge changing while the game is running.
-- The current build number and build label are now immutable after startup, so older historical patch hooks cannot overwrite them.
-- Replaced repeated version-badge polling with a targeted observer on the startup badge.
+## Save Compatibility
 
-
-### v0.97.26
-- Fixed the real 1946-47 playoff-entry regression: an older capture-level click handler was calling a stale playoff function before the later repair could run.
-- The 1947 postseason initializer now keys off `season.year` as well as `currentYear`, so it still works if the calendar year has already rolled forward at the end of the season.
-- `Open Playoffs` and `Begin Playoffs` now point to the current global playoff entry function after each season render.
-- Synced the startup version pill and the bottom-right build badge to the same current version.
-
-
-### v0.97.27
-- Fixed the blank Offseason Hub at Season Complete.
-- Root cause: the newer checklist UI removes the original `offseasonStatus` element, while the old core renderer was returning before `initOffseason()` could run.
-- Offseason state is now initialized before any legacy DOM checks.
-- Existing saves already stuck at Season Complete with no offseason state are repaired automatically.
-- Viewer should enter the offseason with Awards as the first task, followed by Retirements, Development, Draft Order, Draft, Re-signings, Free Agency, Roster Cuts, and Next Season.
-
-
-### v0.97.28
-- Repaired the postseason-to-offseason transition.
-- Fixed the v0.91.30 hard offseason lock so a season with canonical playoff-completion/champion evidence is normalized to `Season Complete`.
-- Existing saves already showing `Season Complete` are treated as finished and the offseason is initialized instead of being sent back to the playoff lock screen.
-- Does not bypass an actually unfinished postseason.
+Existing saved universes remain compatible. Saves that reached a crowned champion while still marked as being in the postseason are repaired when Offseason is opened.
