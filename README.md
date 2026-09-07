@@ -1,22 +1,22 @@
-# Basketballverse — v0.97.31
+# Basketballverse — v0.97.32
 
 ## Current Build
 
-**v0.97.31 · Stable Sim Re-signings**
+**v0.97.32 · Visible Sim Re-signings**
 
 Basketballverse is a browser-based professional basketball universe simulator spanning the league's historical eras. Create or load a universe, choose a role, and let league history develop through simulation and alternate-history decisions.
 
-## Changes in v0.97.31
+## Changes in v0.97.32
 
-- Replaced the competing Viewer-mode Re-signings simulation controls with one stable inline button.
-- Removed the duplicate floating Sim Re-signings control.
-- Sim Re-signings now processes league re-signings exactly once.
-- After simulation, the offseason advances exactly once from Re-signings to Free Agency.
-- Added a short explanation beneath the personnel simulation button.
-- Preserved the v0.97.30 championship-to-offseason repair.
-- Preserved the championship-edition newspaper before Offseason.
+- Fixed the missing Viewer-mode Sim Re-signings button.
+- The button now appears near the top of the selected Re-signings task, directly below Open Re-sign Players.
+- Fresh Re-signings stages no longer simulate automatically when the page is opened.
+- Pressing Sim Re-signings processes league contracts exactly once and advances to Free Agency.
+- Saves in which Re-signings already ran automatically show Continue to Free Agency instead, preventing duplicate contract processing.
+- Removed the competing floating and hidden personnel controls.
+- Preserved the championship-to-offseason repair and championship newspaper from v0.97.30.
 - Preserved the matching transparent home-page, favicon, and web-app logo.
-- Synchronized `v0.97.31` on the main page and persistent watermark.
+- Synchronized `v0.97.32` on the main page and persistent watermark.
 
 ## Repository Structure
 
@@ -40,8 +40,8 @@ Keep the existing `logos/` and `portraits/` folders in the repository.
 1. Extract the ZIP.
 2. Upload `index.html` and `README.md` to the repository root.
 3. Allow GitHub to replace the existing files with the same names.
-4. The old `README.txt` is no longer used by Basketballverse updates and can be removed from the repository.
+4. The old `README.txt` is no longer used and can be removed from the repository.
 
 ## Save Compatibility
 
-Existing saved universes remain compatible. Saves that reached a crowned champion while still marked as being in the postseason are repaired when Offseason is opened.
+Existing saved universes remain compatible. A save that already displays completed Re-signings results will continue safely to Free Agency without running those contract decisions again.

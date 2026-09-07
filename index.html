@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.31';
-  const LABEL='v0.97.31 · Stable Sim Re-signings';
+  const BUILD='v0.97.32';
+  const LABEL='v0.97.32 · Visible Sim Re-signings';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.31 · Stable Sim Re-signings';
+  const LABEL='v0.97.32 · Visible Sim Re-signings';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.31';
-  const LABEL='v0.97.31 · Stable Sim Re-signings';
+  const BUILD='v0.97.32';
+  const LABEL='v0.97.32 · Visible Sim Re-signings';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.31 · Stable Sim Re-signings';
+  const LABEL='v0.97.32 · Visible Sim Re-signings';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41638,6 +41638,7 @@ setTimeout(wire09723,250);
   }
 
   function personnelLabelV09731(kind){
+    if(kind==='resign'&&state?.offseason?.processed?.['Re-signings'])return 'Continue to Free Agency';
     return kind==='resign'?'Sim Re-signings':
            kind==='fa'?'Sim Free Agency':'Sim Roster Cuts';
   }
@@ -41672,9 +41673,12 @@ setTimeout(wire09723,250);
     if(button){button.disabled=true;button.textContent='Simulating…';}
 
     try{
+      const alreadyProcessed=kind==='resign'&&!!state.offseason.processed?.['Re-signings'];
       if(kind==='resign'){
-        if(typeof window.runLeagueReSigningsAI!=='function')throw new Error('Re-signings engine unavailable.');
-        window.runLeagueReSigningsAI();
+        if(!alreadyProcessed){
+          if(typeof window.runLeagueReSigningsAI!=='function')throw new Error('Re-signings engine unavailable.');
+          window.runLeagueReSigningsAI();
+        }
       }else if(kind==='fa'){
         if(typeof window.runFreeAgencyAI!=='function')throw new Error('Free-agency engine unavailable.');
         window.runFreeAgencyAI();
@@ -41712,19 +41716,38 @@ setTimeout(wire09723,250);
     const kind=state?.role==='Viewer'?personnelKindV09731():'';
     if(!kind){existing?.remove();return;}
 
-    const host=document.getElementById('offseasonDetailBox')||
-               document.getElementById('offseasonStatus')?.parentElement;
+    const topAction=document.getElementById('offseasonTopActionV0912');
+    const visibleDetail=document.getElementById('offseasonSelectedDetailV0911');
+    const legacyDetail=document.getElementById('offseasonDetailBox');
+    const host=topAction?.parentElement||visibleDetail?.parentElement||legacyDetail;
     if(!host)return;
 
     let box=existing;
     if(!box){box=document.createElement('div');box.id='bvPersonnelSimV09731';}
     box.innerHTML=`<button type="button" class="primary" id="bvPersonnelSimBtnV09731">${personnelLabelV09731(kind)}</button>
       <div class="small muted personnelSimStatusV09731">Simulates this stage once, then advances to the next offseason task.</div>`;
-    host.appendChild(box);
+    if(topAction)topAction.insertAdjacentElement('afterend',box);
+    else if(visibleDetail)host.insertBefore(box,visibleDetail);
+    else host.insertBefore(box,host.firstChild||null);
     const button=document.getElementById('bvPersonnelSimBtnV09731');
     if(button)button.onclick=e=>{e.preventDefault();e.stopPropagation();simulatePersonnelV09731();};
   }
   window.installPersonnelButtonV09731=installPersonnelButtonV09731;
+
+  /* Viewer Re-signings must wait for the visible Sim button. Older code ran
+     the contracts merely by rendering this page, leaving results but no action. */
+  const previousStageDetailV09732=window.offseasonStageDetailV0822;
+  if(typeof previousStageDetailV09732==='function'){
+    window.offseasonStageDetailV0822=function(step){
+      if(state?.role==='Viewer'&&step==='Re-signings'&&
+         step===state.offseason?.phase&&!state.offseason?.processed?.['Re-signings']){
+        return `<div class="offseasonMechanism"><b>Re-signings ready</b><br>
+          <span class="small">Use Sim Re-signings above to let every team resolve its expiring contracts.</span></div>`;
+      }
+      return previousStageDetailV09732.apply(this,arguments);
+    };
+    try{offseasonStageDetailV0822=window.offseasonStageDetailV0822;}catch(_){ }
+  }
 
   const previousRenderOffseasonV09731=window.renderOffseason;
   if(typeof previousRenderOffseasonV09731==='function'){
