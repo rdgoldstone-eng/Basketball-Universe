@@ -1,55 +1,49 @@
-# Basketballverse — v0.97.37
+# Basketballverse — v0.97.38
 
 ## Current Build
 
-**v0.97.37 · Minneapolis Lakers Logo Repair**
+**v0.97.38 · Two-Edition Newspaper Cycle**
 
-Basketballverse is a browser-based professional basketball universe simulator spanning the league's historical eras. Create or load a universe, choose a role, and let league history develop through simulation and alternate-history decisions.
+## Changes in v0.97.38
 
-## Changes in v0.97.37
+- Splits the Basketballverse Chronicle into two permanent editions for every completed season.
+- Shows the **Championship Edition** immediately after the champion is crowned and before entering the offseason.
+- Championship coverage includes the regular-season leaders, award winners, postseason result, champion, runner-up, and Finals MVP.
+- Shows the **Season Preview Edition** after the offseason is complete and before the next season begins.
+- Preview coverage includes major draft picks and rookies, trades, signings, retirements, relocations, expansion, rebranding, and realignment news.
+- Each edition appears only once during progression and is saved separately in the Newspaper Archive.
+- Preserves the existing offseason checklist and next-season readiness checks.
+- Keeps the Minneapolis Lakers historical-logo repair from v0.97.37.
+- Updates the home-page version and persistent build watermark to v0.97.38.
 
-- Corrected the Minneapolis Lakers historical logo filename to `minneapolis-lakers-1948.webp`.
-- Corrected the team's BAA branding start year from 1947 to 1948.
-- The game now requests `./logos/teams/minneapolis-lakers-1948.webp`, matching the existing repository asset.
-- Added a compatibility repair for saved universes that cached the old `minneapolis-lakers-1947.webp` path.
-- Repairs the team's current logo, early-era logo library slot, and Minneapolis identity-history record before rendering.
-- Preserved the v0.97.36 browser-state playoff repair and historical 1947–48 BAA postseason loop.
-- Synchronized `v0.97.37` on the main page and persistent watermark.
+## Newspaper Timing
 
-## Verification
+1. Finish the playoffs and crown a champion.
+2. Open the Offseason to read the Championship Edition.
+3. Complete every offseason stage through **Next Season**.
+4. Select **Start Next Season** to read the Season Preview Edition.
+5. Select the newspaper's start-season button to advance to opening night.
 
-- All 153 inline scripts compile successfully.
-- A browser-style saved-state test with no `window.state` repaired every cached Minneapolis logo reference.
-- The historical resolver returns `./logos/teams/minneapolis-lakers-1948.webp` throughout 1948–1959.
+## Test Checklist
+
+- Finish a season and confirm the Championship Edition appears before the offseason.
+- Confirm the first paper contains championship and award coverage but no offseason recap.
+- Complete the offseason and select Start Next Season.
+- Confirm the Season Preview Edition appears before the year changes.
+- Confirm its button starts the next season exactly once.
+- Open History → Newspapers and confirm both editions are selectable.
+- Save and reload at each newspaper checkpoint to confirm neither edition loops.
 
 ## Repository Structure
 
 ```text
 Basketball-Universe/
 ├── index.html
-├── README.md
-├── logos/
-└── portraits/
+└── README.md
 ```
 
-The ZIP contains only the two files that change with this build:
-
-- `index.html`
-- `README.md`
-
-Keep the existing `logos/` and `portraits/` folders in the repository. Confirm that the logo remains at:
-
-```text
-logos/teams/minneapolis-lakers-1948.webp
-```
-
-## Updating the GitHub Repository
-
-1. Extract the ZIP.
-2. Upload `index.html` and `README.md` to the repository root.
-3. Allow GitHub to replace the existing files with the same names.
-4. Keep the existing `logos/` and `portraits/` directories unchanged.
+Keep the existing `logos/`, `portraits/`, and other asset folders in the GitHub repository. Replace only `index.html` and `README.md` with the files from this update.
 
 ## Save Compatibility
 
-Existing saved universes remain compatible. When a 1948–1959 save is opened or rendered, v0.97.37 replaces the obsolete cached Minneapolis path and saves the corrected logo reference.
+Existing browser saves remain compatible. New two-edition newspaper history is added to the save as seasons are completed.

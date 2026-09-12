@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.37';
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const BUILD='v0.97.38';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.37';
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const BUILD='v0.97.38';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41931,7 +41931,7 @@ setTimeout(wire09723,250);
 
 <script id="v09734EarlyPlayoffFieldRepair">
 (function(){
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
   const previousInitV09734=window.initPostseasonExperience;
   const previousBuildV09734=window.buildNextPlayoffRound;
 
@@ -42138,7 +42138,7 @@ setTimeout(wire09723,250);
 
 <script id="v09735Historical1948BAAPlayoffs">
 (function(){
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
   const previousInitV09735=window.initPostseasonExperience;
   const previousBuildV09735=window.buildNextPlayoffRound;
   const previousActiveV09735=window.activeSeriesInSlateOrder;
@@ -42415,8 +42415,8 @@ setTimeout(wire09723,250);
 
 <script id="v09737MinneapolisLakersLogoRepair">
 (function(){
-  const BUILD='v0.97.37';
-  const LABEL='v0.97.37 · Minneapolis Lakers Logo Repair';
+  const BUILD='v0.97.38';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
   const HISTORICAL_SRC='logos/historical/minneapolis-lakers-1948.webp';
   const DISPLAY_SRC='./logos/teams/minneapolis-lakers-1948.webp';
 
@@ -42487,6 +42487,157 @@ setTimeout(wire09723,250);
     document.addEventListener('DOMContentLoaded',()=>setTimeout(installV09737,60),{once:true});
   }else setTimeout(installV09737,60);
   window.addEventListener('load',()=>setTimeout(installV09737,120),{once:true});
+})();
+</script>
+
+<style id="v09738TwoEditionNewspaperStyle">
+#offseasonClosingPaperV09738{position:fixed;inset:0;z-index:100020;background:rgba(5,8,14,.96);overflow:auto;padding:18px}
+#offseasonClosingPaperV09738 .closingPaperShell{max-width:980px;margin:0 auto 40px}
+#offseasonClosingPaperV09738 .closingPaperContinue{display:block;width:100%;margin-top:14px;padding:14px;font-size:16px}
+.newspaperEditionTabsV09738{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+</style>
+
+<script id="v09738TwoEditionNewspaperCycle">
+(function(){
+  const BUILD='v0.97.38';
+  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const seasonLabel=y=>`${y}-${String((Number(y)+1)%100).padStart(2,'0')}`;
+  const unique=a=>[...new Set((a||[]).filter(Boolean))];
+
+  function editionsV09738(){
+    if(!Array.isArray(state.newspaperEditionsV09738))state.newspaperEditionsV09738=[];
+    return state.newspaperEditionsV09738;
+  }
+  function saveEditionV09738(p){
+    const list=editionsV09738();
+    const i=list.findIndex(x=>Number(x.year)===Number(p.year)&&x.edition===p.edition);
+    if(i>=0)list[i]=p;else list.push(p);
+    return p;
+  }
+
+  function championshipEditionV09738(year){
+    const y=Number(year);
+    const hs=(state.history?.seasons||[]).find(s=>Number(s.year)===y)||{};
+    const base=(state.seasonNewspapers||[]).find(p=>Number(p.year)===y)||{};
+    const champion=hs.champion||state.season?.champion||base.champion||'League Champion';
+    const standings=(state.teams||[]).filter(t=>!t.defunct).slice()
+      .sort((a,b)=>Number(b.w||0)-Number(a.w||0))
+      .slice(0,6).map(t=>`${t.name} ${Number(t.w||0)}-${Number(t.l||0)}`);
+    const context=typeof newspaperHistoricalContextV09143==='function'?newspaperHistoricalContextV09143(y):null;
+    return saveEditionV09738({
+      edition:'championship',year:y,seasonLabel:seasonLabel(y),era:typeof eraInfoForYear==='function'?eraInfoForYear(y).name:'',
+      champion,runnerUp:hs.runnerUp||base.runnerUp||null,finalsMvp:hs.finalsMvp||base.finalsMvp||state.finalsMvp?.name||null,
+      awards:{mvp:hs.mvp||base.awards?.mvp||null,rookie:hs.rookie||base.awards?.rookie||null,dpoy:hs.dpoy||base.awards?.dpoy||null,sixth:hs.sixth||base.awards?.sixth||null},
+      standings,historicalContext:context
+    });
+  }
+
+  function newsLinesV09738(year,rx,limit=8){
+    const y=Number(year);
+    return unique((state.news||[]).filter(n=>(Number(n.year)===y||Number(n.year)===y+1)&&rx.test(`${n.title||''} ${n.text||''}`))
+      .map(n=>`${n.title||''}${n.text?`: ${n.text}`:''}`)).slice(0,limit);
+  }
+  function offseasonEditionV09738(year){
+    const y=Number(year);
+    try{snapshotDraftHistoryV083?.(state.draftRoom?.year);}catch(_){ }
+    const draft=(state.draftHistory||[]).find(d=>Number(d.year)===y+1);
+    const raw=(draft?.results?.length?draft.results:state.draftRoom?.results)||[];
+    const rookies=raw.slice().sort((a,b)=>Number(a.pick)-Number(b.pick)).slice(0,8).map(r=>
+      `#${Number(r.pick)||'?'} ${r.playerName||r.player||'Unknown'} — ${r.teamName||r.team||'Unknown'}`);
+    const transactions=newsLinesV09738(y,/trade|sign|free agent|free agency|contract|re-sign/i,10);
+    const retirements=newsLinesV09738(y,/retir/i,8);
+    const franchise=unique([...(typeof majorSeasonChangesForNewspaper==='function'?majorSeasonChangesForNewspaper(y):[]),
+      ...newsLinesV09738(y,/relocat|expansion|rebrand|identity|arena|ownership|franchise|realign|conference|division/i,10)]).slice(0,10);
+    return saveEditionV09738({edition:'offseason',year:y,seasonLabel:seasonLabel(y),nextSeasonLabel:seasonLabel(y+1),
+      era:typeof eraInfoForYear==='function'?eraInfoForYear(y+1).name:'',rookies,transactions,retirements,franchise});
+  }
+  window.championshipEditionV09738=championshipEditionV09738;
+  window.offseasonEditionV09738=offseasonEditionV09738;
+
+  const story=(title,items,empty)=>`<div class="newspaperStory"><h3>${html(title)}</h3>${items?.length?items.map(x=>`<div style="margin-bottom:7px">• ${html(x)}</div>`).join(''):`<span class="muted">${html(empty)}</span>`}</div>`;
+  function editionHTMLV09738(p){
+    if(p.edition==='offseason'){
+      const lead=p.transactions?.[0]||p.franchise?.[0]||p.rookies?.[0]||'Teams Set Their Rosters for Opening Night';
+      return `<div class="newspaper"><div class="newspaperMast"><div class="newspaperDate">${html(p.nextSeasonLabel)} Season Preview · ${html(p.era)}</div><h2>Basketballverse Chronicle</h2></div>
+        <div class="newspaperHeadline">A NEW SEASON TAKES SHAPE</div><div class="newspaperDeck">${html(lead)} The offseason is complete and ${html(p.nextSeasonLabel)} is ready to begin.</div>
+        <div class="newspaperGrid" style="margin-top:16px">${story('Draft & Major Rookies',p.rookies,'No draft results were available.')}${story('Trades, Signings & Big Moves',p.transactions,'No major player movement was recorded.')}${story('Franchise & League Changes',p.franchise,'No relocations, expansions, or realignment were recorded.')}${story('Retirement Desk',p.retirements,'No major retirements were recorded.')}</div></div>`;
+    }
+    const team=(state.teams||[]).find(t=>t.name===p.champion)||{name:p.champion};
+    const headline=p.historicalContext?.headline||`${p.champion} Rule the Basketball World`;
+    const deck=p.historicalContext?.championshipNote||(p.runnerUp?`${p.champion} defeat ${p.runnerUp} for the championship.`:'A new champion is crowned.');
+    return `<div class="newspaper"><div class="newspaperMast"><div class="newspaperDate">${html(p.seasonLabel)} Championship Edition · ${html(p.era)}</div><h2>Basketballverse Chronicle</h2></div>
+      <div class="newspaperHeadline">${html(headline)}</div><div class="newspaperDeck">${html(deck)}${p.finalsMvp?` ${html(p.finalsMvp)} earns Finals MVP.`:''}</div>
+      <div class="newspaperChampion">${typeof logoHTML==='function'?logoHTML(team):''}<div><b style="font-size:20px">${html(p.champion)}</b><div>${html(p.seasonLabel)} League Champions</div></div></div>
+      <div class="newspaperGrid" style="margin-top:16px"><div class="newspaperStory"><h3>Awards Desk</h3><div><b>MVP:</b> ${html(p.awards?.mvp||'—')}</div><div><b>Rookie of the Year:</b> ${html(p.awards?.rookie||'—')}</div><div><b>Defensive Player:</b> ${html(p.awards?.dpoy||'—')}</div><div><b>Sixth Man:</b> ${html(p.awards?.sixth||'—')}</div></div>${story('Top Regular-Season Records',p.standings,'Final records are available in Season History.')}<div class="newspaperStory"><h3>Postseason</h3><div><b>Champion:</b> ${html(p.champion)}</div><div><b>Runner-up:</b> ${html(p.runnerUp||'—')}</div><div><b>Finals MVP:</b> ${html(p.finalsMvp||'—')}</div></div></div></div>`;
+  }
+  window.editionHTMLV09738=editionHTMLV09738;
+
+  window.showChampionshipNewspaperV09730=function(){
+    if(typeof finalizeChampionshipV09730==='function'&&!finalizeChampionshipV09730())return false;
+    const y=Number(state.currentYear);
+    if((state.championshipNewspaperYearsV09730||[]).includes(y))return false;
+    const p=championshipEditionV09738(y);
+    document.getElementById('seasonClosingPaperV09730')?.remove();
+    const overlay=document.createElement('div');overlay.id='seasonClosingPaperV09730';
+    overlay.innerHTML=`<div class="closingPaperShell"><div class="closingPaperTop"><div><b>${html(p.seasonLabel)}</b><div class="small muted">Championship Edition</div></div></div>${editionHTMLV09738(p)}<button type="button" class="primary closingPaperContinue" onclick="continueFromChampionshipNewspaperV09730()">Continue to Offseason</button></div>`;
+    document.body.appendChild(overlay);try{saveState?.();}catch(_){ }return true;
+  };
+  try{showChampionshipNewspaperV09730=window.showChampionshipNewspaperV09730;}catch(_){ }
+
+  /* Sit outside the older championship wrapper so its combined newspaper can
+     never win the first click. Its existing Continue handler still performs
+     the proven, save-safe transition into the offseason. */
+  const previousSwitchV09738=window.switchTab;
+  window.switchTab=function(tab){
+    if(tab==='offseason'&&state?.season?.phase==='Season Complete'&&
+       !(state.championshipNewspaperYearsV09730||[]).includes(Number(state.currentYear))){
+      if(window.showChampionshipNewspaperV09730())return false;
+    }
+    return previousSwitchV09738?.apply(this,arguments);
+  };
+  try{switchTab=window.switchTab;}catch(_){ }
+
+  const previousStartV09738=window.startNextSeasonV0892;
+  let bypassV09738=false;
+  function shownOffseasonsV09738(){if(!Array.isArray(state.offseasonNewspaperYearsV09738))state.offseasonNewspaperYearsV09738=[];return state.offseasonNewspaperYearsV09738;}
+  function showOffseasonNewspaperV09738(){
+    if(!state?.offseason||state.offseason.phase!=='Next Season')return false;
+    const y=Number(state.currentYear);if(shownOffseasonsV09738().includes(y))return false;
+    const p=offseasonEditionV09738(y);
+    document.getElementById('offseasonClosingPaperV09738')?.remove();
+    const overlay=document.createElement('div');overlay.id='offseasonClosingPaperV09738';
+    overlay.innerHTML=`<div class="closingPaperShell"><div class="closingPaperTop"><div><b>${html(p.nextSeasonLabel)}</b><div class="small muted">Season Preview Edition</div></div></div>${editionHTMLV09738(p)}<button type="button" class="primary closingPaperContinue" onclick="continueFromOffseasonNewspaperV09738()">Start ${html(p.nextSeasonLabel)} Season</button></div>`;
+    document.body.appendChild(overlay);try{saveState?.();}catch(_){ }return true;
+  }
+  function continueFromOffseasonNewspaperV09738(){
+    const y=Number(state.currentYear),years=shownOffseasonsV09738();if(!years.includes(y))years.push(y);
+    document.getElementById('offseasonClosingPaperV09738')?.remove();try{saveState?.();}catch(_){ }
+    bypassV09738=true;try{return previousStartV09738?.apply(window,arguments);}finally{bypassV09738=false;}
+  }
+  window.showOffseasonNewspaperV09738=showOffseasonNewspaperV09738;
+  window.continueFromOffseasonNewspaperV09738=continueFromOffseasonNewspaperV09738;
+  window.startNextSeasonV0892=function(){
+    if(!bypassV09738&&state?.offseason?.phase==='Next Season'&&!shownOffseasonsV09738().includes(Number(state.currentYear))){showOffseasonNewspaperV09738();return true;}
+    return previousStartV09738?.apply(this,arguments);
+  };
+  try{startNextSeasonV0892=window.startNextSeasonV0892;}catch(_){ }
+
+  window.renderNewspapersPageV0902=function(){
+    const host=document.getElementById('newspapersBodyV090');if(!host)return;
+    const list=editionsV09738().slice().sort((a,b)=>Number(b.year)-Number(a.year)||(a.edition==='offseason'?-1:1));
+    if(!list.length){host.innerHTML='<div class="notice">No completed-season newspapers yet.</div>';return;}
+    let key=state.uiNewspaperEditionV09738||`${list[0].year}:${list[0].edition}`;
+    let p=list.find(x=>`${x.year}:${x.edition}`===key)||list[0];key=`${p.year}:${p.edition}`;state.uiNewspaperEditionV09738=key;
+    host.innerHTML=`<div class="card"><div class="calendarline"><div><b>Newspaper Archive</b><div class="small muted">${list.length} saved editions</div></div><select onchange="state.uiNewspaperEditionV09738=this.value;renderNewspapersPageV0902()">${list.map(x=>{const k=`${x.year}:${x.edition}`;return `<option value="${k}" ${k===key?'selected':''}>${html(x.seasonLabel)} · ${x.edition==='championship'?'Championship':'Season Preview'}</option>`}).join('')}</select></div></div>${editionHTMLV09738(p)}`;
+  };
+  try{renderNewspapersPageV0902=window.renderNewspapersPageV0902;}catch(_){ }
+
+  function installV09738(){
+    const top=document.querySelector('#setupView .pill');if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');if(bottom)bottom.textContent='Basketballverse '+LABEL;
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installV09738,{once:true});else installV09738();
 })();
 </script>
 
