@@ -1,32 +1,33 @@
-# Basketballverse — v0.97.39
+# Basketballverse — v0.97.40
 
 ## Current Build
 
-**v0.97.39 · Natural Generated Player Names**
+**v0.97.40 · Newspaper Award Portraits**
 
-## Changes in v0.97.39
+## Changes in v0.97.40
 
-- Stops adding visible numbers such as `2` or `3` to duplicate generated-player names.
-- Uses a much larger deterministic name pool to give duplicate fictional players a genuinely different natural name.
-- Automatically repairs numbered fictional-player names in existing saves.
-- Updates matching draft history, active draft results, season newspapers, awards, and news references when a generated player is renamed.
-- Removes accidental numeric suffixes from historical players without changing their internal player IDs.
-- Keeps duplicate players separate through their unique internal IDs rather than altering their display names.
-- Does not rename, move, delete, or otherwise modify any portrait files.
-- Preserves the two-edition newspaper cycle introduced in v0.97.38.
-- Updates the home-page version and persistent watermark to v0.97.39.
+- Adds the MVP’s portrait to the Championship Edition newspaper.
+- Adds the Rookie of the Year’s portrait to the Championship Edition newspaper.
+- Adds the first overall draft pick’s portrait to the Season Preview Edition newspaper.
+- Displays the first pick’s drafting team beside the portrait.
+- Uses the same `portraits/` folder, explicit portrait keys, and fallback behavior as the rest of Basketballverse.
+- Backfills the first-overall portrait when an existing saved Season Preview is opened from the Newspaper Archive.
+- Keeps the natural generated-player name repair from v0.97.39.
+- Updates the home-page version and persistent watermark to v0.97.40.
 
-## Existing Save Repair
+## Portrait Placement
 
-Load the existing universe normally. The repair runs automatically after the save loads. A player such as `Corey Porter 2` will receive a natural replacement name, and references to that player in the draft newspaper and history will be updated.
+- **Championship Edition:** MVP and Rookie of the Year appear beneath the champion headline.
+- **Season Preview Edition:** the first overall pick appears above the draft recap.
+- If an image is unavailable, the newspaper displays the player’s initials instead of a broken image.
 
 ## Test Checklist
 
-- Load the saved universe containing `Corey Porter 2`.
-- Return to the newspaper or draft history and confirm the numeric suffix is gone.
-- Open the player's profile and confirm the same corrected name appears there.
-- Continue into another draft and confirm generated prospects do not receive visible numeric suffixes.
-- Confirm existing historical portraits still load with their current filenames.
+- Finish a season and confirm portraits appear for MVP and Rookie of the Year.
+- Finish the draft and confirm the first overall pick’s portrait and drafting team appear in the Season Preview.
+- Open both editions from History → Newspapers and confirm the portraits still appear.
+- Confirm players with explicit portrait keys load the intended `.webp` files.
+- Confirm a missing portrait falls back cleanly to initials.
 
 ## Repository Structure
 
@@ -40,4 +41,4 @@ Keep the existing `logos/`, `portraits/`, and other asset folders in the GitHub 
 
 ## Save Compatibility
 
-Existing browser saves remain compatible. Internal player IDs, careers, teams, statistics, contracts, and portrait files are preserved.
+Existing browser saves remain compatible. Newspaper editions are enhanced when rendered; no existing portrait files or player records are changed.

@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.39';
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const BUILD='v0.97.40';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.39';
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const BUILD='v0.97.40';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41931,7 +41931,7 @@ setTimeout(wire09723,250);
 
 <script id="v09734EarlyPlayoffFieldRepair">
 (function(){
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   const previousInitV09734=window.initPostseasonExperience;
   const previousBuildV09734=window.buildNextPlayoffRound;
 
@@ -42138,7 +42138,7 @@ setTimeout(wire09723,250);
 
 <script id="v09735Historical1948BAAPlayoffs">
 (function(){
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   const previousInitV09735=window.initPostseasonExperience;
   const previousBuildV09735=window.buildNextPlayoffRound;
   const previousActiveV09735=window.activeSeriesInSlateOrder;
@@ -42415,8 +42415,8 @@ setTimeout(wire09723,250);
 
 <script id="v09737MinneapolisLakersLogoRepair">
 (function(){
-  const BUILD='v0.97.39';
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const BUILD='v0.97.40';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   const HISTORICAL_SRC='logos/historical/minneapolis-lakers-1948.webp';
   const DISPLAY_SRC='./logos/teams/minneapolis-lakers-1948.webp';
 
@@ -42495,15 +42495,34 @@ setTimeout(wire09723,250);
 #offseasonClosingPaperV09738 .closingPaperShell{max-width:980px;margin:0 auto 40px}
 #offseasonClosingPaperV09738 .closingPaperContinue{display:block;width:100%;margin-top:14px;padding:14px;font-size:16px}
 .newspaperEditionTabsV09738{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.newspaperPortraitRowV09740{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+.newspaperPortraitFeatureV09740{display:flex;align-items:center;gap:14px;border-top:3px double #312b20;border-bottom:1px solid #978d72;padding:12px 4px}
+.newspaperPortraitFeatureV09740 .playerPortraitUniversalV09500{flex:0 0 auto;border:2px solid #312b20!important;background:#d8cfb5!important;box-shadow:3px 3px 0 rgba(49,43,32,.18)}
+.newspaperPortraitFeatureV09740 .portraitLabelV09740{font:700 13px Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:#625947}
+.newspaperPortraitFeatureV09740 .portraitNameV09740{font:900 22px Georgia,serif;line-height:1.05;color:#211d16;margin-top:4px}
+.newspaperPortraitFeatureV09740.featuredPickV09740{margin:16px 0;border-top:4px double #312b20;border-bottom:2px solid #312b20;padding:14px 6px}
+@media(max-width:620px){.newspaperPortraitRowV09740{grid-template-columns:1fr}.newspaperPortraitFeatureV09740 .portraitNameV09740{font-size:19px}}
 </style>
 
 <script id="v09738TwoEditionNewspaperCycle">
 (function(){
-  const BUILD='v0.97.39';
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const BUILD='v0.97.40';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const seasonLabel=y=>`${y}-${String((Number(y)+1)%100).padStart(2,'0')}`;
   const unique=a=>[...new Set((a||[]).filter(Boolean))];
+  function newspaperPlayerV09740(name,extra={}){
+    const player=(state.players||[]).find(p=>String(p?.name||'')===String(name||''));
+    return player||{name:name||'Player',...extra};
+  }
+  function newspaperPortraitFeatureV09740(name,label,detail='',extra={},className=''){
+    if(!name)return '';
+    const p=newspaperPlayerV09740(name,extra);
+    const portrait=typeof universalPlayerPortraitHTMLV09500==='function'
+      ?universalPlayerPortraitHTMLV09500(p,92,'newspaperPortraitV09740')
+      :(typeof portraitHTMLV09135==='function'?portraitHTMLV09135(p,'large'):'');
+    return `<div class="newspaperPortraitFeatureV09740 ${className}">${portrait}<div><div class="portraitLabelV09740">${html(label)}</div><div class="portraitNameV09740">${html(name)}</div>${detail?`<div>${html(detail)}</div>`:''}</div></div>`;
+  }
 
   function editionsV09738(){
     if(!Array.isArray(state.newspaperEditionsV09738))state.newspaperEditionsV09738=[];
@@ -42543,14 +42562,18 @@ setTimeout(wire09723,250);
     try{snapshotDraftHistoryV083?.(state.draftRoom?.year);}catch(_){ }
     const draft=(state.draftHistory||[]).find(d=>Number(d.year)===y+1);
     const raw=(draft?.results?.length?draft.results:state.draftRoom?.results)||[];
+    const firstRaw=raw.slice().sort((a,b)=>Number(a.pick)-Number(b.pick))[0]||null;
     const rookies=raw.slice().sort((a,b)=>Number(a.pick)-Number(b.pick)).slice(0,8).map(r=>
       `#${Number(r.pick)||'?'} ${r.playerName||r.player||'Unknown'} — ${r.teamName||r.team||'Unknown'}`);
     const transactions=newsLinesV09738(y,/trade|sign|free agent|free agency|contract|re-sign/i,10);
     const retirements=newsLinesV09738(y,/retir/i,8);
     const franchise=unique([...(typeof majorSeasonChangesForNewspaper==='function'?majorSeasonChangesForNewspaper(y):[]),
       ...newsLinesV09738(y,/relocat|expansion|rebrand|identity|arena|ownership|franchise|realign|conference|division/i,10)]).slice(0,10);
+    const firstName=firstRaw?.playerName||firstRaw?.player||null;
+    const firstPlayer=firstName?newspaperPlayerV09740(firstName):null;
+    const firstPick=firstRaw?{name:firstName,team:firstRaw.teamName||firstRaw.team||'Unknown',pick:Number(firstRaw.pick)||1,portraitKey:firstPlayer?.portraitKey||firstRaw.portraitKey||null}:null;
     return saveEditionV09738({edition:'offseason',year:y,seasonLabel:seasonLabel(y),nextSeasonLabel:seasonLabel(y+1),
-      era:typeof eraInfoForYear==='function'?eraInfoForYear(y+1).name:'',rookies,transactions,retirements,franchise});
+      era:typeof eraInfoForYear==='function'?eraInfoForYear(y+1).name:'',rookies,firstPick,transactions,retirements,franchise});
   }
   window.championshipEditionV09738=championshipEditionV09738;
   window.offseasonEditionV09738=offseasonEditionV09738;
@@ -42558,9 +42581,18 @@ setTimeout(wire09723,250);
   const story=(title,items,empty)=>`<div class="newspaperStory"><h3>${html(title)}</h3>${items?.length?items.map(x=>`<div style="margin-bottom:7px">• ${html(x)}</div>`).join(''):`<span class="muted">${html(empty)}</span>`}</div>`;
   function editionHTMLV09738(p){
     if(p.edition==='offseason'){
+      if(!p.firstPick){
+        const draft=(state.draftHistory||[]).find(d=>Number(d.year)===Number(p.year)+1);
+        const first=(draft?.results||[]).slice().sort((a,b)=>Number(a.pick)-Number(b.pick))[0];
+        if(first){
+          const name=first.playerName||first.player||null,player=name?newspaperPlayerV09740(name):null;
+          p.firstPick={name,team:first.teamName||first.team||'Unknown',pick:Number(first.pick)||1,portraitKey:player?.portraitKey||first.portraitKey||null};
+        }
+      }
       const lead=p.transactions?.[0]||p.franchise?.[0]||p.rookies?.[0]||'Teams Set Their Rosters for Opening Night';
       return `<div class="newspaper"><div class="newspaperMast"><div class="newspaperDate">${html(p.nextSeasonLabel)} Season Preview · ${html(p.era)}</div><h2>Basketballverse Chronicle</h2></div>
         <div class="newspaperHeadline">A NEW SEASON TAKES SHAPE</div><div class="newspaperDeck">${html(lead)} The offseason is complete and ${html(p.nextSeasonLabel)} is ready to begin.</div>
+        ${p.firstPick?newspaperPortraitFeatureV09740(p.firstPick.name,'First Overall Draft Pick',`Selected by ${p.firstPick.team}`,{portraitKey:p.firstPick.portraitKey},'featuredPickV09740'):''}
         <div class="newspaperGrid" style="margin-top:16px">${story('Draft & Major Rookies',p.rookies,'No draft results were available.')}${story('Trades, Signings & Big Moves',p.transactions,'No major player movement was recorded.')}${story('Franchise & League Changes',p.franchise,'No relocations, expansions, or realignment were recorded.')}${story('Retirement Desk',p.retirements,'No major retirements were recorded.')}</div></div>`;
     }
     const team=(state.teams||[]).find(t=>t.name===p.champion)||{name:p.champion};
@@ -42569,6 +42601,7 @@ setTimeout(wire09723,250);
     return `<div class="newspaper"><div class="newspaperMast"><div class="newspaperDate">${html(p.seasonLabel)} Championship Edition · ${html(p.era)}</div><h2>Basketballverse Chronicle</h2></div>
       <div class="newspaperHeadline">${html(headline)}</div><div class="newspaperDeck">${html(deck)}${p.finalsMvp?` ${html(p.finalsMvp)} earns Finals MVP.`:''}</div>
       <div class="newspaperChampion">${typeof logoHTML==='function'?logoHTML(team):''}<div><b style="font-size:20px">${html(p.champion)}</b><div>${html(p.seasonLabel)} League Champions</div></div></div>
+      <div class="newspaperPortraitRowV09740">${newspaperPortraitFeatureV09740(p.awards?.mvp,'Most Valuable Player')}${newspaperPortraitFeatureV09740(p.awards?.rookie,'Rookie of the Year')}</div>
       <div class="newspaperGrid" style="margin-top:16px"><div class="newspaperStory"><h3>Awards Desk</h3><div><b>MVP:</b> ${html(p.awards?.mvp||'—')}</div><div><b>Rookie of the Year:</b> ${html(p.awards?.rookie||'—')}</div><div><b>Defensive Player:</b> ${html(p.awards?.dpoy||'—')}</div><div><b>Sixth Man:</b> ${html(p.awards?.sixth||'—')}</div></div>${story('Top Regular-Season Records',p.standings,'Final records are available in Season History.')}<div class="newspaperStory"><h3>Postseason</h3><div><b>Champion:</b> ${html(p.champion)}</div><div><b>Runner-up:</b> ${html(p.runnerUp||'—')}</div><div><b>Finals MVP:</b> ${html(p.finalsMvp||'—')}</div></div></div></div>`;
   }
   window.editionHTMLV09738=editionHTMLV09738;
@@ -42643,8 +42676,8 @@ setTimeout(wire09723,250);
 
 <script id="v09739NaturalGeneratedPlayerNames">
 (function(){
-  const BUILD='v0.97.39';
-  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const BUILD='v0.97.40';
+  const LABEL='v0.97.40 · Newspaper Award Portraits';
   const FIRST=['Aaron','Adrian','Alex','Andre','Anthony','Brandon','Bryce','Caleb','Calvin','Cameron','Cedric','Charles','Chris','Corey','Damon','Daniel','Darius','Darren','Derrick','Devin','Dominic','Donovan','Elijah','Eric','Evan','Gabriel','Garrett','Isaiah','Jalen','Jamal','James','Jason','Jerome','Jordan','Joshua','Julian','Justin','Keith','Kenneth','Kevin','Kyle','Lamar','Marcus','Maurice','Michael','Miles','Nathan','Nicholas','Noah','Patrick','Quentin','Reggie','Rodney','Ryan','Samuel','Sean','Shawn','Stephen','Terrence','Thomas','Tobias','Travis','Trevor','Troy','Tyler','Victor','Wesley','Xavier','Zachary'];
   const LAST=['Adams','Allen','Anderson','Bailey','Baker','Barnes','Bell','Bennett','Bishop','Brooks','Brown','Bryant','Butler','Campbell','Carter','Chapman','Clark','Coleman','Collins','Cooper','Crawford','Daniels','Davis','Dawson','Edwards','Ellis','Evans','Fields','Fisher','Foster','Franklin','Gibson','Grant','Green','Griffin','Hall','Hamilton','Harris','Hayes','Henderson','Hill','Howard','Hudson','Hughes','Jackson','James','Jenkins','Johnson','Jones','King','Knight','Lewis','Marshall','Martin','Mason','Matthews','Miller','Mitchell','Moore','Morgan','Morris','Murphy','Nelson','Parker','Peterson','Phillips','Porter','Powell','Price','Reed','Reynolds','Richardson','Robinson','Ross','Russell','Scott','Simmons','Smith','Stewart','Taylor','Thomas','Thompson','Turner','Walker','Ward','Washington','Watkins','White','Williams','Wilson','Wright','Young'];
 
