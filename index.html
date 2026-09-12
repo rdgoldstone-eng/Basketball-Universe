@@ -41166,8 +41166,8 @@ setTimeout(wire09723,250);
 
 <script id="v09724StableVersionBadge">
 (function(){
-  const BUILD='v0.97.38';
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const BUILD='v0.97.39';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
 
   /* This file contains many historical patch blocks. Some of those blocks still
      assign old build labels when their render/init hooks run. Make the current
@@ -41410,7 +41410,7 @@ setTimeout(wire09723,250);
 
 <script id="v09729WebAppIconIntegration">
 (function(){
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   function syncVersion09729(){
     const top=document.querySelector('#setupView .pill');
     if(top)top.textContent=LABEL;
@@ -41442,8 +41442,8 @@ setTimeout(wire09723,250);
 
 <script id="v09730ChampionshipNewspaperTransition">
 (function(){
-  const BUILD='v0.97.38';
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const BUILD='v0.97.39';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
 
   function syncBrandingAndVersionV09730(){
     const top=document.querySelector('#setupView .pill');
@@ -41626,7 +41626,7 @@ setTimeout(wire09723,250);
 
 <script id="v09731StablePersonnelSim">
 (function(){
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   let busyV09731=false;
 
   function personnelKindV09731(){
@@ -41776,7 +41776,7 @@ setTimeout(wire09723,250);
 
 <script id="v09733OneConferenceFinalsRepair">
 (function(){
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   const previousBuildNextV09733=window.buildNextPlayoffRound;
 
   function conferenceKeyV09733(value){
@@ -41931,7 +41931,7 @@ setTimeout(wire09723,250);
 
 <script id="v09734EarlyPlayoffFieldRepair">
 (function(){
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   const previousInitV09734=window.initPostseasonExperience;
   const previousBuildV09734=window.buildNextPlayoffRound;
 
@@ -42138,7 +42138,7 @@ setTimeout(wire09723,250);
 
 <script id="v09735Historical1948BAAPlayoffs">
 (function(){
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   const previousInitV09735=window.initPostseasonExperience;
   const previousBuildV09735=window.buildNextPlayoffRound;
   const previousActiveV09735=window.activeSeriesInSlateOrder;
@@ -42415,8 +42415,8 @@ setTimeout(wire09723,250);
 
 <script id="v09737MinneapolisLakersLogoRepair">
 (function(){
-  const BUILD='v0.97.38';
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const BUILD='v0.97.39';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   const HISTORICAL_SRC='logos/historical/minneapolis-lakers-1948.webp';
   const DISPLAY_SRC='./logos/teams/minneapolis-lakers-1948.webp';
 
@@ -42499,8 +42499,8 @@ setTimeout(wire09723,250);
 
 <script id="v09738TwoEditionNewspaperCycle">
 (function(){
-  const BUILD='v0.97.38';
-  const LABEL='v0.97.38 · Two-Edition Newspaper Cycle';
+  const BUILD='v0.97.39';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
   const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const seasonLabel=y=>`${y}-${String((Number(y)+1)%100).padStart(2,'0')}`;
   const unique=a=>[...new Set((a||[]).filter(Boolean))];
@@ -42638,6 +42638,118 @@ setTimeout(wire09723,250);
     const bottom=document.getElementById('buildBadgeV0904');if(bottom)bottom.textContent='Basketballverse '+LABEL;
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installV09738,{once:true});else installV09738();
+})();
+</script>
+
+<script id="v09739NaturalGeneratedPlayerNames">
+(function(){
+  const BUILD='v0.97.39';
+  const LABEL='v0.97.39 · Natural Generated Player Names';
+  const FIRST=['Aaron','Adrian','Alex','Andre','Anthony','Brandon','Bryce','Caleb','Calvin','Cameron','Cedric','Charles','Chris','Corey','Damon','Daniel','Darius','Darren','Derrick','Devin','Dominic','Donovan','Elijah','Eric','Evan','Gabriel','Garrett','Isaiah','Jalen','Jamal','James','Jason','Jerome','Jordan','Joshua','Julian','Justin','Keith','Kenneth','Kevin','Kyle','Lamar','Marcus','Maurice','Michael','Miles','Nathan','Nicholas','Noah','Patrick','Quentin','Reggie','Rodney','Ryan','Samuel','Sean','Shawn','Stephen','Terrence','Thomas','Tobias','Travis','Trevor','Troy','Tyler','Victor','Wesley','Xavier','Zachary'];
+  const LAST=['Adams','Allen','Anderson','Bailey','Baker','Barnes','Bell','Bennett','Bishop','Brooks','Brown','Bryant','Butler','Campbell','Carter','Chapman','Clark','Coleman','Collins','Cooper','Crawford','Daniels','Davis','Dawson','Edwards','Ellis','Evans','Fields','Fisher','Foster','Franklin','Gibson','Grant','Green','Griffin','Hall','Hamilton','Harris','Hayes','Henderson','Hill','Howard','Hudson','Hughes','Jackson','James','Jenkins','Johnson','Jones','King','Knight','Lewis','Marshall','Martin','Mason','Matthews','Miller','Mitchell','Moore','Morgan','Morris','Murphy','Nelson','Parker','Peterson','Phillips','Porter','Powell','Price','Reed','Reynolds','Richardson','Robinson','Ross','Russell','Scott','Simmons','Smith','Stewart','Taylor','Thomas','Thompson','Turner','Walker','Ward','Washington','Watkins','White','Williams','Wilson','Wright','Young'];
+
+  function hashV09739(value){let h=2166136261;for(const c of String(value)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+  function hasNumericSuffixV09739(name){return /\s+[2-9]\d*$/.test(String(name||'').trim());}
+  function baseNameV09739(name){return String(name||'').trim().replace(/\s+[2-9]\d*$/,'').trim();}
+  function historicalPlayerV09739(p){
+    return !!(p?.historicalPick||p?.historicalEra||p?.realPlayer||p?.isHistorical||
+      /wikipedia|historical record|real player/i.test(String(p?.source||''))||
+      /^f\d+_real_/i.test(String(p?.id||'')));
+  }
+  function naturalUniqueNameV09739(seed,used){
+    const start=hashV09739(seed)%(FIRST.length*LAST.length);
+    for(let n=0;n<FIRST.length*LAST.length;n++){
+      const at=(start+n*97)%(FIRST.length*LAST.length);
+      const name=`${FIRST[at%FIRST.length]} ${LAST[Math.floor(at/FIRST.length)%LAST.length]}`;
+      if(!used.has(name))return name;
+    }
+    return `Alex ${LAST[hashV09739(seed)%LAST.length]}`;
+  }
+
+  function replaceExactNameV09739(value,oldName,newName){return value===oldName?newName:value;}
+  function replaceTextNameV09739(value,oldName,newName){
+    return typeof value==='string'?value.split(oldName).join(newName):value;
+  }
+  function updateNameReferencesV09739(oldName,newName,player){
+    (state.draftHistory||[]).forEach(d=>(d.results||[]).forEach(r=>{
+      if(r.playerId&&player?.id&&r.playerId===player.id)r.playerName=newName;
+      else r.playerName=replaceExactNameV09739(r.playerName,oldName,newName);
+    }));
+    (state.draftRoom?.results||[]).forEach(r=>{
+      if(r.playerId&&player?.id&&r.playerId===player.id)r.playerName=newName;
+      else r.playerName=replaceExactNameV09739(r.playerName,oldName,newName);
+    });
+    (state.offseason?.draftResults||[]).forEach(r=>{
+      if(r.playerId&&player?.id&&r.playerId===player.id)r.playerName=newName;
+      else{
+        r.playerName=replaceExactNameV09739(r.playerName,oldName,newName);
+        r.player=replaceExactNameV09739(r.player,oldName,newName);
+        r.name=replaceExactNameV09739(r.name,oldName,newName);
+      }
+    });
+    (state.history?.seasons||[]).forEach(s=>['mvp','rookie','dpoy','sixth','finalsMvp'].forEach(k=>s[k]=replaceExactNameV09739(s[k],oldName,newName)));
+    (state.news||[]).forEach(n=>{n.title=replaceTextNameV09739(n.title,oldName,newName);n.text=replaceTextNameV09739(n.text,oldName,newName);});
+    (state.seasonNewspapers||[]).forEach(p=>{
+      if(p.topPick)p.topPick.player=replaceExactNameV09739(p.topPick.player,oldName,newName);
+      (p.topFive||[]).forEach(x=>x.player=replaceExactNameV09739(x.player,oldName,newName));
+    });
+    (state.newspaperEditionsV09738||[]).forEach(p=>{
+      (p.rookies||[]).forEach((x,i)=>p.rookies[i]=replaceTextNameV09739(x,oldName,newName));
+    });
+  }
+
+  function repairNumberedPlayerNamesV09739(){
+    if(!state)return [];
+    const pools=[...(state.players||[]),...(state.draftRoom?.available||[])];
+    const used=new Set(pools.filter(p=>!hasNumericSuffixV09739(p?.name)).map(p=>String(p.name).trim()));
+    const changes=[];
+    pools.forEach((p,index)=>{
+      const oldName=String(p?.name||'').trim();if(!hasNumericSuffixV09739(oldName))return;
+      const stripped=baseNameV09739(oldName);
+      const newName=historicalPlayerV09739(p)?stripped:naturalUniqueNameV09739(`${p.id||p.draftId||index}|${state.currentYear}`,used);
+      if(!newName||newName===oldName)return;
+      p.name=newName;used.add(newName);updateNameReferencesV09739(oldName,newName,p);
+      changes.push({id:p.id||p.draftId||null,oldName,newName,historical:historicalPlayerV09739(p)});
+    });
+    if(changes.length){
+      state.playerNameRepairsV09739=Array.isArray(state.playerNameRepairsV09739)?state.playerNameRepairsV09739:[];
+      state.playerNameRepairsV09739.push({year:Number(state.currentYear),changes});
+    }
+    return changes;
+  }
+  window.repairNumberedPlayerNamesV09739=repairNumberedPlayerNamesV09739;
+
+  /* Display names no longer need to be globally unique; player IDs already are. */
+  window.sanitizeAllPlayerNamesV0832=function(){
+    (state.players||[]).forEach((p,i)=>p.name=cleanProspectNameV0832(p.name,`${p.id||i}|existing`));
+    (state.draftRoom?.available||[]).forEach((p,i)=>p.name=cleanProspectNameV0832(p.name,`${p.id||p.draftId||i}|draft`));
+    return repairNumberedPlayerNamesV09739();
+  };
+  try{sanitizeAllPlayerNamesV0832=window.sanitizeAllPlayerNamesV0832;}catch(_){ }
+
+  const previousDraftClassV09739=window.draftClassForCurrentYear;
+  if(typeof previousDraftClassV09739==='function'){
+    window.draftClassForCurrentYear=function(){
+      const list=previousDraftClassV09739.apply(this,arguments)||[],used=new Set((state.players||[]).map(p=>p.name));
+      list.forEach((p,i)=>{
+        if(!hasNumericSuffixV09739(p?.name))used.add(p.name);
+        else if(historicalPlayerV09739(p))p.name=baseNameV09739(p.name);
+        else p.name=naturalUniqueNameV09739(`${p.id||p.draftId||i}|class|${state.currentYear}`,used);
+        used.add(p.name);
+      });
+      return list;
+    };
+    try{draftClassForCurrentYear=window.draftClassForCurrentYear;}catch(_){ }
+  }
+
+  function installV09739(){
+    const changes=repairNumberedPlayerNamesV09739();
+    const top=document.querySelector('#setupView .pill');if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');if(bottom)bottom.textContent='Basketballverse '+LABEL;
+    if(changes.length){try{saveState?.();renderAll?.();}catch(_){ }}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(installV09739,340),{once:true});else setTimeout(installV09739,340);
+  window.addEventListener('load',()=>setTimeout(installV09739,420),{once:true});
 })();
 </script>
 

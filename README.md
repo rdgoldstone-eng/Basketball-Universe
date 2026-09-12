@@ -1,38 +1,32 @@
-# Basketballverse — v0.97.38
+# Basketballverse — v0.97.39
 
 ## Current Build
 
-**v0.97.38 · Two-Edition Newspaper Cycle**
+**v0.97.39 · Natural Generated Player Names**
 
-## Changes in v0.97.38
+## Changes in v0.97.39
 
-- Splits the Basketballverse Chronicle into two permanent editions for every completed season.
-- Shows the **Championship Edition** immediately after the champion is crowned and before entering the offseason.
-- Championship coverage includes the regular-season leaders, award winners, postseason result, champion, runner-up, and Finals MVP.
-- Shows the **Season Preview Edition** after the offseason is complete and before the next season begins.
-- Preview coverage includes major draft picks and rookies, trades, signings, retirements, relocations, expansion, rebranding, and realignment news.
-- Each edition appears only once during progression and is saved separately in the Newspaper Archive.
-- Preserves the existing offseason checklist and next-season readiness checks.
-- Keeps the Minneapolis Lakers historical-logo repair from v0.97.37.
-- Updates the home-page version and persistent build watermark to v0.97.38.
+- Stops adding visible numbers such as `2` or `3` to duplicate generated-player names.
+- Uses a much larger deterministic name pool to give duplicate fictional players a genuinely different natural name.
+- Automatically repairs numbered fictional-player names in existing saves.
+- Updates matching draft history, active draft results, season newspapers, awards, and news references when a generated player is renamed.
+- Removes accidental numeric suffixes from historical players without changing their internal player IDs.
+- Keeps duplicate players separate through their unique internal IDs rather than altering their display names.
+- Does not rename, move, delete, or otherwise modify any portrait files.
+- Preserves the two-edition newspaper cycle introduced in v0.97.38.
+- Updates the home-page version and persistent watermark to v0.97.39.
 
-## Newspaper Timing
+## Existing Save Repair
 
-1. Finish the playoffs and crown a champion.
-2. Open the Offseason to read the Championship Edition.
-3. Complete every offseason stage through **Next Season**.
-4. Select **Start Next Season** to read the Season Preview Edition.
-5. Select the newspaper's start-season button to advance to opening night.
+Load the existing universe normally. The repair runs automatically after the save loads. A player such as `Corey Porter 2` will receive a natural replacement name, and references to that player in the draft newspaper and history will be updated.
 
 ## Test Checklist
 
-- Finish a season and confirm the Championship Edition appears before the offseason.
-- Confirm the first paper contains championship and award coverage but no offseason recap.
-- Complete the offseason and select Start Next Season.
-- Confirm the Season Preview Edition appears before the year changes.
-- Confirm its button starts the next season exactly once.
-- Open History → Newspapers and confirm both editions are selectable.
-- Save and reload at each newspaper checkpoint to confirm neither edition loops.
+- Load the saved universe containing `Corey Porter 2`.
+- Return to the newspaper or draft history and confirm the numeric suffix is gone.
+- Open the player's profile and confirm the same corrected name appears there.
+- Continue into another draft and confirm generated prospects do not receive visible numeric suffixes.
+- Confirm existing historical portraits still load with their current filenames.
 
 ## Repository Structure
 
@@ -46,4 +40,4 @@ Keep the existing `logos/`, `portraits/`, and other asset folders in the GitHub 
 
 ## Save Compatibility
 
-Existing browser saves remain compatible. New two-edition newspaper history is added to the save as seasons are completed.
+Existing browser saves remain compatible. Internal player IDs, careers, teams, statistics, contracts, and portrait files are preserved.
