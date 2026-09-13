@@ -1,43 +1,37 @@
-# Basketballverse — v0.97.44
+# Basketballverse — v0.97.45
 
 ## Current Build
 
-**v0.97.44 · Always-Available Draft Simulation**
+**v0.97.45 · Historical Player Balance**
 
-## Changes in v0.97.44
+## Changes in v0.97.45
 
-- Refreshes the Draft simulation controls whenever the Draft Room or offseason screen renders.
-- Refreshes the controls after navigation, so entering the Draft later in a session no longer leaves the simulation bar hidden.
-- Adds an **Open and Sim Draft** recovery action when the Draft stage exists but the Draft Room has not initialized.
-- Repairs and initializes the Draft Room before attempting to simulate an incomplete draft.
-- Gives Viewer and Commissioner modes **Sim This Pick** and **Sim Rest of Draft** controls.
-- Gives controlled roles **Sim This Pick**, **Sim to My Pick**, and **Sim Rest of Draft** controls.
-- Allows **Sim Rest of Draft** to simulate controlled-team selections instead of stopping when the user's team comes on the clock.
-- Keeps the mobile simulation time-sliced so long drafts do not lock the screen.
-- Preserves the forced transition to Re-signings after the draft finishes.
-- Synchronizes the opening banner, persistent watermark, README, and update checker to v0.97.44.
-- Preserves all v0.97.42 player-name and newspaper-portrait repairs and the v0.97.43 version-lock/cache correction.
+- Expands the 1947–1955 historical draft pools with documented players who appeared professionally, including notable undrafted players.
+- Uses 396 verified historical draft/undrafted records across those founding-era classes.
+- Rebalances early historical prospects by career tier so obscure late selections are not rated like superstars.
+- Lowers procedurally generated fictional rookies to 43–57 initial overall with a maximum potential of 72.
+- Stops adding visible numeric suffixes such as “2” or “3” solely because two players share a name.
+- Assigns every fictional prospect a stable portrait key, portrait seed, and era year for the planned AI Headshot Generator.
+- Repairs untouched 1947–1955 drafts in existing saves and rebalances young generated players without erasing completed league history.
 
-## Test the Existing Draft Save
+## Expanded Historical Pool
 
-Load the universe that is currently at the Draft stage. The bottom Draft control bar should appear automatically.
+- 1947: 65 professional players
+- 1948: 70 professional players
+- 1949: 66 professional players
+- 1950: 47 professional players
+- 1951: 26 professional players
+- 1952: 36 professional players
+- 1953: 33 professional players
+- 1954: 31 professional players
+- 1955: 22 professional players
 
-- If the Draft Room was not initialized, select **Open and Sim Draft**.
-- To simulate only the current selection, select **Sim This Pick**.
-- In a controlled role, **Sim to My Pick** stops when your team is on the clock.
-- **Sim Rest of Draft** completes every remaining selection, including selections belonging to the controlled team.
-- When the draft finishes, Basketballverse advances to Re-signings.
+## Installation
 
-## Repository Structure
+Replace the repository-root `index.html` with this version and replace the repository-root `README.md` with this file.
 
-```text
-Basketball-Universe/
-├── index.html
-└── README.md
-```
+Keep the existing `portraits/`, `logos/`, and other asset folders in place.
 
-Keep the existing `logos/`, `portraits/`, and other asset folders. Replace only `index.html` and `README.md` with the files from this update.
+## Portrait Workflow
 
-## Save Compatibility
-
-Existing browser saves and partially completed drafts remain compatible. The update repairs the active Draft Room without discarding completed selections.
+Use Basketballverse Portrait Builder v0.4 for the newly added real players. The later AI Headshot Generator will use each real player's approved image as a reference and will create an era-appropriate person for fictional players using their stable portrait seed.
