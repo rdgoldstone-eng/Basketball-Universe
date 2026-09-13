@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="basketballverse-build" content="v0.97.41">
+<meta name="basketballverse-build" content="v0.97.42">
 <meta http-equiv="Expires" content="0">
 
 <meta charset="utf-8">
@@ -9900,7 +9900,9 @@ function ensureDraftRoom(){
 }
 
 function validBasketballName(v){
- return typeof v==="string" && v.trim() && !["undefined","null","defined","player"].includes(v.trim().toLowerCase());
+ if(typeof v!=="string")return false;
+ const name=v.replace(/\s+/g," ").trim();
+ return !!name && !/\b(undefined|null|defined)\b/i.test(name) && name.toLowerCase()!=="player";
 }
 function generatedDraftName(year,key){
  const first=["Marcus","Derrick","Andre","Kevin","Jamal","Terrence","Damon","Calvin","Victor","Isaiah","Corey","Malik","Devin","Aaron","Anthony","Eric","Jordan","Trevor","Desmond","Cameron"];
@@ -42512,9 +42514,15 @@ setTimeout(wire09723,250);
   const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const seasonLabel=y=>`${y}-${String((Number(y)+1)%100).padStart(2,'0')}`;
   const unique=a=>[...new Set((a||[]).filter(Boolean))];
+  const portraitNameKeyV09742=v=>String(v||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/['’]/g,'').replace(/\b(undefined|null)\b/g,'')
+    .replace(/\s+[2-9]\d*$/,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
   function newspaperPlayerV09740(name,extra={}){
-    const player=(state.players||[]).find(p=>String(p?.name||'')===String(name||''));
-    return player||{name:name||'Player',...extra};
+    const wanted=portraitNameKeyV09742(name),pools=[...(state.players||[]),...(state.draftRoom?.available||[])];
+    Object.values(state.draftClasses||{}).forEach(list=>Array.isArray(list)&&pools.push(...list));
+    const player=pools.find(p=>String(p?.name||'')===String(name||''))||pools.find(p=>
+      portraitNameKeyV09742(p?.name)===wanted||portraitNameKeyV09742(p?.portraitKey)===wanted);
+    return player?{...extra,...player,portraitKey:player.portraitKey||extra.portraitKey||null}:{name:name||'Player',...extra};
   }
   function newspaperPortraitFeatureV09740(name,label,detail='',extra={},className=''){
     if(!name)return '';
@@ -42800,8 +42808,8 @@ setTimeout(wire09723,250);
 
 <script id="v09741MobileDraftAndUpdateRecovery">
 (function(){
-  const BUILD='v0.97.41';
-  const LABEL='v0.97.41 · Mobile Draft + Update Recovery';
+  const BUILD='v0.97.42';
+  const LABEL='v0.97.42 · Player Name + Portrait Repair';
   let draftBusyV09741=false;
 
   const waitFrameV09741=()=>new Promise(resolve=>{
@@ -42862,8 +42870,20 @@ setTimeout(wire09723,250);
     const d=state.draftRoom;if(!d)return false;
     d.active=false;d.completed=true;
     try{saveCompletedDraftToHistory?.();}catch(e){console.warn('Draft history warning',e);}
-    try{moveFromDraftToReSigningsV0828?.();}catch(e){
-      if(state.offseason){state.offseason.draftComplete=true;state.offseason.processed=state.offseason.processed||{};state.offseason.processed.Draft=true;const i=state.offseason.phases?.indexOf('Re-signings')??-1;if(i>=0){state.offseason.phaseIndex=i;state.offseason.phase='Re-signings';}}
+    try{moveFromDraftToReSigningsV0828?.();}catch(e){console.warn('Legacy post-draft transition warning',e);}
+    /* The legacy helper can return without throwing and still leave the save on
+       Draft. Normalize the completed state unconditionally so mobile and older
+       saves always reach Re-signings. */
+    if(state.offseason){
+      state.offseason.draftComplete=true;
+      state.offseason.processed=state.offseason.processed||{};
+      state.offseason.processed.Draft=true;
+      state.offseason.phases=Array.isArray(state.offseason.phases)?state.offseason.phases:[];
+      let i=state.offseason.phases.indexOf('Re-signings');
+      if(i<0){state.offseason.phases.push('Re-signings');i=state.offseason.phases.length-1;}
+      state.offseason.phaseIndex=i;
+      state.offseason.phase='Re-signings';
+      state.offseason.uiSelectedActivity='Re-signings';
     }
     try{await Promise.resolve(saveState?.());}catch(e){console.warn('Post-draft save warning',e);}
     draftBarV09741().style.display='none';
@@ -42973,6 +42993,118 @@ setTimeout(wire09723,250);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installV09741,{once:true});else installV09741();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateMobileDraftBarV09741();checkForBasketballverseUpdateV09741(false);}});
+})();
+</script>
+
+<script id="v09742PlayerIdentityPortraitRepair">
+(function(){
+  const BUILD='v0.97.42';
+  const LABEL='v0.97.42 · Player Name + Portrait Repair';
+
+  function malformedNameV09742(value){
+    const s=String(value??'').replace(/\s+/g,' ').trim();
+    return !s||/\b(undefined|null|defined)\b/i.test(s)||s.toLowerCase()==='player';
+  }
+  function titleFromPortraitKeyV09742(key){
+    const words=String(key||'').replace(/\.[a-z0-9]+$/i,'').split(/[_-]+/).filter(Boolean);
+    if(words.length<2)return '';
+    return words.map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+  }
+  function identityKeyV09742(p){return String(p?.id||p?.draftId||'');}
+  function replaceExactV09742(value,oldName,newName){return value===oldName?newName:value;}
+  function replaceTextV09742(value,oldName,newName){return typeof value==='string'?value.split(oldName).join(newName):value;}
+
+  function updateReferencesV09742(oldName,newName,player){
+    const same=r=>r?.playerId&&player?.id&&String(r.playerId)===String(player.id);
+    (state.draftHistory||[]).forEach(d=>(d.results||[]).forEach(r=>{
+      if(same(r))r.playerName=newName;else r.playerName=replaceExactV09742(r.playerName,oldName,newName);
+      r.player=replaceExactV09742(r.player,oldName,newName);r.name=replaceExactV09742(r.name,oldName,newName);
+    }));
+    (state.draftRoom?.results||[]).forEach(r=>{if(same(r))r.playerName=newName;else r.playerName=replaceExactV09742(r.playerName,oldName,newName);});
+    (state.offseason?.draftResults||[]).forEach(r=>{
+      if(same(r))r.playerName=newName;else r.playerName=replaceExactV09742(r.playerName,oldName,newName);
+      r.player=replaceExactV09742(r.player,oldName,newName);r.name=replaceExactV09742(r.name,oldName,newName);
+    });
+    (state.history?.seasons||[]).forEach(s=>['mvp','rookie','dpoy','sixth','finalsMvp'].forEach(k=>s[k]=replaceExactV09742(s[k],oldName,newName)));
+    const awards=state.offseason?.awardResults;
+    if(awards&&typeof awards==='object')Object.keys(awards).forEach(k=>awards[k]=replaceExactV09742(awards[k],oldName,newName));
+    (state.seasonNewspapers||[]).forEach(p=>{
+      if(p.awards)Object.keys(p.awards).forEach(k=>p.awards[k]=replaceExactV09742(p.awards[k],oldName,newName));
+      if(p.topPick)p.topPick.player=replaceExactV09742(p.topPick.player,oldName,newName);
+      (p.topFive||[]).forEach(x=>x.player=replaceExactV09742(x.player,oldName,newName));
+    });
+    (state.newspaperEditionsV09738||[]).forEach(p=>{
+      if(p.awards)Object.keys(p.awards).forEach(k=>p.awards[k]=replaceExactV09742(p.awards[k],oldName,newName));
+      if(p.firstPick)p.firstPick.name=replaceExactV09742(p.firstPick.name,oldName,newName);
+      (p.rookies||[]).forEach((x,i)=>p.rookies[i]=replaceTextV09742(x,oldName,newName));
+    });
+    (state.news||[]).forEach(n=>{n.title=replaceTextV09742(n.title,oldName,newName);n.text=replaceTextV09742(n.text,oldName,newName);});
+  }
+
+  function repairPlayerIdentitiesV09742(){
+    if(!window.state)return [];
+    const draftPlayers=[];
+    Object.values(state.draftClasses||{}).forEach(list=>Array.isArray(list)&&draftPlayers.push(...list));
+    const canonical=new Map();
+    draftPlayers.forEach(p=>{const k=identityKeyV09742(p);if(k&&!malformedNameV09742(p?.name))canonical.set(k,p);});
+    const pools=[...(state.players||[]),...draftPlayers,...(state.draftRoom?.available||[])];
+    const seen=new WeakSet(),changes=[];
+    pools.forEach((p,index)=>{
+      if(!p||typeof p!=='object'||seen.has(p))return;seen.add(p);
+      const oldName=String(p.name??'').replace(/\s+/g,' ').trim();
+      if(!malformedNameV09742(oldName))return;
+      const source=canonical.get(identityKeyV09742(p));
+      let newName=source?.name||titleFromPortraitKeyV09742(p.portraitKey);
+      if(malformedNameV09742(newName))newName=typeof cleanProspectNameV0832==='function'
+        ?cleanProspectNameV0832(oldName,`${identityKeyV09742(p)||index}|v09742`)
+        :generatedDraftName(Number(p.draftYear||state.currentYear),identityKeyV09742(p)||index);
+      if(malformedNameV09742(newName)||newName===oldName)return;
+      p.name=newName;
+      if(source?.portraitKey&&!p.portraitKey)p.portraitKey=source.portraitKey;
+      updateReferencesV09742(oldName,newName,p);
+      changes.push({id:identityKeyV09742(p)||null,oldName,newName});
+    });
+    if(changes.length){
+      state.playerIdentityRepairsV09742=Array.isArray(state.playerIdentityRepairsV09742)?state.playerIdentityRepairsV09742:[];
+      state.playerIdentityRepairsV09742.push({year:Number(state.currentYear),changes});
+    }
+    return changes;
+  }
+  window.repairPlayerIdentitiesV09742=repairPlayerIdentitiesV09742;
+
+  const stricterNameV09742=function(value){return !malformedNameV09742(value);};
+  window.validBasketballName=stricterNameV09742;
+  try{validBasketballName=stricterNameV09742;}catch(_){ }
+
+  const previousConvertV09742=window.convertProspectToPlayer;
+  if(typeof previousConvertV09742==='function'){
+    window.convertProspectToPlayer=function(prospect){
+      const safe={...(prospect||{})};
+      if(malformedNameV09742(safe.name))safe.name=typeof cleanProspectNameV0832==='function'
+        ?cleanProspectNameV0832(safe.name,`${safe.id||safe.draftId||Date.now()}|convert-v09742`)
+        :generatedDraftName(Number(state?.draftRoom?.year||state?.currentYear),safe.id||safe.draftId||Date.now());
+      return previousConvertV09742.call(this,safe,...Array.prototype.slice.call(arguments,1));
+    };
+    try{convertProspectToPlayer=window.convertProspectToPlayer;}catch(_){ }
+  }
+
+  function enforceBuildV09742(){
+    window.BASKETBALLVERSE_BUILD=BUILD;window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+    const meta=document.querySelector('meta[name="basketballverse-build"]');if(meta)meta.content=BUILD;
+    const top=document.querySelector('#setupView .pill');if(top)top.textContent=LABEL;
+    const bottom=document.getElementById('buildBadgeV0904');if(bottom)bottom.textContent='Basketballverse '+LABEL;
+  }
+  const previousRenderAllV09742=window.renderAll;
+  if(typeof previousRenderAllV09742==='function'){
+    window.renderAll=function(){repairPlayerIdentitiesV09742();const r=previousRenderAllV09742.apply(this,arguments);enforceBuildV09742();return r;};
+    try{renderAll=window.renderAll;}catch(_){ }
+  }
+  function installV09742(){
+    const changes=repairPlayerIdentitiesV09742();enforceBuildV09742();
+    if(changes.length)try{saveState?.();renderAll?.();}catch(e){console.warn('v0.97.42 save repair warning',e);}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(installV09742,500),{once:true});else setTimeout(installV09742,500);
+  window.addEventListener('load',()=>setTimeout(installV09742,900),{once:true});
 })();
 </script>
 
