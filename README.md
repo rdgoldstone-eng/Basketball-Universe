@@ -1,32 +1,32 @@
-# Basketballverse — v0.97.43
+# Basketballverse — v0.97.44
 
 ## Current Build
 
-**v0.97.43 · Version Lock + Cache Refresh**
+**v0.97.44 · Always-Available Draft Simulation**
 
-## Changes in v0.97.43
+## Changes in v0.97.44
 
-- Fixes the older stable-version safeguard that was still locked to v0.97.41.
-- Synchronizes every active version label in the file to v0.97.43.
-- Keeps the opening-screen banner and persistent watermark on the current version after game renders, saved-universe loads, and tab changes.
-- Adds a unique timestamp to **Update Now** reload URLs so iPhone and Safari cannot reuse the same cached update address.
-- Preserves the v0.97.42 malformed-name repair, historical portrait-key recovery, newspaper portrait resolution, and forced post-draft transition to Re-signings.
+- Refreshes the Draft simulation controls whenever the Draft Room or offseason screen renders.
+- Refreshes the controls after navigation, so entering the Draft later in a session no longer leaves the simulation bar hidden.
+- Adds an **Open and Sim Draft** recovery action when the Draft stage exists but the Draft Room has not initialized.
+- Repairs and initializes the Draft Room before attempting to simulate an incomplete draft.
+- Gives Viewer and Commissioner modes **Sim This Pick** and **Sim Rest of Draft** controls.
+- Gives controlled roles **Sim This Pick**, **Sim to My Pick**, and **Sim Rest of Draft** controls.
+- Allows **Sim Rest of Draft** to simulate controlled-team selections instead of stopping when the user's team comes on the clock.
+- Keeps the mobile simulation time-sliced so long drafts do not lock the screen.
+- Preserves the forced transition to Re-signings after the draft finishes.
+- Synchronizes the opening banner, persistent watermark, README, and update checker to v0.97.44.
+- Preserves all v0.97.42 player-name and newspaper-portrait repairs and the v0.97.43 version-lock/cache correction.
 
-## Why v0.97.42 Displayed v0.97.41
+## Test the Existing Draft Save
 
-The v0.97.42 file was published correctly, but an older version-protection block still treated v0.97.41 as the permanent display version. It continuously changed the visible banner and watermark back to v0.97.41. This update corrects that block at its source.
+Load the universe that is currently at the Draft stage. The bottom Draft control bar should appear automatically.
 
-## Updating from v0.97.42
-
-Replace `index.html` first and then replace `README.md`. After GitHub Pages finishes publishing, the existing **Update Now** button should detect v0.97.43. Its first reload still uses the older update method; if the home-screen app remains on v0.97.41, close it completely and reopen it once. Future updates use the strengthened cache-refresh address.
-
-## Test Checklist
-
-- Confirm the opening-screen banner shows v0.97.43.
-- Load an existing universe and confirm the persistent watermark remains v0.97.43.
-- Change tabs and simulate an event; confirm neither version label returns to v0.97.41.
-- Confirm the repaired player names and newspaper portraits from v0.97.42 remain intact.
-- Finish a draft and confirm the offseason advances to Re-signings.
+- If the Draft Room was not initialized, select **Open and Sim Draft**.
+- To simulate only the current selection, select **Sim This Pick**.
+- In a controlled role, **Sim to My Pick** stops when your team is on the clock.
+- **Sim Rest of Draft** completes every remaining selection, including selections belonging to the controlled team.
+- When the draft finishes, Basketballverse advances to Re-signings.
 
 ## Repository Structure
 
@@ -40,4 +40,4 @@ Keep the existing `logos/`, `portraits/`, and other asset folders. Replace only 
 
 ## Save Compatibility
 
-Existing browser saves remain compatible. This update changes version-display and reload behavior without deleting or resetting saved universes.
+Existing browser saves and partially completed drafts remain compatible. The update repairs the active Draft Room without discarding completed selections.
