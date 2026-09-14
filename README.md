@@ -1,37 +1,22 @@
-# Basketballverse — v0.97.45
+# Basketballverse — v0.97.46
 
 ## Current Build
 
-**v0.97.45 · Historical Player Balance**
+**v0.97.46 · 1960 Logo Continuity**
 
-## Changes in v0.97.45
+## Changes in v0.97.46
 
-- Expands the 1947–1955 historical draft pools with documented players who appeared professionally, including notable undrafted players.
-- Uses 396 verified historical draft/undrafted records across those founding-era classes.
-- Rebalances early historical prospects by career tier so obscure late selections are not rated like superstars.
-- Lowers procedurally generated fictional rookies to 43–57 initial overall with a maximum potential of 72.
-- Stops adding visible numeric suffixes such as “2” or “3” solely because two players share a name.
-- Assigns every fictional prospect a stable portrait key, portrait seed, and era year for the planned AI Headshot Generator.
-- Repairs untouched 1947–1955 drafts in existing saves and rebalances young generated players without erasing completed league history.
+- Repairs the group of team logos that disappeared at the 1960 season transition.
+- Carries the last uploaded logo forward when the old manifest requested a nonexistent 1960 file.
+- Corrects the Chicago Packers JPEG and Chicago Zephyrs PNG filename/extension mismatches.
+- Corrects Portland's uploaded `trailblazers` filename so its 1970 logo loads.
+- Repairs cached logo paths in existing saves without requiring a new universe.
+- Preserves the v0.97.45 historical player expansion and fictional-player rating balance.
 
-## Expanded Historical Pool
+## Teams covered
 
-- 1947: 65 professional players
-- 1948: 70 professional players
-- 1949: 66 professional players
-- 1950: 47 professional players
-- 1951: 26 professional players
-- 1952: 36 professional players
-- 1953: 33 professional players
-- 1954: 31 professional players
-- 1955: 22 professional players
+Boston Celtics, New York Knicks, Philadelphia/San Francisco Warriors, Minneapolis/Los Angeles Lakers, Syracuse Nationals/Philadelphia 76ers, St. Louis Hawks, Cincinnati Royals, Detroit Pistons, Chicago Packers/Zephyrs, Baltimore Bullets, Houston Rockets, and Portland Trail Blazers.
 
 ## Installation
 
-Replace the repository-root `index.html` with this version and replace the repository-root `README.md` with this file.
-
-Keep the existing `portraits/`, `logos/`, and other asset folders in place.
-
-## Portrait Workflow
-
-Use Basketballverse Portrait Builder v0.4 for the newly added real players. The later AI Headshot Generator will use each real player's approved image as a reference and will create an era-appropriate person for fictional players using their stable portrait seed.
+Replace the repository-root `index.html` and `README.md` with these files. Keep all existing `logos/`, `portraits/`, and other asset folders in place.
