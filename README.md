@@ -1,16 +1,18 @@
-# Basketballverse — v0.97.50
+# Basketballverse — v0.97.51
 
 ## Current Build
 
-**v0.97.50 · Watch Game Exit Fix**
+**v0.97.51 · Historical Class & Portrait Repair**
 
-## Changes in v0.97.50
+## Changes in v0.97.51
 
-- Fixes the completed Watch Game screen losing its Continue Playoffs button during the second playoff render pass.
-- Keeps the current Watch Game action in place while the live scoreboard refreshes.
-- Guarantees a Continue Playoffs button when a watched game reaches FINAL.
-- Continue Playoffs closes the watched game, returns to the postseason matchup view, and restores the normal playoff simulation controls.
-- Preserves the v0.97.49 playoff result pause and Next Game flow.
+- Repairs the 1956–1977 historical draft-class handoff in existing saved universes before the next draft begins.
+- Prevents a saved fictional draft pool from replacing the real 1976 class during a 1975 season.
+- Restores recognizable 1976 prospects including John Lucas, Scott May, Adrian Dantley, Robert Parish, Alex English, and Dennis Johnson.
+- Routes roster, scouting, draft, award, newspaper, and career portraits through the same `portraits/first_last.webp` convention.
+- Adds a fresh portrait cache key so recently uploaded WebP files are requested again instead of using stale missing-image results.
+- Leaves already completed draft results untouched to protect existing save history.
+- Preserves the v0.97.50 Watch Game exit repair and prior simulation visuals.
 
 ## Installation
 
