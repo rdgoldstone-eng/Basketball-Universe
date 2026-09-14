@@ -1,22 +1,18 @@
-# Basketballverse — v0.97.46
+# Basketballverse — v0.97.47
 
 ## Current Build
 
-**v0.97.46 · 1960 Logo Continuity**
+**v0.97.47 · Simulation Centerpiece**
 
-## Changes in v0.97.46
+## Changes in v0.97.47
 
-- Repairs the group of team logos that disappeared at the 1960 season transition.
-- Carries the last uploaded logo forward when the old manifest requested a nonexistent 1960 file.
-- Corrects the Chicago Packers JPEG and Chicago Zephyrs PNG filename/extension mismatches.
-- Corrects Portland's uploaded `trailblazers` filename so its 1970 logo loads.
-- Repairs cached logo paths in existing saves without requiring a new universe.
-- Preserves the v0.97.45 historical player expansion and fictional-player rating balance.
-
-## Teams covered
-
-Boston Celtics, New York Knicks, Philadelphia/San Francisco Warriors, Minneapolis/Los Angeles Lakers, Syracuse Nationals/Philadelphia 76ers, St. Louis Hawks, Cincinnati Royals, Detroit Pistons, Chicago Packers/Zephyrs, Baltimore Bullets, Houston Rockets, and Portland Trail Blazers.
+- Redesigns the main regular-season simulator as a large matchup presentation with one historical team logo on each side.
+- Replaces the regular-season simulation dropdown with direct buttons for 1 Game, 1 Week, 1 Month, Half Season, All-Star Break, Trade Deadline, End of Season, and Next Decision.
+- Redesigns the playoff simulator with the same matchup presentation while preserving the existing Sim Next Game, Watch Next Game, Next Playoff Day, Finish Current Series, and Finish Current Stage/Round controls.
+- Shows the latest regular-season result and the next active playoff series in the centerpiece.
+- Adds a responsive two-column button layout and correctly sized team logos for phones.
+- Preserves the v0.97.46 historical logo continuity repair and all existing simulation behavior.
 
 ## Installation
 
-Replace the repository-root `index.html` and `README.md` with these files. Keep all existing `logos/`, `portraits/`, and other asset folders in place.
+Replace the repository-root `index.html` and `README.md` with these files. Keep all existing `logos/`, `portraits/`, and other asset folders in place. Existing saved universes remain compatible.
