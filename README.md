@@ -1,17 +1,17 @@
-# Basketballverse — v0.97.47
+# Basketballverse — v0.97.48
 
 ## Current Build
 
-**v0.97.47 · Simulation Centerpiece**
+**v0.97.48 · Watch Game Scoreboard**
 
-## Changes in v0.97.47
+## Changes in v0.97.48
 
-- Redesigns the main regular-season simulator as a large matchup presentation with one historical team logo on each side.
-- Replaces the regular-season simulation dropdown with direct buttons for 1 Game, 1 Week, 1 Month, Half Season, All-Star Break, Trade Deadline, End of Season, and Next Decision.
-- Redesigns the playoff simulator with the same matchup presentation while preserving the existing Sim Next Game, Watch Next Game, Next Playoff Day, Finish Current Series, and Finish Current Stage/Round controls.
-- Shows the latest regular-season result and the next active playoff series in the centerpiece.
-- Adds a responsive two-column button layout and correctly sized team logos for phones.
-- Preserves the v0.97.46 historical logo continuity repair and all existing simulation behavior.
+- Makes Watch Game use the new large-logo playoff scoreboard instead of displaying a second text-only score panel.
+- Replaces the normal playoff simulation button row with the current Watch Game action while a watched game is active.
+- Updates the centerpiece after every quarter and crunch-time checkpoint with the live score, clock/stage, game number, and series wins.
+- Restores the normal playoff simulation buttons after Continue Playoffs is selected.
+- Keeps role-specific Coach and Player watch-game decisions beneath the scoreboard.
+- Preserves the v0.97.47 regular-season and playoff simulation centerpiece and the v0.97.46 historical logo continuity repair.
 
 ## Installation
 
