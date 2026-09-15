@@ -43908,42 +43908,17 @@ setTimeout(wire09723,250);
 })();
 </script>
 
-<script id="v09751HistoricalClassPortraitRepair">
+<script id="v09752SafeHistoricalDraftRepair">
 (function(){
-  const BUILD='v0.97.51';
-  const LABEL='v0.97.51 · Historical Class & Portrait Repair';
+  const BUILD='v0.97.52';
+  const LABEL='v0.97.52 · Safe Historical Draft Repair';
 
-  function cloneV09751(value){return JSON.parse(JSON.stringify(value));}
-  function portraitKeyV09751(p){
-    const raw=String(p?.portraitKey||p?.name||p?.id||'player');
-    return raw.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
-      .replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  function copyV09752(value){return JSON.parse(JSON.stringify(value));}
+  function keyV09752(value){
+    return String(value||'player').normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
   }
-  function portraitSrcV09751(p){
-    if(!p)return'';
-    if(p.customPortrait)return p.customPortrait;
-    if(typeof p.portrait==='string'&&/^(data:|blob:|https?:)/i.test(p.portrait))return p.portrait;
-    return `./portraits/${portraitKeyV09751(p)}.webp?bv=09751`;
-  }
-  window.portraitKeyV09751=portraitKeyV09751;
-  window.portraitSrcV09751=portraitSrcV09751;
-  window.universalPlayerPortraitSrcV09500=portraitSrcV09751;
-  window.portraitSrc09707=portraitSrcV09751;
-  window.playerPortraitSrcV09135=portraitSrcV09751;
-  try{universalPlayerPortraitSrcV09500=portraitSrcV09751;}catch(_){ }
-  try{portraitSrc09707=portraitSrcV09751;}catch(_){ }
-  try{playerPortraitSrcV09135=portraitSrcV09751;}catch(_){ }
-
-  function portraitHTMLV09751(p,size=48,cls=''){
-    const src=portraitSrcV09751(p);
-    const initials=String(p?.name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
-    const radius=Math.max(7,Math.round(size*.18));
-    return `<span class="playerPortraitUniversalV09500 ${cls}" style="width:${size}px;height:${Math.round(size*1.18)}px;border-radius:${radius}px"><img src="${src}" alt="${String(p?.name||'Player').replace(/"/g,'&quot;')}" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"><span style="display:none;width:100%;height:100%;align-items:center;justify-content:center">${initials}</span></span>`;
-  }
-  window.universalPlayerPortraitHTMLV09500=portraitHTMLV09751;
-  window.playerPortraitHTMLV09186=function(p,cls){return portraitHTMLV09751(p,38,cls||'');};
-
-  function sourceClassV09751(year){
+  function sourceV09752(year){
     const y=String(year);
     if(year>=1956&&year<=1962)return window.DRAFT_CLASSES_V09602?.[y]||null;
     if(year>=1963&&year<=1970)return window.DRAFT_CLASSES_V09603?.[y]||null;
@@ -43951,69 +43926,51 @@ setTimeout(wire09723,250);
     if(year===1977&&typeof historicalDraft1977!=='undefined')return historicalDraft1977;
     return null;
   }
-  function prepareHistoricalClassV09751(year){
-    const source=sourceClassV09751(Number(year));
-    if(!source?.length||!window.state)return null;
-    const list=cloneV09751(source).map((p,index)=>({
+  function historicalClassV09752(year){
+    const source=sourceV09752(Number(year));
+    if(!source?.length)return null;
+    return copyV09752(source).map((p,index)=>({
       ...p,
       id:p.id||`historical_${year}_${index+1}`,
       draftId:p.draftId||p.id||`historical_${year}_${index+1}`,
       draftYear:Number(year),
       historical:true,
-      portraitKey:p.portraitKey||portraitKeyV09751(p)
+      portraitKey:p.portraitKey||keyV09752(p.name)
     }));
-    state.draftClasses=state.draftClasses||{};
-    state.draftClasses[String(year)]=list;
-    return list;
   }
-  window.prepareHistoricalClassV09751=prepareHistoricalClassV09751;
+  window.historicalClassV09752=historicalClassV09752;
 
-  const priorDraftClass=window.draftClassForCurrentYear;
-  if(typeof priorDraftClass==='function'){
+  const previousDraftClass=window.draftClassForCurrentYear;
+  if(typeof previousDraftClass==='function'){
     window.draftClassForCurrentYear=function(){
       const year=Number(state?.currentYear||0)+1;
-      const repaired=prepareHistoricalClassV09751(year);
-      const base=repaired||priorDraftClass.apply(this,arguments)||[];
+      const historical=historicalClassV09752(year);
+      if(!historical)return previousDraftClass.apply(this,arguments)||[];
+      state.draftClasses=state.draftClasses||{};
+      state.draftClasses[String(year)]=copyV09752(historical);
       let needed=0;
-      try{needed=Number((state.draftRoom?.order?.length?state.draftRoom.order:buildDraftOrder?.())?.length||0);}catch(_){ }
+      try{
+        const order=state.draftRoom?.order?.length?state.draftRoom.order:buildDraftOrder();
+        needed=Number(order?.length||0);
+      }catch(_){ }
       if(!needed)needed=Math.max(1,(state.teams||[]).filter(t=>!t.defunct).length);
-      return typeof completeDraftClassV0832==='function'?completeDraftClassV0832(base,year,needed):base;
+      return typeof completeDraftClassV0832==='function'
+        ?completeDraftClassV0832(historical,year,needed)
+        :historical;
     };
     try{draftClassForCurrentYear=window.draftClassForCurrentYear;}catch(_){ }
   }
 
-  function repairCurrentDraftV09751(){
-    if(!window.state)return;
-    const upcoming=Number(state.currentYear||0)+1;
-    prepareHistoricalClassV09751(upcoming);
-    const dr=state.draftRoom;
-    if(dr?.active&&Number(dr.year)===upcoming&&!Number(dr.pickIndex||0)&&!(dr.results||[]).length){
-      const source=prepareHistoricalClassV09751(upcoming);
-      if(source?.length){
-        let needed=Number(dr.order?.length||0);
-        dr.available=typeof completeDraftClassV0832==='function'?completeDraftClassV0832(source,upcoming,needed):source;
-      }
-    }
-  }
-  const priorEnsure=window.ensureDraftClasses;
-  if(typeof priorEnsure==='function'){
-    window.ensureDraftClasses=function(){const result=priorEnsure.apply(this,arguments);repairCurrentDraftV09751();return result;};
-    try{ensureDraftClasses=window.ensureDraftClasses;}catch(_){ }
-  }
-
-  function enforceVersionV09751(){
+  function enforceVersionV09752(){
+    window.BASKETBALLVERSE_BUILD=BUILD;
+    window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
     const meta=document.querySelector('meta[name="basketballverse-build"]');if(meta)meta.content=BUILD;
     const top=document.querySelector('#setupView .pill');if(top)top.textContent=LABEL;
     const bottom=document.getElementById('buildBadgeV0904');if(bottom)bottom.textContent='Basketballverse '+LABEL;
   }
-  function installV09751(){
-    repairCurrentDraftV09751();
-    (state?.players||[]).forEach(p=>{if(!p.portraitKey&&p.name)p.portraitKey=portraitKeyV09751(p);});
-    enforceVersionV09751();
-    try{renderAll?.();}catch(_){ }
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(installV09751,700),{once:true});else setTimeout(installV09751,700);
-  window.addEventListener('load',()=>setTimeout(installV09751,1100),{once:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(enforceVersionV09752,700),{once:true});
+  else setTimeout(enforceVersionV09752,700);
+  window.addEventListener('load',()=>setTimeout(enforceVersionV09752,1100),{once:true});
 })();
 </script>
 
