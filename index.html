@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="basketballverse-build" content="v0.97.50">
+<meta name="basketballverse-build" content="v0.97.53">
 <meta http-equiv="Expires" content="0">
 
 <meta charset="utf-8">
@@ -42808,8 +42808,8 @@ setTimeout(wire09723,250);
 
 <script id="v09741MobileDraftAndUpdateRecovery">
 (function(){
-  const BUILD='v0.97.50';
-  const LABEL='v0.97.50 · Watch Game Exit Fix';
+  const BUILD='v0.97.53';
+  const LABEL='v0.97.53 · Reliable Webapp Updater';
   let draftBusyV09741=false;
 
   const waitFrameV09741=()=>new Promise(resolve=>{
@@ -42995,7 +42995,35 @@ setTimeout(wire09723,250);
       if(remote&&newerVersionV09741(remote,BUILD)){
         let box=document.getElementById('bvUpdateNoticeV09741');if(!box){box=document.createElement('div');box.id='bvUpdateNoticeV09741';document.body.appendChild(box);}
         box.innerHTML=`<b>Basketballverse ${remote} is available</b><div class="small" style="margin-top:4px">Reload the web app to use the newest build. Saved universes will remain intact.</div><button id="bvInstallUpdateV09741" class="primary">Update Now</button><button id="bvLaterUpdateV09741">Later</button>`;
-        document.getElementById('bvInstallUpdateV09741').onclick=()=>{const next=new URL(location.href);next.searchParams.set('bv',remote);next.searchParams.set('bv_refresh',Date.now());location.replace(next.href);};
+        document.getElementById('bvInstallUpdateV09741').onclick=async()=>{
+          const button=document.getElementById('bvInstallUpdateV09741');
+          const message=box.querySelector('.small');
+          button.disabled=true;button.textContent='Checking…';
+          let publishedURL=null,lastError='';
+          for(let attempt=0;attempt<8;attempt++){
+            try{
+              const next=new URL('./index.html',location.href);
+              next.searchParams.set('bv',remote);
+              next.searchParams.set('bv_refresh',Date.now());
+              const page=await fetch(next.href,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+              if(!page.ok)throw new Error(`index.html returned ${page.status}`);
+              const html=await page.text();
+              const served=html.match(/<meta\s+name=["']basketballverse-build["']\s+content=["'](v\d+\.\d+\.\d+)["']/i)?.[1]||'';
+              if(served===remote){publishedURL=next.href;break;}
+              lastError=`GitHub Pages is still serving ${served||'the previous build'}.`;
+            }catch(error){lastError=String(error?.message||error);}
+            if(message)message.textContent=`GitHub Pages is still publishing ${remote}. Checking again…`;
+            await new Promise(resolve=>setTimeout(resolve,1500));
+          }
+          if(publishedURL){
+            button.textContent='Loading…';
+            if(message)message.textContent=`${remote} is published. Loading the fresh index now.`;
+            location.replace(publishedURL);
+            return;
+          }
+          button.disabled=false;button.textContent='Try Again';
+          if(message)message.textContent=`${remote} is listed in the README, but its index.html is not published yet. Wait for the GitHub Pages deployment to finish, then try again. ${lastError}`;
+        };
         document.getElementById('bvLaterUpdateV09741').onclick=()=>box.remove();
         return remote;
       }
@@ -43910,8 +43938,8 @@ setTimeout(wire09723,250);
 
 <script id="v09752SafeHistoricalDraftRepair">
 (function(){
-  const BUILD='v0.97.52';
-  const LABEL='v0.97.52 · Safe Historical Draft Repair';
+  const BUILD='v0.97.53';
+  const LABEL='v0.97.53 · Reliable Webapp Updater';
 
   function copyV09752(value){return JSON.parse(JSON.stringify(value));}
   function keyV09752(value){
