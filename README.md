@@ -1,17 +1,16 @@
-# Basketballverse — v0.97.54
+# Basketballverse — v0.97.55
 
 ## Current Build
 
-**v0.97.54 · Authoritative Version Banners**
+**v0.97.55 · Locked Version Identity**
 
-## Changes in v0.97.54
+## Changes in v0.97.55
 
-- Makes v0.97.54 the authoritative version for the setup banner, fixed bottom watermark, update checker, and static build metadata.
-- Stops older render routines from repainting the visible version labels as v0.97.50.
-- Reapplies the current label after full game renders, page restoration, and returning to the browser tab.
-- Watches the two visible labels and immediately corrects them if an older routine changes their text.
-- Preserves the reliable cache-busted updater from v0.97.53.
-- Preserves the safe historical draft repair and Watch Game exit fix.
+- Replaces the original hard-coded v0.97.26 setup label in the page source.
+- Locks the visible setup banner and bottom watermark to v0.97.55 at the CSS level, so older scripts cannot visually repaint them.
+- Keeps the static metadata, updater comparison, runtime build identity, setup banner, and watermark synchronized.
+- Retains the render and page-restoration safeguards from v0.97.54.
+- Preserves the reliable updater, safe historical draft repair, and Watch Game exit fix.
 
 ## Installation
 
