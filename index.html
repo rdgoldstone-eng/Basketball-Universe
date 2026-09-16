@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="basketballverse-build" content="v0.97.53">
+<meta name="basketballverse-build" content="v0.97.54">
 <meta http-equiv="Expires" content="0">
 
 <meta charset="utf-8">
@@ -42808,8 +42808,8 @@ setTimeout(wire09723,250);
 
 <script id="v09741MobileDraftAndUpdateRecovery">
 (function(){
-  const BUILD='v0.97.53';
-  const LABEL='v0.97.53 · Reliable Webapp Updater';
+  const BUILD='v0.97.54';
+  const LABEL='v0.97.54 · Authoritative Version Banners';
   let draftBusyV09741=false;
 
   const waitFrameV09741=()=>new Promise(resolve=>{
@@ -43938,8 +43938,8 @@ setTimeout(wire09723,250);
 
 <script id="v09752SafeHistoricalDraftRepair">
 (function(){
-  const BUILD='v0.97.53';
-  const LABEL='v0.97.53 · Reliable Webapp Updater';
+  const BUILD='v0.97.54';
+  const LABEL='v0.97.54 · Authoritative Version Banners';
 
   function copyV09752(value){return JSON.parse(JSON.stringify(value));}
   function keyV09752(value){
@@ -43999,6 +43999,53 @@ setTimeout(wire09723,250);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(enforceVersionV09752,700),{once:true});
   else setTimeout(enforceVersionV09752,700);
   window.addEventListener('load',()=>setTimeout(enforceVersionV09752,1100),{once:true});
+})();
+</script>
+
+<script id="v09754AuthoritativeVersionBanners">
+(function(){
+  const BUILD='v0.97.54';
+  const LABEL='v0.97.54 · Authoritative Version Banners';
+  let correcting=false;
+
+  function enforceVersionV09754(){
+    if(correcting)return;
+    correcting=true;
+    try{
+      window.BASKETBALLVERSE_BUILD=BUILD;
+      window.BASKETBALLVERSE_BUILD_LABEL=LABEL;
+      const meta=document.querySelector('meta[name="basketballverse-build"]');
+      if(meta&&meta.content!==BUILD)meta.content=BUILD;
+      const top=document.querySelector('#setupView .pill');
+      if(top&&top.textContent!==LABEL)top.textContent=LABEL;
+      const bottom=document.getElementById('buildBadgeV0904');
+      const bottomLabel='Basketballverse '+LABEL;
+      if(bottom&&bottom.textContent!==bottomLabel)bottom.textContent=bottomLabel;
+    }finally{correcting=false;}
+  }
+  window.enforceVersionV09754=enforceVersionV09754;
+
+  const previousRenderAllV09754=window.renderAll;
+  if(typeof previousRenderAllV09754==='function'){
+    window.renderAll=function(){
+      const result=previousRenderAllV09754.apply(this,arguments);
+      enforceVersionV09754();
+      setTimeout(enforceVersionV09754,0);
+      return result;
+    };
+    try{renderAll=window.renderAll;}catch(_){ }
+  }
+
+  const observer=new MutationObserver(()=>enforceVersionV09754());
+  function installV09754(){
+    enforceVersionV09754();
+    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installV09754,{once:true});
+  else installV09754();
+  window.addEventListener('load',enforceVersionV09754);
+  window.addEventListener('pageshow',enforceVersionV09754);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)enforceVersionV09754();});
 })();
 </script>
 
