@@ -1,15 +1,16 @@
-# Basketballverse — v0.97.55
+# Basketballverse — v0.97.56
 
 ## Current Build
 
-**v0.97.55 · Locked Version Identity**
+**v0.97.56 · Startup Freeze Repair**
 
-## Changes in v0.97.55
+## Changes in v0.97.56
 
-- Replaces the original hard-coded v0.97.26 setup label in the page source.
-- Locks the visible setup banner and bottom watermark to v0.97.55 at the CSS level, so older scripts cannot visually repaint them.
-- Keeps the static metadata, updater comparison, runtime build identity, setup banner, and watermark synchronized.
-- Retains the render and page-restoration safeguards from v0.97.54.
+- Fixes the setup screen freezing partway through its second section on mobile Safari.
+- Removes the competing whole-page version observer introduced in v0.97.54/v0.97.55.
+- Updates the game's original stable-version controller directly to v0.97.56 so only one observer owns the banners.
+- Keeps the setup banner, bottom watermark, update checker, runtime build identity, and static metadata synchronized.
+- Retains the CSS-backed version display without creating a JavaScript observer loop.
 - Preserves the reliable updater, safe historical draft repair, and Watch Game exit fix.
 
 ## Installation
