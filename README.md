@@ -1,14 +1,15 @@
-# Basketballverse — v0.97.60
+# Basketballverse — v0.97.61
 
 ## Current Build
 
-**v0.97.60 · Streamlined Offseason**
+**v0.97.61 · Season Review Cadence**
 
-## Changes in v0.97.60
+## Changes in v0.97.61
 
-- Removes the large Offseason Checklist panel shown above the current task.
-- Keeps the selected offseason task, its controls, and the live offseason event presentation. The task follows the current offseason phase automatically.
-- Retains the duplicate-player draft repair introduced in v0.97.59.
+- Limits the Commissioner's routine State of the League meeting to one per season, once clubs have played about 30 games.
+- Removes the four additional routine league review prompts previously issued during the regular season. Milestone news remains visible.
+- Clears unresolved routine prompts from an existing Commissioner save while preserving completed choices, franchise cases, relocation and expansion decisions.
+- Keeps the streamlined offseason and unique draft prospect fixes from v0.97.60.
 
 ## Installation
 
