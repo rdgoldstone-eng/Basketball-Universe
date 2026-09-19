@@ -1,16 +1,18 @@
-# Basketballverse — v0.97.61
+# Basketballverse — v0.97.62
 
 ## Current Build
 
-**v0.97.61 · Season Review Cadence**
+**v0.97.62 · Next Season Transition Repair**
 
-## Changes in v0.97.61
+## Changes in v0.97.62
 
-- Limits the Commissioner's routine State of the League meeting to one per season, once clubs have played about 30 games.
-- Removes the four additional routine league review prompts previously issued during the regular season. Milestone news remains visible.
-- Clears unresolved routine prompts from an existing Commissioner save while preserving completed choices, franchise cases, relocation and expansion decisions.
-- Keeps the streamlined offseason and unique draft prospect fixes from v0.97.60.
+- Fixes a Commissioner expansion loop: approved expansion teams are scheduled for the new year without being treated as a second pending expansion decision.
+- Repairs existing saves that already have approved Commissioner expansion choices, so the Next Season transition can proceed when other required choices are complete.
+- Shows a clear message when another rule blocks the season transition, and re-enables the Start Next Season button.
+- Retains the once-per-season Commissioner review, streamlined offseason, and draft duplicate repairs.
 
 ## Installation
 
 Replace the repository-root `index.html` and `README.md` with the two files in this ZIP. Keep your existing `portraits/`, `logos/`, and other asset folders. Saved universes remain in the browser.
+
+In a save stopped at Next Season, open Offseason and select Start Next Season. If the 1976 merger or a genuinely undecided expansion is due, complete that decision in the Offseason panel first.
