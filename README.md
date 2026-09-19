@@ -1,18 +1,18 @@
-# Basketballverse — v0.97.62
+# Basketballverse — v0.97.63
 
 ## Current Build
 
-**v0.97.62 · Next Season Transition Repair**
+**v0.97.63 · Season Screen Recovery**
 
-## Changes in v0.97.62
+## Changes in v0.97.63
 
-- Fixes a Commissioner expansion loop: approved expansion teams are scheduled for the new year without being treated as a second pending expansion decision.
-- Repairs existing saves that already have approved Commissioner expansion choices, so the Next Season transition can proceed when other required choices are complete.
-- Shows a clear message when another rule blocks the season transition, and re-enables the Start Next Season button.
-- Retains the once-per-season Commissioner review, streamlined offseason, and draft duplicate repairs.
+- Refreshes the Season and Playoffs screens after starting a new season, clearing the prior year's completed scoreboard and playoff controls.
+- Repairs a saved universe whose year advanced while its completed season object was left behind. The recovery runs when the game loads or when Season, Playoffs, or Offseason is opened.
+- Preserves completed history and earlier saves; it only initializes the new season when the saved year is ahead of the season year and no unfinished prior offseason remains.
+- Retains the Commissioner expansion and seasonal review fixes.
 
 ## Installation
 
 Replace the repository-root `index.html` and `README.md` with the two files in this ZIP. Keep your existing `portraits/`, `logos/`, and other asset folders. Saved universes remain in the browser.
 
-In a save stopped at Next Season, open Offseason and select Start Next Season. If the 1976 merger or a genuinely undecided expansion is due, complete that decision in the Offseason panel first.
+For the currently affected save, open the Season tab once after updating. The screen should show the new regular season and reset standings rather than the completed 1946–47 season.
