@@ -1,14 +1,15 @@
-# Basketballverse — v0.97.65
+# Basketballverse — v0.97.66
 
 ## Current Build
 
-**v0.97.65 · Active Season Render Fix**
+**v0.97.66 · Founding Decision Repair**
 
-## Changes in v0.97.65
+## Changes in v0.97.66
 
-- Fixes the 1947–48 transition showing 1946–47 Season and Playoffs screens after the year has advanced. Reproduced the issue through the complete 1946 Commissioner season, playoffs, draft, and offseason on the deployed v0.97.64 build.
-- The v0.97.63 and v0.97.64 refresh handlers checked `window.state`, but the game stores its active universe in a top-level `let state`; `window.state` is undefined. Those handlers returned without updating the screen. They now check the real game state before rendering the new season and clearing completed playoff panels.
-- Updates the page banner, watermark, and build metadata to v0.97.65.
+- Fixes the screen recovery warning `undefined is not an object (evaluating 'd.choices.map')` after starting the 1947–48 season. Founding franchise decisions were saved with an `options` list, but the general Decision screen assumed every pending decision had `choices`.
+- Displays the existing founding franchise choices from saved games and gives newly created decisions both compatible lists. Commissioner choices still apply to the franchise; saved decisions are not removed or resolved automatically.
+- Retains the v0.97.65 fix that correctly shows the active 1947–48 regular season and clears the old playoffs.
+- Updates the page banner, watermark, and build metadata to v0.97.66.
 
 ## Installation
 
