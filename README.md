@@ -1,16 +1,15 @@
-# Basketballverse — v0.97.64
+# Basketballverse — v0.97.65
 
 ## Current Build
 
-**v0.97.64 · Saved Season Display Repair**
+**v0.97.65 · Active Season Render Fix**
 
-## Changes in v0.97.64
+## Changes in v0.97.65
 
-- Verified against an exported Commissioner save: the save is in the 1947–48 regular season with zero games played, no active offseason, and the new teams already loaded. The 1946–47 displays were stale.
-- Refreshes Season after a save loads, after navigation, and after the year transition. Its current-year header, scoreboard, simulation buttons and standings can no longer remain on the prior season's completed view.
-- Clears the prior year's playoff title, Finals matchup, game log, watch-game panel, and controls when the current year has not yet started its playoffs.
-- Preserves the existing league history, saved results, and offseason actions already completed. Keeps prior expansion, decision and draft fixes.
+- Fixes the 1947–48 transition showing 1946–47 Season and Playoffs screens after the year has advanced. Reproduced the issue through the complete 1946 Commissioner season, playoffs, draft, and offseason on the deployed v0.97.64 build.
+- The v0.97.63 and v0.97.64 refresh handlers checked `window.state`, but the game stores its active universe in a top-level `let state`; `window.state` is undefined. Those handlers returned without updating the screen. They now check the real game state before rendering the new season and clearing completed playoff panels.
+- Updates the page banner, watermark, and build metadata to v0.97.65.
 
 ## Installation
 
-Replace the repository-root `index.html` and `README.md` with these files. Keep your existing `portraits/`, `logos/`, and other asset folders. Your save stays in the browser; opening it should show 1947–48 at the start of the regular season.
+Replace the repository-root `index.html` and `README.md` with the files in this folder. Keep your existing `portraits/`, `logos/`, and other asset folders. Existing browser saves stay in place.
