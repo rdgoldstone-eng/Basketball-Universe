@@ -1,19 +1,15 @@
-# Basketballverse — v0.97.68
+# Basketballverse — v0.97.69
 
 ## Current Build
 
-**v0.97.68 · Commissioner League Decisions**
+**v0.97.69 · Clear Franchise Actions**
 
-## Changes in v0.97.68
+## Changes in v0.97.69
 
-- Before the 1949–50 season, the Commissioner votes on the BAA–NBL merger. Select any combination of Anderson, Denver, Sheboygan, Syracuse, Tri-Cities, Waterloo and the proposed Indianapolis Olympians. The selected clubs join when the season starts; the decision is saved before the transition.
-- Two different Commissioner hearings are prompted once each per season, at roughly 20 and 62 games per club. Choices affect franchise attendance, stability, fan support, or league-office confidence. They pause long simulations and remain in the Decision Center until resolved. The existing league-office review may also appear during the season.
-- Retains the v0.97.65 active-season display repair, v0.97.66 founding-decision fix, and v0.97.67 complete early standings.
-- Updates the page banner, watermark, and build metadata to v0.97.68.
-
-## Existing saves
-
-The merger vote appears when advancing from the 1948–49 offseason into 1949–50. Saves already past that transition retain the teams and outcomes they already have; the game will not undo a completed season or move players retroactively.
+- Replaces the misleading Expansion & Relocation cards in the Decision Center. They displayed the first preselected team and market from two setup forms as if they were two pending decisions. A team shown twice there had not automatically moved or expanded.
+- Shows separate actions for relocating an existing franchise and adding a new expansion franchise. Actual relocation requests with a destination are called out separately.
+- The action buttons now open the Commissioner League Office controls and focus the right form, rather than routing to League standings. The forms begin with clear empty selections, and expansion identities already in use cannot be selected. Approving a relocation or awarding an expansion still requires explicit confirmation.
+- Retains the v0.97.68 merger vote, season hearings, and earlier fixes. Updates the page banner, watermark, and build metadata to v0.97.69.
 
 ## Installation
 
