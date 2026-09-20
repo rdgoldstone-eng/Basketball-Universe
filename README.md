@@ -1,20 +1,27 @@
-# Basketballverse — v0.97.70
+# Basketballverse — v0.97.71
 
 ## Current Build
 
-**v0.97.70 · Franchise Market Decisions**
+**v0.97.71 · Custom Franchise Logos**
 
-## Changes in v0.97.70
+## Changes in v0.97.71
 
-- Adds a Commissioner market report beside relocation and expansion choices. It shows the last available U.S. city census count at the selected year, franchise attendance, stability, and relocation pressure. It records approved franchise changes in this universe’s timeline and in the existing news feed.
-- Uses the dated city population as one input to expansion bid scores and opening fan support, and adds modest relocation pressure for small cities alongside attendance, results, and stability. The Commissioner may still approve or decline the proposed changes. City boundaries are not metropolitan areas; the interface identifies this explicitly. Markets without a comparable count use existing gameplay scores without invented population figures.
-- Displays the champion’s historical team logo beside each title in League → History, with a fallback if that team’s image is unavailable.
-- Preserves existing saved universes and earlier offseason fixes. Updates the page banner, watermark, and build metadata.
+- Commissioner → League Office → Expansion & Relocation now offers a custom city, nickname and PNG/JPG/WebP logo upload in the same screen as franchise approvals. Choose “Use for Relocation” or “Use for Expansion” to create and select an identity, then review and approve the actual transaction above it.
+- Adds a logo preview for the selected relocation or expansion identity. Built-in teams use their identity’s era logo or historical logo. A newly created identity uses its uploaded image in every era.
+- Compresses uploads to a transparent-capable WebP image up to 512 pixels before storing them in the universe save. Images too large for a browser save prompt for a smaller file. The franchise and its identity history retain the custom logo after approval.
+- Blocks a relocation identity already being used by a different active team. Expansion still blocks names already in use.
+- Includes the v0.97.70 population-based market report and champion logos in League History. Updates the visible build banner, watermark and version metadata.
 
-## Population source and limitations
+## Example: Move the Pistons to South Bend
 
-U.S. Census Bureau, Campbell Gibson, *Population of the 100 Largest Cities and Other Urban Places in the United States: 1790 to 1990*, Working Paper 27, [tables 18–22](https://www2.census.gov/library/working-papers/1998/demo/pop-twps0027/twps0027.html). Values are 1950, 1960, 1970, 1980 or 1990 city / urban-place census counts. In between censuses the game shows the latest actual observation, marked with its census year. Data older than 19 years do not influence the market score. U.S. markets outside the source’s top 100 and Canadian or Mexican markets have no sourced count in this release. City boundary changes (notably Nashville) can change counts independently of population growth. Metro-area demographic modelling is a future data step.
+1. As Commissioner, open League Office → Expansion & Relocation.
+2. Select the existing Pistons in “Relocate Existing Franchise.”
+3. Under “Build a Custom Franchise Identity,” enter **South Bend**, **Pistons**, and select your image. Wait for the logo preview.
+4. Select **Use for Relocation**. The South Bend market and identity are selected above, with its logo preview.
+5. Select **Approve Relocation** and confirm.
+
+The uploaded image is saved inside that game universe in your browser and in exported save games. It is not uploaded to your GitHub `logos/` folder; other people need that saved universe or a separately hosted logo asset to see it. Keep a backup of your save before clearing browser data.
 
 ## Installation
 
-Replace the repository-root `index.html` and `README.md` with the files in this ZIP. Keep existing `portraits/`, `logos/`, and other asset folders. Browser saves stay in place.
+Replace the repository-root `index.html` and `README.md` with the files in this ZIP. Keep existing `portraits/`, `logos/`, and other asset folders.
