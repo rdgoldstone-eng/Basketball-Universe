@@ -1,16 +1,20 @@
-# Basketballverse — v0.97.66
+# Basketballverse — v0.97.68
 
 ## Current Build
 
-**v0.97.66 · Founding Decision Repair**
+**v0.97.68 · Commissioner League Decisions**
 
-## Changes in v0.97.66
+## Changes in v0.97.68
 
-- Fixes the screen recovery warning `undefined is not an object (evaluating 'd.choices.map')` after starting the 1947–48 season. Founding franchise decisions were saved with an `options` list, but the general Decision screen assumed every pending decision had `choices`.
-- Displays the existing founding franchise choices from saved games and gives newly created decisions both compatible lists. Commissioner choices still apply to the franchise; saved decisions are not removed or resolved automatically.
-- Retains the v0.97.65 fix that correctly shows the active 1947–48 regular season and clears the old playoffs.
-- Updates the page banner, watermark, and build metadata to v0.97.66.
+- Before the 1949–50 season, the Commissioner votes on the BAA–NBL merger. Select any combination of Anderson, Denver, Sheboygan, Syracuse, Tri-Cities, Waterloo and the proposed Indianapolis Olympians. The selected clubs join when the season starts; the decision is saved before the transition.
+- Two different Commissioner hearings are prompted once each per season, at roughly 20 and 62 games per club. Choices affect franchise attendance, stability, fan support, or league-office confidence. They pause long simulations and remain in the Decision Center until resolved. The existing league-office review may also appear during the season.
+- Retains the v0.97.65 active-season display repair, v0.97.66 founding-decision fix, and v0.97.67 complete early standings.
+- Updates the page banner, watermark, and build metadata to v0.97.68.
+
+## Existing saves
+
+The merger vote appears when advancing from the 1948–49 offseason into 1949–50. Saves already past that transition retain the teams and outcomes they already have; the game will not undo a completed season or move players retroactively.
 
 ## Installation
 
-Replace the repository-root `index.html` and `README.md` with the files in this folder. Keep your existing `portraits/`, `logos/`, and other asset folders. Existing browser saves stay in place.
+Replace the repository-root `index.html` and `README.md` with the files in this folder. Keep existing `portraits/`, `logos/`, and other asset folders. Browser saves stay in place.
